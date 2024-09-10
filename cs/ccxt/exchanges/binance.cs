@@ -2583,6 +2583,7 @@ public partial class binance : Exchange
         * @name binance#fetchCurrencies
         * @description fetches all available currencies on an exchange
         * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+        * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an associative dictionary of currencies
         */
@@ -2606,9 +2607,13 @@ public partial class binance : Exchange
         {
             return null;
         }
-        object response = await this.sapiGetCapitalConfigGetall(parameters);
+        object promises = new List<object> {this.sapiGetCapitalConfigGetall(parameters), this.sapiGetMarginAllAssets(parameters)};
+        object results = await promiseAll(promises);
+        object responseCurrencies = getValue(results, 0);
+        object responseMarginables = getValue(results, 1);
+        object marginablesById = this.indexBy(responseMarginables, "assetName");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(responseCurrencies)); postFixIncrement(ref i))
         {
             //
             //    {
@@ -2705,7 +2710,7 @@ public partial class binance : Exchange
             //        ]
             //    }
             //
-            object entry = getValue(response, i);
+            object entry = getValue(responseCurrencies, i);
             object id = this.safeString(entry, "coin");
             object name = this.safeString(entry, "name");
             object code = this.safeCurrencyCode(id);
@@ -2763,6 +2768,17 @@ public partial class binance : Exchange
             }
             object trading = this.safeBool(entry, "trading");
             object active = (isTrue(isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled)) && isTrue(trading));
+            object marginEntry = this.safeDict(marginablesById, id, new Dictionary<string, object>() {});
+            //
+            //     {
+            //         assetName: "BTC",
+            //         assetFullName: "Bitcoin",
+            //         isBorrowable: true,
+            //         isMortgageable: true,
+            //         userMinBorrow: "0",
+            //         userMinRepay: "0",
+            //     }
+            //
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
                 { "name", name },
@@ -2776,6 +2792,7 @@ public partial class binance : Exchange
                 { "fee", fee },
                 { "fees", fees },
                 { "limits", this.limits },
+                { "margin", this.safeBool(marginEntry, "isBorrowable") },
             };
         }
         return result;
@@ -2791,6 +2808,8 @@ public partial class binance : Exchange
         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
         * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
+        * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
+        * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -2808,12 +2827,19 @@ public partial class binance : Exchange
             }
             ((IList<object>)fetchMarkets).Add(type);
         }
+        object fetchMargins = false;
         for (object i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
         {
             object marketType = getValue(fetchMarkets, i);
             if (isTrue(isEqual(marketType, "spot")))
             {
                 ((IList<object>)promisesRaw).Add(this.publicGetExchangeInfo(parameters));
+                if (isTrue(isTrue(this.checkRequiredCredentials(false)) && !isTrue(sandboxMode)))
+                {
+                    fetchMargins = true;
+                    ((IList<object>)promisesRaw).Add(this.sapiGetMarginAllPairs(parameters));
+                    ((IList<object>)promisesRaw).Add(this.sapiGetMarginIsolatedAllPairs(parameters));
+                }
             } else if (isTrue(isEqual(marketType, "linear")))
             {
                 ((IList<object>)promisesRaw).Add(this.fapiPublicGetExchangeInfo(parameters));
@@ -2828,13 +2854,30 @@ public partial class binance : Exchange
                 throw new ExchangeError ((string)add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
             }
         }
-        object promises = await promiseAll(promisesRaw);
+        object results = await promiseAll(promisesRaw);
         object markets = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
+        ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = new List<object>() {};
+        ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
-            object promise = this.safeDict(promises, i);
-            object promiseMarkets = this.safeList2(promise, "symbols", "optionSymbols", new List<object>() {});
-            markets = this.arrayConcat(markets, promiseMarkets);
+            object res = this.safeValue(results, i);
+            if (isTrue(isTrue(fetchMargins) && isTrue(((res is IList<object>) || (res.GetType().IsGenericType && res.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+            {
+                object keysList = new List<object>(((IDictionary<string,object>)this.indexBy(res, "symbol")).Keys);
+                object length = getArrayLength((new List<object>(((IDictionary<string,object>)getValue(this.options, "crossMarginPairsData")).Keys)));
+                // first one is the cross-margin promise
+                if (isTrue(isEqual(length, 0)))
+                {
+                    ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = keysList;
+                } else
+                {
+                    ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = keysList;
+                }
+            } else
+            {
+                object resultMarkets = this.safeList2(res, "symbols", "optionSymbols", new List<object>() {});
+                markets = this.arrayConcat(markets, resultMarkets);
+            }
         }
         //
         // spot / margin
@@ -2879,6 +2922,20 @@ public partial class binance : Exchange
         //             },
         //         ],
         //     }
+        //
+        // cross & isolated pairs response:
+        //
+        //     [
+        //         {
+        //           symbol: "BTCUSDT",
+        //           base: "BTC",
+        //           quote: "USDT",
+        //           isMarginTrade: true,
+        //           isBuyAllowed: true,
+        //           isSellAllowed: true,
+        //           id: "376870555451677893", // doesn't exist in isolated
+        //         },
+        //     ]
         //
         // futures/usdt-margined (fapi)
         //
@@ -3124,6 +3181,22 @@ public partial class binance : Exchange
             }
         }
         object isMarginTradingAllowed = this.safeBool(market, "isMarginTradingAllowed", false);
+        object marginModes = null;
+        if (isTrue(spot))
+        {
+            object hasCrossMargin = this.inArray(id, getValue(this.options, "crossMarginPairsData"));
+            object hasIsolatedMargin = this.inArray(id, getValue(this.options, "isolatedMarginPairsData"));
+            marginModes = new Dictionary<string, object>() {
+                { "cross", hasCrossMargin },
+                { "isolated", hasIsolatedMargin },
+            };
+        } else if (isTrue(isTrue(linear) || isTrue(inverse)))
+        {
+            marginModes = new Dictionary<string, object>() {
+                { "cross", true },
+                { "isolated", true },
+            };
+        }
         object unifiedType = null;
         if (isTrue(spot))
         {
@@ -3157,6 +3230,7 @@ public partial class binance : Exchange
             { "type", unifiedType },
             { "spot", spot },
             { "margin", isTrue(spot) && isTrue(isMarginTradingAllowed) },
+            { "marginModes", marginModes },
             { "swap", swap },
             { "future", future },
             { "option", option },
@@ -4278,6 +4352,10 @@ public partial class binance : Exchange
         object price = this.safeString(parameters, "price");
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"price", "until"});
+        if (isTrue(isTrue(isTrue(!isEqual(since, null)) && isTrue(!isEqual(until, null))) && isTrue(isEqual(limit, null))))
+        {
+            limit = maxLimit;
+        }
         limit = ((bool) isTrue((isEqual(limit, null)))) ? defaultLimit : mathMin(limit, maxLimit);
         object request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },

@@ -26,7 +26,6 @@ export default class binance extends binanceRest {
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscription(client: Client, subscription: Dict): void;
-    cleanCache(subscription: Dict): void;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     unWatchTrades(symbol: string, params?: {}): Promise<any>;

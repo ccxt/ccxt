@@ -2601,36 +2601,22 @@ public partial class okx : ccxt.okx
     {
         object subMessageHash = add("trades:", symbol);
         object messageHash = add("unsubscribe:trades:", symbol);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
+        if (isTrue(inOp(this.trades, symbol)))
         {
 
         }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
-
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
     public virtual void handleUnsubscriptionOrderBook(WebSocketClient client, object symbol, object channel)
     {
         object subMessageHash = add(add(channel, ":"), symbol);
         object messageHash = add("unsubscribe:orderbook:", symbol);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
+        if (isTrue(inOp(this.orderbooks, symbol)))
         {
 
         }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
-
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
     public virtual void handleUnsubscriptionOHLCV(WebSocketClient client, object symbol, object channel)
@@ -2639,42 +2625,22 @@ public partial class okx : ccxt.okx
         object timeframe = this.findTimeframe(tf);
         object subMessageHash = add(add(add("multi:", channel), ":"), symbol);
         object messageHash = add("unsubscribe:", subMessageHash);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
-        {
-
-        }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
         {
 
         }
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
     public virtual void handleUnsubscriptionTicker(WebSocketClient client, object symbol, object channel)
     {
         object subMessageHash = add(add(channel, "::"), symbol);
         object messageHash = add("unsubscribe:ticker:", symbol);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
-        {
-
-        }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.tickers, symbol)))
         {
 
         }
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
     public virtual void handleUnsubscription(WebSocketClient client, object message)

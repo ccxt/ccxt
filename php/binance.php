@@ -2630,6 +2630,7 @@ class binance extends Exchange {
         /**
          * fetches all available currencies on an exchange
          * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -2649,9 +2650,13 @@ class binance extends Exchange {
         if ($apiBackup !== null) {
             return null;
         }
-        $response = $this->sapiGetCapitalConfigGetall ($params);
+        $promises = array( $this->sapiGetCapitalConfigGetall ($params), $this->sapiGetMarginAllAssets ($params) );
+        $results = $promises;
+        $responseCurrencies = $results[0];
+        $responseMarginables = $results[1];
+        $marginablesById = $this->index_by($responseMarginables, 'assetName');
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
+        for ($i = 0; $i < count($responseCurrencies); $i++) {
             //
             //    {
             //        "coin" => "LINK",
@@ -2747,7 +2752,7 @@ class binance extends Exchange {
             //        ]
             //    }
             //
-            $entry = $response[$i];
+            $entry = $responseCurrencies[$i];
             $id = $this->safe_string($entry, 'coin');
             $name = $this->safe_string($entry, 'name');
             $code = $this->safe_currency_code($id);
@@ -2802,6 +2807,17 @@ class binance extends Exchange {
             }
             $trading = $this->safe_bool($entry, 'trading');
             $active = ($isWithdrawEnabled && $isDepositEnabled && $trading);
+            $marginEntry = $this->safe_dict($marginablesById, $id, array());
+            //
+            //     {
+            //         assetName => "BTC",
+            //         assetFullName => "Bitcoin",
+            //         isBorrowable => true,
+            //         isMortgageable => true,
+            //         userMinBorrow => "0",
+            //         userMinRepay => "0",
+            //     }
+            //
             $result[$code] = array(
                 'id' => $id,
                 'name' => $name,
@@ -2815,6 +2831,7 @@ class binance extends Exchange {
                 'fee' => $fee,
                 'fees' => $fees,
                 'limits' => $this->limits,
+                'margin' => $this->safe_bool($marginEntry, 'isBorrowable'),
             );
         }
         return $result;
@@ -2827,6 +2844,8 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -2841,10 +2860,16 @@ class binance extends Exchange {
             }
             $fetchMarkets[] = $type;
         }
+        $fetchMargins = false;
         for ($i = 0; $i < count($fetchMarkets); $i++) {
             $marketType = $fetchMarkets[$i];
             if ($marketType === 'spot') {
                 $promisesRaw[] = $this->publicGetExchangeInfo ($params);
+                if ($this->check_required_credentials(false) && !$sandboxMode) {
+                    $fetchMargins = true;
+                    $promisesRaw[] = $this->sapiGetMarginAllPairs ($params);
+                    $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs ($params);
+                }
             } elseif ($marketType === 'linear') {
                 $promisesRaw[] = $this->fapiPublicGetExchangeInfo ($params);
             } elseif ($marketType === 'inverse') {
@@ -2855,12 +2880,25 @@ class binance extends Exchange {
                 throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
             }
         }
-        $promises = $promisesRaw;
+        $results = $promisesRaw;
         $markets = array();
-        for ($i = 0; $i < count($fetchMarkets); $i++) {
-            $promise = $this->safe_dict($promises, $i);
-            $promiseMarkets = $this->safe_list_2($promise, 'symbols', 'optionSymbols', array());
-            $markets = $this->array_concat($markets, $promiseMarkets);
+        $this->options['crossMarginPairsData'] = array();
+        $this->options['isolatedMarginPairsData'] = array();
+        for ($i = 0; $i < count($results); $i++) {
+            $res = $this->safe_value($results, $i);
+            if ($fetchMargins && gettype($res) === 'array' && array_keys($res) === array_keys(array_keys($res))) {
+                $keysList = is_array($this->index_by($res, 'symbol')) ? array_keys($this->index_by($res, 'symbol')) : array();
+                $length = ($this->options['crossMarginPairsData']);
+                // first one is the cross-margin promise
+                if ($length === 0) {
+                    $this->options['crossMarginPairsData'] = $keysList;
+                } else {
+                    $this->options['isolatedMarginPairsData'] = $keysList;
+                }
+            } else {
+                $resultMarkets = $this->safe_list_2($res, 'symbols', 'optionSymbols', array());
+                $markets = $this->array_concat($markets, $resultMarkets);
+            }
         }
         //
         // spot / margin
@@ -2905,6 +2943,20 @@ class binance extends Exchange {
         //             ),
         //         ],
         //     }
+        //
+        // cross & isolated pairs response:
+        //
+        //     array(
+        //         array(
+        //           symbol => "BTCUSDT",
+        //           base => "BTC",
+        //           quote => "USDT",
+        //           isMarginTrade => true,
+        //           isBuyAllowed => true,
+        //           isSellAllowed => true,
+        //           id => "376870555451677893", // doesn't exist in isolated
+        //         ),
+        //     )
         //
         // futures/usdt-margined (fapi)
         //
@@ -3137,6 +3189,20 @@ class binance extends Exchange {
             }
         }
         $isMarginTradingAllowed = $this->safe_bool($market, 'isMarginTradingAllowed', false);
+        $marginModes = null;
+        if ($spot) {
+            $hasCrossMargin = $this->in_array($id, $this->options['crossMarginPairsData']);
+            $hasIsolatedMargin = $this->in_array($id, $this->options['isolatedMarginPairsData']);
+            $marginModes = array(
+                'cross' => $hasCrossMargin,
+                'isolated' => $hasIsolatedMargin,
+            );
+        } elseif ($linear || $inverse) {
+            $marginModes = array(
+                'cross' => true,
+                'isolated' => true,
+            );
+        }
         $unifiedType = null;
         if ($spot) {
             $unifiedType = 'spot';
@@ -3165,6 +3231,7 @@ class binance extends Exchange {
             'type' => $unifiedType,
             'spot' => $spot,
             'margin' => $spot && $isMarginTradingAllowed,
+            'marginModes' => $marginModes,
             'swap' => $swap,
             'future' => $future,
             'option' => $option,
@@ -4188,6 +4255,9 @@ class binance extends Exchange {
         $price = $this->safe_string($params, 'price');
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, array( 'price', 'until' ));
+        if ($since !== null && $until !== null && $limit === null) {
+            $limit = $maxLimit;
+        }
         $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
