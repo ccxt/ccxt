@@ -23,6 +23,7 @@ class onetrading(ccxt.async_support.onetrading):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': False,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,

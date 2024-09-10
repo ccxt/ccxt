@@ -1236,7 +1236,9 @@ class bitget extends Exchange {
                     '40713' => '\\ccxt\\ExchangeError', // Cannot exceed the maximum transferable margin amount
                     '40714' => '\\ccxt\\ExchangeError', // No direct margin call is allowed
                     '40762' => '\\ccxt\\InsufficientFunds', // array("code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null)
-                    '40768' => '\\ccxt\\OrderNotFound', // Order does not exist"
+                    '40768' => '\\ccxt\\OrderNotFound', // Order does not exist
+                    '40808' => '\\ccxt\\InvalidOrder', // array("code":"40808","msg":"Parameter verification exception size checkBDScale error value=2293.577 checkScale=2","requestTime":1725638500052,"data":null)
+                    '41103' => '\\ccxt\\InvalidOrder', // array("code":"41103","msg":"param price scale error error","requestTime":1725635883561,"data":null)
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
                     '43012' => '\\ccxt\\InsufficientFunds', // array("code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null)
@@ -1313,10 +1315,11 @@ class bitget extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
-                'JADE' => 'Jade Protocol',
+                'APX' => 'AstroPepeX',
                 'DEGEN' => 'DegenReborn',
-                'TONCOIN' => 'TON',
+                'JADE' => 'Jade Protocol',
                 'OMNI' => 'omni', // conflict with Omni Network
+                'TONCOIN' => 'TON',
             ),
             'options' => array(
                 'timeframes' => array(
@@ -3989,7 +3992,7 @@ class bitget extends Exchange {
         if ($feeCostString !== null) {
             // swap
             $fee = array(
-                'cost' => $this->parse_number(Precise::string_abs($feeCostString)),
+                'cost' => $this->parse_number(Precise::string_neg($feeCostString)),
                 'currency' => $market['settle'],
             );
         }
@@ -4006,7 +4009,7 @@ class bitget extends Exchange {
                 }
             }
             $fee = array(
-                'cost' => $this->parse_number(Precise::string_abs($this->safe_string($feeObject, 'totalFee'))),
+                'cost' => $this->parse_number(Precise::string_neg($this->safe_string($feeObject, 'totalFee'))),
                 'currency' => $this->safe_currency_code($this->safe_string($feeObject, 'feeCoinCode')),
             );
         }
@@ -5036,6 +5039,7 @@ class bitget extends Exchange {
              * fetches information on an order made by the user
              * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
              * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

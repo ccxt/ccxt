@@ -24,6 +24,7 @@ class lbank extends \ccxt\async\lbank {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -516,7 +517,7 @@ class lbank extends \ccxt\async\lbank {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+             * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-$orders
              * get the list of trades associated with the user
              * @param {string} [$symbol] unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -713,7 +714,6 @@ class lbank extends \ccxt\async\lbank {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://www.lbank.com/en-US/docs/index.html#$market-depth
-             * @see https://www.lbank.com/en-US/docs/index.html#$market-increment-depth
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return

@@ -132,6 +132,30 @@
                   }
                 ],
                 "output": "{\"initial\":{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"70\"},\"trigger\":{\"price_type\":0,\"price\":\"90\",\"rule\":1}}"
+            },
+            {
+                "description": "swap market buy",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                  "XRP/USDT:USDT",
+                  "market",
+                  "buy",
+                  1
+                ],
+                "output": "{\"contract\":\"XRP_USDT\",\"size\":1,\"price\":\"0\",\"tif\":\"ioc\"}"
+            },
+            {
+                "description": "swap market sell",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                  "XRP/USDT:USDT",
+                  "market",
+                  "sell",
+                  1
+                ],
+                "output": "{\"contract\":\"XRP_USDT\",\"size\":-1,\"price\":\"0\",\"tif\":\"ioc\"}"
             }
         ],
         "createOrders": [
@@ -1418,7 +1442,7 @@
                 "input": [
                     "XRP/USDT:USDT"
                 ],
-                "output": "{\"contract\":\"XRP_USDT\",\"size\":0,\"price\":0,\"tif\":\"ioc\",\"close\":true}"
+                "output": "{\"contract\":\"XRP_USDT\",\"size\":0,\"price\":\"0\",\"tif\":\"ioc\",\"close\":true}"
             }
         ],
         "fetchMarketLeverageTiers": [

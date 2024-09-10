@@ -95,6 +95,7 @@ interface kucoin {
     privateGetRedeemOrders (params?: {}): Promise<implicitReturnType>;
     privateGetPurchaseOrders (params?: {}): Promise<implicitReturnType>;
     privateGetBrokerApiRebaseDownload (params?: {}): Promise<implicitReturnType>;
+    privateGetMigrateUserAccountStatus (params?: {}): Promise<implicitReturnType>;
     privateGetAffiliateInviterStatistics (params?: {}): Promise<implicitReturnType>;
     privatePostSubUserCreated (params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKey (params?: {}): Promise<implicitReturnType>;
@@ -226,6 +227,7 @@ interface kucoin {
     brokerGetBrokerNdAccount (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdRebaseDownload (params?: {}): Promise<implicitReturnType>;
+    brokerGetAssetNdbrokerDepositList (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdTransferDetail (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdDepositDetail (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdWithdrawDetail (params?: {}): Promise<implicitReturnType>;

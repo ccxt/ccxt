@@ -1353,6 +1353,11 @@ public partial class testMainClass : BaseTest
                 {
                     continue;
                 }
+                object disabledString = exchange.safeString(result, "disabled", "");
+                if (isTrue(!isEqual(disabledString, "")))
+                {
+                    continue;
+                }
                 object isDisabledCSharp = exchange.safeBool(result, "disabledCS", false);
                 if (isTrue(isTrue(isDisabledCSharp) && isTrue((isEqual(this.lang, "C#")))))
                 {

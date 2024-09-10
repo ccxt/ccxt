@@ -1527,15 +1527,21 @@ public partial class bybit
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params</term>
+    /// <term>params.paginate</term>
     /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.subType</term>
     /// <description>
     /// string : if inverse will use v5/account/contract-transaction-log
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -1552,7 +1558,7 @@ public partial class bybit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/withdraw"/>  <br/>
+    /// See <see href="https://www.tokocrypto.com/apidocs/#withdraw-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

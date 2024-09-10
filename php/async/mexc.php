@@ -454,164 +454,82 @@ class mexc extends Exchange {
                     'LTC' => 'LTC',
                 ),
                 'networks' => array(
-                    'ABBC' => 'ABBC',
+                    'TRC20' => 'TRX',
+                    'TON' => 'TONCOIN',
+                    'AVAXC' => 'AVAX_CCHAIN',
+                    'ERC20' => 'ETH',
                     'ACA' => 'ACALA',
-                    'ADA' => 'Cardano(ADA)',
-                    'AE' => 'AE',
-                    'ALGO' => 'Algorand(ALGO)',
-                    'ALPH' => 'Alephium(ALPH)',
-                    'AME' => 'AME',
-                    'AOK' => 'AOK',
-                    'APT' => 'APTOS(APT)',
-                    'AR' => 'AR',
-                    'ARB' => 'Arbitrum One(ARB)',
-                    'ARBNOVA' => 'ARBNOVA',
-                    'ARBONE' => 'ArbitrumOne(ARB)',
-                    'ARK' => 'ARK',
+                    // 'ADA' => 'Cardano(ADA)',
+                    // 'AE' => 'AE',
+                    // 'ALGO' => 'Algorand(ALGO)',
+                    // 'ALPH' => 'Alephium(ALPH)',
+                    // 'ARB' => 'Arbitrum One(ARB)',
+                    // 'ARBONE' => 'ArbitrumOne(ARB)',
                     'ASTR' => 'ASTAR', // ASTAREVM is different
-                    'ATOM' => 'Cosmos(ATOM)',
-                    'AVAXC' => 'Avalanche C Chain(AVAX CCHAIN)',
-                    'AVAXX' => 'Avalanche X Chain(AVAX XCHAIN)',
-                    'AZERO' => 'Aleph Zero(AZERO)',
-                    'BCH' => 'Bitcoin Cash(BCH)',
-                    'BDX' => 'BDX',
-                    'BEAM' => 'BEAM',
-                    'BEP2' => 'BNB Beacon Chain(BEP2)',
-                    'BEP20' => 'BNB Smart Chain(BEP20)',
-                    'BITCI' => 'BITCI',
-                    'BNC' => 'BNC',
-                    'BNCDOT' => 'BNCPOLKA',
-                    'BOBA' => 'BOBA',
-                    'BSC' => 'BEP20(BSC)',
-                    'BSV' => 'Bitcoin SV(BSV)',
-                    'BTC' => 'Bitcoin(BTC)',
+                    // 'ATOM' => 'Cosmos(ATOM)',
+                    // 'AVAXC' => 'Avalanche C Chain(AVAX CCHAIN)',
+                    // 'AVAXX' => 'Avalanche X Chain(AVAX XCHAIN)',
+                    // 'AZERO' => 'Aleph Zero(AZERO)',
+                    // 'BCH' => 'Bitcoin Cash(BCH)',
+                    // 'BNCDOT' => 'BNCPOLKA',
+                    // 'BSV' => 'Bitcoin SV(BSV)',
+                    // 'BTC' => 'Bitcoin(BTC)',
                     'BTM' => 'BTM2',
-                    'CELO' => 'CELO',
-                    'CFX' => 'CFX',
-                    'CHZ' => 'Chiliz Legacy Chain(CHZ)',
-                    'CHZ2' => 'Chiliz Chain(CHZ2)',
-                    'CKB' => 'CKB',
-                    'CLORE' => 'Clore.ai(CLORE)',
+                    // 'CHZ' => 'Chiliz Legacy Chain(CHZ)',
+                    // 'CHZ2' => 'Chiliz Chain(CHZ2)',
+                    // 'CLORE' => 'Clore.ai(CLORE)',
                     'CRC20' => 'CRONOS',
-                    'CSPR' => 'CSPR',
-                    'DASH' => 'DASH',
-                    'DC' => 'Dogechain(DC)',
-                    'DCR' => 'DCR',
-                    'DNX' => 'Dynex(DNX)',
-                    'DOGE' => 'Dogecoin(DOGE)',
-                    'DOT' => 'Polkadot(DOT)',
-                    'DYM' => 'Dymension(DYM)',
-                    'EDG' => 'EDG',
-                    'EGLD' => 'EGLD',
-                    'EOS' => 'EOS',
-                    'ERC20' => 'Ethereum(ERC20)',
-                    'ETC' => 'Ethereum Classic(ETC)',
+                    // 'DC' => 'Dogechain(DC)',
+                    // 'DNX' => 'Dynex(DNX)',
+                    // 'DOGE' => 'Dogecoin(DOGE)',
+                    // 'DOT' => 'Polkadot(DOT)',
+                    // 'DYM' => 'Dymension(DYM)',
                     'ETHF' => 'ETF',
-                    'ETHW' => 'ETHW',
-                    'EVER' => 'EVER',
-                    'FET' => 'FET',
-                    'FIL' => 'FIL',
-                    'FIO' => 'FIO',
-                    'FLOW' => 'FLOW',
-                    'FSN' => 'FSN',
-                    'FTM' => 'Fantom(FTM)',
-                    'FUSE' => 'FUSE',
-                    'GLMR' => 'GLMR',
-                    'GRIN' => 'GRIN',
-                    'HBAR' => 'Hedera(HBAR)',
-                    'HIVE' => 'HIVE',
                     'HRC20' => 'HECO',
-                    'HYDRA' => 'HYDRA',
-                    'ICP' => 'Internet Computer(ICP)',
-                    'INDEX' => 'Index Chain',
-                    'IOST' => 'IOST',
-                    'IOTA' => 'IOTA',
-                    'IOTX' => 'IOTX',
-                    'IRIS' => 'IRIS',
-                    'KAR' => 'KAR',
-                    'KAS' => 'Kaspa(KAS)',
-                    'KAVA' => 'KAVA',
-                    'KDA' => 'KDA',
-                    'KILT' => 'KILT',
-                    'KLAY' => 'Klaytn(KLAY)',
-                    'KMA' => 'KMA',
-                    'KSM' => 'KSM',
-                    'LAT' => 'LAT',
-                    'LAVA' => 'Elysium(LAVA)',
-                    'LTC' => 'Litecoin(LTC)',
-                    'LUNA' => 'Terra(LUNA)',
-                    'MASS' => 'MASS',
-                    'MATIC' => 'Polygon(MATIC)',
-                    'MCOIN' => 'Mcoin Network',
-                    'METIS' => 'METIS',
-                    'MINA' => 'MINA',
-                    'MNT' => 'Mantle(MNT)',
-                    'MOVR' => 'MOVR',
-                    'MTRG' => 'Meter(MTRG)',
-                    'NAS' => 'NAS',
-                    'NEAR' => 'NEAR Protocol(NEAR)',
-                    'NEBL' => 'NEBL',
-                    'NEM' => 'NEM',
-                    'NEO' => 'NEO',
-                    'NEO3' => 'NEO3',
-                    'NEOXA' => 'Neoxa Network',
-                    'NULS' => 'NULS',
+                    // 'KLAY' => 'Klaytn(KLAY)',
                     'OASIS' => 'ROSE',
-                    'OASYS' => 'OASYS',
                     'OKC' => 'OKT',
-                    'OMN' => 'Omega Network(OMN)',
-                    'OMNI' => 'OMNI',
-                    'ONE' => 'ONE',
-                    'ONT' => 'ONT',
-                    'OPTIMISM' => 'Optimism(OP)',
-                    'OSMO' => 'OSMO',
-                    'PLCU' => 'PLCU',
-                    'POKT' => 'POKT',
-                    'QKC' => 'QKC',
-                    'QTUM' => 'QTUM',
-                    'RAP20' => 'RAP20 (Rangers Mainnet)',
-                    'REI' => 'REI',
                     'RSK' => 'RBTC',
-                    'RVN' => 'Ravencoin(RVN)',
-                    'SATOX' => 'Satoxcoin(SATOX)',
-                    'SC' => 'SC',
-                    'SCRT' => 'SCRT',
-                    'SDN' => 'SDN',
-                    'SGB' => 'SGB',
-                    'SOL' => 'Solana(SOL)',
-                    'STAR' => 'STAR',
-                    'STARK' => 'Starknet(STARK)',
-                    'STEEM' => 'STEEM',
-                    'SYS' => 'SYS',
-                    'TAO' => 'Bittensor(TAO)',
-                    'TIA' => 'Celestia(TIA)',
-                    'TOMO' => 'TOMO',
-                    'TON' => 'Toncoin(TON)',
-                    'TRC10' => 'TRC10',
-                    'TRC20' => 'Tron(TRC20)',
-                    'UGAS' => 'UGAS(Ultrain)',
-                    'VET' => 'VeChain(VET)',
-                    'VEX' => 'Vexanium(VEX)',
-                    'VSYS' => 'VSYS',
-                    'WAVES' => 'WAVES',
-                    'WAX' => 'WAX',
-                    'WEMIX' => 'WEMIX',
-                    'XCH' => 'Chia(XCH)',
-                    'XDC' => 'XDC',
-                    'XEC' => 'XEC',
-                    'XLM' => 'Stellar(XLM)',
-                    'XMR' => 'Monero(XMR)',
-                    'XNA' => 'Neurai(XNA)',
-                    'XPR' => 'XPR Network',
-                    'XRD' => 'XRD',
-                    'XRP' => 'Ripple(XRP)',
-                    'XTZ' => 'XTZ',
-                    'XVG' => 'XVG',
-                    'XYM' => 'XYM',
-                    'ZEC' => 'ZEC',
-                    'ZEN' => 'ZEN',
-                    'ZIL' => 'Zilliqa(ZIL)',
-                    'ZTG' => 'ZTG',
+                    // 'RVN' => 'Ravencoin(RVN)',
+                    // 'SATOX' => 'Satoxcoin(SATOX)',
+                    // 'SC' => 'SC',
+                    // 'SCRT' => 'SCRT',
+                    // 'SDN' => 'SDN',
+                    // 'SGB' => 'SGB',
+                    // 'SOL' => 'Solana(SOL)',
+                    // 'STAR' => 'STAR',
+                    // 'STARK' => 'Starknet(STARK)',
+                    // 'STEEM' => 'STEEM',
+                    // 'SYS' => 'SYS',
+                    // 'TAO' => 'Bittensor(TAO)',
+                    // 'TIA' => 'Celestia(TIA)',
+                    // 'TOMO' => 'TOMO',
+                    // 'TON' => 'Toncoin(TON)',
+                    // 'TRC10' => 'TRC10',
+                    // 'TRC20' => 'Tron(TRC20)',
+                    // 'UGAS' => 'UGAS(Ultrain)',
+                    // 'VET' => 'VeChain(VET)',
+                    // 'VEX' => 'Vexanium(VEX)',
+                    // 'VSYS' => 'VSYS',
+                    // 'WAVES' => 'WAVES',
+                    // 'WAX' => 'WAX',
+                    // 'WEMIX' => 'WEMIX',
+                    // 'XCH' => 'Chia(XCH)',
+                    // 'XDC' => 'XDC',
+                    // 'XEC' => 'XEC',
+                    // 'XLM' => 'Stellar(XLM)',
+                    // 'XMR' => 'Monero(XMR)',
+                    // 'XNA' => 'Neurai(XNA)',
+                    // 'XPR' => 'XPR Network',
+                    // 'XRD' => 'XRD',
+                    // 'XRP' => 'Ripple(XRP)',
+                    // 'XTZ' => 'XTZ',
+                    // 'XVG' => 'XVG',
+                    // 'XYM' => 'XYM',
+                    // 'ZEC' => 'ZEC',
+                    // 'ZEN' => 'ZEN',
+                    // 'ZIL' => 'Zilliqa(ZIL)',
+                    // 'ZTG' => 'ZTG',
                     // todo => uncomment below after concensus
                     // 'ALAYA' => 'ATP',
                     // 'ANDUSCHAIN' => 'DEB',
@@ -719,69 +637,9 @@ class mexc extends Exchange {
                     // OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 ),
                 'networksById' => array(
-                    'Aleph Zero(AZERO)' => 'AZERO',
-                    'Alephium(ALPH)' => 'ALPH',
-                    'Algorand(ALGO)' => 'ALGO',
-                    'APTOS(APT)' => 'APT',
-                    'Arbitrum One(ARB)' => 'ARB',
-                    'Avalanche C Chain(AVAX CCHAIN)' => 'AVAXC',
-                    'Avalanche X Chain(AVAX XCHAIN)' => 'AVAXX',
-                    'BEP20(BSC)' => 'BSC',
-                    'Bitcoin Cash(BCH)' => 'BCH',
-                    'Bitcoin SV(BSV)' => 'BSV',
-                    'Bitcoin(BTC)' => 'BTC',
-                    'Bittensor(TAO)' => 'TAO',
-                    'BNB Beacon Chain(BEP2)' => 'BEP2',
                     'BNB Smart Chain(BEP20-RACAV1)' => 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)' => 'BSC',
                     'BNB Smart Chain(BEP20)' => 'BSC',
-                    'Cardano(ADA)' => 'ADA',
-                    'Celestia(TIA)' => 'TIA',
-                    'Chia(XCH)' => 'XCH',
-                    'Chiliz Chain(CHZ2)' => 'CHZ2',
-                    'Chiliz Legacy Chain(CHZ)' => 'CHZ',
-                    'Clore.ai(CLORE)' => 'CLORE',
-                    'Cosmos(ATOM)' => 'ATOM',
-                    'Dogechain(DC)' => 'DC',
-                    'Dogecoin(DOGE)' => 'DOGE',
-                    'Dymension(DYM)' => 'DYM',
-                    'Dynex(DNX)' => 'DNX',
-                    'Elysium(LAVA)' => 'LAVA',
-                    'Ethereum Classic(ETC)' => 'ETC',
-                    'Ethereum(ERC20)' => 'ERC20',
-                    'Fantom(FTM)' => 'FTM',
-                    'Hedera(HBAR)' => 'HBAR',
-                    'Index Chain' => 'INDEX',
-                    'Internet Computer(ICP)' => 'ICP',
-                    'Kaspa(KAS)' => 'KAS',
-                    'Klaytn(KLAY)' => 'KLAY',
-                    'Litecoin(LTC)' => 'LTC',
-                    'Mantle(MNT)' => 'MNT',
-                    'Mcoin Network' => 'MCOIN',
-                    'Meter(MTRG)' => 'MTRG',
-                    'Monero(XMR)' => 'XMR',
-                    'NEAR Protocol(NEAR)' => 'NEAR',
-                    'Neoxa Network' => 'NEOXA',
-                    'Neurai(XNA)' => 'XNA',
-                    'Omega Network(OMN)' => 'OMN',
-                    'Optimism(OP)' => 'OPTIMISM',
-                    'Polkadot(DOT)' => 'DOT',
-                    'Polygon(MATIC)' => 'MATIC',
-                    'RAP20 (Rangers Mainnet)' => 'RAP20',
-                    'Ravencoin(RVN)' => 'RVN',
-                    'Ripple(XRP)' => 'XRP',
-                    'Satoxcoin(SATOX)' => 'SATOX',
-                    'Solana(SOL)' => 'SOL',
-                    'Starknet(STARK)' => 'STARK',
-                    'Stellar(XLM)' => 'XLM',
-                    'Terra(LUNA)' => 'LUNA',
-                    'Toncoin(TON)' => 'TON',
-                    'Tron(TRC20)' => 'TRC20',
-                    'UGAS(Ultrain)' => 'UGAS',
-                    'VeChain(VET)' => 'VET',
-                    'Vexanium(VEX)' => 'VEX',
-                    'XPR Network' => 'XPR',
-                    'Zilliqa(ZIL)' => 'ZIL',
                     // TODO => uncomment below after deciding unified name
                     // 'PEPE COIN BSC':
                     // 'SMART BLOCKCHAIN':
@@ -945,6 +803,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
              */
@@ -982,6 +842,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -1074,7 +936,7 @@ class mexc extends Exchange {
                 $chains = $this->safe_value($currency, 'networkList', array());
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
-                    $networkId = $this->safe_string_2($chain, 'network', 'netWork');
+                    $networkId = $this->safe_string_2($chain, 'netWork', 'network');
                     $network = $this->network_id_to_code($networkId);
                     $isDepositEnabled = $this->safe_bool($chain, 'depositEnable', false);
                     $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawEnable', false);
@@ -1154,6 +1016,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for mexc
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -1165,6 +1029,13 @@ class mexc extends Exchange {
 
     public function fetch_spot_markets($params = array ()) {
         return Async\async(function () use ($params) {
+            /**
+             * @ignore
+             * retrieves $data on all spot markets for mexc
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing $market $data
+             */
             $response = Async\await($this->spotPublicGetExchangeInfo ($params));
             //
             //     {
@@ -1285,6 +1156,13 @@ class mexc extends Exchange {
 
     public function fetch_swap_markets($params = array ()) {
         return Async\async(function () use ($params) {
+            /**
+             * @ignore
+             * retrieves $data on all swap markets for mexc
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing $market $data
+             */
             $response = Async\await($this->contractPublicGetDetail ($params));
             //
             //     {
@@ -1873,6 +1751,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1961,6 +1841,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-$ticker-price-change-statistics
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -2151,6 +2033,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2297,6 +2180,21 @@ class mexc extends Exchange {
 
     public function create_spot_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
+            /**
+             * @ignore
+             * create a trade $order
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-$order
+             * @param {string} symbol unified symbol of the $market to create an $order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
+             * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+             * @param {bool} [$params->postOnly] if true, the $order will only be posted if it will be a maker $order
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             */
             Async\await($this->load_markets());
             $request = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $params);
             $response = Async\await($this->spotPrivatePostOrder ($this->extend($request, $params)));
@@ -2330,6 +2228,30 @@ class mexc extends Exchange {
 
     public function create_swap_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
+            /**
+             * @ignore
+             * create a trade order
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
+             * @param {bool} [$params->reduceOnly] indicates if this order is to reduce the size of a position
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->leverage] $leverage is necessary on isolated margin
+             * @param {long} [$params->positionId] it is recommended to property_exists($this, fill) parameter when closing a position
+             * @param {string} [$params->externalOid] external order ID
+             * @param {int} [$params->positionMode] 1:hedge, 2:one-way, default => the user's current config
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
             Async\await($this->load_markets());
             $symbol = $market['symbol'];
             $unavailableContracts = $this->safe_value($this->options, 'unavailableContracts', array());
@@ -2499,6 +2421,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#$query-order
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#$query-the-order-based-on-the-order-number
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
@@ -4468,7 +4392,7 @@ class mexc extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'coin');
-        $networkId = $this->safe_string($depositAddress, 'network');
+        $networkId = $this->safe_string($depositAddress, 'netWork');
         $this->check_address($address);
         return array(
             'currency' => $this->safe_currency_code($currencyId, $currency),
@@ -5262,14 +5186,14 @@ class mexc extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $networks = $this->safe_dict($this->options, 'networks', array());
             $network = $this->safe_string_2($params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
-            $network = $this->network_id_to_code($network);
+            $network = $this->network_code_to_id($network, $currency['code']);
             $this->check_address($address);
-            Async\await($this->load_markets());
-            $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,

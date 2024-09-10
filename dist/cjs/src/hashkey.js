@@ -142,7 +142,7 @@ class hashkey extends hashkey$1 {
                 'www': 'https://global.hashkey.com/',
                 'doc': 'https://hashkeyglobal-apidoc.readme.io/',
                 'fees': 'https://support.global.hashkey.com/hc/en-us/articles/13199900083612-HashKey-Global-Fee-Structure',
-                'referral': '',
+                'referral': 'https://global.hashkey.com/en-US/register/invite?invite_code=82FQUN',
             },
             'api': {
                 'public': {
@@ -2382,7 +2382,7 @@ class hashkey extends hashkey$1 {
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         /**
          * @method
-         * @name createMarketBuyOrderWithCost
+         * @name hashkey#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
@@ -4171,7 +4171,7 @@ class hashkey extends hashkey$1 {
     async fetchTradingFees(params = {}) {
         /**
          * @method
-         * @name binance#fetchTradingFees
+         * @name hashkey#fetchTradingFees
          * @description *for spot markets only* fetch the trading fees for multiple markets
          * @see https://developers.binance.com/docs/wallet/asset/trade-fee
          * @param {object} [params] extra parameters specific to the exchange API endpoint

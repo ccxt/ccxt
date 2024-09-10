@@ -3209,7 +3209,10 @@ class bitmart(Exchange, ImplicitAPI):
             parts = chain.split('-')
             partsLength = len(parts)
             networkId = self.safe_string(parts, partsLength - 1)
-            network = self.safe_network_code(networkId, currency)
+            if networkId == self.safe_string(currency, 'name'):
+                network = self.safe_string(currency, 'code')
+            else:
+                network = self.network_id_to_code(networkId)
         self.check_address(address)
         return {
             'info': depositAddress,
@@ -3218,13 +3221,6 @@ class bitmart(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'address_memo'),
             'network': network,
         }
-
-    def safe_network_code(self, networkId, currency=None):
-        name = self.safe_string(currency, 'name')
-        if networkId == name:
-            code = self.safe_string(currency, 'code')
-            return code
-        return self.network_id_to_code(networkId)
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """

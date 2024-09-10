@@ -485,7 +485,7 @@ export default class woo extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': this.safeString(market, 'is_trading') === '1',
             'contract': contract,
             'linear': linear,
             'inverse': undefined,
@@ -1369,6 +1369,7 @@ export default class woo extends Exchange {
          * @see https://docs.woo.org/#get-algo-order
          * @see https://docs.woo.org/#get-order
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order

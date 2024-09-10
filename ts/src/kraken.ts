@@ -242,100 +242,100 @@ export default class kraken extends Exchange {
                     'TRX': 'TRC20',
                 },
                 'depositMethods': {
-                    '1INCH': '1inch (1INCH)',
+                    '1INCH': '1inch' + ' ' + '(1INCH)',
                     'AAVE': 'Aave',
                     'ADA': 'ADA',
                     'ALGO': 'Algorand',
-                    'ANKR': 'ANKR (ANKR)',
-                    'ANT': 'Aragon (ANT)',
+                    'ANKR': 'ANKR' + ' ' + '(ANKR)',
+                    'ANT': 'Aragon' + ' ' + '(ANT)',
                     'ATOM': 'Cosmos',
-                    'AXS': 'Axie Infinity Shards (AXS)',
-                    'BADGER': 'Bager DAO (BADGER)',
-                    'BAL': 'Balancer (BAL)',
-                    'BAND': 'Band Protocol (BAND)',
+                    'AXS': 'Axie Infinity Shards' + ' ' + '(AXS)',
+                    'BADGER': 'Bager DAO' + ' ' + '(BADGER)',
+                    'BAL': 'Balancer' + ' ' + '(BAL)',
+                    'BAND': 'Band Protocol' + ' ' + '(BAND)',
                     'BAT': 'BAT',
                     'BCH': 'Bitcoin Cash',
-                    'BNC': 'Bifrost (BNC)',
-                    'BNT': 'Bancor (BNT)',
+                    'BNC': 'Bifrost' + ' ' + '(BNC)',
+                    'BNT': 'Bancor' + ' ' + '(BNT)',
                     'BTC': 'Bitcoin',
-                    'CHZ': 'Chiliz (CHZ)',
-                    'COMP': 'Compound (COMP)',
-                    'CQT': '\tCovalent Query Token (CQT)',
-                    'CRV': 'Curve DAO Token (CRV)',
-                    'CTSI': 'Cartesi (CTSI)',
+                    'CHZ': 'Chiliz' + ' ' + '(CHZ)',
+                    'COMP': 'Compound' + ' ' + '(COMP)',
+                    'CQT': '\tCovalent Query Token' + ' ' + '(CQT)',
+                    'CRV': 'Curve DAO Token' + ' ' + '(CRV)',
+                    'CTSI': 'Cartesi' + ' ' + '(CTSI)',
                     'DAI': 'Dai',
                     'DASH': 'Dash',
                     'DOGE': 'Dogecoin',
                     'DOT': 'Polkadot',
-                    'DYDX': 'dYdX (DYDX)',
-                    'ENJ': 'Enjin Coin (ENJ)',
+                    'DYDX': 'dYdX' + ' ' + '(DYDX)',
+                    'ENJ': 'Enjin Coin' + ' ' + '(ENJ)',
                     'EOS': 'EOS',
-                    'ETC': 'Ether Classic (Hex)',
-                    'ETH': 'Ether (Hex)',
+                    'ETC': 'Ether Classic' + ' ' + '(Hex)',
+                    'ETH': 'Ether' + ' ' + '(Hex)',
                     'EWT': 'Energy Web Token',
                     'FEE': 'Kraken Fee Credit',
                     'FIL': 'Filecoin',
                     'FLOW': 'Flow',
-                    'GHST': 'Aavegotchi (GHST)',
+                    'GHST': 'Aavegotchi' + ' ' + '(GHST)',
                     'GNO': 'GNO',
                     'GRT': 'GRT',
                     'ICX': 'Icon',
-                    'INJ': 'Injective Protocol (INJ)',
-                    'KAR': 'Karura (KAR)',
+                    'INJ': 'Injective Protocol' + ' ' + '(INJ)',
+                    'KAR': 'Karura' + ' ' + '(KAR)',
                     'KAVA': 'Kava',
-                    'KEEP': 'Keep Token (KEEP)',
-                    'KNC': 'Kyber Network (KNC)',
+                    'KEEP': 'Keep Token' + ' ' + '(KEEP)',
+                    'KNC': 'Kyber Network' + ' ' + '(KNC)',
                     'KSM': 'Kusama',
                     'LINK': 'Link',
-                    'LPT': 'Livepeer Token (LPT)',
-                    'LRC': 'Loopring (LRC)',
+                    'LPT': 'Livepeer Token' + ' ' + '(LPT)',
+                    'LRC': 'Loopring' + ' ' + '(LRC)',
                     'LSK': 'Lisk',
                     'LTC': 'Litecoin',
                     'MANA': 'MANA',
-                    'MATIC': 'Polygon (MATIC)',
+                    'MATIC': 'Polygon' + ' ' + '(MATIC)',
                     'MINA': 'Mina', // inspected from webui
-                    'MIR': 'Mirror Protocol (MIR)',
-                    'MKR': 'Maker (MKR)',
+                    'MIR': 'Mirror Protocol' + ' ' + '(MIR)',
+                    'MKR': 'Maker' + ' ' + '(MKR)',
                     'MLN': 'MLN',
-                    'MOVR': 'Moonriver (MOVR)',
+                    'MOVR': 'Moonriver' + ' ' + '(MOVR)',
                     'NANO': 'NANO',
                     'OCEAN': 'OCEAN',
-                    'OGN': 'Origin Protocol (OGN)',
+                    'OGN': 'Origin Protocol' + ' ' + '(OGN)',
                     'OMG': 'OMG',
-                    'OXT': 'Orchid (OXT)',
-                    'OXY': 'Oxygen (OXY)',
-                    'PAXG': 'PAX (Gold)',
-                    'PERP': 'Perpetual Protocol (PERP)',
-                    'PHA': 'Phala (PHA)',
+                    'OXT': 'Orchid' + ' ' + '(OXT)',
+                    'OXY': 'Oxygen' + ' ' + '(OXY)',
+                    'PAXG': 'PAX' + ' ' + '(Gold)',
+                    'PERP': 'Perpetual Protocol' + ' ' + '(PERP)',
+                    'PHA': 'Phala' + ' ' + '(PHA)',
                     'QTUM': 'QTUM',
-                    'RARI': 'Rarible (RARI)',
-                    'RAY': 'Raydium (RAY)',
-                    'REN': 'Ren Protocol (REN)',
+                    'RARI': 'Rarible' + ' ' + '(RARI)',
+                    'RAY': 'Raydium' + ' ' + '(RAY)',
+                    'REN': 'Ren Protocol' + ' ' + '(REN)',
                     'REP': 'REPv2',
                     'REPV1': 'REP',
-                    'SAND': 'The Sandbox (SAND)',
+                    'SAND': 'The Sandbox' + ' ' + '(SAND)',
                     'SC': 'Siacoin',
-                    'SDN': 'Shiden (SDN)',
+                    'SDN': 'Shiden' + ' ' + '(SDN)',
                     'SOL': 'Solana',  // their deposit method api doesn't work for SOL - was guessed
-                    'SNX': 'Synthetix  Network (SNX)',
+                    'SNX': 'Synthetix  Network' + ' ' + '(SNX)',
                     'SRM': 'Serum', // inspected from webui
-                    'STORJ': 'Storj (STORJ)',
-                    'SUSHI': 'Sushiswap (SUSHI)',
+                    'STORJ': 'Storj' + ' ' + '(STORJ)',
+                    'SUSHI': 'Sushiswap' + ' ' + '(SUSHI)',
                     'TBTC': 'tBTC',
                     'TRX': 'Tron',
                     'UNI': 'UNI',
                     'USDC': 'USDC',
-                    'USDT': 'Tether USD (ERC20)',
-                    'USDT-TRC20': 'Tether USD (TRC20)',
+                    'USDT': 'Tether USD' + ' ' + '(ERC20)',
+                    'USDT-TRC20': 'Tether USD' + ' ' + '(TRC20)',
                     'WAVES': 'Waves',
-                    'WBTC': 'Wrapped Bitcoin (WBTC)',
+                    'WBTC': 'Wrapped Bitcoin' + ' ' + '(WBTC)',
                     'XLM': 'Stellar XLM',
                     'XMR': 'Monero',
                     'XRP': 'Ripple XRP',
                     'XTZ': 'XTZ',
                     'YFI': 'YFI',
-                    'ZEC': 'Zcash (Transparent)',
-                    'ZRX': '0x (ZRX)',
+                    'ZEC': 'Zcash' + ' ' + '(Transparent)',
+                    'ZRX': '0x' + ' ' + '(ZRX)',
                 },
                 'withdrawMethods': {   // keeping it here because deposit and withdraw return different networks codes
                     'Lightning': 'Lightning',
@@ -1127,6 +1127,7 @@ export default class kraken extends Exchange {
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
+         * @param {int} [params.end] timestamp in seconds of the latest ledger entry
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         // https://www.kraken.com/features/api#get-ledgers-info
@@ -1140,7 +1141,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        const until = this.safeStringN (params, [ 'until', 'till' ]);
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
@@ -2145,6 +2146,7 @@ export default class kraken extends Exchange {
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest trade entry
+         * @param {int} [params.end] timestamp in seconds of the latest trade entry
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -2158,7 +2160,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        const until = this.safeStringN (params, [ 'until', 'till' ]);
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
@@ -2590,6 +2592,7 @@ export default class kraken extends Exchange {
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest transaction entry
+         * @param {int} [params.end] timestamp in seconds of the latest transaction entry
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
@@ -2603,7 +2606,7 @@ export default class kraken extends Exchange {
             const sinceString = this.numberToString (since);
             request['start'] = Precise.stringDiv (sinceString, '1000');
         }
-        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        const until = this.safeStringN (params, [ 'until', 'till' ]);
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
@@ -2661,6 +2664,7 @@ export default class kraken extends Exchange {
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest transaction entry
+         * @param {int} [params.end] timestamp in seconds of the latest transaction entry
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -2680,7 +2684,7 @@ export default class kraken extends Exchange {
             const sinceString = this.numberToString (since);
             request['start'] = Precise.stringDiv (sinceString, '1000');
         }
-        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        const until = this.safeStringN (params, [ 'until', 'till' ]);
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');

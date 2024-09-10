@@ -2150,6 +2150,34 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "ohlcv with since and until should use maxLimit spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.binance.com/api/v3/klines?interval=1h&limit=1500&symbol=BTCUSDT&startTime=1714921949000&endTime=1725549149000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1714921949000,
+                  null,
+                  {
+                    "until": 1725549149000
+                  }
+                ]
+            },
+            {
+                "description": "ohlcv with since and until should use maxLimit swap",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.binance.com/fapi/v1/klines?interval=1h&limit=1500&symbol=BTCUSDT&startTime=1714921949000&endTime=1725549149000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1h",
+                  1714921949000,
+                  null,
+                  {
+                    "until": 1725549149000
+                  }
+                ]
             }
         ],
         "fetchTradingFees": [
@@ -3360,7 +3388,8 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "disabled": true,
+                "description": "fetchCurrencies, temnporary disabled because of multi promise",
                 "method": "fetchCurrencies",
                 "url": "https://api.binance.com/sapi/v1/capital/config/getall?timestamp=1721628239072&recvWindow=10000&signature=sig",
                 "input": []

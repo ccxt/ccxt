@@ -565,11 +565,11 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        ids = self.publicGetSymbols()
+        idsPromise = self.publicGetSymbols()
         #
         #     ["btcusd", "ltcusd", "ltcbtc"]
         #
-        details = self.publicGetSymbolsDetails()
+        detailsPromise = self.publicGetSymbolsDetails()
         #
         #     [
         #         {
@@ -584,6 +584,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
+        ids, details = [idsPromise, detailsPromise]
         result = []
         for i in range(0, len(details)):
             market = details[i]
@@ -1272,6 +1273,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+        :param str id: the order id
         :param str symbol: not used by bitfinex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

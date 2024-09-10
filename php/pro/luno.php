@@ -18,6 +18,7 @@ class luno extends \ccxt\async\luno {
                 'watchTicker' => false,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => null, // is in beta
                 'watchOrderBook' => true,

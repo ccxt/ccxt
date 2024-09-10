@@ -199,100 +199,100 @@ public partial class kraken : Exchange
                     { "TRX", "TRC20" },
                 } },
                 { "depositMethods", new Dictionary<string, object>() {
-                    { "1INCH", "1inch (1INCH)" },
+                    { "1INCH", add(add("1inch", " "), "(1INCH)") },
                     { "AAVE", "Aave" },
                     { "ADA", "ADA" },
                     { "ALGO", "Algorand" },
-                    { "ANKR", "ANKR (ANKR)" },
-                    { "ANT", "Aragon (ANT)" },
+                    { "ANKR", add(add("ANKR", " "), "(ANKR)") },
+                    { "ANT", add(add("Aragon", " "), "(ANT)") },
                     { "ATOM", "Cosmos" },
-                    { "AXS", "Axie Infinity Shards (AXS)" },
-                    { "BADGER", "Bager DAO (BADGER)" },
-                    { "BAL", "Balancer (BAL)" },
-                    { "BAND", "Band Protocol (BAND)" },
+                    { "AXS", add(add("Axie Infinity Shards", " "), "(AXS)") },
+                    { "BADGER", add(add("Bager DAO", " "), "(BADGER)") },
+                    { "BAL", add(add("Balancer", " "), "(BAL)") },
+                    { "BAND", add(add("Band Protocol", " "), "(BAND)") },
                     { "BAT", "BAT" },
                     { "BCH", "Bitcoin Cash" },
-                    { "BNC", "Bifrost (BNC)" },
-                    { "BNT", "Bancor (BNT)" },
+                    { "BNC", add(add("Bifrost", " "), "(BNC)") },
+                    { "BNT", add(add("Bancor", " "), "(BNT)") },
                     { "BTC", "Bitcoin" },
-                    { "CHZ", "Chiliz (CHZ)" },
-                    { "COMP", "Compound (COMP)" },
-                    { "CQT", "	Covalent Query Token (CQT)" },
-                    { "CRV", "Curve DAO Token (CRV)" },
-                    { "CTSI", "Cartesi (CTSI)" },
+                    { "CHZ", add(add("Chiliz", " "), "(CHZ)") },
+                    { "COMP", add(add("Compound", " "), "(COMP)") },
+                    { "CQT", add(add("	Covalent Query Token", " "), "(CQT)") },
+                    { "CRV", add(add("Curve DAO Token", " "), "(CRV)") },
+                    { "CTSI", add(add("Cartesi", " "), "(CTSI)") },
                     { "DAI", "Dai" },
                     { "DASH", "Dash" },
                     { "DOGE", "Dogecoin" },
                     { "DOT", "Polkadot" },
-                    { "DYDX", "dYdX (DYDX)" },
-                    { "ENJ", "Enjin Coin (ENJ)" },
+                    { "DYDX", add(add("dYdX", " "), "(DYDX)") },
+                    { "ENJ", add(add("Enjin Coin", " "), "(ENJ)") },
                     { "EOS", "EOS" },
-                    { "ETC", "Ether Classic (Hex)" },
-                    { "ETH", "Ether (Hex)" },
+                    { "ETC", add(add("Ether Classic", " "), "(Hex)") },
+                    { "ETH", add(add("Ether", " "), "(Hex)") },
                     { "EWT", "Energy Web Token" },
                     { "FEE", "Kraken Fee Credit" },
                     { "FIL", "Filecoin" },
                     { "FLOW", "Flow" },
-                    { "GHST", "Aavegotchi (GHST)" },
+                    { "GHST", add(add("Aavegotchi", " "), "(GHST)") },
                     { "GNO", "GNO" },
                     { "GRT", "GRT" },
                     { "ICX", "Icon" },
-                    { "INJ", "Injective Protocol (INJ)" },
-                    { "KAR", "Karura (KAR)" },
+                    { "INJ", add(add("Injective Protocol", " "), "(INJ)") },
+                    { "KAR", add(add("Karura", " "), "(KAR)") },
                     { "KAVA", "Kava" },
-                    { "KEEP", "Keep Token (KEEP)" },
-                    { "KNC", "Kyber Network (KNC)" },
+                    { "KEEP", add(add("Keep Token", " "), "(KEEP)") },
+                    { "KNC", add(add("Kyber Network", " "), "(KNC)") },
                     { "KSM", "Kusama" },
                     { "LINK", "Link" },
-                    { "LPT", "Livepeer Token (LPT)" },
-                    { "LRC", "Loopring (LRC)" },
+                    { "LPT", add(add("Livepeer Token", " "), "(LPT)") },
+                    { "LRC", add(add("Loopring", " "), "(LRC)") },
                     { "LSK", "Lisk" },
                     { "LTC", "Litecoin" },
                     { "MANA", "MANA" },
-                    { "MATIC", "Polygon (MATIC)" },
+                    { "MATIC", add(add("Polygon", " "), "(MATIC)") },
                     { "MINA", "Mina" },
-                    { "MIR", "Mirror Protocol (MIR)" },
-                    { "MKR", "Maker (MKR)" },
+                    { "MIR", add(add("Mirror Protocol", " "), "(MIR)") },
+                    { "MKR", add(add("Maker", " "), "(MKR)") },
                     { "MLN", "MLN" },
-                    { "MOVR", "Moonriver (MOVR)" },
+                    { "MOVR", add(add("Moonriver", " "), "(MOVR)") },
                     { "NANO", "NANO" },
                     { "OCEAN", "OCEAN" },
-                    { "OGN", "Origin Protocol (OGN)" },
+                    { "OGN", add(add("Origin Protocol", " "), "(OGN)") },
                     { "OMG", "OMG" },
-                    { "OXT", "Orchid (OXT)" },
-                    { "OXY", "Oxygen (OXY)" },
-                    { "PAXG", "PAX (Gold)" },
-                    { "PERP", "Perpetual Protocol (PERP)" },
-                    { "PHA", "Phala (PHA)" },
+                    { "OXT", add(add("Orchid", " "), "(OXT)") },
+                    { "OXY", add(add("Oxygen", " "), "(OXY)") },
+                    { "PAXG", add(add("PAX", " "), "(Gold)") },
+                    { "PERP", add(add("Perpetual Protocol", " "), "(PERP)") },
+                    { "PHA", add(add("Phala", " "), "(PHA)") },
                     { "QTUM", "QTUM" },
-                    { "RARI", "Rarible (RARI)" },
-                    { "RAY", "Raydium (RAY)" },
-                    { "REN", "Ren Protocol (REN)" },
+                    { "RARI", add(add("Rarible", " "), "(RARI)") },
+                    { "RAY", add(add("Raydium", " "), "(RAY)") },
+                    { "REN", add(add("Ren Protocol", " "), "(REN)") },
                     { "REP", "REPv2" },
                     { "REPV1", "REP" },
-                    { "SAND", "The Sandbox (SAND)" },
+                    { "SAND", add(add("The Sandbox", " "), "(SAND)") },
                     { "SC", "Siacoin" },
-                    { "SDN", "Shiden (SDN)" },
+                    { "SDN", add(add("Shiden", " "), "(SDN)") },
                     { "SOL", "Solana" },
-                    { "SNX", "Synthetix  Network (SNX)" },
+                    { "SNX", add(add("Synthetix  Network", " "), "(SNX)") },
                     { "SRM", "Serum" },
-                    { "STORJ", "Storj (STORJ)" },
-                    { "SUSHI", "Sushiswap (SUSHI)" },
+                    { "STORJ", add(add("Storj", " "), "(STORJ)") },
+                    { "SUSHI", add(add("Sushiswap", " "), "(SUSHI)") },
                     { "TBTC", "tBTC" },
                     { "TRX", "Tron" },
                     { "UNI", "UNI" },
                     { "USDC", "USDC" },
-                    { "USDT", "Tether USD (ERC20)" },
-                    { "USDT-TRC20", "Tether USD (TRC20)" },
+                    { "USDT", add(add("Tether USD", " "), "(ERC20)") },
+                    { "USDT-TRC20", add(add("Tether USD", " "), "(TRC20)") },
                     { "WAVES", "Waves" },
-                    { "WBTC", "Wrapped Bitcoin (WBTC)" },
+                    { "WBTC", add(add("Wrapped Bitcoin", " "), "(WBTC)") },
                     { "XLM", "Stellar XLM" },
                     { "XMR", "Monero" },
                     { "XRP", "Ripple XRP" },
                     { "XTZ", "XTZ" },
                     { "YFI", "YFI" },
-                    { "ZEC", "Zcash (Transparent)" },
-                    { "ZRX", "0x (ZRX)" },
+                    { "ZEC", add(add("Zcash", " "), "(Transparent)") },
+                    { "ZRX", add(add("0x", " "), "(ZRX)") },
                 } },
                 { "withdrawMethods", new Dictionary<string, object>() {
                     { "Lightning", "Lightning" },
@@ -1143,6 +1143,7 @@ public partial class kraken : Exchange
         * @param {int} [limit] max number of ledger entrys to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
+        * @param {int} [params.end] timestamp in seconds of the latest ledger entry
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         // https://www.kraken.com/features/api#get-ledgers-info
@@ -1159,7 +1160,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until", "till"});
@@ -2289,6 +2290,7 @@ public partial class kraken : Exchange
         * @param {int} [limit] the maximum number of trades structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest trade entry
+        * @param {int} [params.end] timestamp in seconds of the latest trade entry
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2298,7 +2300,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until", "till"});
@@ -2755,6 +2757,7 @@ public partial class kraken : Exchange
         * @param {int} [limit] the maximum number of deposits structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest transaction entry
+        * @param {int} [params.end] timestamp in seconds of the latest transaction entry
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         // https://www.kraken.com/en-us/help/api#deposit-status
@@ -2771,7 +2774,7 @@ public partial class kraken : Exchange
             object sinceString = this.numberToString(since);
             ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until", "till"});
@@ -2833,6 +2836,7 @@ public partial class kraken : Exchange
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest transaction entry
+        * @param {int} [params.end] timestamp in seconds of the latest transaction entry
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
@@ -2858,7 +2862,7 @@ public partial class kraken : Exchange
             object sinceString = this.numberToString(since);
             ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until", "till"});

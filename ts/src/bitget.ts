@@ -1231,7 +1231,9 @@ export default class bitget extends Exchange {
                     '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError, // No direct margin call is allowed
                     '40762': InsufficientFunds, // {"code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null}
-                    '40768': OrderNotFound, // Order does not exist"
+                    '40768': OrderNotFound, // Order does not exist
+                    '40808': InvalidOrder, // {"code":"40808","msg":"Parameter verification exception size checkBDScale error value=2293.577 checkScale=2","requestTime":1725638500052,"data":null}
+                    '41103': InvalidOrder, // {"code":"41103","msg":"param price scale error error","requestTime":1725635883561,"data":null}
                     '41114': OnMaintenance, // {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder, // The parameter does not meet the specification executePrice <= 0
                     '43012': InsufficientFunds, // {"code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null}
@@ -1308,10 +1310,11 @@ export default class bitget extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
-                'JADE': 'Jade Protocol',
+                'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
-                'TONCOIN': 'TON',
+                'JADE': 'Jade Protocol',
                 'OMNI': 'omni', // conflict with Omni Network
+                'TONCOIN': 'TON',
             },
             'options': {
                 'timeframes': {
@@ -3984,7 +3987,7 @@ export default class bitget extends Exchange {
         if (feeCostString !== undefined) {
             // swap
             fee = {
-                'cost': this.parseNumber (Precise.stringAbs (feeCostString)),
+                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
                 'currency': market['settle'],
             };
         }
@@ -4001,7 +4004,7 @@ export default class bitget extends Exchange {
                 }
             }
             fee = {
-                'cost': this.parseNumber (Precise.stringAbs (this.safeString (feeObject, 'totalFee'))),
+                'cost': this.parseNumber (Precise.stringNeg (this.safeString (feeObject, 'totalFee'))),
                 'currency': this.safeCurrencyCode (this.safeString (feeObject, 'feeCoinCode')),
             };
         }
@@ -5032,6 +5035,7 @@ export default class bitget extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
          * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

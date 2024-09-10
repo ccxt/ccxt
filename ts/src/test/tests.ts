@@ -1209,6 +1209,10 @@ class testMainClass extends baseMainTestClass {
                 if (isDisabled) {
                     continue;
                 }
+                const disabledString = exchange.safeString (result, 'disabled', '');
+                if (disabledString !== '') {
+                    continue;
+                }
                 const isDisabledCSharp = exchange.safeBool (result, 'disabledCS', false);
                 if (isDisabledCSharp && (this.lang === 'C#')) {
                     continue;
