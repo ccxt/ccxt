@@ -2039,7 +2039,6 @@ export default class currencycom extends Exchange {
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
             'id': undefined,
-            'unrealizedPnl': undefined,
             'hedged': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
