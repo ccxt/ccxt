@@ -211,7 +211,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/trade/cancel-symbol-orders': 1,
                         'api/spot/v1/trade/cancel-batch-orders': 1,
                         'api/spot/v1/trade/cancel-batch-orders-v2': 1,
-                        'api/spot/v1/trade/orderInfo': 1,
+                        'api/spot/v1/trade/orderInfo': 1, // done
                         'api/spot/v1/trade/open-orders': 1,
                         'api/spot/v1/trade/history': 1,
                         'api/spot/v1/trade/fills': 1,
@@ -2193,7 +2193,8 @@ export default class coincatch extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeList (response, 'data', []);
+            const parsedResponse = JSON.parse (response); // the response is not a standard JSON
+            const data = this.safeList (parsedResponse, 'data', []);
             order = this.safeDict (data, 0, {});
         } else if (marketType === 'swap') {
             if (market === undefined) {
@@ -2267,10 +2268,9 @@ export default class coincatch extends Exchange {
         }
         const status = this.safeString (order, 'status');
         const feeDetailString = this.safeString (order, 'feeDetail');
-        let feeCurrency = undefined;
-        let feeAmount = undefined;
+        let fees = undefined;
         if (feeDetailString !== undefined) {
-            [ feeCurrency, feeAmount ] = this.parseFeeDetailString (feeDetailString);
+            fees = this.parseFeeDetailString (feeDetailString);
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'orderId'),
@@ -2296,9 +2296,10 @@ export default class coincatch extends Exchange {
             'cost': this.safeString (order, 'fillTotalAmount'),
             'trades': undefined,
             'fee': {
-                'currency': feeCurrency,
-                'amount': feeAmount,
+                'currency': undefined,
+                'amount': undefined,
             },
+            'fees': fees,
             'reduceOnly': undefined,
             'postOnly': undefined,
             'info': order,
@@ -2317,18 +2318,25 @@ export default class coincatch extends Exchange {
         return this.safeString (satuses, status, status); // todo check other statuses
     }
 
-    parseFeeDetailString (feeDetailString: Str): [ Str, Str] {
-        let feeCurrency: Str = undefined;
-        let feeAmount: Str = undefined;
+    parseFeeDetailString (feeDetailString: Str) {
+        const result = [];
         const feeDetail = this.parseJson (feeDetailString);
         if (feeDetail) {
             const keys = Object.keys (feeDetail);
-            const feeCurrencyId = this.safeString (keys, 0);
-            feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-            const feeEntry = this.safeValue (feeDetail, feeCurrencyId, {});
-            feeAmount = this.safeString (feeEntry, 'totalFee');
+            for (let i = 0; i < keys.length; i++) {
+                const currencyId = this.safeString (keys, i);
+                if (currencyId in this.currencies_by_id) {
+                    const currency = this.safeCurrencyCode (currencyId);
+                    const feeEntry = this.safeValue (feeDetail, currencyId, {});
+                    const amount = this.safeString (feeEntry, 'totalFee');
+                    result.push ({
+                        'currency': currency,
+                        'amount': amount,
+                    });
+                }
+            }
         }
-        return [ feeCurrency, feeAmount ];
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
