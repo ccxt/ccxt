@@ -81,7 +81,7 @@ export default class coincatch extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -214,7 +214,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/trade/orderInfo': 1, // done
                         'api/spot/v1/trade/open-orders': 1, // done
                         'api/spot/v1/trade/history': 1, // done
-                        'api/spot/v1/trade/fills': 1,
+                        'api/spot/v1/trade/fills': 1, // done
                         'api/spot/v1/plan/placePlan': 1,
                         'api/spot/v1/plan/modifyPlan': 1,
                         'api/spot/v1/plan/cancelPlan': 1,
@@ -1342,22 +1342,47 @@ export default class coincatch extends Exchange {
         //         "symbol": "BTCUSDT_UMCBL"
         //     }
         //
+        // fetchMyTrades spot
+        //     {
+        //         "accountId": "1002820815393",
+        //         "symbol": "ETHUSDT_SPBL",
+        //         "orderId": "1217143186968068096",
+        //         "fillId": "1217143193356505089",
+        //         "orderType": "market",
+        //         "side": "buy",
+        //         "fillPrice": "2340.55",
+        //         "fillQuantity": "0.0042",
+        //         "fillTotalAmount": "9.83031",
+        //         "feeCcy": "ETH",
+        //         "fees": "-0.0000042",
+        //         "takerMakerFlag": "taker",
+        //         "cTime": "1725915471400"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (trade, 'fillTime', 'timestamp');
+        const fees = this.safeString (trade, 'fees');
+        let feeCost: Str = undefined;
+        if (fees !== undefined) {
+            feeCost = Precise.stringAbs (fees);
+        }
         return this.safeTrade ({
-            'id': this.safeString (trade, 'tradeId'),
-            'order': undefined,
+            'id': this.safeString2 (trade, 'tradeId', 'fillId'),
+            'order': this.safeString (trade, 'orderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
+            'type': this.safeString (trade, 'orderType'),
             'side': this.safeStringLower (trade, 'side'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': this.safeString (trade, 'takerMakerFlag'),
             'price': this.safeString2 (trade, 'fillPrice', 'price'),
             'amount': this.safeString2 (trade, 'fillQuantity', 'size'),
-            'cost': undefined,
-            'fee': undefined,
+            'cost': this.safeString (trade, 'fillTotalAmount'),
+            'fee': {
+                'cost': feeCost,
+                'currency': this.safeString (trade, 'feeCcy'),
+            },
             'info': trade,
         }, market);
     }
@@ -2544,8 +2569,8 @@ export default class coincatch extends Exchange {
                 const currencyId = this.safeString (keys, i);
                 if (currencyId in this.currencies_by_id) {
                     const currency = this.safeCurrencyCode (currencyId);
-                    const feeEntry = this.safeValue (feeDetail, currencyId, {});
-                    const amount = Precise.stringMul (this.safeString (feeEntry, 'totalFee'), '-1');
+                    const feeEntry = this.safeDict (feeDetail, currencyId, {});
+                    const amount = Precise.stringAbs (this.safeString (feeEntry, 'totalFee'));
                     result.push ({
                         'currency': currency,
                         'amount': amount,
@@ -2554,6 +2579,78 @@ export default class coincatch extends Exchange {
             }
         }
         return result;
+    }
+
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
+         * @param {string} symbol *is mandatory* unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for, only supports the last 30 days timeframe
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
+        const methodName = 'fetchMyTrades';
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + methodName + '() requires a symbol argument');
+        }
+        const maxLimit = 500;
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        const marketType = market['type'];
+        let response = undefined;
+        if (marketType === 'spot') {
+            if (since !== undefined) {
+                request['after'] = since;
+                limit = maxLimit;
+            }
+            if (until !== undefined) {
+                request['before'] = until;
+                limit = maxLimit;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725968747299,
+            //         "data": [
+            //             {
+            //                 "accountId": "1002820815393",
+            //                 "symbol": "ETHUSDT_SPBL",
+            //                 "orderId": "1217143186968068096",
+            //                 "fillId": "1217143193356505089",
+            //                 "orderType": "market",
+            //                 "side": "buy",
+            //                 "fillPrice": "2340.55",
+            //                 "fillQuantity": "0.0042",
+            //                 "fillTotalAmount": "9.83031",
+            //                 "feeCcy": "ETH",
+            //                 "fees": "-0.0000042",
+            //                 "takerMakerFlag": "taker",
+            //                 "cTime": "1725915471400"
+            //             },
+            //             ...
+            //         ]
+            //     }
+            //
+            response = await this.privatePostApiSpotV1TradeFills (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
