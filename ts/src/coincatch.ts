@@ -89,7 +89,7 @@ export default class coincatch extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchOrderTrades': false,
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -1256,19 +1256,24 @@ export default class coincatch extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
-        let response = undefined;
-        if (market['spot']) {
+        const maxLimit = 1000;
+        let requestLimit = limit;
+        if ((since !== undefined) || (until !== undefined)) {
+            requestLimit = maxLimit;
             if (since !== undefined) {
-                request['after'] = since;
+                request['startTime'] = since;
             }
             if (until !== undefined) {
-                request['before'] = until;
+                request['endTime'] = until;
             }
+        }
+        if (requestLimit !== undefined) {
+            request['limit'] = requestLimit;
+        }
+        let response = undefined;
+        if (market['spot']) {
             response = await this.publicGetApiSpotV1MarketFillsHistory (this.extend (request, params));
             //
             //     {
@@ -1288,12 +1293,6 @@ export default class coincatch extends Exchange {
             //     }
             //
         } else if (market['swap']) {
-            if (since !== undefined) {
-                request['startTime'] = since;
-            }
-            if (until !== undefined) {
-                request['endTime'] = until;
-            }
             response = await this.publicGetApiMixV1MarketFillsHistory (this.extend (request, params));
             //
             //     {
@@ -2334,7 +2333,7 @@ export default class coincatch extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve - default 100, maximum 500
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @param {int} [params.until] *swap markets only* the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'fetchCanceledAndClosedOrders';
@@ -2364,7 +2363,6 @@ export default class coincatch extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let methodName = 'fetchCanceledAndClosedSpotOrders';
@@ -2375,18 +2373,13 @@ export default class coincatch extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
+        let requestLimit = limit;
         if (since !== undefined) {
             request['after'] = since;
-            limit = maxLimit;
+            requestLimit = maxLimit;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
-        if (until !== undefined) {
-            request['before'] = until;
-            limit = maxLimit;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        if (requestLimit !== undefined) {
+            request['limit'] = requestLimit;
         }
         const response = await this.privatePostApiSpotV1TradeHistory (this.extend (request, params));
         //
@@ -2581,7 +2574,7 @@ export default class coincatch extends Exchange {
         return result;
     }
 
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coincatch#fetchMyTrades
@@ -2591,10 +2584,11 @@ export default class coincatch extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch trades for, only supports the last 30 days timeframe
+         * @param {int} [params.until] *swap markets only* the latest time in ms to fetch trades for, only supports the last 30 days timeframe
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        const methodName = 'fetchMyTrades';
+        let methodName = 'fetchMyTrades';
+        [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + methodName + '() requires a symbol argument');
@@ -2604,21 +2598,17 @@ export default class coincatch extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        // let until: Int = undefined;
+        // [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         const marketType = market['type'];
         let response = undefined;
+        let requestLimit = limit;
         if (marketType === 'spot') {
             if (since !== undefined) {
-                request['after'] = since;
-                limit = maxLimit;
+                requestLimit = maxLimit;
             }
-            if (until !== undefined) {
-                request['before'] = until;
-                limit = maxLimit;
-            }
-            if (limit !== undefined) {
-                request['limit'] = limit;
+            if (requestLimit !== undefined) {
+                request['limit'] = requestLimit;
             }
             //
             //     {
@@ -2651,6 +2641,30 @@ export default class coincatch extends Exchange {
         }
         const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name coincatch#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
+         * @param {string} id order id
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        const methodName = 'fetchOrderTrades';
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument');
+        }
+        const request: Dict = {
+            'orderId': id,
+            'methodName': methodName,
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
