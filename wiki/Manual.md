@@ -861,6 +861,10 @@ Each network is an associative array (aka dictionary) with the following keys:
         'cost':  { ... },     // same limits for order cost = price * amount
         'leverage': { ... },  // same min/max limits for the leverage of the order
     },
+    'marginModes': {
+        'cross': false,       // whether pair supports cross-margin trading
+        'isolated': false,    // whether pair supports isolated-margin trading
+    },
     'info':      { ... },     // the original unparsed market info from the exchange
 }
 ```
