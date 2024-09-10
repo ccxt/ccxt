@@ -13,6 +13,8 @@ class ParserBase {
     baseUrl = '';
     rateLimitMultiplier = 0;
 
+    ccxt = ccxt;
+
     constructor (){
         if (this.exchangeId === '') {
             this.exchangeId = this.constructor.name.toLowerCase ();
@@ -26,14 +28,6 @@ class ParserBase {
         const response = await fetch (url);
         const data = await response.text ();
         return data;
-    }
-
-    async sleep (ms) {
-        return await ccxt.sleep (ms);
-    }
-
-    deepExtend (...xs: any) {
-        return ccxt.deepExtend (...xs);
     }
 
     stripTags (input) {

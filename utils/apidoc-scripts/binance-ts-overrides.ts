@@ -93,6 +93,11 @@ const manualOverrides = {
             "openInterest": 1, // ? "https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
         },
     },
+    "eapiPrivate": {
+        "get": {
+            "historicalTrades": undefined, // needs to be removed from private endpoints, as it's public
+        }
+    },
 };
 
 export default manualOverrides;

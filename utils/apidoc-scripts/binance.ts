@@ -6,33 +6,47 @@ import ParserBase from './_base';
 import manualOverrides from './binance-ts-overrides';
 class binance extends ParserBase {
 
-    // show output values like:
-    //
-    //   fapi: {
-    //       klines: 10 * 2.5 // instead of 25, because the 2.5 coefficient makes the the maintenance helpful for users & developers
-    //   }
-    //
-    readableValues = true; 
+    RateLimitBaseValue = 5; // the minimal rate limit value we should use, because SAPI has 5ms
 
-    RateLimitBaseValue = 10; // hardcoded
-    RateLimitBases = {}; // will be filled dynamically
-
-    // 
-    exchangeInfos = {
+    minuteQuotas = {
         'api': 'https://api.binance.com/api/v3/exchangeInfo',
-        'sapi': 'https://api.binance.com/api/v3/exchangeInfo',
+        'sapi': 12000, // https://developers.binance.com/docs/wallet/general-info#api-and-sapi-limit-introduction
         'dapi': 'https://dapi.binance.com/dapi/v1/exchangeInfo',
         'fapi': 'https://fapi.binance.com/fapi/v1/exchangeInfo',
         'eapi': 'https://eapi.binance.com/eapi/v1/exchangeInfo',
-        'papi': 'https://fapi.binance.com/fapi/v1/exchangeInfo', // seems belongs to futures api, even though separate url
+        'papi': 2400, // papi doesn't have its own limits documented, but is said to belong to fapi/dapi, so same max-requests-per-minute
+        'dapiData': 2400,
+        'fapiData': 2400,
     };
 
+    apiDomainMap = { // if we had clean structure in binance.ts, we would not need any mapping, but ...
+        'public': 'api',
+        'private': 'api',
+        'sapi': 'sapi',
+        'sapiV1': 'sapi',
+        'sapiV2': 'sapi',
+        'sapiV3': 'sapi',
+        'sapiV4': 'sapi',
+        'dapiPublic': 'dapi',
+        'dapiPrivate': 'dapi',
+        'dapiPublicV2': 'dapi',
+        'dapiPrivateV2': 'dapi',
+        'fapiPublic': 'fapi',
+        'fapiPrivate': 'fapi',
+        'fapiPublicV2': 'fapi',
+        'fapiPrivateV2': 'fapi',
+    };
+
+    readableValues = true;  // in final output, shows values like: fapi>/klines: 10 * 2.5  instead of 25, because the multiplier coefficient makes the the maintenance easier for users & developers
+
+    // -----------------------------
+
     async init () {
-        await this.parseExchangeInfos ();
+        await this.parseminuteQuotas ();
         const spot = await this.retrieveSpotDocs ();
         const misc = await this.retrievePortalDocs ();
         const all = Object.assign (spot, misc);
-        let generatedApiTree = this.deepExtend (all, manualOverrides);
+        let generatedApiTree = this.ccxt.deepExtend (all, manualOverrides);
         generatedApiTree = this.multiplyRateLimits (generatedApiTree);
         const apiDiffs = this.createApiDiff (generatedApiTree);
         const final = {
@@ -41,7 +55,7 @@ class binance extends ParserBase {
             'rateLimitBases': this.RateLimitBases,
         };
         // some endpoints are missing in generatedTree, so add them from binance.ts
-        const completeApi = this.deepExtend (generatedApiTree, apiDiffs.removed);
+        const completeApi = this.ccxt.deepExtend (generatedApiTree, apiDiffs.removed);
         final['completeApi'] = this.readableOutput (completeApi);
         return final;
     }
@@ -59,30 +73,31 @@ class binance extends ParserBase {
     }
 
     
-    async parseExchangeInfos () {
-        const marketTypes = Object.keys (this.exchangeInfos);
-        let results : any[] = [];
-        if (this.cacheExists ('binanceinfos')) {
-            results = this.cacheGet ('binanceinfos');
-        } else {
-            const promises: any[] = [];
-            for (const type of marketTypes) {
-                const url = this.exchangeInfos[type];
-                promises.push (this.fetchData (url));
-            }
-            results = await Promise.all (promises);
-            this.cacheSet ('binanceinfos', results);
+    RateLimitBases = {};
+
+    async parseminuteQuotas () {
+        const marketTypes = Object.keys (this.minuteQuotas);
+        const promises: any[] = [];
+        for (const type of marketTypes) {
+            const prom = (async () =>{
+                const urlValue = this.minuteQuotas[type];
+                let minuteQuota = undefined;
+                if (typeof urlValue !== 'string') {
+                    minuteQuota = urlValue;
+                } else {
+                    const res = await this.fetchData (urlValue);
+                    const data = JSON.parse (res);
+                    const rateLimitsInfo = data['rateLimits'];
+                    const minuteInfo= rateLimitsInfo.find (obj => obj.interval === 'MINUTE');
+                    minuteQuota = minuteInfo['limit'];
+                }
+                const callsPer1000Ms = minuteQuota / 60;
+                const msForOneCall = 1000 / callsPer1000Ms;
+                this.RateLimitBases[type] = msForOneCall;
+            })();
+            promises.push (prom);
         }
-        for (let i = 0; i < marketTypes.length; i++) {
-            const type = marketTypes[i];
-            const data = JSON.parse (results[i]);
-            const rateLimitsInfo = data['rateLimits'];
-            const minuteInfo= rateLimitsInfo.find (obj => obj.interval === 'MINUTE');
-            const minuteQuota = minuteInfo['limit'];
-            const callsPer1000Ms = minuteQuota / 60;
-            const msForOneCall = 1000 / callsPer1000Ms;
-            this.RateLimitBases[type] = msForOneCall;
-        }
+        await Promise.all (promises);
     }
 
     // we have separate SPOT docs url, which has different page format and needs to be fetched separately
@@ -240,7 +255,7 @@ class binance extends ParserBase {
             let i = 0;
             const promises = urls.map(async (url) => {
                 i++;
-                await this.sleep(10 * i);
+                await this.ccxt.sleep(10 * i);
                 return this.fetchData(url);
             });
             const responses = await Promise.all (promises);
@@ -250,31 +265,14 @@ class binance extends ParserBase {
     }
 
     multiplyRateLimits (generatedApiTree) {
-        const apiDomainMap = {
-            'public': 'api',
-            'private': 'api',
-            'sapi': 'sapi',
-            'sapiV1': 'sapi',
-            'sapiV2': 'sapi',
-            'sapiV3': 'sapi',
-            'sapiV4': 'sapi',
-            'dapiPublic': 'dapi',
-            'dapiPrivate': 'dapi',
-            'dapiPublicV2': 'dapi',
-            'dapiPrivateV2': 'dapi',
-            'fapiPublic': 'fapi',
-            'fapiPrivate': 'fapi',
-            'fapiPublicV2': 'fapi',
-            'fapiPrivateV2': 'fapi',
-        };
         const rlString = (value, coefficient) => {
             return !this.readableValues || coefficient === 1 ? value * coefficient : this.delimiter + value.toString () + ' * ' + coefficient.toString () + this.delimiter;
         };
         const rootKeys = Object.keys (generatedApiTree);
         for (const rootKey of rootKeys) {
             const root = generatedApiTree[rootKey];
-            const apiDomain = apiDomainMap[rootKey];
-            const rlBase = apiDomain ? this.RateLimitBases[apiDomain] : this.RateLimitBaseValue;
+            const apiDomain = this.ccxt.safeString (this.apiDomainMap, rootKey, rootKey);
+            const rlBase = this.RateLimitBases[apiDomain];
             const coefficient = rlBase / this.RateLimitBaseValue;
             const reqMethods = Object.keys (root);
             for (const reqMethod of reqMethods) {
