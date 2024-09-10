@@ -97,8 +97,6 @@ interface Exchange {
     privatePostApiMixV1PlanCancelPlan (params?: {}): Promise<implicitReturnType>;
     privatePostApiMixV1PlanCancelSymbolPlan (params?: {}): Promise<implicitReturnType>;
     privatePostApiMixV1PlanCancelAllPlan (params?: {}): Promise<implicitReturnType>;
-    privatePutApiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
-    privateDeleteApiV1SpotOrder (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
