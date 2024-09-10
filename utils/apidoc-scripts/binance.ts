@@ -5,7 +5,9 @@ import ParserBase from './_base';
 
 import manualOverrides from './binance-ts-overrides';
 class binance extends ParserBase {
-    exchangeId = 'binance';
+
+    // show output values like : `klines: 10 * 2.5` instead of `klines: 25`
+    readableValues = true; 
 
     exchangeInfos = {
         'api': 'https://api.binance.com/api/v3/exchangeInfo',
@@ -35,8 +37,20 @@ class binance extends ParserBase {
         };
         // some endpoints are missing in generatedTree, so add them from binance.ts
         const completeApi = this.deepExtend (generatedApiTree, apiDiffs.removed);
-        final['completeApi'] = completeApi;
+        final['completeApi'] = this.readableOutput (completeApi);
         return final;
+    }
+
+    delimiter = '!';
+    readableOutput (tree) {
+        if (!this.readableValues) {
+            return tree;
+        }
+        let output = JSON.stringify (tree, null, 4);
+        const regex = new RegExp(`${this.delimiter}"|"${this.delimiter}`, 'g');
+        output = output.replace (regex, "");
+        output = output.replace (/"/g, "'");
+        return output;
     }
 
     
@@ -248,6 +262,9 @@ class binance extends ParserBase {
             'fapiPublicV2': 'fapi',
             'fapiPrivateV2': 'fapi',
         };
+        const rlString = (value, coefficient) => {
+            return !this.readableValues || coefficient === 1 ? value * coefficient : this.delimiter + value.toString () + ' * ' + coefficient.toString () + this.delimiter;
+        };
         const rootKeys = Object.keys (generatedApiTree);
         for (const rootKey of rootKeys) {
             const root = generatedApiTree[rootKey];
@@ -261,10 +278,10 @@ class binance extends ParserBase {
                 for (const path of paths) {
                     const endpoint = endpoints[path];
                     if (typeof endpoint === 'object') {
-                        endpoint['cost'] *= coefficient;
-                        endpoint['noSymbol'] *= coefficient;
+                        endpoint['cost'] = rlString (endpoint['cost'], coefficient);  
+                        endpoint['noSymbol'] = rlString (endpoint['noSymbol'], coefficient);  
                     } else {
-                        endpoints[path] *= coefficient;
+                        endpoints[path] = rlString (endpoints[path], coefficient);
                     }
                 }
             }
@@ -275,9 +292,8 @@ class binance extends ParserBase {
 
 
 
-const tree = await (new binance()).init ();
-const output = JSON.stringify(tree, null, 4);
-console.log(output.replace (/"/g, "'"));
+const output = await (new binance()).init ();
+console.log(output['completeApi']);
 
 
 

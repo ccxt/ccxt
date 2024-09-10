@@ -13,6 +13,12 @@ class ParserBase {
     baseUrl = '';
     rateLimitMultiplier = 0;
 
+    constructor (){
+        if (this.exchangeId === '') {
+            this.exchangeId = this.constructor.name.toLowerCase ();
+        }
+    }
+
     async fetchData (url) {
         if (!url) {
             throw new Error ('URL not set');
