@@ -4820,7 +4820,7 @@ public partial class mexc : Exchange
             { "entryPrice", entryPrice },
             { "collateral", null },
             { "side", side },
-            { "unrealizedProfit", null },
+            { "unrealizedPnl", null },
             { "leverage", this.parseNumber(leverage) },
             { "percentage", null },
             { "marginMode", marginType },
