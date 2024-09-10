@@ -35,6 +35,8 @@ class binance extends ParserBase {
         'fapiPrivate': 'fapi',
         'fapiPublicV2': 'fapi',
         'fapiPrivateV2': 'fapi',
+        'eapiPrivate': 'eapi',
+        'eapiPublic': 'eapi',
     };
 
     readableValues = true;  // in final output, shows values like: fapi>/klines: 10 * 2.5  instead of 25, because the multiplier coefficient makes the the maintenance easier for users & developers
@@ -266,7 +268,11 @@ class binance extends ParserBase {
 
     multiplyRateLimits (generatedApiTree) {
         const rlString = (value, coefficient) => {
-            return !this.readableValues || coefficient === 1 ? value * coefficient : this.delimiter + value.toString () + ' * ' + coefficient.toString () + this.delimiter;
+            if (value === undefined) {
+                return undefined;
+            }
+            const res = !this.readableValues || coefficient === 1 ? value * coefficient : this.delimiter + value.toString () + ' * ' + coefficient.toString () + this.delimiter;
+            return res;
         };
         const rootKeys = Object.keys (generatedApiTree);
         for (const rootKey of rootKeys) {
@@ -297,6 +303,6 @@ class binance extends ParserBase {
 
 const output = await (new binance()).init ();
 console.log(output['completeApi']);
-
+debugger;
 
 
