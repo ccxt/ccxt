@@ -57,7 +57,7 @@ export default class coincatch extends Exchange {
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchCanceledAndClosedOrders': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
@@ -213,7 +213,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/trade/cancel-batch-orders-v2': 1,
                         'api/spot/v1/trade/orderInfo': 1, // done
                         'api/spot/v1/trade/open-orders': 1,
-                        'api/spot/v1/trade/history': 1,
+                        'api/spot/v1/trade/history': 1, // done
                         'api/spot/v1/trade/fills': 1,
                         'api/spot/v1/plan/placePlan': 1,
                         'api/spot/v1/plan/modifyPlan': 1,
@@ -2212,6 +2212,91 @@ export default class coincatch extends Exchange {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
         return this.parseOrder (order, market);
+    }
+
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coincatch#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled and closed orders made by the user
+         * @see https://coincatch.github.io/github.io/en/spot/#get-order-history
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const methodName = 'fetchCanceledAndClosedOrders';
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument');
+        }
+        const maxLimit = 500;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['after'] = since;
+            limit = maxLimit;
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        if (until !== undefined) {
+            request['before'] = until;
+            limit = maxLimit;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostApiSpotV1TradeHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725963777690,
+        //         "data": [
+        //             {
+        //                 "accountId": "1002820815393",
+        //                 "symbol": "ETHUSDT_SPBL",
+        //                 "orderId": "1217143186968068096",
+        //                 "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262",
+        //                 "price": "0",
+        //                 "quantity": "10.0000000000000000",
+        //                 "orderType": "market",
+        //                 "side": "buy",
+        //                 "status": "full_fill",
+        //                 "fillPrice": "2340.5500000000000000",
+        //                 "fillQuantity": "0.0042000000000000",
+        //                 "fillTotalAmount": "9.8303100000000000",
+        //                 "enterPointSource": "API",
+        //                 "feeDetail": "{
+        //                     \"ETH\": {
+        //                         \"deduction\": false,
+        //                         \"feeCoinCode\": \"ETH\",
+        //                         \"totalDeductionFee\": 0,
+        //                         \"totalFee\": -0.0000042000000000
+        //                     },
+        //                     \"newFees\": {
+        //                         \"c\": 0,
+        //                         \"d\": 0,
+        //                         \"deduction\": false,
+        //                         \"r\": -0.0000042,
+        //                         \"t\": -0.0000042,
+        //                         \"totalDeductionFee\": 0
+        //                     }
+        //                 }",
+        //                 "orderSource": "market",
+        //                 "cTime": "1725915469877"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const parsedResponse = JSON.parse (response); // the response is not a standard JSON
+        const data = this.safeList (parsedResponse, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     parseOrder (order, market = undefined): Order {
