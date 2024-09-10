@@ -2214,6 +2214,91 @@ export default class coincatch extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coincatch#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+         * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const methodName = 'fetchOpenOrders';
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        params['methodName'] = methodName;
+        if (marketType === 'spot') {
+            return await this.fetchOpenSpotOrders (symbol, since, limit, params);
+        } else {
+            // return await this.fetchOpenSwapOrders (symbol, since, limit, params);
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
+    }
+
+    async fetchOpenSpotOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @ignore
+         * @name coincatch#fetchOpenSpotOrders
+         * @description fetch all unfilled currently open orders for spot markets
+         * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+         * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let methodName = 'fetchOpenSpotOrders';
+        [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privatePostApiSpotV1TradeOpenOrders (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725965783430,
+        //         "data": [
+        //             {
+        //                 "accountId": "1002820815393",
+        //                 "symbol": "ETHUSDT_SPBL",
+        //                 "orderId": "1217347655911653376",
+        //                 "clientOrderId": "c57c07d1-bd00-4167-95e2-9b22a55fbc28",
+        //                 "price": "2000.0000000000000000",
+        //                 "quantity": "0.0010000000000000",
+        //                 "orderType": "limit",
+        //                 "side": "buy",
+        //                 "status": "new",
+        //                 "fillPrice": "0",
+        //                 "fillQuantity": "0.0000000000000000",
+        //                 "fillTotalAmount": "0.0000000000000000",
+        //                 "enterPointSource": "API",
+        //                 "feeDetail": "",
+        //                 "orderSource": "normal",
+        //                 "cTime": "1725964219072"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
@@ -2307,7 +2392,7 @@ export default class coincatch extends Exchange {
         //         "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262"
         //     }
         //
-        // privatePostApiSpotV1TradeOrderInfo
+        // privatePostApiSpotV1TradeOrderInfo, privatePostApiSpotV1TradeHistory
         //     {
         //         "accountId": "1002820815393",
         //         "symbol": "ETHUSDT_SPBL",
@@ -2341,6 +2426,25 @@ export default class coincatch extends Exchange {
         //         "cTime": "1725915469877"
         //     }
         //
+        // privatePostApiSpotV1TradeOpenOrders
+        //     {
+        //         "accountId": "1002820815393",
+        //         "symbol": "ETHUSDT_SPBL",
+        //         "orderId": "1217347655911653376",
+        //         "clientOrderId": "c57c07d1-bd00-4167-95e2-9b22a55fbc28",
+        //         "price": "2000.0000000000000000",
+        //         "quantity": "0.0010000000000000",
+        //         "orderType": "limit",
+        //         "side": "buy",
+        //         "status": "new",
+        //         "fillPrice": "0",
+        //         "fillQuantity": "0.0000000000000000",
+        //         "fillTotalAmount": "0.0000000000000000",
+        //         "enterPointSource": "API",
+        //         "feeDetail": "",
+        //         "orderSource": "normal",
+        //         "cTime": "1725964219072"
+        //     }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'cTime');
