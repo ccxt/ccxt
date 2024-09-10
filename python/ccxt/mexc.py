@@ -4566,7 +4566,7 @@ class mexc(Exchange, ImplicitAPI):
             'entryPrice': entryPrice,
             'collateral': None,
             'side': side,
-            'unrealizedProfit': None,
+            'unrealizedPnl': None,
             'leverage': self.parse_number(leverage),
             'percentage': None,
             'marginMode': marginType,

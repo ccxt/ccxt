@@ -4898,7 +4898,7 @@ class mexc extends Exchange {
             'entryPrice' => $entryPrice,
             'collateral' => null,
             'side' => $side,
-            'unrealizedProfit' => null,
+            'unrealizedPnl' => null,
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginType,

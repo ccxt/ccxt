@@ -4886,7 +4886,7 @@ export default class mexc extends Exchange {
             'entryPrice': entryPrice,
             'collateral': undefined,
             'side': side,
-            'unrealizedProfit': undefined,
+            'unrealizedPnl': undefined,
             'leverage': this.parseNumber (leverage),
             'percentage': undefined,
             'marginMode': marginType,
