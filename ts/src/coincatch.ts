@@ -34,7 +34,7 @@ export default class coincatch extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelWithdraw': false,
                 'closePosition': false,
@@ -207,7 +207,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/trade/orders': 2, // done
                         'api/spot/v1/trade/batch-orders': 1,
                         'api/spot/v1/trade/cancel-order': 1,
-                        'api/spot/v1/trade/cancel-order-v2': 1,
+                        'api/spot/v1/trade/cancel-order-v2': 2, // done
                         'api/spot/v1/trade/cancel-symbol-orders': 1,
                         'api/spot/v1/trade/cancel-batch-orders': 1,
                         'api/spot/v1/trade/cancel-batch-orders-v2': 1,
@@ -217,7 +217,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/trade/fills': 1, // done
                         'api/spot/v1/plan/placePlan': 1,
                         'api/spot/v1/plan/modifyPlan': 1,
-                        'api/spot/v1/plan/cancelPlan': 1,
+                        'api/spot/v1/plan/cancelPlan': 1, // done
                         'api/spot/v1/plan/currentPlan': 1,
                         'api/spot/v1/plan/historyPlan': 1,
                         'api/spot/v1/plan/batchCancelPlan': 1,
@@ -226,7 +226,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/account/setMargin': 1,
                         'api/mix/v1/account/setMarginMode': 4, // done
                         'api/mix/v1/account/setPositionMode': 1,
-                        'api/mix/v1/order/cancel-order': 1,
+                        'api/mix/v1/order/cancel-order': 2, // done
                         'api/mix/v1/order/cancel-batch-orders': 1,
                         'api/mix/v1/order/cancel-symbol-orders': 1,
                         'api/mix/v1/order/cancel-all-orders': 1,
@@ -237,15 +237,9 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/plan/placeTrailStop': 1,
                         'api/mix/v1/plan/placePositionsTPSL': 1,
                         'api/mix/v1/plan/modifyTPSLPlan': 1,
-                        'api/mix/v1/plan/cancelPlan': 1,
+                        'api/mix/v1/plan/cancelPlan': 2, // done
                         'api/mix/v1/plan/cancelSymbolPlan': 1,
                         'api/mix/v1/plan/cancelAllPlan': 1,
-                    },
-                    'put': {
-                        'api/v1/userDataStream': 1,
-                    },
-                    'delete': {
-                        'api/v1/spot/order': 1,
                     },
                 },
             },
@@ -2430,6 +2424,62 @@ export default class coincatch extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#cancelOrder
+         * @description cancels an open order
+         * @see https://coincatch.github.io/github.io/en/spot/#cancel-order-v2
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+         * @param {bool} [params.trigger] true for canceling a trigger order (default false)
+         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const methodName = 'cancelOrder';
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let clientOrderId: Str = undefined;
+        [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
+        if ((id === undefined) && (clientOrderId === undefined)) {
+            throw new ArgumentsRequired (this.id + methodName + ' () requires an id argument or clientOrderId parameter');
+        }
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const marketType = market['type'];
+        let trigger = false;
+        [ trigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', trigger);
+        let response = undefined;
+        if (marketType === 'spot') {
+            if (trigger) {
+                response = await this.privatePostApiSpotV1PlanCancelPlan (this.extend (request, params));
+            } else {
+                response = await this.privatePostApiSpotV1TradeCancelOrderV2 (this.extend (request, params));
+            }
+        } else if (marketType === 'swap') {
+            if (trigger) {
+                response = await this.privatePostApiMixV1PlanCancelPlan (this.extend (request, params));
+            } else {
+                response = await this.privatePostApiMixV1OrderCancelOrder (this.extend (request, params));
+            }
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
     parseOrder (order, market = undefined): Order {
         //
         // createOrder spot
@@ -2549,6 +2599,7 @@ export default class coincatch extends Exchange {
             'full_fill': 'closed',
             'filled': 'closed',
             'canceled': 'canceled',
+            'cancelled': 'canceled',
         };
         return this.safeString (satuses, status, status); // todo check other statuses
     }
