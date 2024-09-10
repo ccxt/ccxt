@@ -100,7 +100,6 @@ class blofin extends blofin$1 {
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPermissions': undefined,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': false,

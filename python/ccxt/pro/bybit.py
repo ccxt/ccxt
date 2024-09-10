@@ -15,7 +15,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
-from ccxt.base.errors import UnsubscribeError
 
 
 class bybit(ccxt.async_support.bybit):
@@ -953,7 +952,7 @@ class bybit(ccxt.async_support.bybit):
             messageHash = 'unsubscribe:trade:' + symbol
             messageHashes.append(messageHash)
             subMessageHashes.append('trade:' + symbol)
-        return await self.un_watch_topics(url, 'trade', symbols, messageHashes, subMessageHashes, topics, params)
+        return await self.un_watch_topics(url, 'trades', symbols, messageHashes, subMessageHashes, topics, params)
 
     async def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
@@ -2310,44 +2309,6 @@ class bybit(ccxt.async_support.bybit):
                 for j in range(0, len(messageHashes)):
                     unsubHash = messageHashes[j]
                     subHash = subMessageHashes[j]
-                    if unsubHash in client.subscriptions:
-                        del client.subscriptions[unsubHash]
-                    if subHash in client.subscriptions:
-                        del client.subscriptions[subHash]
-                    error = UnsubscribeError(self.id + ' ' + messageHash)
-                    client.reject(error, subHash)
-                    client.resolve(True, unsubHash)
+                    self.clean_unsubscription(client, subHash, unsubHash)
                 self.clean_cache(subscription)
         return message
-
-    def clean_cache(self, subscription: dict):
-        topic = self.safe_string(subscription, 'topic')
-        symbols = self.safe_list(subscription, 'symbols', [])
-        symbolsLength = len(symbols)
-        if topic == 'ohlcv':
-            symbolsAndTimeFrames = self.safe_list(subscription, 'symbolsAndTimeframes', [])
-            for i in range(0, len(symbolsAndTimeFrames)):
-                symbolAndTimeFrame = symbolsAndTimeFrames[i]
-                symbol = self.safe_string(symbolAndTimeFrame, 0)
-                timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                del self.ohlcvs[symbol][timeframe]
-        elif symbolsLength > 0:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                if topic == 'trade':
-                    del self.trades[symbol]
-                elif topic == 'orderbook':
-                    del self.orderbooks[symbol]
-                elif topic == 'ticker':
-                    del self.tickers[symbol]
-        else:
-            if topic == 'myTrades':
-                # don't reset self.myTrades directly here
-                # because in c# we need to use a different object
-                keys = list(self.myTrades.keys())
-                for i in range(0, len(keys)):
-                    del self.myTrades[keys[i]]
-            elif topic == 'orders':
-                orderSymbols = list(self.orders.keys())
-                for i in range(0, len(orderSymbols)):
-                    del self.orders[orderSymbols[i]]

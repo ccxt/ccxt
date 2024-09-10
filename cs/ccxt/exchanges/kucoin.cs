@@ -3916,7 +3916,7 @@ public partial class kucoin : Exchange
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
-        if (isTrue(hf))
+        if (isTrue(isTrue(hf) && isTrue((!isEqual(type, "main")))))
         {
             type = "trade_hf";
         }

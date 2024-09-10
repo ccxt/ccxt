@@ -1201,7 +1201,10 @@ class coinex extends Exchange {
         //         "side" => "buy",
         //         "order_id" => 136915589622,
         //         "price" => "64376",
-        //         "amount" => "0.0001"
+        //         "amount" => "0.0001",
+        //         "role" => "taker",
+        //         "fee" => "0.0299",
+        //         "fee_ccy" => "USDT"
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'created_at');
@@ -1211,6 +1214,16 @@ class coinex extends Exchange {
         }
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
+        $feeCostString = $this->safe_string($trade, 'fee');
+        $fee = null;
+        if ($feeCostString !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_ccy');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCostString,
+                'currency' => $feeCurrencyCode,
+            );
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1220,11 +1233,11 @@ class coinex extends Exchange {
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => null,
             'side' => $this->safe_string($trade, 'side'),
-            'takerOrMaker' => null,
+            'takerOrMaker' => $this->safe_string($trade, 'role'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'amount'),
             'cost' => $this->safe_string($trade, 'deal_money'),
-            'fee' => null,
+            'fee' => $fee,
         ), $market);
     }
 

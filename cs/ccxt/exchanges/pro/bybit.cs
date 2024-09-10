@@ -1116,7 +1116,7 @@ public partial class bybit : ccxt.bybit
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)subMessageHashes).Add(add("trade:", symbol));
         }
-        return await this.unWatchTopics(url, "trade", symbols, messageHashes, subMessageHashes, topics, parameters);
+        return await this.unWatchTopics(url, "trades", symbols, messageHashes, subMessageHashes, topics, parameters);
     }
 
     public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
@@ -2742,74 +2742,11 @@ public partial class bybit : ccxt.bybit
                 {
                     object unsubHash = getValue(messageHashes, j);
                     object subHash = getValue(subMessageHashes, j);
-                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, unsubHash)))
-                    {
-
-                    }
-                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, subHash)))
-                    {
-
-                    }
-                    var error = new UnsubscribeError(add(add(this.id, " "), messageHash));
-                    ((WebSocketClient)client).reject(error, subHash);
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {true, unsubHash});
+                    this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);
             }
         }
         return message;
-    }
-
-    public virtual void cleanCache(object subscription)
-    {
-        object topic = this.safeString(subscription, "topic");
-        object symbols = this.safeList(subscription, "symbols", new List<object>() {});
-        object symbolsLength = getArrayLength(symbols);
-        if (isTrue(isEqual(topic, "ohlcv")))
-        {
-            object symbolsAndTimeFrames = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeFrames)); postFixIncrement(ref i))
-            {
-                object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
-                object symbol = this.safeString(symbolAndTimeFrame, 0);
-                object timeframe = this.safeString(symbolAndTimeFrame, 1);
-
-            }
-        } else if (isTrue(isGreaterThan(symbolsLength, 0)))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object symbol = getValue(symbols, i);
-                if (isTrue(isEqual(topic, "trade")))
-                {
-
-                } else if (isTrue(isEqual(topic, "orderbook")))
-                {
-
-                } else if (isTrue(isEqual(topic, "ticker")))
-                {
-
-                }
-            }
-        } else
-        {
-            if (isTrue(isEqual(topic, "myTrades")))
-            {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                object keys = new List<object>(((IDictionary<string,object>)this.myTrades).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-                {
-
-                }
-            } else if (isTrue(isEqual(topic, "orders")))
-            {
-                object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
-                {
-
-                }
-            }
-        }
     }
 }

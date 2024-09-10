@@ -1,5 +1,5 @@
 import cryptocomRest from '../cryptocom.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cryptocom extends cryptocomRest {
     describe(): any;
@@ -48,5 +48,4 @@ export default class cryptocom extends cryptocomRest {
     handlePing(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;
     handleUnsubscribe(client: Client, message: any): void;
-    cleanCache(subscription: Dict): void;
 }

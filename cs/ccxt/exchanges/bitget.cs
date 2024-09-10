@@ -1192,6 +1192,8 @@ public partial class bitget : Exchange
                     { "40714", typeof(ExchangeError) },
                     { "40762", typeof(InsufficientFunds) },
                     { "40768", typeof(OrderNotFound) },
+                    { "40808", typeof(InvalidOrder) },
+                    { "41103", typeof(InvalidOrder) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
                     { "43012", typeof(InsufficientFunds) },
@@ -1267,10 +1269,11 @@ public partial class bitget : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "JADE", "Jade Protocol" },
+                { "APX", "AstroPepeX" },
                 { "DEGEN", "DegenReborn" },
-                { "TONCOIN", "TON" },
+                { "JADE", "Jade Protocol" },
                 { "OMNI", "omni" },
+                { "TONCOIN", "TON" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeframes", new Dictionary<string, object>() {
