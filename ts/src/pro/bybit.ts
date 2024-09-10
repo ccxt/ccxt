@@ -997,8 +997,10 @@ export default class bybit extends bybitRest {
         client.resolve (orderbook, messageHash);
         if (limit === '1') {
             const bidask = this.parseWsBidAsk (this.orderbooks[symbol], market);
+            const newBidsAsks: Dict = {};
+            newBidsAsks[symbol] = bidask;
             this.bidsasks[symbol] = bidask;
-            client.resolve (bidask, 'bidask:' + symbol);
+            client.resolve (newBidsAsks, 'bidask:' + symbol);
         }
     }
 
