@@ -2,7 +2,7 @@
 import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { Exchange } from '../../../../ccxt.js';
+import { Exchange, ExchangeError, Message } from '../../../../ccxt.js';
 
 async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOHLCV';
@@ -18,6 +18,16 @@ async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, sy
     const limit = 10;
     const duration = exchange.parseTimeframe (chosenTimeframeKey);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
+    const consumer = function consumer (message: Message) {
+        if (message.error) {
+            throw new ExchangeError (message.error);
+        }
+        if (!message.payload) {
+            throw new ExchangeError ("received null or undefined payload");
+        }
+        // TODO: add payload test
+    };
+    await exchange.subscribeOHLCV (symbol, chosenTimeframeKey, consumer, true);
     while (now < ends) {
         let response = undefined;
         try {

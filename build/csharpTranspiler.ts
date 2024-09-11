@@ -354,6 +354,10 @@ class NewTranspiler {
             return addTaskIfNeeded('List<List<string>>');
         }
 
+        if (wrappedType === 'Message') {
+            return addTaskIfNeeded('Message');
+        }
+
         // check if returns a list
         if (wrappedType.endsWith('[]')) {
             isList = true;
@@ -1264,6 +1268,7 @@ class NewTranspiler {
             [ /public virtual object initOfflineExchange/g, 'public virtual Exchange initOfflineExchange' ],
             [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
             [ /object exchange =/g, 'Exchange exchange =' ],
+            [ /object message/g, 'Message message' ],
             [ /throw new Error/g, 'throw new Exception' ],
             [/class testMainClass : baseMainTestClass/g, 'public partial class testMainClass : BaseTest'],
         ])
@@ -1357,6 +1362,7 @@ class NewTranspiler {
             if (isWs) {
                 // add ws-tests specific regeces
                 regexes = regexes.concat([
+                    [ /object message/g, 'Message message' ],
                     [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
                     [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
                 ]);

@@ -1,12 +1,22 @@
 
 import testOrder from '../../../test/Exchange/base/test.order.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { Exchange } from '../../../../ccxt.js';
+import { Exchange, ExchangeError, Message } from '../../../../ccxt.js';
 
 async function testWatchOrders (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOrders';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
+    const consumer = function consumer (message: Message) {
+        if (message.error) {
+            throw new ExchangeError (message.error);
+        }
+        if (!message.payload) {
+            throw new ExchangeError ("received null or undefined payload");
+        }
+        // TODO: add payload test
+    };
+    await exchange.subscribeOrders (symbol, consumer);
     while (now < ends) {
         let response = undefined;
         try {
