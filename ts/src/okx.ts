@@ -1169,20 +1169,14 @@ export default class okx extends Exchange {
                                 'index': true,
                             },
                         },
-                        'marginMode': {
-                            'cross': true,
-                            'isolated': true,
-                        },
+                        'marginMode': true, // this means we support `marginMode` param, available modes are shown within fetchMarkets->marginModes
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
                         },
-                        'positionModes': {
-                            'oneWay': true,
-                            'hedged': true,
-                        },
+                        'hedged': true,
                         // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
                         'selfTradePrevention': true,
                         'trailing': true,
