@@ -65,7 +65,7 @@ class Exchange(BaseExchange):
     ping = None
     newUpdates = True
     clients = {}
-    timeout_on_exit = 0  # to avoid https://github.com/ccxt/ccxt/issues/9218
+    timeout_on_exit = 250  # needed for: https://github.com/ccxt/ccxt/pull/23470
 
     def __init__(self, config={}):
         if 'asyncio_loop' in config:
