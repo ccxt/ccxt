@@ -145,26 +145,38 @@ func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map
 	// fmt.Println(this.TransformedApi)
 }
 
-func (this *Exchange) LoadMarkets(params ...interface{}) interface{} {
+func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	// to do
-	if this.Markets != nil && len(this.Markets) > 0 {
-		if this.Markets_by_id == nil && len(this.Markets) > 0 {
-			return this.SetMarkets(this.Markets, nil)
+	ch := make(chan interface{})
+	go func() {
+		defer close(ch)
+		if this.Markets != nil && len(this.Markets) > 0 {
+			if this.Markets_by_id == nil && len(this.Markets) > 0 {
+				ch <- this.SetMarkets(this.Markets, nil)
+				return
+			}
+			ch <- this.Markets
+			return
 		}
-		return this.Markets
-	}
 
-	var currencies interface{} = nil
-	if (this.Has["fetchCurrencies"] != nil) && this.Has["fetchCurrencies"].(bool) {
-		currencies = this.callInternal("fetchCurrencies")
-	}
-	markets := this.callInternal("fetchMarkets")
-	return this.SetMarkets(markets, currencies)
-
+		var currencies interface{} = nil
+		if (this.Has["fetchCurrencies"] != nil) && this.Has["fetchCurrencies"].(bool) {
+			currencies = <-this.callInternal("fetchCurrencies")
+		}
+		markets := <-this.callInternal("fetchMarkets")
+		ch <- this.SetMarkets(markets, currencies)
+	}()
+	return ch
 }
 
-func (this *Exchange) Throttle(cost interface{}) {
+func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
 	// to do
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		return nil
+	}()
+	return ch
 }
 
 func (this *Exchange) Log(args ...interface{}) {
@@ -172,7 +184,7 @@ func (this *Exchange) Log(args ...interface{}) {
 	fmt.Println(args)
 }
 
-func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) interface{} {
+func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) <-chan interface{} {
 	endpoint := endpoint2.(string)
 	if val, ok := this.TransformedApi[endpoint]; ok {
 		endPointData := val.(map[string]interface{})
@@ -243,7 +255,7 @@ func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
 }
 
-func callDynamically(args ...interface{}) interface{} {
+func callDynamically(args ...interface{}) chan interface{} {
 	// to do
 	return nil
 }
@@ -566,62 +578,92 @@ func (this *Exchange) IsEmpty(a interface{}) bool {
 	}
 }
 
-func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
+func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan interface{} {
 	name := Capitalize(name2)
 	baseType := reflect.TypeOf(this.Itf)
 
-	for i := 0; i < baseType.NumMethod(); i++ {
-		method := baseType.Method(i)
-		if name == method.Name {
-			methodType := method.Type
-			numIn := methodType.NumIn()
-			isVariadic := methodType.IsVariadic()
+	ch := make(chan interface{})
+	go func() {
+		for i := 0; i < baseType.NumMethod(); i++ {
+			method := baseType.Method(i)
+			if name == method.Name {
+				methodType := method.Type
+				numIn := methodType.NumIn()
+				isVariadic := methodType.IsVariadic()
 
-			var in []reflect.Value
-			if isVariadic {
-				// Handle fixed arguments
-				for k := 0; k < numIn-1; k++ {
-					if k < len(args) {
-						in = append(in, reflect.ValueOf(args[k]))
-					} else {
-						paramType := methodType.In(k)
-						in = append(in, reflect.Zero(paramType))
-					}
-				}
-
-				// Handle variadic arguments
-				variadicType := methodType.In(numIn - 1).Elem()
-				for k := numIn - 1; k < len(args); k++ {
-					if args[k] == nil {
-						in = append(in, reflect.Zero(variadicType))
-					} else {
-						in = append(in, reflect.ValueOf(args[k]))
-					}
-				}
-			} else {
-				for k := 0; k < numIn; k++ {
-					if k < len(args) {
-						if args[k] == nil {
+				var in []reflect.Value
+				if isVariadic {
+					// Handle fixed arguments
+					for k := 0; k < numIn-1; k++ {
+						if k < len(args) {
+							in = append(in, reflect.ValueOf(args[k]))
+						} else {
 							paramType := methodType.In(k)
 							in = append(in, reflect.Zero(paramType))
+						}
+					}
+
+					// Handle variadic arguments
+					variadicType := methodType.In(numIn - 1).Elem()
+					for k := numIn - 1; k < len(args); k++ {
+						if args[k] == nil {
+							in = append(in, reflect.Zero(variadicType))
 						} else {
 							in = append(in, reflect.ValueOf(args[k]))
 						}
-					} else {
-						paramType := methodType.In(k)
-						in = append(in, reflect.Zero(paramType))
+					}
+				} else {
+					for k := 0; k < numIn; k++ {
+						if k < len(args) {
+							if args[k] == nil {
+								paramType := methodType.In(k)
+								in = append(in, reflect.Zero(paramType))
+							} else {
+								in = append(in, reflect.ValueOf(args[k]))
+							}
+						} else {
+							paramType := methodType.In(k)
+							in = append(in, reflect.Zero(paramType))
+						}
 					}
 				}
-			}
 
-			res := reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
-			if len(res) > 0 {
-				return res[0].Interface()
+				// Call the method
+				res := reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
+
+				// Check if the result is a channel
+				if len(res) > 0 && res[0].Kind() == reflect.Chan {
+					resultChan := res[0]
+					// Read values from the returned channel and pass them to ch
+					go func() {
+						for {
+							val, ok := resultChan.Recv()
+							if !ok {
+								break // result channel is closed
+							}
+							ch <- val.Interface() // pass the value to the output channel
+						}
+						close(ch) // close the output channel after all values are received
+					}()
+					// Don't close `ch` yet, as it will be closed after the resultChan is read
+					return
+				} else if len(res) > 0 {
+					// Directly return the first result if it's not a channel
+					val := res[0].Interface()
+					ch <- val
+				} else {
+					// Return nil if no results
+					ch <- nil
+				}
+				close(ch)
+				return
 			}
-			return nil
 		}
-	}
-	return nil
+		// If no method is found, return nil
+		ch <- nil
+		close(ch)
+	}()
+	return ch
 }
 
 func Capitalize(s string) string {
