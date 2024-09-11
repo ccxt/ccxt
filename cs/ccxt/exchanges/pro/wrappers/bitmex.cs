@@ -10,6 +10,7 @@ public partial class bitmex
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class bitmex
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -116,6 +118,7 @@ public partial class bitmex
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -135,6 +138,7 @@ public partial class bitmex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -168,7 +172,7 @@ public partial class bitmex
     /// watch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.bitmex.com/app/wsAPI"/>  <br/>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Subscriptions"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -184,6 +188,7 @@ public partial class bitmex
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -217,6 +222,7 @@ public partial class bitmex
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -250,6 +256,7 @@ public partial class bitmex
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#OrderBookL2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -276,6 +283,7 @@ public partial class bitmex
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#OrderBookL2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -302,6 +310,7 @@ public partial class bitmex
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -335,6 +344,7 @@ public partial class bitmex
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.bitmex.com/app/wsAPI#Subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

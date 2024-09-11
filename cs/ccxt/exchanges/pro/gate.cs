@@ -1906,24 +1906,14 @@ public partial class gate : ccxt.gate
                 {
                     object unsubHash = getValue(messageHashes, j);
                     object subHash = getValue(subMessageHashes, j);
-                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, unsubHash)))
-                    {
-
-                    }
-                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, subHash)))
-                    {
-
-                    }
-                    var error = new UnsubscribeError(add(add(this.id, " "), messageHash));
-                    ((WebSocketClient)client).reject(error, subHash);
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {true, unsubHash});
+                    this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);
             }
         }
     }
 
-    public virtual void cleanCache(object subscription)
+    public override void cleanCache(object subscription)
     {
         object topic = this.safeString(subscription, "topic", "");
         object symbols = this.safeList(subscription, "symbols", new List<object>() {});

@@ -597,6 +597,7 @@ public partial class gate : Exchange
                 { "MPH", "MORPHER" },
                 { "POINT", "GATEPOINT" },
                 { "RAI", "RAIREFLEXINDEX" },
+                { "RED", "RedLang" },
                 { "SBTC", "SUPERBITCOIN" },
                 { "TNC", "TRINITYNETWORKCREDIT" },
                 { "VAI", "VAIOT" },
@@ -4259,7 +4260,7 @@ public partial class gate : Exchange
                 }
                 if (isTrue(isMarketOrder))
                 {
-                    ((IDictionary<string,object>)request)["price"] = price; // set to 0 for market orders
+                    ((IDictionary<string,object>)request)["price"] = "0"; // set to 0 for market orders
                 } else
                 {
                     ((IDictionary<string,object>)request)["price"] = ((bool) isTrue((isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price);

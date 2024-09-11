@@ -433,7 +433,7 @@ public partial class cryptocom : ccxt.cryptocom
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", getValue(market, "symbol")));
             ((IList<object>)topics).Add(currentTopic);
         }
-        return await this.unWatchPublicMultiple("trade", symbols, messageHashes, topics, topics, parameters);
+        return await this.unWatchPublicMultiple("trades", symbols, messageHashes, topics, topics, parameters);
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -1395,56 +1395,9 @@ public partial class cryptocom : ccxt.cryptocom
                 {
                     object unsubHash = getValue(messageHashes, j);
                     object subHash = getValue(subMessageHashes, j);
-                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, unsubHash)))
-                    {
-
-                    }
-                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, subHash)))
-                    {
-
-                    }
-                    var error = new UnsubscribeError(add(add(this.id, " "), subHash));
-                    ((WebSocketClient)client).reject(error, subHash);
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {true, unsubHash});
+                    this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);
-            }
-        }
-    }
-
-    public virtual void cleanCache(object subscription)
-    {
-        object topic = this.safeString(subscription, "topic");
-        object symbols = this.safeList(subscription, "symbols", new List<object>() {});
-        object symbolsLength = getArrayLength(symbols);
-        if (isTrue(isEqual(topic, "ohlcv")))
-        {
-            object symbolsAndTimeFrames = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeFrames)); postFixIncrement(ref i))
-            {
-                object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
-                object symbol = this.safeString(symbolAndTimeFrame, 0);
-                object timeframe = this.safeString(symbolAndTimeFrame, 1);
-                if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
-                {
-
-                }
-            }
-        } else if (isTrue(isGreaterThan(symbolsLength, 0)))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object symbol = getValue(symbols, i);
-                if (isTrue(isEqual(topic, "trade")))
-                {
-
-                } else if (isTrue(isEqual(topic, "orderbook")))
-                {
-
-                } else if (isTrue(isEqual(topic, "ticker")))
-                {
-
-                }
             }
         }
     }

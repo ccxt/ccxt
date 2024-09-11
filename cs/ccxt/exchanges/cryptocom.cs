@@ -132,7 +132,7 @@ public partial class cryptocom : Exchange
                 { "www", "https://crypto.com/" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://crypto.com/exch/kdacthrnxt" },
-                    { "discount", 0.15 },
+                    { "discount", 0.75 },
                 } },
                 { "doc", new List<object>() {"https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html", "https://exchange-docs.crypto.com/spot/index.html", "https://exchange-docs.crypto.com/derivatives/index.html"} },
                 { "fees", "https://crypto.com/exchange/document/fees-limits" },

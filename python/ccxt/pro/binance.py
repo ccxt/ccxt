@@ -14,7 +14,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ChecksumError
-from ccxt.base.errors import UnsubscribeError
 from ccxt.base.precise import Precise
 
 
@@ -952,51 +951,8 @@ class binance(ccxt.async_support.binance):
         for j in range(0, len(messageHashes)):
             unsubHash = messageHashes[j]
             subHash = subMessageHashes[j]
-            if unsubHash in client.subscriptions:
-                del client.subscriptions[unsubHash]
-            if subHash in client.subscriptions:
-                del client.subscriptions[subHash]
-            error = UnsubscribeError(self.id + ' ' + subHash)
-            client.reject(error, subHash)
-            client.resolve(True, unsubHash)
+            self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
-
-    def clean_cache(self, subscription: dict):
-        topic = self.safe_string(subscription, 'topic')
-        symbols = self.safe_list(subscription, 'symbols', [])
-        symbolsLength = len(symbols)
-        if topic == 'ohlcv':
-            symbolsAndTimeFrames = self.safe_list(subscription, 'symbolsAndTimeframes', [])
-            for i in range(0, len(symbolsAndTimeFrames)):
-                symbolAndTimeFrame = symbolsAndTimeFrames[i]
-                symbol = self.safe_string(symbolAndTimeFrame, 0)
-                timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                if timeframe in self.ohlcvs[symbol]:
-                    del self.ohlcvs[symbol][timeframe]
-        elif symbolsLength > 0:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                if topic == 'trade':
-                    del self.trades[symbol]
-                elif topic == 'orderbook':
-                    del self.orderbooks[symbol]
-                elif topic == 'ticker':
-                    del self.tickers[symbol]
-        else:
-            if topic == 'myTrades':
-                # don't reset self.myTrades directly here
-                # because in c# we need to use a different object
-                keys = list(self.myTrades.keys())
-                for i in range(0, len(keys)):
-                    del self.myTrades[keys[i]]
-            elif topic == 'orders':
-                orderSymbols = list(self.orders.keys())
-                for i in range(0, len(orderSymbols)):
-                    del self.orders[orderSymbols[i]]
-            elif topic == 'ticker':
-                tickerSymbols = list(self.tickers.keys())
-                for i in range(0, len(tickerSymbols)):
-                    del self.tickers[tickerSymbols[i]]
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -1106,7 +1062,7 @@ class binance(ccxt.async_support.binance):
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
             'symbols': symbols,
-            'topic': 'trade',
+            'topic': 'trades',
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, query), messageHashes, subscription)
 
@@ -1810,7 +1766,7 @@ class binance(ccxt.async_support.binance):
         result = await self.watch_multi_ticker_helper('watchBidsAsks', 'bookTicker', symbols, params)
         if self.newUpdates:
             return result
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
     async def watch_multi_ticker_helper(self, methodName, channelName: str, symbols: Strings = None, params={}):
         await self.load_markets()

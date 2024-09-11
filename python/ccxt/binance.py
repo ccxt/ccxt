@@ -2633,6 +2633,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
         :see: https://developers.binance.com/docs/wallet/capital/all-coins-info
+        :see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -2649,9 +2650,13 @@ class binance(Exchange, ImplicitAPI):
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
             return None
-        response = self.sapiGetCapitalConfigGetall(params)
+        promises = [self.sapiGetCapitalConfigGetall(params), self.sapiGetMarginAllAssets(params)]
+        results = promises
+        responseCurrencies = results[0]
+        responseMarginables = results[1]
+        marginablesById = self.index_by(responseMarginables, 'assetName')
         result: dict = {}
-        for i in range(0, len(response)):
+        for i in range(0, len(responseCurrencies)):
             #
             #    {
             #        "coin": "LINK",
@@ -2747,7 +2752,7 @@ class binance(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-            entry = response[i]
+            entry = responseCurrencies[i]
             id = self.safe_string(entry, 'coin')
             name = self.safe_string(entry, 'name')
             code = self.safe_currency_code(id)
@@ -2799,6 +2804,17 @@ class binance(Exchange, ImplicitAPI):
                 }
             trading = self.safe_bool(entry, 'trading')
             active = (isWithdrawEnabled and isDepositEnabled and trading)
+            marginEntry = self.safe_dict(marginablesById, id, {})
+            #
+            #     {
+            #         assetName: "BTC",
+            #         assetFullName: "Bitcoin",
+            #         isBorrowable: True,
+            #         isMortgageable: True,
+            #         userMinBorrow: "0",
+            #         userMinRepay: "0",
+            #     }
+            #
             result[code] = {
                 'id': id,
                 'name': name,
@@ -2812,6 +2828,7 @@ class binance(Exchange, ImplicitAPI):
                 'fee': fee,
                 'fees': fees,
                 'limits': self.limits,
+                'margin': self.safe_bool(marginEntry, 'isBorrowable'),
             }
         return result
 
@@ -2822,6 +2839,8 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     # swap
         :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              # future
         :see: https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             # option
+        :see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             # cross margin
+        :see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             # isolated margin
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -2834,10 +2853,15 @@ class binance(Exchange, ImplicitAPI):
             if type == 'option' and sandboxMode:
                 continue
             fetchMarkets.append(type)
+        fetchMargins = False
         for i in range(0, len(fetchMarkets)):
             marketType = fetchMarkets[i]
             if marketType == 'spot':
                 promisesRaw.append(self.publicGetExchangeInfo(params))
+                if self.check_required_credentials(False) and not sandboxMode:
+                    fetchMargins = True
+                    promisesRaw.append(self.sapiGetMarginAllPairs(params))
+                    promisesRaw.append(self.sapiGetMarginIsolatedAllPairs(params))
             elif marketType == 'linear':
                 promisesRaw.append(self.fapiPublicGetExchangeInfo(params))
             elif marketType == 'inverse':
@@ -2846,12 +2870,23 @@ class binance(Exchange, ImplicitAPI):
                 promisesRaw.append(self.eapiPublicGetExchangeInfo(params))
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
-        promises = promisesRaw
+        results = promisesRaw
         markets = []
-        for i in range(0, len(fetchMarkets)):
-            promise = self.safe_dict(promises, i)
-            promiseMarkets = self.safe_list_2(promise, 'symbols', 'optionSymbols', [])
-            markets = self.array_concat(markets, promiseMarkets)
+        self.options['crossMarginPairsData'] = []
+        self.options['isolatedMarginPairsData'] = []
+        for i in range(0, len(results)):
+            res = self.safe_value(results, i)
+            if fetchMargins and isinstance(res, list):
+                keysList = list(self.index_by(res, 'symbol').keys())
+                length = (self.options['crossMarginPairsData'])
+                # first one is the cross-margin promise
+                if length == 0:
+                    self.options['crossMarginPairsData'] = keysList
+                else:
+                    self.options['isolatedMarginPairsData'] = keysList
+            else:
+                resultMarkets = self.safe_list_2(res, 'symbols', 'optionSymbols', [])
+                markets = self.array_concat(markets, resultMarkets)
         #
         # spot / margin
         #
@@ -2895,6 +2930,20 @@ class binance(Exchange, ImplicitAPI):
         #             },
         #         ],
         #     }
+        #
+        # cross & isolated pairs response:
+        #
+        #     [
+        #         {
+        #           symbol: "BTCUSDT",
+        #           base: "BTC",
+        #           quote: "USDT",
+        #           isMarginTrade: True,
+        #           isBuyAllowed: True,
+        #           isSellAllowed: True,
+        #           id: "376870555451677893",  # doesn't exist in isolated
+        #         },
+        #     ]
         #
         # futures/usdt-margined(fapi)
         #
@@ -3118,6 +3167,19 @@ class binance(Exchange, ImplicitAPI):
                     active = False
                     break
         isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed', False)
+        marginModes = None
+        if spot:
+            hasCrossMargin = self.in_array(id, self.options['crossMarginPairsData'])
+            hasIsolatedMargin = self.in_array(id, self.options['isolatedMarginPairsData'])
+            marginModes = {
+                'cross': hasCrossMargin,
+                'isolated': hasIsolatedMargin,
+            }
+        elif linear or inverse:
+            marginModes = {
+                'cross': True,
+                'isolated': True,
+            }
         unifiedType = None
         if spot:
             unifiedType = 'spot'
@@ -3144,6 +3206,7 @@ class binance(Exchange, ImplicitAPI):
             'type': unifiedType,
             'spot': spot,
             'margin': spot and isMarginTradingAllowed,
+            'marginModes': marginModes,
             'swap': swap,
             'future': future,
             'option': option,
