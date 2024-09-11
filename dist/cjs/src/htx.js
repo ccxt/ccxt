@@ -7642,7 +7642,7 @@ class htx extends htx$1 {
             'entryPrice': entryPrice,
             'collateral': this.parseNumber(collateral),
             'side': side,
-            'unrealizedProfit': unrealizedProfit,
+            'unrealizedPnl': unrealizedProfit,
             'leverage': this.parseNumber(leverage),
             'percentage': this.parseNumber(percentage),
             'marginMode': marginMode,

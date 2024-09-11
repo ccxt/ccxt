@@ -2148,7 +2148,7 @@ public partial class binance : ccxt.binance
         {
             return result;
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
     }
 
     public async virtual Task<object> watchMultiTickerHelper(object methodName, object channelName, object symbols = null, object parameters = null)

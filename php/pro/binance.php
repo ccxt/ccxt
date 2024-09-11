@@ -1945,7 +1945,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 return $result;
             }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
         }) ();
     }
 

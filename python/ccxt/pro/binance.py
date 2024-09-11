@@ -1766,7 +1766,7 @@ class binance(ccxt.async_support.binance):
         result = await self.watch_multi_ticker_helper('watchBidsAsks', 'bookTicker', symbols, params)
         if self.newUpdates:
             return result
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
     async def watch_multi_ticker_helper(self, methodName, channelName: str, symbols: Strings = None, params={}):
         await self.load_markets()

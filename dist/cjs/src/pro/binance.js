@@ -1913,7 +1913,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
     async watchMultiTickerHelper(methodName, channelName, symbols = undefined, params = {}) {
         await this.loadMarkets();

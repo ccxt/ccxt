@@ -1945,7 +1945,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
     async watchMultiTickerHelper (methodName, channelName: string, symbols: Strings = undefined, params = {}) {

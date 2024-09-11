@@ -861,6 +861,10 @@ Each network is an associative array (aka dictionary) with the following keys:
         'cost':  { ... },     // same limits for order cost = price * amount
         'leverage': { ... },  // same min/max limits for the leverage of the order
     },
+    'marginModes': {
+        'cross': false,       // whether pair supports cross-margin trading
+        'isolated': false,    // whether pair supports isolated-margin trading
+    },
     'info':      { ... },     // the original unparsed market info from the exchange
 }
 ```
@@ -1861,11 +1865,13 @@ funding_rates = await binance.fetch_funding_rate_history("BTC/USDT:USDT", params
 
 ### Working With Datetimes And Timestamps
 
-The set of methods for working with UTC dates and timestamps and for converting between them:
+All unified timestamps throughout the CCXT library are integers **in milliseconds** unless explicitly stated otherwise.
 
-```javascript
-exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer, Z = UTC
-exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // iso8601 string
+Below is the set of methods for working with UTC dates and timestamps and for converting between them:
+
+```JavaScript
+exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer in milliseconds, Z = UTC
+exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // from milliseconds to iso8601 string
 exchange.seconds ()      // integer UTC timestamp in seconds
 exchange.milliseconds () // integer UTC timestamp in milliseconds
 ```

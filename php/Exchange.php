@@ -3443,6 +3443,10 @@ class Exchange {
                     'max' => null,
                 ),
             ),
+            'marginModes' => array(
+                'cross' => null,
+                'isolated' => null,
+            ),
             'created' => null,
             'info' => null,
         );
