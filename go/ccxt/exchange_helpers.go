@@ -906,31 +906,46 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 
 type Task func() interface{}
 
-// promiseAll resolves a list of tasks asynchronously and returns a list with the results
-func promiseAll(tasksInterface interface{}) []interface{} {
-	return tasksInterface.([]interface{}) //  for now the execution is synchronous improve later with goroutines and channels
-	tasks, ok := tasksInterface.([]interface{})
-	if !ok {
-		return nil // Return nil if the input is not a slice of interfaces
-	}
+func promiseAll(tasksInterface interface{}) <-chan []interface{} {
+	ch := make(chan []interface{})
 
-	var wg sync.WaitGroup
-	results := make([]interface{}, len(tasks))
-	wg.Add(len(tasks))
+	go func() {
+		defer close(ch)
 
-	for i, task := range tasks {
-		go func(i int, task interface{}) {
-			defer wg.Done()
-			if t, ok := task.(Task); ok {
-				results[i] = t()
-			} else {
-				results[i] = nil // Handle case where task is not of type Task
-			}
-		}(i, task)
-	}
+		// Ensure tasksInterface is a slice of channels (<-chan interface{})
+		tasks, ok := tasksInterface.([]interface{})
+		if !ok {
+			ch <- nil // Return nil if the input is not a slice of interfaces
+			return
+		}
 
-	wg.Wait()
-	return results
+		results := make([]interface{}, len(tasks))
+		var wg sync.WaitGroup
+		wg.Add(len(tasks))
+
+		for i, task := range tasks {
+			go func(i int, task interface{}) {
+				defer wg.Done()
+
+				// Assert the task is a channel
+				if chanTask, ok := task.(<-chan interface{}); ok {
+					// Receive the result from the channel
+					results[i] = <-chanTask
+				} else {
+					// If the task is not a channel, set the result to nil
+					results[i] = nil
+				}
+			}(i, task)
+		}
+
+		// Wait for all tasks to complete
+		wg.Wait()
+
+		// Once all tasks are done, send the results
+		ch <- results
+	}()
+
+	return ch
 }
 
 func ParseInt(number interface{}) int64 {

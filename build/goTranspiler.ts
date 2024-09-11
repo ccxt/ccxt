@@ -771,6 +771,7 @@ class NewTranspiler {
 
 
         // custom transformations needed for go
+        baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
         baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
@@ -1005,6 +1006,8 @@ class NewTranspiler {
         // const baseWsClassExec = baseWsClassRegex.exec(content);
         // const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
         if (!ws) {
+            content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
+            content = content.replace(/base\./gm, "this.Exchange.");
             content = content.replace(/base\./gm, "this.Exchange.");
             content = content.replace(/"\0"/gm, '"\/\/\" + "0"'); // check this later in bl3p
             content = content.replace(/new Precise/gm, "NewPrecise");

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func (this *Exchange) Fetch(url interface{}, method interface{}, headers interface{}, body interface{}) interface{} {
+func (this *Exchange) Fetch(url interface{}, method interface{}, headers interface{}, body interface{}) chan interface{} {
 	// Convert url to string
 	urlStr, ok := url.(string)
 	if !ok {
@@ -136,6 +136,11 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 	if err != nil {
 		panic(fmt.Sprintf("failed to unmarshal response body: %v", err))
 	}
+	ch := make(chan interface{})
+	go func() {
+		defer close(ch)
+		ch <- result
+	}() // update this later
 
-	return result
+	return ch
 }
