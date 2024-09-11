@@ -1169,6 +1169,10 @@ export default class okx extends Exchange {
                                 'index': true,
                             },
                         },
+                        'marginMode': {
+                            'cross': true,
+                            'isolated': true,
+                        },
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
@@ -1179,11 +1183,15 @@ export default class okx extends Exchange {
                             'oneWay': true,
                             'hedged': true,
                         },
-                        // even though the below params not unified yet, let users know that it's supported by exchange
+                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
                         'selfTradePrevention': true,
                         'trailing': true,
                         'twap': true,
                         'iceberg': true,
+                        'oco': true,
+                    },
+                    'createOrders': {
+                        'supported': true,
                     },
                     'fetchOpenOrders': {
                         'trigger': true,
