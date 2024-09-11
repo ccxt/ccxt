@@ -1498,6 +1498,9 @@ export default class binance extends Exchange {
                     'BUSD': 'USD',
                 },
             },
+            'features': {
+                
+            },
             'exceptions': {
                 'spot': {
                     'exact': {
