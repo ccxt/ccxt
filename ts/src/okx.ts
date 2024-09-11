@@ -1154,7 +1154,7 @@ export default class okx extends Exchange {
                 'brokerId': 'e847386590ce4dBC',
             },
             'features': {
-                'default': {
+                'custom1': {
                     'sandbox': true,
                     'createOrder': {
                         'triggerPrice': true,
@@ -1181,19 +1181,23 @@ export default class okx extends Exchange {
                         },
                         // even though the below params not unified yet, let users know that it's supported by exchange
                         'selfTradePrevention': true,
-                        'supportedTypes': [ 'trailing', 'twap', 'iceberg' ],
+                        'trailing': true,
+                        'twap': true,
+                        'iceberg': true,
                     },
                     'fetchOpenOrders': {
-                        'params': [ 'trigger', 'trailing' ],
+                        'trigger': true,
+                        'trailing': true,
                         'limit': 100,
                     },
                     'fetchClosedOrders': {
-                        'params': [ 'trigger', 'trailing' ],
+                        'trigger': true,
+                        'trailing': true,
                         'daysBack': 90, // 3 months
                         'limit': 100,
                     },
                     'fetchOrder': {
-                        'params': [ 'trigger' ],
+                        'trigger': true,
                     },
                     'fetchMyTrades': {
                         'until': true,
@@ -1201,14 +1205,14 @@ export default class okx extends Exchange {
                         'limit': 100,
                     },
                 },
-                'spot': 'default',
+                'spot': 'custom1',
                 'swap': {
-                    'linear': 'default',
-                    'inverse': 'default',
+                    'linear': 'custom1',
+                    'inverse': 'custom1',
                 },
                 'future': {
-                    'linear': 'default',
-                    'inverse': 'default',
+                    'linear': 'custom1',
+                    'inverse': 'custom1',
                 },
             },
             'commonCurrencies': {
