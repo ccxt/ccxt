@@ -78,7 +78,21 @@ public class Stream : IBaseStream
     {
         var synchronous = synchronous2 as bool? ?? true;
         var topic = topic2 as String;
-        var consumerFn = consumerFn2 as ConsumerFunction;
+
+        // Check if consumerFn2 is already a ConsumerFunction
+        ConsumerFunction consumerFn = consumerFn2 as ConsumerFunction;
+
+        // If it's not a ConsumerFunction, check if it's a Func<Message, Task>
+        if (consumerFn == null && consumerFn2 is Func<Message, Task> func)
+        {
+            // Convert Func<Message, Task> to ConsumerFunction
+            consumerFn = new ConsumerFunction(func.Invoke);
+        }
+        else if (consumerFn == null && consumerFn2 is Action<Message> action)
+        {
+            // Convert Action<Message> (void-returning) to ConsumerFunction
+            consumerFn = new ConsumerFunction((msg) => { action.Invoke(msg); return Task.CompletedTask; });
+        }
         if (consumerFn == null)
         {
             Console.WriteLine("Consumer function is required");
