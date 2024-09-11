@@ -1154,6 +1154,7 @@ export default class okx extends Exchange {
                 'brokerId': 'e847386590ce4dBC',
             },
             'features': {
+                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
                 'custom1': {
                     'sandbox': true,
                     'createOrder': {
@@ -1187,21 +1188,31 @@ export default class okx extends Exchange {
                     'createOrders': {
                         'supported': true,
                     },
+                    'fetchOrder': {
+                        'supported': true,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOrders': {
+                        'supported': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
                     'fetchOpenOrders': {
+                        'supported': true,
                         'trigger': true,
                         'trailing': true,
                         'limit': 100,
                     },
                     'fetchClosedOrders': {
+                        'supported': true,
                         'trigger': true,
                         'trailing': true,
                         'daysBack': 90, // 3 months
                         'limit': 100,
                     },
-                    'fetchOrder': {
-                        'trigger': true,
-                    },
                     'fetchMyTrades': {
+                        'supported': true,
                         'until': true,
                         'daysBack': 90, // 3 months
                         'limit': 100,

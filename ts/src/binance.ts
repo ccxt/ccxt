@@ -1499,6 +1499,7 @@ export default class binance extends Exchange {
                 },
             },
             'features': {
+                // https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
                 'custom1': {
                     'sandbox': true,
                     'createOrder': {
@@ -1532,21 +1533,31 @@ export default class binance extends Exchange {
                     'createOrders': {
                         'supported': true,
                     },
+                    'fetchOrder': {
+                        'supported': true,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'supported': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
                     'fetchOpenOrders': {
+                        'supported': true,
                         'trigger': true,
                         'trailing': true,
                         'limit': 100,
                     },
                     'fetchClosedOrders': {
+                        'supported': true,
                         'trigger': true,
                         'trailing': true,
                         'daysBack': 90, // 3 months
                         'limit': 100,
                     },
-                    'fetchOrder': {
-                        'trigger': true,
-                    },
                     'fetchMyTrades': {
+                        'supported': true,
                         'until': true,
                         'daysBack': 90, // 3 months
                         'limit': 100,
