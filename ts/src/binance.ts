@@ -1558,6 +1558,68 @@ export default class binance extends Exchange {
                         'trailing': false,
                     },
                 },
+
+                        'custom1': {
+                            'sandbox': true,
+                            'createOrder': {
+                                'triggerPrice': true,
+                                'stopLossPrice': true,
+                                'takeProfitPrice': true,
+                                'attachedStopLossTakeProfit': undefined, // not supported
+                                'marginMode': false,
+                                'timeInForce': {
+                                    'GTC': true,
+                                    'IOC': true,
+                                    'FOK': true,
+                                    'PO': true,
+                                    'GTD': true,
+                                    'GTX': true,
+                                },
+                                'hedged': true,
+                                // exchange-supported features
+                                'selfTradePrevention': true,
+                                'trailing': true,
+                                'twap': false,
+                                'iceberg': true,
+                                'oco': false,
+                            },
+                            'createOrders': {},
+                            'fetchMyTrades': {
+                                'daysBack': undefined,
+                                'limit': 1000,
+                                'until': true,
+                                'timespan': 1, // days between start-end
+                            },
+                            'fetchOrder': {
+                                'daysBack': undefined,
+                                'trigger': false,
+                                'trailing': false,
+                            },
+                            'fetchOrders': {
+                                'limit': 1000,
+                                'daysBack': undefined,
+                                'marginMode': true,
+                                'trigger': false,
+                                'trailing': false,
+                                'until': true,
+                            },
+                            'fetchOpenOrders': {
+                                'limit': 500,
+                                'until': true,
+                                'marginMode': true,
+                                'trigger': false,
+                                'trailing': false,
+                            },
+                            'fetchClosedOrders': {
+                                'limit': 1000,
+                                'until': true,
+                                'timespan': undefined,
+                                'marginMode': true,
+                                'trigger': false,
+                                'trailing': false,
+                            },
+                        },
+                        
                 'swap': {
                     'linear': 'custom1',
                     'inverse': 'custom1',
