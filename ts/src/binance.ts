@@ -1499,7 +1499,68 @@ export default class binance extends Exchange {
                 },
             },
             'features': {
-                
+                'custom1': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'supported': true,
+                            'limitPrice': true,
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                        },
+                        'marginMode': true, // this means we support `marginMode` param, available modes are shown within fetchMarkets->marginModes
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                        },
+                        'hedged': true,
+                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
+                        'selfTradePrevention': true,
+                        'trailing': true,
+                        'twap': false,
+                        'iceberg': true,
+                        'oco': false,
+                    },
+                    'createOrders': {
+                        'supported': true,
+                    },
+                    'fetchOpenOrders': {
+                        'trigger': true,
+                        'trailing': true,
+                        'limit': 100,
+                    },
+                    'fetchClosedOrders': {
+                        'trigger': true,
+                        'trailing': true,
+                        'daysBack': 90, // 3 months
+                        'limit': 100,
+                    },
+                    'fetchOrder': {
+                        'trigger': true,
+                    },
+                    'fetchMyTrades': {
+                        'until': true,
+                        'daysBack': 90, // 3 months
+                        'limit': 100,
+                    },
+                },
+                'spot': 'custom1',
+                'swap': {
+                    'linear': 'custom1',
+                    'inverse': 'custom1',
+                },
+                'future': {
+                    'linear': 'custom1',
+                    'inverse': 'custom1',
+                },
             },
             'exceptions': {
                 'spot': {
