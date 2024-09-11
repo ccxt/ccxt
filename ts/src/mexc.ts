@@ -4597,7 +4597,7 @@ export default class mexc extends Exchange {
             const rawNetwork = this.safeString (params, 'network');
             if (rawNetwork !== undefined) {
                 params = this.omit (params, 'network');
-                request['coin'] += '-' + rawNetwork;
+                request['coin'] = request['coin'] + '-' + rawNetwork;
             }
         }
         if (since !== undefined) {

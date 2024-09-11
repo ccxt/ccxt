@@ -3385,7 +3385,7 @@ export default class kucoin extends Exchange {
             const network = this.safeDict (networks, networkCode);
             if (this.safeNumber (network, 'precision') !== undefined) {
                 // if precision exists, no need to refetch
-                return;
+                return true;
             }
             // otherwise try to fetch and store in instance
             const request: Dict = {
@@ -3420,7 +3420,9 @@ export default class kucoin extends Exchange {
             const precision = this.parseNumber (this.parsePrecision (this.safeString (data, 'precision')));
             const code = currency['code'];
             this.currencies[code]['networks'][networkCode]['precision'] = precision;
+            return true;
         }
+        return false;
     }
 
     parseTransactionStatus (status: Str) {
