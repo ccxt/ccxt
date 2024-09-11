@@ -5,7 +5,7 @@ import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -559,26 +559,28 @@ export default class cryptocom extends cryptocomRest {
 
     handleTicker (client: Client, message) {
         //
-        // {
-        //     "info":{
-        //        "instrument_name":"BTC_USDT",
-        //        "subscription":"ticker.BTC_USDT",
-        //        "channel":"ticker",
-        //        "data":[
-        //           {
-        //              "i":"BTC_USDT",
-        //              "b":43063.19,
-        //              "k":43063.2,
-        //              "a":43063.19,
-        //              "t":1648121165658,
-        //              "v":43573.912409,
-        //              "h":43498.51,
-        //              "l":41876.58,
-        //              "c":1087.43
-        //           }
-        //        ]
+        //     {
+        //       "instrument_name": "ETHUSD-PERP",
+        //       "subscription": "ticker.ETHUSD-PERP",
+        //       "channel": "ticker",
+        //       "data": [
+        //         {
+        //           "h": "2400.20",
+        //           "l": "2277.10",
+        //           "a": "2335.25",
+        //           "c": "-0.0022",
+        //           "b": "2335.10",
+        //           "bs": "5.4000",
+        //           "k": "2335.16",
+        //           "ks": "1.9970",
+        //           "i": "ETHUSD-PERP",
+        //           "v": "1305697.6462",
+        //           "vv": "3058704939.17",
+        //           "oi": "161646.3614",
+        //           "t": 1726069647560
+        //         }
+        //       ]
         //     }
-        //  }
         //
         this.handleBidAsk (client, message);
         const messageHash = this.safeString (message, 'subscription');
@@ -587,11 +589,58 @@ export default class cryptocom extends cryptocomRest {
         const data = this.safeValue (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
-            const parsed = this.parseTicker (ticker, market);
+            const parsed = this.parseWsTicker (ticker, market);
             const symbol = parsed['symbol'];
             this.tickers[symbol] = parsed;
             client.resolve (parsed, messageHash);
         }
+    }
+
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //       "h": "2400.20",
+        //       "l": "2277.10",
+        //       "a": "2335.25",
+        //       "c": "-0.0022",
+        //       "b": "2335.10",
+        //       "bs": "5.4000",
+        //       "k": "2335.16",
+        //       "ks": "1.9970",
+        //       "i": "ETHUSD-PERP",
+        //       "v": "1305697.6462",
+        //       "vv": "3058704939.17",
+        //       "oi": "161646.3614",
+        //       "t": 1726069647560
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 't');
+        const marketId = this.safeString (ticker, 'i');
+        market = this.safeMarket (marketId, market, '_');
+        const quote = this.safeString (market, 'quote');
+        const last = this.safeString (ticker, 'a');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeNumber (ticker, 'h'),
+            'low': this.safeNumber (ticker, 'l'),
+            'bid': this.safeNumber (ticker, 'b'),
+            'bidVolume': this.safeNumber (ticker, 'bs'),
+            'ask': this.safeNumber (ticker, 'k'),
+            'askVolume': this.safeNumber (ticker, 'ks'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'c'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'v'),
+            'quoteVolume': (quote === 'USD') ? this.safeString (ticker, 'vv') : undefined,
+            'info': ticker,
+        }, market);
     }
 
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
