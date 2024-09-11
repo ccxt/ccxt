@@ -11,6 +11,7 @@
 //
 
 import fs from 'fs';
+import path from 'path'
 import { platform } from 'process'
 import ccxt from '../ts/ccxt.js';
 
@@ -21,6 +22,18 @@ if (platform === 'win32' && __dirname[0] === '/') {
     __dirname = __dirname.substring (1);
 }
 const rootDir = __dirname + '/../';
+
+function getExchangeSettings (exchangeId) {
+    // set up keys and settings, if any
+    const keysGlobal = path.resolve (rootDir + '/keys.json');
+    const keysLocal = path.resolve (rootDir + '/keys.local.json');
+    const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal;
+    const settingsFile  = fs.readFileSync(keysFile);
+    // eslint-disable-next-line import/no-dynamic-require, no-path-concat
+    let settings = JSON.parse(settingsFile.toString());
+    settings = settings[exchangeId] || {};
+    return settings;
+}
 
 function write (filename, data) {
     return fs.writeFileSync(filename, JSON.stringify(data, null, 2));
@@ -50,7 +63,12 @@ const symbolsOrCurrencies = args;
 
 async function main () {
     try {
-        const exchange = new ccxt[exchangeId]();
+        const settings = getExchangeSettings (exchangeId);
+        const exchange = new ccxt[exchangeId]({ ...settings });
+        let currencies = undefined;
+        if (exchange.has['fetchCurrencies']) {
+            currencies = await exchange.fetchCurrencies();
+        }
         await exchange.loadMarkets();
 
         for (const argument of symbolsOrCurrencies) {
@@ -59,8 +77,8 @@ async function main () {
             }
             // if it's update command for markets or currencies
             if (argument === 'update') {
-                updateMarketsOrCurrencies (exchange, 'markets');
-                updateMarketsOrCurrencies (exchange, 'currencies');
+                updateMarketsOrCurrencies (exchange, 'markets', exchange.markets);
+                updateMarketsOrCurrencies (exchange, 'currencies', currencies);
             } else {
                 updateMarketOrCurrency (exchange, argument);
             }
@@ -74,18 +92,20 @@ async function main () {
 }
 
 // update all markets or currencies
-function updateMarketsOrCurrencies (exchange, type) {
-    let source = type === 'markets' ? exchange.markets : exchange.currencies;
+function updateMarketsOrCurrencies (exchange, type, source) {
+    if (!source) { // if undefined, e.g. from fetchCurrencies
+        return;
+    }
     let destination = type === 'markets' ? marketsJson : currenciesJson;
     // get existing keys which needs update
     const keys = Object.keys (destination);
     // update all existing keys
     for (const key of keys) {
-        if (source[key]) {
-            destination[key] = exchange.markets[key];
+        if (key in source) {
+            destination[key] = source[key];
         } else {
             // if symbol or currency is removed from exchange
-            console.log ('Key no longer found in latest fetched ' + exchangeId + ' > ' + type);
+            console.log ('[info] can not update data for key, it is no longer found in latest fetched ' + exchangeId + ' > ' + type + ' > ' + key);
         }
     }
     const filePath = type === 'markets' ? filePathForMarkets : filePathForCurrencies;

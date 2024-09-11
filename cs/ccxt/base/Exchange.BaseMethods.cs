@@ -1465,6 +1465,10 @@ public partial class Exchange
                     { "max", null },
                 } },
             } },
+            { "marginModes", new Dictionary<string, object>() {
+                { "cross", null },
+                { "isolated", null },
+            } },
             { "created", null },
             { "info", null },
         };

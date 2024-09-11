@@ -2381,6 +2381,10 @@ export default class Exchange {
                     'max': undefined,
                 },
             },
+            'marginModes': {
+                'cross': undefined,
+                'isolated': undefined,
+            },
             'created': undefined,
             'info': undefined,
         };

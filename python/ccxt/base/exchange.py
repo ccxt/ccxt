@@ -2799,6 +2799,10 @@ class Exchange(object):
                     'max': None,
                 },
             },
+            'marginModes': {
+                'cross': None,
+                'isolated': None,
+            },
             'created': None,
             'info': None,
         }
