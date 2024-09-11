@@ -1163,24 +1163,37 @@ export default class okx extends Exchange {
                         'attachedStopLossTakeProfit': {
                             'supported': true,
                             'limitPrice': true,
-                            'triggerPriceType': [ 'last', 'mark', 'index' ],
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
                         },
-                        'timeInForce': [ 'GTC', 'IOC', 'FOK', 'PO' ],
-                        // 'selfTradePrevention': true, // supported, but not unified
-                        'positionModes': [ 'oneWay', 'hedged' ],
-                        'supportedTypes': [ 'TRAILING', 'TWAP', 'ICEBERG' ], // even though not unified, let uses know, that exchange supports them
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                        },
+                        'positionModes': {
+                            'oneWay': true,
+                            'hedged': true,
+                        },
+                        // even though the below params not unified yet, let users know that it's supported by exchange
+                        'selfTradePrevention': true,
+                        'supportedTypes': [ 'trailing', 'twap', 'iceberg' ],
                     },
                     'fetchOpenOrders': {
-                        'dedicatedParams': [ 'trigger', 'trailing' ],
+                        'params': [ 'trigger', 'trailing' ],
                         'limit': 100,
                     },
                     'fetchClosedOrders': {
-                        'dedicatedParams': [ 'trigger', 'trailing' ],
+                        'params': [ 'trigger', 'trailing' ],
                         'daysBack': 90, // 3 months
                         'limit': 100,
                     },
                     'fetchOrder': {
-                        'dedicatedParams': [ 'trigger' ],
+                        'params': [ 'trigger' ],
                     },
                     'fetchMyTrades': {
                         'until': true,
