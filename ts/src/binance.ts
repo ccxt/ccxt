@@ -1500,21 +1500,13 @@ export default class binance extends Exchange {
             },
             'features': {
                 // https://developers.binance.com/docs/binance-spot-api-docs/rest-api#:~:text=quoteOrderQty
-                'custom1': {
+                'spot': {
                     'sandbox': true,
                     'createOrder': {
                         'triggerPrice': true,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
-                        'attachedStopLossTakeProfit': {
-                            'supported': true,
-                            'limitPrice': true,
-                            'triggerPriceType': {
-                                'last': true,
-                                'mark': true,
-                                'index': true,
-                            },
-                        },
+                        'attachedStopLossTakeProfit': undefined, // not supported
                         'marginMode': true, // this means we support `marginMode` param, available modes are shown within fetchMarkets->marginModes
                         'timeInForce': {
                             'GTC': true,
@@ -1523,47 +1515,49 @@ export default class binance extends Exchange {
                             'PO': true,
                         },
                         'hedged': true,
-                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
+                        // exchange-supported features
                         'selfTradePrevention': true,
                         'trailing': true,
                         'twap': false,
                         'iceberg': true,
                         'oco': false,
                     },
-                    'createOrders': {
-                        'supported': true,
+                    'createOrders': {},
+                    'fetchMyTrades': {
+                        'daysBack': undefined,
+                        'limit': 1000,
+                        'until': true,
+                        'timespan': 1, // days between start-end
                     },
                     'fetchOrder': {
-                        'supported': true,
+                        'daysBack': undefined,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOrders': {
-                        'supported': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'until': true,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': 500,
+                        'until': true,
+                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                     },
-                    'fetchOpenOrders': {
-                        'supported': true,
-                        'trigger': true,
-                        'trailing': true,
-                        'limit': 100,
-                    },
                     'fetchClosedOrders': {
-                        'supported': true,
-                        'trigger': true,
-                        'trailing': true,
-                        'daysBack': 90, // 3 months
-                        'limit': 100,
-                    },
-                    'fetchMyTrades': {
-                        'supported': true,
+                        'limit': 1000,
                         'until': true,
-                        'daysBack': 90, // 3 months
-                        'limit': 100,
+                        'timespan': undefined,
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
                     },
                 },
-                'spot': 'custom1',
                 'swap': {
                     'linear': 'custom1',
                     'inverse': 'custom1',

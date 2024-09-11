@@ -1162,7 +1162,6 @@ export default class okx extends Exchange {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
-                            'supported': true,
                             'limitPrice': true,
                             'triggerPriceType': {
                                 'last': true,
@@ -1185,37 +1184,31 @@ export default class okx extends Exchange {
                         'iceberg': true,
                         'oco': true,
                     },
-                    'createOrders': {
-                        'supported': true,
+                    'createOrders': {}, // as long as it's not undefined, then exchange supports
+                    'fetchMyTrades': {
+                        'daysBack': 90, // days
+                        'limit': 100,
+                        'until': true,
+                        'timestan': undefined,
                     },
                     'fetchOrder': {
-                        'supported': true,
+                        'daysBack': undefined,
                         'trigger': true,
                         'trailing': true,
                     },
-                    'fetchOrders': {
-                        'supported': false,
-                        'trigger': false,
-                        'trailing': false,
-                    },
+                    'fetchOrders': undefined, // not supported
                     'fetchOpenOrders': {
-                        'supported': true,
+                        'limit': 100,
+                        'until': false,
                         'trigger': true,
                         'trailing': true,
-                        'limit': 100,
                     },
                     'fetchClosedOrders': {
-                        'supported': true,
+                        'daysBack': 90, // 3 months
+                        'limit': 100,
+                        'until': false,
                         'trigger': true,
                         'trailing': true,
-                        'daysBack': 90, // 3 months
-                        'limit': 100,
-                    },
-                    'fetchMyTrades': {
-                        'supported': true,
-                        'until': true,
-                        'daysBack': 90, // 3 months
-                        'limit': 100,
                     },
                 },
                 'spot': 'custom1',
