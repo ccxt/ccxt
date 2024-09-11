@@ -156,7 +156,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'www': 'https://crypto.com/',
                 'referral': {
                     'url': 'https://crypto.com/exch/kdacthrnxt',
-                    'discount': 0.15,
+                    'discount': 0.75,
                 },
                 'doc': [
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
