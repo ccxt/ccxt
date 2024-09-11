@@ -5,7 +5,7 @@ import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ export default class cryptocom extends cryptocomRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchMyTrades': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
@@ -494,6 +494,42 @@ export default class cryptocom extends cryptocomRest {
         const subMessageHash = 'ticker' + '.' + market['id'];
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
         return await this.unWatchPublicMultiple ('ticker', [ market['symbol'] ], [ messageHash ], [ subMessageHash ], [ subMessageHash ], params);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name cryptocom#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHashes = [];
+        const marketIds = this.marketIds (symbols);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            messageHashes.push ('ticker.' + marketId);
+        }
+        const url = this.urls['api']['ws']['public'];
+        const id = this.nonce ();
+        const request: Dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': messageHashes,
+            },
+            'nonce': id,
+        };
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
