@@ -1344,7 +1344,7 @@ public partial class xt : Exchange
         //     }
         //
         object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? "v" : "a";
-        return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, volumeIndex, "v")};
+        return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)};
     }
 
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
