@@ -532,6 +532,30 @@ export default class cryptocom extends cryptocomRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name cryptocom#unWatchTickers
+         * @description unWatches a price ticker
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHashes = [];
+        const subMessageHashes = [];
+        const marketIds = this.marketIds (symbols);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const symbol = symbols[i];
+            subMessageHashes.push ('ticker.' + marketId);
+            messageHashes.push ('unsubscribe:ticker:' + symbol);
+        }
+        return await this.unWatchPublicMultiple ('ticker', symbols, messageHashes, subMessageHashes, subMessageHashes, params);
+    }
+
     handleTicker (client: Client, message) {
         //
         // {
