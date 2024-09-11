@@ -19,7 +19,7 @@ var Precise = &PreciseStruct{}
 func NewPrecise(number2 interface{}, dec2 ...interface{}) *PreciseStruct {
 	var dec int
 	if len(dec2) > 0 {
-		dec = int(dec2[0].(int32))
+		dec = int(ParseInt(dec2[0]))
 	} else {
 		dec = math.MinInt32
 	}

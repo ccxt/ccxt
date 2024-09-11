@@ -947,7 +947,6 @@ func promiseAll(tasksInterface interface{}) <-chan []interface{} {
 
 	return ch
 }
-
 func ParseInt(number interface{}) int64 {
 	switch v := number.(type) {
 	case int:

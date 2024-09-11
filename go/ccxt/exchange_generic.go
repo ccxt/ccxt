@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strconv"
 )
 
 func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{} {
@@ -251,10 +252,15 @@ func (this *Exchange) OmitZero(value interface{}) interface{} {
 			return nil
 		}
 	case string:
-		parsed := reflect.ValueOf(v).Float()
-		if parsed == 0 {
-			return nil
+		// Attempt to parse the string as a float64
+		parsed, err := strconv.ParseFloat(v, 64)
+		if err == nil {
+			// If parsed value is zero, return nil
+			if parsed == 0 {
+				return nil
+			}
 		}
+		// If parsing fails or value is non-zero, return the original string
 	}
 	return value
 }
