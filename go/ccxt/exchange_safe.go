@@ -76,8 +76,16 @@ func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) 
 	switch v := value.(type) {
 	case string:
 		return v
-	case float32, float64, int, int32, int64:
-		return fmt.Sprintf("%v", v)
+	case int:
+		return strconv.Itoa(v)
+	case int8, int16, int32, int64:
+		return strconv.FormatInt(v.(int64), 10)
+	case uint, uint8, uint16, uint32, uint64:
+		return strconv.FormatUint(v.(uint64), 10)
+	case float32:
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
 	default:
 		return defaultValue
 	}
