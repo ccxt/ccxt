@@ -454,7 +454,18 @@ export default class cryptomus extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetV1ExchangeMarketTickers (params);
-        // todo check
+        //
+        //     {
+        //         "data": [
+        //         {
+        //             "currency_pair": "MATIC_USDT",
+        //             "last_price": "0.342",
+        //             "base_volume": "1676.84092771",
+        //             "quote_volume": "573.48033609043"
+        //         },
+        //         ...
+        //     }
+        //
         const data = this.safeList (response, 'data');
         return this.parseTickers (data, symbols);
     }
