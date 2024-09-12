@@ -2871,8 +2871,8 @@ export default class Exchange {
         return cleanStructure;
     }
 
-    isSpotMargin (market: MarketInterface, marketType: Str = undefined, marginMode: Str = undefined): boolean {
-        return market['margin'] || (marketType === 'margin') || ((marketType === 'spot') && (marginMode !== undefined))
+    isSpotMargin (marketType: Str = undefined, marginMode: Str = undefined): boolean {
+        return (marketType === 'margin') || ((marketType === 'spot') && (marginMode !== undefined))
     }
 
     setMarkets (markets, currencies = undefined) {
