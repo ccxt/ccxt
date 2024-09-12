@@ -1161,7 +1161,7 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        this.rateLimit = this.rateLimit / 5;
+        this.rateLimit = this.rateLimit / 5; // see comment: https://github.com/ccxt/ccxt/pull/23698
         const response = await this.contractPublicGetDetail (params);
         this.rateLimit = this.rateLimit * 5;
         //
