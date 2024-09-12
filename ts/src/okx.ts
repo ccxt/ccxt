@@ -1159,15 +1159,20 @@ export default class okx extends Exchange {
                     'sandbox': true,
                     'createOrder': {
                         'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': {
-                            'limitPrice': true,
                             'triggerPriceType': {
                                 'last': true,
                                 'mark': true,
                                 'index': true,
                             },
+                            'limitPrice': true,
                         },
                         'marginMode': true, // this means we support `marginMode` param, available modes are shown within fetchMarkets->marginModes
                         'timeInForce': {
@@ -1184,29 +1189,32 @@ export default class okx extends Exchange {
                         'iceberg': true,
                         'oco': true,
                     },
-                    'createOrders': {}, // as long as it's not undefined, then exchange supports
+                    'createOrders': {
+                        'max': 20,
+                    },
                     'fetchMyTrades': {
-                        'daysBack': 90, // days
+                        'daysBack': 90,
                         'limit': 100,
-                        'until': true,
-                        'timestan': undefined,
+                        'untilDays': 10000,
                     },
                     'fetchOrder': {
-                        'daysBack': undefined,
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': 100,
+                        'marginMode': false,
                         'trigger': true,
                         'trailing': true,
                     },
                     'fetchOrders': undefined, // not supported
-                    'fetchOpenOrders': {
-                        'limit': 100,
-                        'until': false,
-                        'trigger': true,
-                        'trailing': true,
-                    },
                     'fetchClosedOrders': {
-                        'daysBack': 90, // 3 months
                         'limit': 100,
-                        'until': false,
+                        'daysBackClosed': 90, // 3 months
+                        'daysBackCanceled': 1 / 12, // 2 hour
+                        'untilDays': undefined,
+                        'marginMode': false,
                         'trigger': true,
                         'trailing': true,
                     },
