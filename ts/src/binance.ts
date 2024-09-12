@@ -5875,7 +5875,8 @@ export default class binance extends Exchange {
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        const isSpotMargin = this.isSpotMargin (market, marketType, marginMode);
+        const isSpot = market['spot'] || (marketType === 'spot');
+        const isSpotMargin = this.isSpotMargin (marketType, marginMode);
         if (isSpotMargin || market['option']) {
             // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
             const reduceOnly = this.safeBool (params, 'reduceOnly', false);
@@ -5974,7 +5975,7 @@ export default class binance extends Exchange {
         let postOnly = undefined;
         if (!isPortfolioMargin) {
             postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
-            if (market['spot'] || isSpotMargin) {
+            if (isSpot || isSpotMargin) {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if (postOnly) {
                     uppercaseType = 'LIMIT_MAKER';
@@ -5994,7 +5995,7 @@ export default class binance extends Exchange {
             }
         }
         // handle newOrderRespType response type
-        if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
+        if ((isSpot || isSpotMargin) && !isPortfolioMargin) {
             request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // swap, futures and options
@@ -6028,7 +6029,7 @@ export default class binance extends Exchange {
         //     TRAILING_STOP_MARKET callbackRate
         //
         if (uppercaseType === 'MARKET') {
-            if (market['spot']) {
+            if (isSpot) {
                 const quoteOrderQty = this.safeBool (this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
