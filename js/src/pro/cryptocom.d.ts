@@ -1,5 +1,5 @@
 import cryptocomRest from '../cryptocom.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cryptocom extends cryptocomRest {
     describe(): any;
@@ -19,7 +19,13 @@ export default class cryptocom extends cryptocomRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;

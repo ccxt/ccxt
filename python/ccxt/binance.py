@@ -6032,8 +6032,8 @@ class binance(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOrders', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
-        params = self.omit(params, ['stop', 'conditional', 'type'])
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
+        params = self.omit(params, ['stop', 'trigger', 'conditional', 'type'])
         request: dict = {
             'symbol': market['id'],
         }
@@ -6282,7 +6282,7 @@ class binance(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOpenOrders', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_n(params, ['stop', 'conditional', 'trigger'])
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -6296,7 +6296,7 @@ class binance(Exchange, ImplicitAPI):
             type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
-        params = self.omit(params, ['type', 'stop', 'conditional', 'trigger'])
+        params = self.omit(params, ['type', 'stop', 'trigger', 'conditional'])
         response = None
         if type == 'option':
             if since is not None:
@@ -6357,8 +6357,8 @@ class binance(Exchange, ImplicitAPI):
         }
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOpenOrder', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_n(params, ['stop', 'conditional', 'trigger'])
-        params = self.omit(params, ['stop', 'conditional', 'trigger'])
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
+        params = self.omit(params, ['stop', 'trigger', 'conditional'])
         isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
         orderIdRequest = 'strategyId' if isPortfolioMarginConditional else 'orderId'
         request[orderIdRequest] = id
@@ -6648,7 +6648,7 @@ class binance(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'cancelOrder', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         request: dict = {
             'symbol': market['id'],
         }
@@ -6666,7 +6666,7 @@ class binance(Exchange, ImplicitAPI):
                 request['strategyId'] = id
             else:
                 request['orderId'] = id
-        params = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional'])
+        params = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional'])
         response = None
         if market['option']:
             response = self.eapiPrivateDeleteOrder(self.extend(request, params))
@@ -6725,9 +6725,9 @@ class binance(Exchange, ImplicitAPI):
         }
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'cancelAllOrders', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         type = self.safe_string(params, 'type', market['type'])
-        params = self.omit(params, ['type', 'stop', 'conditional'])
+        params = self.omit(params, ['type', 'stop', 'trigger', 'conditional'])
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
         response = None

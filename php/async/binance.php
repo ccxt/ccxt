@@ -6305,8 +6305,8 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrders', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
-            $params = $this->omit($params, array( 'stop', 'conditional', 'type' ));
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+            $params = $this->omit($params, array( 'stop', 'trigger', 'conditional', 'type' ));
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -6567,7 +6567,7 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_n($params, array( 'stop', 'conditional', 'trigger' ));
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
@@ -6582,7 +6582,7 @@ class binance extends Exchange {
             }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
-            $params = $this->omit($params, array( 'type', 'stop', 'conditional', 'trigger' ));
+            $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
             $response = null;
             if ($type === 'option') {
                 if ($since !== null) {
@@ -6657,8 +6657,8 @@ class binance extends Exchange {
             );
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_n($params, array( 'stop', 'conditional', 'trigger' ));
-            $params = $this->omit($params, array( 'stop', 'conditional', 'trigger' ));
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+            $params = $this->omit($params, array( 'stop', 'trigger', 'conditional' ));
             $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
             $orderIdRequest = $isPortfolioMarginConditional ? 'strategyId' : 'orderId';
             $request[$orderIdRequest] = $id;
@@ -6970,7 +6970,7 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelOrder', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -6992,7 +6992,7 @@ class binance extends Exchange {
                     $request['orderId'] = $id;
                 }
             }
-            $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional' ));
+            $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional' ));
             $response = null;
             if ($market['option']) {
                 $response = Async\await($this->eapiPrivateDeleteOrder ($this->extend($request, $params)));
@@ -7062,9 +7062,9 @@ class binance extends Exchange {
             );
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             $type = $this->safe_string($params, 'type', $market['type']);
-            $params = $this->omit($params, array( 'type', 'stop', 'conditional' ));
+            $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             $response = null;

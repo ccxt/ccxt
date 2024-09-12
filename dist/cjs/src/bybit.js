@@ -976,6 +976,7 @@ class bybit extends bybit$1 {
                     '3200300': errors.InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
                 },
                 'broad': {
+                    'Not supported symbols': errors.BadSymbol,
                     'Request timeout': errors.RequestTimeout,
                     'unknown orderInfo': errors.OrderNotFound,
                     'invalid api_key': errors.AuthenticationError,
