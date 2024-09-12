@@ -770,15 +770,23 @@ func Shift(slice interface{}) (interface{}, interface{}) {
 }
 
 // Reverse reverses the elements of a slice in place
-func Reverse(slice interface{}) interface{} {
+func Reverse(slice interface{}) {
 	sliceVal, ok := castToSlice(slice)
 	if !ok {
-		return slice
+		panic("provided value is not a slice")
 	}
+
+	// Reverse the elements in place
 	for i, j := 0, len(sliceVal)-1; i < j; i, j = i+1, j-1 {
 		sliceVal[i], sliceVal[j] = sliceVal[j], sliceVal[i]
 	}
-	return sliceVal
+
+	// Copy the reversed values back into the original slice
+	// Since Go is a pass-by-value language, we need to reflect to modify the original slice in place
+	v := reflect.ValueOf(slice)
+	for i := 0; i < v.Len(); i++ {
+		v.Index(i).Set(reflect.ValueOf(sliceVal[i]))
+	}
 }
 
 // Pop removes the last element from a slice and returns the new slice and the removed element
@@ -1223,4 +1231,14 @@ func Remove(dict interface{}, key interface{}) {
 
 	// Remove the key from the map
 	delete(castedDict, keyStr)
+}
+
+func Capitalize(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	// Convert the first letter to uppercase
+	firstLetter := strings.ToUpper(string(s[0]))
+	// Combine the uppercase first letter with the rest of the string
+	return firstLetter + s[1:]
 }
