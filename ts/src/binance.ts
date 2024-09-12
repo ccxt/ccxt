@@ -5974,7 +5974,7 @@ export default class binance extends Exchange {
         let postOnly = undefined;
         if (!isPortfolioMargin) {
             postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
-            if (isSpotMargin) {
+            if (market['spot'] || isSpotMargin) {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if (postOnly) {
                     uppercaseType = 'LIMIT_MAKER';
