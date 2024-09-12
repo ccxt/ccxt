@@ -2872,7 +2872,7 @@ export default class Exchange {
     }
 
     isSpotMargin (marketType: Str = undefined, marginMode: Str = undefined): boolean {
-        return (marketType === 'margin') || ((marketType === 'spot') && (marginMode !== undefined))
+        return (marketType === 'margin') || ((marketType === 'spot') && (marginMode !== undefined)) || ((marketType === undefined) && (marginMode !== undefined));
     }
 
     setMarkets (markets, currencies = undefined) {
