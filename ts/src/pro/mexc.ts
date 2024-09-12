@@ -1231,8 +1231,8 @@ export default class mexc extends mexcRest {
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
-        //
-        const msg = this.safeString (message, 'msg');
+        // Set the default to an empty string if the message is empty during the test.
+        const msg = this.safeString (message, 'msg', '');
         if (msg === 'PONG') {
             this.handlePong (client, message);
         } else if (msg.indexOf ('@') > -1) {
