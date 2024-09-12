@@ -5890,19 +5890,15 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // don't handle/omit params here, omitting happens createOrderRequest
         const marketType = this.safeString (params, 'type', market['type']);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        let isPortfolioMargin = undefined;
-        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'papi', 'portfolioMargin', false);
+        const marginMode = this.safeString (params, 'marginMode');
+        const isPortfolioMargin = this.safeBool2 (params, 'papi', 'portfolioMargin', false);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
-        const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStopLoss = stopLossPrice !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
-        const isConditional = (triggerPrice !== undefined) || isTrailingPercentOrder || isStopLoss || isTakeProfit;
+        const isConditional = (triggerPrice !== undefined) || (trailingPercent !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, [ 'sor', 'SOR', 'test' ]);
