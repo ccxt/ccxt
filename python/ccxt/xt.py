@@ -1355,7 +1355,7 @@ class xt(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
             self.safe_number(ohlcv, 'c'),
-            self.safe_number_2(ohlcv, volumeIndex, 'v'),
+            self.safe_number_2(ohlcv, 'q', volumeIndex),
         ]
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
