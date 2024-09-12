@@ -7645,7 +7645,7 @@ export default class htx extends Exchange {
             'entryPrice': entryPrice,
             'collateral': this.parseNumber(collateral),
             'side': side,
-            'unrealizedProfit': unrealizedProfit,
+            'unrealizedPnl': unrealizedProfit,
             'leverage': this.parseNumber(leverage),
             'percentage': this.parseNumber(percentage),
             'marginMode': marginMode,

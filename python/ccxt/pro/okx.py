@@ -16,7 +16,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import ChecksumError
-from ccxt.base.errors import UnsubscribeError
 
 
 class okx(ccxt.async_support.okx):
@@ -2162,54 +2161,32 @@ class okx(ccxt.async_support.okx):
     def handle_un_subscription_trades(self, client: Client, symbol: str):
         subMessageHash = 'trades:' + symbol
         messageHash = 'unsubscribe:trades:' + symbol
-        if subMessageHash in client.subscriptions:
-            del client.subscriptions[subMessageHash]
-        if messageHash in client.subscriptions:
-            del client.subscriptions[messageHash]
-        del self.trades[symbol]
-        error = UnsubscribeError(self.id + ' ' + subMessageHash)
-        client.reject(error, subMessageHash)
-        client.resolve(True, messageHash)
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.trades:
+            del self.trades[symbol]
 
     def handle_unsubscription_order_book(self, client: Client, symbol: str, channel: str):
         subMessageHash = channel + ':' + symbol
         messageHash = 'unsubscribe:orderbook:' + symbol
-        if subMessageHash in client.subscriptions:
-            del client.subscriptions[subMessageHash]
-        if messageHash in client.subscriptions:
-            del client.subscriptions[messageHash]
-        del self.orderbooks[symbol]
-        error = UnsubscribeError(self.id + ' ' + subMessageHash)
-        client.reject(error, subMessageHash)
-        client.resolve(True, messageHash)
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.orderbooks:
+            del self.orderbooks[symbol]
 
     def handle_unsubscription_ohlcv(self, client: Client, symbol: str, channel: str):
         tf = channel.replace('candle', '')
         timeframe = self.find_timeframe(tf)
         subMessageHash = 'multi:' + channel + ':' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
-        if subMessageHash in client.subscriptions:
-            del client.subscriptions[subMessageHash]
-        if messageHash in client.subscriptions:
-            del client.subscriptions[messageHash]
+        self.clean_unsubscription(client, subMessageHash, messageHash)
         if timeframe in self.ohlcvs[symbol]:
             del self.ohlcvs[symbol][timeframe]
-        error = UnsubscribeError(self.id + ' ' + subMessageHash)
-        client.reject(error, subMessageHash)
-        client.resolve(True, messageHash)
 
     def handle_unsubscription_ticker(self, client: Client, symbol: str, channel):
         subMessageHash = channel + '::' + symbol
         messageHash = 'unsubscribe:ticker:' + symbol
-        if subMessageHash in client.subscriptions:
-            del client.subscriptions[subMessageHash]
-        if messageHash in client.subscriptions:
-            del client.subscriptions[messageHash]
+        self.clean_unsubscription(client, subMessageHash, messageHash)
         if symbol in self.tickers:
             del self.tickers[symbol]
-        error = UnsubscribeError(self.id + ' ' + subMessageHash)
-        client.reject(error, subMessageHash)
-        client.resolve(True, messageHash)
 
     def handle_unsubscription(self, client: Client, message):
         #

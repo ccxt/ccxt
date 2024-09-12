@@ -47,6 +47,8 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

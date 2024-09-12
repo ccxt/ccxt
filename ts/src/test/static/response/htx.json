@@ -279,7 +279,7 @@
                         "entryPrice": 67.35,
                         "collateral": null,
                         "side": "long",
-                        "unrealizedProfit": 0.092,
+                        "unrealizedPnl": 0.092,
                         "leverage": 1,
                         "percentage": 1.365998515219005,
                         "marginMode": "cross",

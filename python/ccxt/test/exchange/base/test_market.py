@@ -61,6 +61,10 @@ def test_market(exchange, skipped_properties, method, market):
                 'max': exchange.parse_number('1000'),
             },
         },
+        'marginModes': {
+            'cross': True,
+            'isolated': False,
+        },
         'info': {},
     }
     empty_allowed_for = ['linear', 'inverse', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize']
@@ -191,3 +195,10 @@ def test_market(exchange, skipped_properties, method, market):
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['quoteId'], market['quote'])
         test_shared_methods.assert_valid_currency_id_and_code(exchange, skipped_properties, method, market, market['settleId'], market['settle'])
     test_shared_methods.assert_timestamp(exchange, skipped_properties, method, market, None, 'created')
+    # margin modes
+    if not ('marginModes' in skipped_properties):
+        margin_modes = exchange.safe_dict(market, 'marginModes')  # in future, remove safeDict
+        assert 'cross' in margin_modes, 'marginModes should have \"cross\" key' + log_text
+        assert 'isolated' in margin_modes, 'marginModes should have \"isolated\" key' + log_text
+        test_shared_methods.assert_in_array(exchange, skipped_properties, method, margin_modes, 'cross', [True, False, None])
+        test_shared_methods.assert_in_array(exchange, skipped_properties, method, margin_modes, 'isolated', [True, False, None])

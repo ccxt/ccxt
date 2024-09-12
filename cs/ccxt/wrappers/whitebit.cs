@@ -504,6 +504,12 @@ public partial class whitebit
     /// See <see href="https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : the earliest time in ms to fetch open orders for

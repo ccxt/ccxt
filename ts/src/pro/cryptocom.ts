@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, ChecksumError, ExchangeError, NetworkError, UnsubscribeError } from '../base/errors.js';
+import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict } from '../base/types.js';
@@ -385,7 +385,7 @@ export default class cryptocom extends cryptocomRest {
             messageHashes.push ('unsubscribe:trades:' + market['symbol']);
             topics.push (currentTopic);
         }
-        return await this.unWatchPublicMultiple ('trade', symbols, messageHashes, topics, topics, params);
+        return await this.unWatchPublicMultiple ('trades', symbols, messageHashes, topics, topics, params);
     }
 
     handleTrades (client: Client, message) {
@@ -1249,45 +1249,9 @@ export default class cryptocom extends cryptocomRest {
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
-                    if (unsubHash in client.subscriptions) {
-                        delete client.subscriptions[unsubHash];
-                    }
-                    if (subHash in client.subscriptions) {
-                        delete client.subscriptions[subHash];
-                    }
-                    const error = new UnsubscribeError (this.id + ' ' + subHash);
-                    client.reject (error, subHash);
-                    client.resolve (true, unsubHash);
+                    this.cleanUnsubscription (client, subHash, unsubHash);
                 }
                 this.cleanCache (subscription);
-            }
-        }
-    }
-
-    cleanCache (subscription: Dict) {
-        const topic = this.safeString (subscription, 'topic');
-        const symbols = this.safeList (subscription, 'symbols', []);
-        const symbolsLength = symbols.length;
-        if (topic === 'ohlcv') {
-            const symbolsAndTimeFrames = this.safeList (subscription, 'symbolsAndTimeframes', []);
-            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
-                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
-                const symbol = this.safeString (symbolAndTimeFrame, 0);
-                const timeframe = this.safeString (symbolAndTimeFrame, 1);
-                if (timeframe in this.ohlcvs[symbol]) {
-                    delete this.ohlcvs[symbol][timeframe];
-                }
-            }
-        } else if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                if (topic === 'trade') {
-                    delete this.trades[symbol];
-                } else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
-                } else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
-                }
             }
         }
     }

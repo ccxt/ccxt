@@ -1230,6 +1230,8 @@ class bitget extends bitget$1 {
                     '40714': errors.ExchangeError,
                     '40762': errors.InsufficientFunds,
                     '40768': errors.OrderNotFound,
+                    '40808': errors.InvalidOrder,
+                    '41103': errors.InvalidOrder,
                     '41114': errors.OnMaintenance,
                     '43011': errors.InvalidOrder,
                     '43012': errors.InsufficientFunds,
@@ -1306,10 +1308,11 @@ class bitget extends bitget$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {
-                'JADE': 'Jade Protocol',
+                'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'JADE': 'Jade Protocol',
+                'OMNI': 'omni',
                 'TONCOIN': 'TON',
-                'OMNI': 'omni', // conflict with Omni Network
             },
             'options': {
                 'timeframes': {

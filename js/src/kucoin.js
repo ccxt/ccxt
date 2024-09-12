@@ -3831,7 +3831,7 @@ export default class kucoin extends Exchange {
         params = this.omit(params, 'type');
         let hf = undefined;
         [hf, params] = this.handleHfAndParams(params);
-        if (hf) {
+        if (hf && (type !== 'main')) {
             type = 'trade_hf';
         }
         const [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', params);

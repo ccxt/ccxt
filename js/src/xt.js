@@ -1375,7 +1375,7 @@ export default class xt extends Exchange {
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
             this.safeNumber(ohlcv, 'c'),
-            this.safeNumber2(ohlcv, volumeIndex, 'v'),
+            this.safeNumber2(ohlcv, 'q', volumeIndex),
         ];
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {

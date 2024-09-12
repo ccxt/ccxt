@@ -10,7 +10,6 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\UnsubscribeError;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
@@ -1044,7 +1043,7 @@ class bybit extends \ccxt\async\bybit {
                 $messageHashes[] = $messageHash;
                 $subMessageHashes[] = 'trade:' . $symbol;
             }
-            return Async\await($this->un_watch_topics($url, 'trade', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
+            return Async\await($this->un_watch_topics($url, 'trades', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
         }) ();
     }
 
@@ -2534,59 +2533,11 @@ class bybit extends \ccxt\async\bybit {
                 for ($j = 0; $j < count($messageHashes); $j++) {
                     $unsubHash = $messageHashes[$j];
                     $subHash = $subMessageHashes[$j];
-                    if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
-                        unset($client->subscriptions[$unsubHash]);
-                    }
-                    if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
-                        unset($client->subscriptions[$subHash]);
-                    }
-                    $error = new UnsubscribeError ($this->id . ' ' . $messageHash);
-                    $client->reject ($error, $subHash);
-                    $client->resolve (true, $unsubHash);
+                    $this->clean_unsubscription($client, $subHash, $unsubHash);
                 }
                 $this->clean_cache($subscription);
             }
         }
         return $message;
-    }
-
-    public function clean_cache(array $subscription) {
-        $topic = $this->safe_string($subscription, 'topic');
-        $symbols = $this->safe_list($subscription, 'symbols', array());
-        $symbolsLength = count($symbols);
-        if ($topic === 'ohlcv') {
-            $symbolsAndTimeFrames = $this->safe_list($subscription, 'symbolsAndTimeframes', array());
-            for ($i = 0; $i < count($symbolsAndTimeFrames); $i++) {
-                $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
-                $symbol = $this->safe_string($symbolAndTimeFrame, 0);
-                $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                unset($this->ohlcvs[$symbol][$timeframe]);
-            }
-        } elseif ($symbolsLength > 0) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                if ($topic === 'trade') {
-                    unset($this->trades[$symbol]);
-                } elseif ($topic === 'orderbook') {
-                    unset($this->orderbooks[$symbol]);
-                } elseif ($topic === 'ticker') {
-                    unset($this->tickers[$symbol]);
-                }
-            }
-        } else {
-            if ($topic === 'myTrades') {
-                // don't reset $this->myTrades directly here
-                // because in c# we need to use a different object
-                $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
-                for ($i = 0; $i < count($keys); $i++) {
-                    unset($this->myTrades[$keys[$i]]);
-                }
-            } elseif ($topic === 'orders') {
-                $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
-                for ($i = 0; $i < count($orderSymbols); $i++) {
-                    unset($this->orders[$orderSymbols[$i]]);
-                }
-            }
-        }
     }
 }
