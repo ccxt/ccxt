@@ -1200,3 +1200,27 @@ func toFixed(number interface{}, decimals interface{}) float64 {
 	multiplier := math.Pow(10, float64(dec))
 	return math.Round(num*multiplier) / multiplier
 }
+
+func Remove(dict interface{}, key interface{}) {
+	// Attempt to cast the dict to map[string]interface{}
+	castedDict, ok := dict.(map[string]interface{})
+	if !ok {
+		// Panic if the cast fails
+		panic("provided value is not a map[string]interface{}")
+	}
+
+	// Attempt to cast the key to string
+	keyStr, ok := key.(string)
+	if !ok {
+		// Panic if the key is not a string
+		panic("provided key is not a string")
+	}
+
+	// Check if the key exists, panic if it doesn't
+	if _, exists := castedDict[keyStr]; !exists {
+		panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+	}
+
+	// Remove the key from the map
+	delete(castedDict, keyStr)
+}
