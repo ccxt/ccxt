@@ -100,7 +100,7 @@ export default class hitbtc extends hitbtcRest {
                     'signature': signature,
                 },
             };
-            this.watch (url, messageHash, request, messageHash);
+            await this.watch (url, messageHash, request, messageHash);
             //
             //    {
             //        "jsonrpc": "2.0",

@@ -1359,7 +1359,7 @@ export default class onetrading extends onetradingRest {
                 'type': 'AUTHENTICATE',
                 'api_token': this.apiKey,
             };
-            this.watch (url, messageHash, this.extend (request, params), messageHash);
+            await this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }

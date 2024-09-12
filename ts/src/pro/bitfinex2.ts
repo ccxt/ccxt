@@ -866,7 +866,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future (messageHash);
+        let future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const nonce = this.milliseconds ();
@@ -881,7 +881,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 'event': event,
             };
             const message = this.extend (request, params);
-            this.watch (url, messageHash, message, messageHash);
+            future = this.watch (url, messageHash, message, messageHash);
         }
         return await future;
     }

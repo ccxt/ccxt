@@ -1749,7 +1749,7 @@ export default class bitget extends bitgetRest {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future (messageHash);
+        let future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.seconds ().toString ();
@@ -1768,7 +1768,7 @@ export default class bitget extends bitgetRest {
                 ],
             };
             const message = this.extend (request, params);
-            this.watch (url, messageHash, message, messageHash);
+            future = this.watch (url, messageHash, message, messageHash);
         }
         return await future;
     }

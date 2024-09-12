@@ -715,7 +715,7 @@ export default class bitmex extends bitmexRest {
                 ],
             };
             const message = this.extend (request, params);
-            this.watch (url, messageHash, message, messageHash);
+            await this.watch (url, messageHash, message, messageHash);
         }
         return await future;
     }
