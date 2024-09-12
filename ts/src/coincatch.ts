@@ -369,7 +369,7 @@ export default class coincatch extends Exchange {
         const cost = this.safeInteger (config, 'cost', 1);
         const orders = this.safeList2 (params, 'orderList', 'orderDataList', []);
         const ordersLength = orders.length;
-        if ((step !== undefined) && (ordersLength > 0)) {
+        if ((step !== undefined) && (ordersLength > step)) {
             const numberOfSteps = Math.ceil (ordersLength / step);
             return cost * numberOfSteps;
         } else {
