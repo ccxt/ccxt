@@ -1745,5 +1745,12 @@
                 "side": "not provided"
             }
         }
+    },
+    "coincatch": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            }
+        }
     }
 }
