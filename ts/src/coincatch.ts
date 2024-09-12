@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './bas
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -45,6 +45,7 @@ export default class coincatch extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -205,8 +206,8 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/wallet/withdrawal-inner-v2': 1,
                         'api/spot/v1/account/bills': 1,
                         'api/spot/v1/trade/orders': 2, // done
-                        'api/spot/v1/trade/batch-orders': 1,
-                        'api/spot/v1/trade/cancel-order': 1,
+                        'api/spot/v1/trade/batch-orders': { 'cost': 4, 'step': 10 }, // done
+                        'api/spot/v1/trade/cancel-order': 1, // not used
                         'api/spot/v1/trade/cancel-order-v2': 2, // done
                         'api/spot/v1/trade/cancel-symbol-order': 2, // done
                         'api/spot/v1/trade/cancel-batch-orders': 1,
@@ -226,6 +227,8 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/account/setMargin': 1,
                         'api/mix/v1/account/setMarginMode': 4, // done
                         'api/mix/v1/account/setPositionMode': 1,
+                        'api/mix/v1/order/placeOrder': 1,
+                        'api/mix/v1/order/batch-orders': { 'cost': 4, 'step': 10 }, // done
                         'api/mix/v1/order/cancel-order': 2, // done
                         'api/mix/v1/order/cancel-batch-orders': 1,
                         'api/mix/v1/order/cancel-symbol-orders': 1,
@@ -351,11 +354,27 @@ export default class coincatch extends Exchange {
                 'exact': {
                     // {"code":"40034","msg":"Parameter BTCUSDT_UMCBL does not exist","requestTime":1725380736387,"data":null}
                     // {"code":"40808","msg":"Parameter verification exception size checkBDScale error value=0.00001 checkScale=4","requestTime":1725916628171,"data":null}
+                    // {"code":"45110","msg":"less than the minimum amount 1 USDT","requestTime":1726152020258,"data":null}
+                    // {"code":"40019","msg":"Parameter side cannot be empty","requestTime":1726160656036,"data":null}
+                    // {"code":"40913","msg":"orderId or clientOrderId must be passed one","requestTime":1726160988275,"data":null}
                 },
                 'broad': {},
             },
             'precisionMode': TICK_SIZE,
         });
+    }
+
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
+        const step = this.safeInteger (config, 'step');
+        const cost = this.safeInteger (config, 'cost', 1);
+        const orders = this.safeList2 (params, 'orderList', 'orderDataList', []);
+        const ordersLength = orders.length;
+        if ((step !== undefined) && (ordersLength > 0)) {
+            const numberOfSteps = Math.ceil (ordersLength / step);
+            return cost * numberOfSteps;
+        } else {
+            return cost;
+        }
     }
 
     async fetchTime (params = {}) {
@@ -2005,7 +2024,7 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-         * @param {string} [params.timeInForce] "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
+         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2123,8 +2142,12 @@ export default class coincatch extends Exchange {
         if (postOnly) {
             timeInForce = 'PO';
         }
-        request['force'] = this.encodeTimeInForce (timeInForce);
+        request['force'] = this.encodeTimeInForce (timeInForce); // the exchange requres force but accepts any value
         return this.extend (request, params);
+    }
+
+    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+        return {};
     }
 
     encodeTimeInForce (timeInForce: Str): Str {
@@ -2135,6 +2158,115 @@ export default class coincatch extends Exchange {
             'PO': 'post_only',
         };
         return this.safeString (timeInForceMap, timeInForce, timeInForce);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name coincatch#createOrders
+         * @description create a list of trade orders (all orders should be of the same symbol)
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params (max 50 entries)
+         * @param {object} [params] extra parameters specific to the api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        // same symbol for all orders
+        // only non-trigger orders are supported todo add an exception for trigger orders
+        const methodName = 'createOrders';
+        params['methodName'] = methodName;
+        const ordersRequests = [];
+        let symbols = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            symbols.push (symbol);
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            const clientOrderId = this.safeString (orderRequest, 'clientOrderId');
+            if (clientOrderId === undefined) {
+                orderRequest['clientOrderId'] = this.uuid (); // both spot and swap endpoints require clientOrderId
+            }
+            ordersRequests.push (orderRequest);
+        }
+        symbols = this.unique (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength !== 1) {
+            throw new BadRequest (this.id + ' createOrders() requires all orders to be of the same symbol');
+        }
+        const ordersSymbol = this.safeString (symbols, 0);
+        const market = this.market (ordersSymbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const marketType = market['type'];
+        let response = undefined;
+        let responseOrders = undefined;
+        let propertyName: Str = undefined;
+        if (marketType === 'spot') {
+            request['orderList'] = ordersRequests;
+            response = await this.privatePostApiSpotV1TradeBatchOrders (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1726160718706,
+            //         "data": {
+            //             "resultList": [
+            //                 {
+            //                     "orderId": "1218171835238367232",
+            //                     "clientOrderId": "28759338-ca10-42dd-8ac3-5183785ef60b"
+            //                 }
+            //             ],
+            //             "failure": [
+            //                 {
+            //                     "orderId": "",
+            //                     "clientOrderId": "ee2e67c9-47fc-4311-9cc1-737ec408d509",
+            //                     "errorMsg": "The order price of eth_usdt cannot be less than 5.00% of the current price",
+            //                     "errorCode": "43008"
+            //                 },
+            //                 {
+            //                     "orderId": "",
+            //                     "clientOrderId": "1af2defa-0c2d-4bb5-acb7-6feb6a86787a",
+            //                     "errorMsg": "less than the minimum amount 1 USDT",
+            //                     "errorCode": "45110"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            propertyName = 'resultList';
+        } else if (market['swap']) {
+            request['marginCoin'] = market['settleId'];
+            request['orderDataList'] = ordersRequests;
+            response = await this.privatePostApiMixV1OrderBatchOrders (this.extend (request, params));
+            //
+            //
+            propertyName = 'orderInfo';
+        } else {
+            throw new NotSupported (this.id + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
+        const data = this.safeDict (response, 'data', {});
+        responseOrders = this.safeList (data, propertyName, []);
+        return this.parseOrders (responseOrders);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+        const methodName = this.safeString (params, 'methodName', 'createOrderRequest');
+        params['methodName'] = methodName;
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+        } else if (market['swap']) {
+            return this.createSwapOrderRequest (symbol, type, side, amount, price, params);
+        } else {
+            throw new NotSupported (this.id + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+        }
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -2154,8 +2286,7 @@ export default class coincatch extends Exchange {
         const methodName = 'fetchOrder';
         await this.loadMarkets ();
         const request: Dict = {};
-        let clientOrderId: Str = undefined;
-        [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
@@ -2211,8 +2342,11 @@ export default class coincatch extends Exchange {
             //         ]
             //     }
             //
-            const parsedResponse = JSON.parse (response); // the response is not a standard JSON
-            const data = this.safeList (parsedResponse, 'data', []);
+            let data = this.safeList (response, 'data');
+            if (data === undefined) {
+                response = JSON.parse (response); // the response from closed orders is not a standard JSON
+                data = this.safeList (response, 'data', []);
+            }
             order = this.safeDict (data, 0, {});
         } else if (marketType === 'swap') {
             if (market === undefined) {
