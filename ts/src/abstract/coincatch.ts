@@ -83,6 +83,8 @@ interface Exchange {
     privatePostApiMixV1AccountSetMargin (params?: {}): Promise<implicitReturnType>;
     privatePostApiMixV1AccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
     privatePostApiMixV1AccountSetPositionMode (params?: {}): Promise<implicitReturnType>;
+    privatePostApiMixV1OrderPlaceOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostApiMixV1OrderBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostApiMixV1OrderCancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostApiMixV1OrderCancelBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostApiMixV1OrderCancelSymbolOrders (params?: {}): Promise<implicitReturnType>;
