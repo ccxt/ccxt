@@ -678,7 +678,7 @@ export default class cryptomus extends Exchange {
             request['from'] = base;
             request['to'] = quote;
         }
-        const amountToString = this.numberToString (amount);
+        const amountToString = amount.toString ();
         if (amount !== undefined) {
             request['amount'] = amountToString;
         }
@@ -689,7 +689,7 @@ export default class cryptomus extends Exchange {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price parameter for a ' + type + ' order');
             } else {
-                const priceToString = this.numberToString (price);
+                const priceToString = price.toString ();
                 request['price'] = priceToString;
             }
             response = await this.privatePostV2UserApiConvertLimit (this.extend (request, params));
@@ -774,7 +774,10 @@ export default class cryptomus extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const response = await this.privateGetV2UserApiConvertOrderList (params);
         //
         //     {
@@ -836,33 +839,32 @@ export default class cryptomus extends Exchange {
         const id = this.safeString (order, 'uuid');
         const dateTime = this.safeInteger (order, 'created_at');
         const timestamp = this.parse8601 (dateTime);
-        let symbol = this.market['symbol'];
-        if (market === undefined) {
-            const baseId = this.safeString (order, 'convert_currency_from');
-            const quoteId = this.safeString (order, 'convert_currency_to');
-            symbol = this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
+        const fromId = this.safeString (order, 'convert_currency_from');
+        const toId = this.safeString (order, 'convert_currency_to');
+        const marketId = this.parseOrderMarketId (fromId, toId);
+        market = this.safeMarket (marketId, market);
+        let isSell = undefined;
+        if (market['baseId'] === fromId) {
+            isSell = true;
+        } else if (market['baseId'] === toId) {
+            isSell = false;
         }
         const type = this.safeString (order, 'type');
         const price = this.safeNumber (order, 'limit');
         const amount = this.safeNumber (order, 'convert_amount_to');
         const cost = this.safeNumber (order, 'convert_amount_from');
-        let status = this.safeString (order, 'status');
-        if (status === 'active') {
-            status = 'open';
-        } else if (status === 'cancelled') {
-            status = 'cancelled';
-        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': undefined,
+            'side': isSell ? 'sell' : 'buy',
             'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
@@ -876,6 +878,30 @@ export default class cryptomus extends Exchange {
             'trades': undefined,
             'info': order,
         }, market);
+    }
+
+    parseOrderMarketId (fromId: string, toId: string): string {
+        let marketId = fromId + '_' + toId;
+        if (marketId in this.markets_by_id) {
+            return marketId;
+        }
+        marketId = toId + '_' + fromId;
+        if (marketId in this.markets_by_id) {
+            return marketId;
+        }
+        return undefined;
+    }
+
+    parseOrderStatus (status: string): string {
+        const statuses = {
+            'active': 'open',
+            'completed': 'closed',
+            'partially_completed': 'open',
+            'cancelled': 'canceled',
+            'expired': 'expired',
+            'failed': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
