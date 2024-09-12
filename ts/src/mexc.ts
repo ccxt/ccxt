@@ -1018,8 +1018,9 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const spotMarket = await this.fetchSpotMarkets (params);
-        const swapMarket = await this.fetchSwapMarkets (params);
+        const spotMarketPromise = this.fetchSpotMarkets (params);
+        const swapMarketPromise = this.fetchSwapMarkets (params);
+        const [ spotMarket, swapMarket ] = await Promise.all ([ spotMarketPromise, swapMarketPromise ]);
         return this.arrayConcat (spotMarket, swapMarket);
     }
 
@@ -1160,7 +1161,9 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        this.rateLimit = this.rateLimit / 5;
         const response = await this.contractPublicGetDetail (params);
+        this.rateLimit = this.rateLimit * 5;
         //
         //     {
         //         "success":true,
