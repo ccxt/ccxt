@@ -983,7 +983,8 @@ public partial class Exchange
         }
     }
 
-    public static object arrayConcat(object a, object b)
+    //clashing with the current method, need to rename it to concat instead of arrayConcat
+    public static object concat(object a, object b)
     {
         if (a == null && b == null)
         {
