@@ -2953,6 +2953,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#cancelAllOrders
          * @description cancel all open orders in a market
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+         * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
          * @param {string} symbol unified market symbol of the market to cancel orders in
