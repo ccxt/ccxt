@@ -2,12 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/cryptomus.js';
-import { ArgumentsRequired } from './base/errors.js';
+import { ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 // ---------------------------------------------------------------------------
 
@@ -162,6 +161,7 @@ export default class cryptomus extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     // todo
                 },
@@ -665,6 +665,7 @@ export default class cryptomus extends Exchange {
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -683,14 +684,29 @@ export default class cryptomus extends Exchange {
         if (amount !== undefined) {
             request['amount'] = amountToString;
         }
+        const priceToString = price.toString ();
+        let cost: Str = undefined;
+        [ cost, params ] = this.handleParamString (params, 'cost');
         let response = undefined;
         if (type === 'market') {
+            if (side === 'buy') {
+                let createMarketBuyOrderRequiresPrice = true;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if ((price === undefined) && (cost === undefined)) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
+                    } else if (cost === undefined) {
+                        cost = Precise.stringMul (amountToString, priceToString);
+                    }
+                } else {
+                    cost = cost ? cost : amountToString;
+                }
+            }
             response = await this.privatePostV2UserApiConvert (this.extend (request, params));
         } else if (type === 'limit') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price parameter for a ' + type + ' order');
             } else {
-                const priceToString = price.toString ();
                 request['price'] = priceToString;
                 request['amount'] = Precise.stringMul (amountToString, priceToString);
             }
