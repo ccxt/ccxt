@@ -1,3 +1,64 @@
+## 4.3.97 (2024-09-06)
+
+*  feat(gate): add unWatchOrderBook/unWatchTradesForSymbols (#23647) [9ef96a3a14](https://github.com/ccxt/ccxt/commits/9ef96a3a14243640ff3c189e328d061fd85e73cc)
+*  coinex parseTrade fee (#23646) [6a2692aaec](https://github.com/ccxt/ccxt/commits/6a2692aaec3b65373d83bccc296184953833b85c)
+*  coinex parseTrade fee (#23646) [e8ea884da1](https://github.com/ccxt/ccxt/commits/e8ea884da150abb24f035325ecb6894f6881cbe6)
+*  feat(kucoin): add unWatchTrades (#23554) [69baee5ce9](https://github.com/ccxt/ccxt/commits/69baee5ce9517b9523cd4122217f5bd446d87162)
+*  fix(binance): use maxLimit when using since+until (#23620) [53657d1dc1](https://github.com/ccxt/ccxt/commits/53657d1dc1419ce08125c2522872591a42e9fe65)
+*  fix(binance): use maxLimit when using since+until (#23620) [1ee1b307b0](https://github.com/ccxt/ccxt/commits/1ee1b307b065aa6b6253fd7cd971fef3bb219a31)
+*  4.3.97 [6820b99f42](https://github.com/ccxt/ccxt/commits/6820b99f4247045fa25dd13e5376fb778396d922)
+
+
+## 4.3.96 (2024-09-05)
+
+*  4.3.95 [0587b51557](https://github.com/ccxt/ccxt/commits/0587b5155708db9553640b0527f1212e5ae2269d)
+*  feat(hyperliquid):  fetchLedger / fetchDeposits / fetchWithdrawals (#23616) [291ad701c9](https://github.com/ccxt/ccxt/commits/291ad701c9a9e9b8c679f3f65da4956d42122c94)
+*  fix(bybit): update fetchLedger endpoint for classic accounts (#23630) [cfd62c91cc](https://github.com/ccxt/ccxt/commits/cfd62c91cc9588b13c2f980f0c07a2280e6b512f)
+*  fix(bybit): update fetchLedger endpoint for classic accounts (#23630) [734560bf23](https://github.com/ccxt/ccxt/commits/734560bf2310aea0a54d5b4007bc631cf8d5043a)
+*  feat(binance, bybit): add unWatchOHLCVForSymbols (#23631) [2342d9399e](https://github.com/ccxt/ccxt/commits/2342d9399e1a8032fbc3682f67ab4b0880d274f9)
+*  feat(binance, bybit): add unWatchOHLCVForSymbols (#23631) [c4903176a1](https://github.com/ccxt/ccxt/commits/c4903176a10ae7782c156e52e5fc5e692168bcf4)
+*  Mexc docstring @see (#23634) [6f94014dc5](https://github.com/ccxt/ccxt/commits/6f94014dc5d3daa959d7b2ac4e48d03e8710ce95)
+*  fix(hyperliquid): correct market id in fetchMytrade (#23636) [a3c92275bc](https://github.com/ccxt/ccxt/commits/a3c92275bc63a6a4d7ac509b94aaabc5e668bfee)
+*  fix(hyperliquid): correct market id in fetchMytrade (#23636) [0c6a1191bd](https://github.com/ccxt/ccxt/commits/0c6a1191bdf643768f321d86725a89ff988b4ce3)
+*  feat(bybit): add pagination to fetchLedger (#23638) [9847193f0a](https://github.com/ccxt/ccxt/commits/9847193f0ab2b628a5ac8108bbc00a0563d63fcf)
+*  feat(bybit): add pagination to fetchLedger (#23638) [b457071ba6](https://github.com/ccxt/ccxt/commits/b457071ba6d410b7035c988491878b99b029c971)
+*  feat(okx, cryptocom): add unWatchOHLCVForSymbols/unWatchX (#23639) [dbebbad8fb](https://github.com/ccxt/ccxt/commits/dbebbad8fbafa1c2b4aece45c14507e193f5976c)
+*  feat(kucoin): remove hf detection (#23640) [bd4e1e2e13](https://github.com/ccxt/ccxt/commits/bd4e1e2e13446899f0c7aba90b8a41ab5bb0c6ba)
+*  bingx OMNI > OmniCat conflict [9da11daff7](https://github.com/ccxt/ccxt/commits/9da11daff710626d37c75b0eb61f6df54578f4f0)
+*  feat(okx): add watchBidsAsks and unwatchTickers (#23584) [2bfea64a9d](https://github.com/ccxt/ccxt/commits/2bfea64a9df718282882215eb58128b2d39de310)
+*  4.3.96 [910df0cfff](https://github.com/ccxt/ccxt/commits/910df0cfff72bfb351c9843d88c90fd6fcb7baac)
+
+
+## 4.3.95 (2024-09-03)
+
+*  4.3.94 [2a3f032d7d](https://github.com/ccxt/ccxt/commits/2a3f032d7d022c196b3d7f2a9fa8bc58629caa66)
+*  fix(mexc): withdraw (#23611) [bfd701992f](https://github.com/ccxt/ccxt/commits/bfd701992f516a055c515e9a8b0a4ae6f19a5004)
+*  fix(mexc): withdraw (#23611) [c31af9191d](https://github.com/ccxt/ccxt/commits/c31af9191d9dbf374226f66c07e3340c36564edb)
+*  fix(indodax): create limit order (#23619) [71f6cfbbc6](https://github.com/ccxt/ccxt/commits/71f6cfbbc657d80d0ca89572f7cf486e22b43c7c)
+*  fix(indodax): create limit order (#23619) [4a5cc39aac](https://github.com/ccxt/ccxt/commits/4a5cc39aac9e7201c0c40d874712b3fa95645798)
+*  feat(hyperliquid): add fetchOrders/ClosedOrder and other fixes (#23626) [5e2187c9e6](https://github.com/ccxt/ccxt/commits/5e2187c9e60e1027794cb2226b51c150087c8db8)
+*  fix(parseOHLCVs): tail cut (#23625) [f43048cd5c](https://github.com/ccxt/ccxt/commits/f43048cd5c7f89438f175290ace71d3c4698268d)
+*  fix(parseOHLCVs): tail cut (#23625) [aa6d1b5022](https://github.com/ccxt/ccxt/commits/aa6d1b50228794a0819b2445c7831472116eb1c9)
+*  4.3.95 [97cdb7c237](https://github.com/ccxt/ccxt/commits/97cdb7c2373d741cfc1c2ef8572d79ac30d84e66)
+
+
+## 4.3.94 (2024-09-02)
+
+*  4.3.93 [7e4c95d5f7](https://github.com/ccxt/ccxt/commits/7e4c95d5f7c0a42666835afe444ef266f07e2983)
+*  fix(bingx): swap reduceOnly order (#23608) [1f6570d9d0](https://github.com/ccxt/ccxt/commits/1f6570d9d09cbc90e6a9c7696bf4187f19d71a0c)
+*  4.3.94 [6f82f0888c](https://github.com/ccxt/ccxt/commits/6f82f0888c14216f71b39a085117e03df75d6555)
+
+
+## 4.3.93 (2024-09-01)
+
+*  4.3.92 [584b05733d](https://github.com/ccxt/ccxt/commits/584b05733dafcbd5c0f94bf26fad8c64957b4b73)
+*  fix(hyperliquid): fetchTickers (#23605) [7a6ddf1cc0](https://github.com/ccxt/ccxt/commits/7a6ddf1cc0e7147b3faf08a149c69d47a4df9100)
+*  chore: update changelog (#23603) [03700c7781](https://github.com/ccxt/ccxt/commits/03700c7781c368cd4f09d231e564de3711236af7)
+*  feat(kucoin): add hf sync endpoints (#23604) [83cf388c91](https://github.com/ccxt/ccxt/commits/83cf388c9163ff9a6ce2c5a4c082762343e335ce)
+*  fix(hyperliquid): spot balance parsing (#23606) [7e3d9704a8](https://github.com/ccxt/ccxt/commits/7e3d9704a89fdb806d42367969ad4b7d2fbf0e61)
+*  4.3.93 [ff3c716019](https://github.com/ccxt/ccxt/commits/ff3c716019dfbce2bd2c06359fa8966c9a43ee32)
+
+
 ## 4.3.92 (2024-08-31)
 
 *  4.3.91 [4ca3a23b24](https://github.com/ccxt/ccxt/commits/4ca3a23b240aa53f893f76979bb18372115c6bdf)

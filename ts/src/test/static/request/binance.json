@@ -3388,7 +3388,8 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "disabled": true,
+                "description": "fetchCurrencies, temnporary disabled because of multi promise",
                 "method": "fetchCurrencies",
                 "url": "https://api.binance.com/sapi/v1/capital/config/getall?timestamp=1721628239072&recvWindow=10000&signature=sig",
                 "input": []

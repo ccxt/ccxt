@@ -1133,82 +1133,9 @@ public partial class binance : ccxt.binance
         {
             object unsubHash = getValue(messageHashes, j);
             object subHash = getValue(subMessageHashes, j);
-            if (isTrue(inOp(((WebSocketClient)client).subscriptions, unsubHash)))
-            {
-
-            }
-            if (isTrue(inOp(((WebSocketClient)client).subscriptions, subHash)))
-            {
-
-            }
-            var error = new UnsubscribeError(add(add(this.id, " "), subHash));
-            ((WebSocketClient)client).reject(error, subHash);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {true, unsubHash});
+            this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
         }
         this.cleanCache(subscription);
-    }
-
-    public virtual void cleanCache(object subscription)
-    {
-        object topic = this.safeString(subscription, "topic");
-        object symbols = this.safeList(subscription, "symbols", new List<object>() {});
-        object symbolsLength = getArrayLength(symbols);
-        if (isTrue(isEqual(topic, "ohlcv")))
-        {
-            object symbolsAndTimeFrames = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeFrames)); postFixIncrement(ref i))
-            {
-                object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
-                object symbol = this.safeString(symbolAndTimeFrame, 0);
-                object timeframe = this.safeString(symbolAndTimeFrame, 1);
-                if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
-                {
-
-                }
-            }
-        } else if (isTrue(isGreaterThan(symbolsLength, 0)))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object symbol = getValue(symbols, i);
-                if (isTrue(isEqual(topic, "trade")))
-                {
-
-                } else if (isTrue(isEqual(topic, "orderbook")))
-                {
-
-                } else if (isTrue(isEqual(topic, "ticker")))
-                {
-
-                }
-            }
-        } else
-        {
-            if (isTrue(isEqual(topic, "myTrades")))
-            {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                object keys = new List<object>(((IDictionary<string,object>)this.myTrades).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-                {
-
-                }
-            } else if (isTrue(isEqual(topic, "orders")))
-            {
-                object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
-                {
-
-                }
-            } else if (isTrue(isEqual(topic, "ticker")))
-            {
-                object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
-                {
-
-                }
-            }
-        }
     }
 
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
@@ -1350,7 +1277,7 @@ public partial class binance : ccxt.binance
             { "subMessageHashes", subMessageHashes },
             { "messageHashes", messageHashes },
             { "symbols", symbols },
-            { "topic", "trade" },
+            { "topic", "trades" },
         };
         return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscription);
     }
@@ -2221,7 +2148,7 @@ public partial class binance : ccxt.binance
         {
             return result;
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
     }
 
     public async virtual Task<object> watchMultiTickerHelper(object methodName, object channelName, object symbols = null, object parameters = null)

@@ -2010,15 +2010,7 @@ class bitget extends bitget$1 {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
-        }
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
-        const error = new errors.UnsubscribeError(this.id + ' ohlcv ' + timeframe + ' ' + symbol);
-        client.reject(error, subMessageHash);
-        client.resolve(true, messageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
     }
     handleUnSubscriptionStatus(client, message) {
         //

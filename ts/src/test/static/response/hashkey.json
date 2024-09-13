@@ -145,6 +145,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "symbol": "ETHUSDT",

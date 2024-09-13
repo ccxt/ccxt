@@ -145,7 +145,7 @@ class cryptocom extends Exchange {
                 'www' => 'https://crypto.com/',
                 'referral' => array(
                     'url' => 'https://crypto.com/exch/kdacthrnxt',
-                    'discount' => 0.15,
+                    'discount' => 0.75,
                 ),
                 'doc' => array(
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',

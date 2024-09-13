@@ -1,5 +1,5 @@
 import bybitRest from '../bybit.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
@@ -65,5 +65,4 @@ export default class bybit extends bybitRest {
     handleAuthenticate(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscribe(client: Client, message: any): any;
-    cleanCache(subscription: Dict): void;
 }

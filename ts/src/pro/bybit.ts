@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bybitRest from '../bybit.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, UnsubscribeError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation } from '../base/types.js';
@@ -1037,7 +1037,7 @@ export default class bybit extends bybitRest {
             messageHashes.push (messageHash);
             subMessageHashes.push ('trade:' + symbol);
         }
-        return await this.unWatchTopics (url, 'trade', symbols, messageHashes, subMessageHashes, topics, params);
+        return await this.unWatchTopics (url, 'trades', symbols, messageHashes, subMessageHashes, topics, params);
     }
 
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
@@ -2518,59 +2518,11 @@ export default class bybit extends bybitRest {
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
-                    if (unsubHash in client.subscriptions) {
-                        delete client.subscriptions[unsubHash];
-                    }
-                    if (subHash in client.subscriptions) {
-                        delete client.subscriptions[subHash];
-                    }
-                    const error = new UnsubscribeError (this.id + ' ' + messageHash);
-                    client.reject (error, subHash);
-                    client.resolve (true, unsubHash);
+                    this.cleanUnsubscription (client, subHash, unsubHash);
                 }
                 this.cleanCache (subscription);
             }
         }
         return message;
-    }
-
-    cleanCache (subscription: Dict) {
-        const topic = this.safeString (subscription, 'topic');
-        const symbols = this.safeList (subscription, 'symbols', []);
-        const symbolsLength = symbols.length;
-        if (topic === 'ohlcv') {
-            const symbolsAndTimeFrames = this.safeList (subscription, 'symbolsAndTimeframes', []);
-            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
-                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
-                const symbol = this.safeString (symbolAndTimeFrame, 0);
-                const timeframe = this.safeString (symbolAndTimeFrame, 1);
-                delete this.ohlcvs[symbol][timeframe];
-            }
-        } else if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                if (topic === 'trade') {
-                    delete this.trades[symbol];
-                } else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
-                } else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
-                }
-            }
-        } else {
-            if (topic === 'myTrades') {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                const keys = Object.keys (this.myTrades);
-                for (let i = 0; i < keys.length; i++) {
-                    delete this.myTrades[keys[i]];
-                }
-            } else if (topic === 'orders') {
-                const orderSymbols = Object.keys (this.orders);
-                for (let i = 0; i < orderSymbols.length; i++) {
-                    delete this.orders[orderSymbols[i]];
-                }
-            }
-        }
     }
 }

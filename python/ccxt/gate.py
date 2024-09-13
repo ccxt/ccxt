@@ -625,6 +625,7 @@ class gate(Exchange, ImplicitAPI):
                 'MPH': 'MORPHER',  # conflict with 88MPH
                 'POINT': 'GATEPOINT',
                 'RAI': 'RAIREFLEXINDEX',  # conflict with RAI Finance
+                'RED': 'RedLang',
                 'SBTC': 'SUPERBITCOIN',
                 'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',
@@ -3785,7 +3786,7 @@ class gate(Exchange, ImplicitAPI):
                 if not market['option']:
                     request['settle'] = market['settleId']  # filled in prepareRequest above
                 if isMarketOrder:
-                    request['price'] = price  # set to 0 for market orders
+                    request['price'] = '0'  # set to 0 for market orders
                 else:
                     request['price'] = '0' if (price == 0) else self.price_to_precision(symbol, price)
                 if reduceOnly is not None:

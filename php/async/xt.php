@@ -1388,7 +1388,7 @@ class xt extends Exchange {
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
             $this->safe_number($ohlcv, 'c'),
-            $this->safe_number_2($ohlcv, $volumeIndex, 'v'),
+            $this->safe_number_2($ohlcv, 'q', $volumeIndex),
         );
     }
 

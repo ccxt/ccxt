@@ -1023,69 +1023,9 @@ class binance extends binance$1 {
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];
-            if (unsubHash in client.subscriptions) {
-                delete client.subscriptions[unsubHash];
-            }
-            if (subHash in client.subscriptions) {
-                delete client.subscriptions[subHash];
-            }
-            const error = new errors.UnsubscribeError(this.id + ' ' + subHash);
-            client.reject(error, subHash);
-            client.resolve(true, unsubHash);
+            this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
-    }
-    cleanCache(subscription) {
-        const topic = this.safeString(subscription, 'topic');
-        const symbols = this.safeList(subscription, 'symbols', []);
-        const symbolsLength = symbols.length;
-        if (topic === 'ohlcv') {
-            const symbolsAndTimeFrames = this.safeList(subscription, 'symbolsAndTimeframes', []);
-            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
-                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
-                const symbol = this.safeString(symbolAndTimeFrame, 0);
-                const timeframe = this.safeString(symbolAndTimeFrame, 1);
-                if (timeframe in this.ohlcvs[symbol]) {
-                    delete this.ohlcvs[symbol][timeframe];
-                }
-            }
-        }
-        else if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                if (topic === 'trade') {
-                    delete this.trades[symbol];
-                }
-                else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
-                }
-                else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
-                }
-            }
-        }
-        else {
-            if (topic === 'myTrades') {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                const keys = Object.keys(this.myTrades);
-                for (let i = 0; i < keys.length; i++) {
-                    delete this.myTrades[keys[i]];
-                }
-            }
-            else if (topic === 'orders') {
-                const orderSymbols = Object.keys(this.orders);
-                for (let i = 0; i < orderSymbols.length; i++) {
-                    delete this.orders[orderSymbols[i]];
-                }
-            }
-            else if (topic === 'ticker') {
-                const tickerSymbols = Object.keys(this.tickers);
-                for (let i = 0; i < tickerSymbols.length; i++) {
-                    delete this.tickers[tickerSymbols[i]];
-                }
-            }
-        }
     }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1208,7 +1148,7 @@ class binance extends binance$1 {
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
             'symbols': symbols,
-            'topic': 'trade',
+            'topic': 'trades',
         };
         return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscription);
     }
@@ -1973,7 +1913,7 @@ class binance extends binance$1 {
         if (this.newUpdates) {
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
     async watchMultiTickerHelper(methodName, channelName, symbols = undefined, params = {}) {
         await this.loadMarkets();

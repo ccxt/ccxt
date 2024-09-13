@@ -2040,15 +2040,7 @@ export default class bitget extends bitgetRest {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
-        }
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
-        const error = new UnsubscribeError (this.id + ' ohlcv ' + timeframe + ' ' + symbol);
-        client.reject (error, subMessageHash);
-        client.resolve (true, messageHash);
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
     }
 
     handleUnSubscriptionStatus (client: Client, message) {

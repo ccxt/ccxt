@@ -6979,7 +6979,7 @@ class htx(Exchange, ImplicitAPI):
             'entryPrice': entryPrice,
             'collateral': self.parse_number(collateral),
             'side': side,
-            'unrealizedProfit': unrealizedProfit,
+            'unrealizedPnl': unrealizedProfit,
             'leverage': self.parse_number(leverage),
             'percentage': self.parse_number(percentage),
             'marginMode': marginMode,

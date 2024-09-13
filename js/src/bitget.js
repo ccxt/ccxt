@@ -1233,6 +1233,8 @@ export default class bitget extends Exchange {
                     '40714': ExchangeError,
                     '40762': InsufficientFunds,
                     '40768': OrderNotFound,
+                    '40808': InvalidOrder,
+                    '41103': InvalidOrder,
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
                     '43012': InsufficientFunds,
@@ -1309,10 +1311,11 @@ export default class bitget extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
-                'JADE': 'Jade Protocol',
+                'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'JADE': 'Jade Protocol',
+                'OMNI': 'omni',
                 'TONCOIN': 'TON',
-                'OMNI': 'omni', // conflict with Omni Network
             },
             'options': {
                 'timeframes': {

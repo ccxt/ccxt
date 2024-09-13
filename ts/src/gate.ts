@@ -607,6 +607,7 @@ export default class gate extends Exchange {
                 'MPH': 'MORPHER', // conflict with 88MPH
                 'POINT': 'GATEPOINT',
                 'RAI': 'RAIREFLEXINDEX', // conflict with RAI Finance
+                'RED': 'RedLang',
                 'SBTC': 'SUPERBITCOIN',
                 'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',
@@ -4012,7 +4013,7 @@ export default class gate extends Exchange {
                     request['settle'] = market['settleId']; // filled in prepareRequest above
                 }
                 if (isMarketOrder) {
-                    request['price'] = price; // set to 0 for market orders
+                    request['price'] = '0'; // set to 0 for market orders
                 } else {
                     request['price'] = (price === 0) ? '0' : this.priceToPrecision (symbol, price);
                 }
