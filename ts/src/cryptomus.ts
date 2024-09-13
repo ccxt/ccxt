@@ -2,11 +2,12 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/cryptomus.js';
-import { ArgumentsRequired, NotSupported } from './base/errors.js';
-// import { Precise } from './base/Precise.js';
+import { ArgumentsRequired } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 // ---------------------------------------------------------------------------
 
@@ -161,7 +162,6 @@ export default class cryptomus extends Exchange {
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     // todo
                 },
@@ -480,7 +480,7 @@ export default class cryptomus extends Exchange {
         //         "quote_volume": "55.523761128544"
         //     }
         //
-        const marketId = this.safeString (ticker, 'currency_pair');
+        const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_price');
@@ -665,7 +665,6 @@ export default class cryptomus extends Exchange {
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -680,16 +679,9 @@ export default class cryptomus extends Exchange {
             request['from'] = base;
             request['to'] = quote;
         }
-        const isMarketOrder = (type === 'market');
-        const isMarketBuy = isMarketOrder && (side === 'buy');
         const amountToString = amount.toString ();
         if (amount !== undefined) {
             request['amount'] = amountToString;
-        }
-        let cost: Str = undefined;
-        [ cost, params ] = this.handleParamString (params, 'cost');
-        if ((!isMarketBuy) && (cost !== undefined)) {
-            throw new NotSupported (this.id + 'createOrder' + ' supports cost parameter for market buy orders only');
         }
         let response = undefined;
         if (type === 'market') {
@@ -700,6 +692,7 @@ export default class cryptomus extends Exchange {
             } else {
                 const priceToString = price.toString ();
                 request['price'] = priceToString;
+                request['amount'] = Precise.stringMul (amountToString, priceToString);
             }
             response = await this.privatePostV2UserApiConvertLimit (this.extend (request, params));
         } else {
@@ -728,28 +721,6 @@ export default class cryptomus extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
-    }
-
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
-        /**
-         * @method
-         * @name cryptomus#createMarketBuyOrderWithCost
-         * @description create a market buy order by providing the symbol and cost
-         * @see https://doc.cryptomus.com/personal/converts/market-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const methodName = 'createMarketBuyOrderWithCost';
-        const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + methodName + ' supports spot orders only');
-        }
-        params['methodName'] = methodName;
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
