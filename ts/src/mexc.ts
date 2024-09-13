@@ -5217,6 +5217,14 @@ export default class mexc extends Exchange {
     }
 
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+         * @param {string} symbol not used by mexc fetchPositionMode
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
         const response = await this.contractPrivateGetPositionPositionMode (params);
         //
         //     {
