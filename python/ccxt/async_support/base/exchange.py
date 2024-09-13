@@ -486,14 +486,14 @@ class Exchange(BaseExchange):
 
     def on_close(self, client, error):
         if client.error:
-            self.streamProduce('errors', None, client.error)
+            self.stream_produce('errors', None, client.error)
             # connection closed by the user or due to an error
             pass
         else:
             # server disconnected a working connection
             if client.url in self.clients:
                 del self.clients[client.url]
-            self.streamProduce('errors', None, NetworkError('connection closed by remote server'))
+            self.stream_produce('errors', None, NetworkError('connection closed by remote server'))
 
     async def ws_close(self):
         if self.clients:
