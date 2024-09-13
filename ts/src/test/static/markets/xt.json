@@ -1,810 +1,825 @@
 {
-    "BTC/USDT": {
-        "id": "btc_usdt",
-        "symbol": "BTC/USDT",
-        "base": "BTC",
-        "quote": "USDT",
-        "baseId": "btc",
-        "quoteId": "usdt",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "index": false,
-        "active": true,
-        "contract": false,
-        "precision": {
-            "price": 0.01,
-            "amount": 0.00001
-        },
-        "limits": {
-            "leverage": {
-                "min": 1
-            },
-            "amount": {},
-            "price": {},
-            "cost": {
-                "min": 5
-            }
-        },
-        "info": {
-            "id": "614",
-            "symbol": "btc_usdt",
-            "displayName": "BTC/USDT",
-            "type": "normal",
-            "state": "ONLINE",
-            "stateTime": "1554048000000",
-            "tradingEnabled": true,
-            "openapiEnabled": true,
-            "nextStateTime": null,
-            "nextState": null,
-            "depthMergePrecision": "5",
-            "baseCurrency": "btc",
-            "baseCurrencyPrecision": "10",
-            "baseCurrencyId": "2",
-            "baseCurrencyLogo": "https://a.static-global.com/1/currency/btc.png",
-            "quoteCurrency": "usdt",
-            "quoteCurrencyPrecision": "8",
-            "quoteCurrencyId": "11",
-            "pricePrecision": "2",
-            "quantityPrecision": "5",
-            "orderTypes": [
-                "LIMIT",
-                "MARKET"
-            ],
-            "timeInForces": [
-                "GTC",
-                "IOC"
-            ],
-            "displayWeight": "10001",
-            "displayLevel": "FULL",
-            "plates": [],
-            "filters": [
-                {
-                    "filter": "QUOTE_QTY",
-                    "min": "5"
-                },
-                {
-                    "filter": "PROTECTION_LIMIT",
-                    "sellPriceLimitCoefficient": "0.8",
-                    "buyMaxDeviation": "0.8",
-                    "buyPriceLimitCoefficient": "4",
-                    "sellMaxDeviation": "4"
-                },
-                {
-                    "filter": "PROTECTION_MARKET",
-                    "maxDeviation": "0.02"
-                }
-            ]
-        }
+  "BTC/USDT": {
+    "id": "btc_usdt",
+    "symbol": "BTC/USDT",
+    "base": "BTC",
+    "quote": "USDT",
+    "baseId": "btc",
+    "quoteId": "usdt",
+    "type": "spot",
+    "spot": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "precision": {
+      "price": 0.01,
+      "amount": 0.00001
     },
-    "LTC/USDT": {
-        "id": "ltc_usdt",
-        "symbol": "LTC/USDT",
-        "base": "LTC",
-        "quote": "USDT",
-        "baseId": "ltc",
-        "quoteId": "usdt",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "index": false,
-        "active": true,
-        "contract": false,
-        "precision": {
-            "price": 0.01,
-            "amount": 0.001
-        },
-        "limits": {
-            "leverage": {
-                "min": 1
-            },
-            "amount": {},
-            "price": {},
-            "cost": {
-                "min": 5
-            }
-        },
-        "info": {
-            "id": "618",
-            "symbol": "ltc_usdt",
-            "displayName": "LTC/USDT",
-            "type": "normal",
-            "state": "ONLINE",
-            "stateTime": "1554048000000",
-            "tradingEnabled": true,
-            "openapiEnabled": true,
-            "nextStateTime": null,
-            "nextState": null,
-            "depthMergePrecision": "5",
-            "baseCurrency": "ltc",
-            "baseCurrencyPrecision": "8",
-            "baseCurrencyId": "21",
-            "baseCurrencyLogo": "https://a.static-global.com/1/currency/ltc.png",
-            "quoteCurrency": "usdt",
-            "quoteCurrencyPrecision": "8",
-            "quoteCurrencyId": "11",
-            "pricePrecision": "2",
-            "quantityPrecision": "3",
-            "orderTypes": [
-                "LIMIT",
-                "MARKET"
-            ],
-            "timeInForces": [
-                "GTC",
-                "IOC"
-            ],
-            "displayWeight": "9983",
-            "displayLevel": "FULL",
-            "plates": [],
-            "filters": [
-                {
-                    "filter": "QUOTE_QTY",
-                    "min": "5"
-                },
-                {
-                    "filter": "PROTECTION_LIMIT",
-                    "sellPriceLimitCoefficient": "0.8",
-                    "buyMaxDeviation": "0.8",
-                    "buyPriceLimitCoefficient": "4",
-                    "sellMaxDeviation": "4"
-                },
-                {
-                    "filter": "PROTECTION_MARKET",
-                    "maxDeviation": "0.02"
-                }
-            ]
-        }
+    "limits": {
+      "leverage": {
+        "min": 1
+      },
+      "amount": {},
+      "price": {},
+      "cost": {
+        "min": 5
+      }
     },
-    "ADA/USDT": {
-        "id": "ada_usdt",
-        "symbol": "ADA/USDT",
-        "base": "ADA",
-        "quote": "USDT",
-        "baseId": "ada",
-        "quoteId": "usdt",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "index": false,
-        "active": true,
-        "contract": false,
-        "precision": {
-            "price": 0.0001,
-            "amount": 0.1
+    "marginModes": {},
+    "info": {
+      "id": "614",
+      "symbol": "btc_usdt",
+      "displayName": "BTC/USDT",
+      "type": "normal",
+      "state": "ONLINE",
+      "stateTime": "1554048000000",
+      "tradingEnabled": true,
+      "openapiEnabled": true,
+      "nextStateTime": null,
+      "nextState": null,
+      "depthMergePrecision": "5",
+      "baseCurrency": "btc",
+      "baseCurrencyPrecision": "10",
+      "baseCurrencyId": "2",
+      "baseCurrencyLogo": "https://a.static-global.com/1/currency/btc.png",
+      "quoteCurrency": "usdt",
+      "quoteCurrencyPrecision": "8",
+      "quoteCurrencyId": "11",
+      "pricePrecision": "2",
+      "quantityPrecision": "5",
+      "orderTypes": [
+        "LIMIT",
+        "MARKET"
+      ],
+      "timeInForces": [
+        "GTC",
+        "IOC"
+      ],
+      "displayWeight": "10001",
+      "displayLevel": "FULL",
+      "plates": [],
+      "filters": [
+        {
+          "filter": "PROTECTION_LIMIT",
+          "sellPriceLimitCoefficient": "0.8",
+          "buyMaxDeviation": "0.8",
+          "buyPriceLimitCoefficient": "4",
+          "sellMaxDeviation": "4"
         },
-        "limits": {
-            "leverage": {
-                "min": 1
-            },
-            "amount": {},
-            "price": {},
-            "cost": {
-                "min": 5
-            }
+        {
+          "filter": "PROTECTION_MARKET",
+          "maxDeviation": "0.02"
         },
-        "info": {
-            "id": "619",
-            "symbol": "ada_usdt",
-            "displayName": "ADA/USDT",
-            "type": "normal",
-            "state": "ONLINE",
-            "stateTime": "1554048000000",
-            "tradingEnabled": true,
-            "openapiEnabled": true,
-            "nextStateTime": null,
-            "nextState": null,
-            "depthMergePrecision": "5",
-            "baseCurrency": "ada",
-            "baseCurrencyPrecision": "8",
-            "baseCurrencyId": "101",
-            "baseCurrencyLogo": "https://a.static-global.com/1/currency/ada.png",
-            "quoteCurrency": "usdt",
-            "quoteCurrencyPrecision": "8",
-            "quoteCurrencyId": "11",
-            "pricePrecision": "4",
-            "quantityPrecision": "1",
-            "orderTypes": [
-                "LIMIT",
-                "MARKET"
-            ],
-            "timeInForces": [
-                "GTC",
-                "IOC"
-            ],
-            "displayWeight": "9992",
-            "displayLevel": "FULL",
-            "plates": [],
-            "filters": [
-                {
-                    "filter": "QUOTE_QTY",
-                    "min": "5"
-                },
-                {
-                    "filter": "PROTECTION_LIMIT",
-                    "sellPriceLimitCoefficient": "0.8",
-                    "buyMaxDeviation": "0.8",
-                    "buyPriceLimitCoefficient": "4",
-                    "sellMaxDeviation": "4"
-                },
-                {
-                    "filter": "PROTECTION_MARKET",
-                    "maxDeviation": "0.02"
-                }
-            ]
+        {
+          "filter": "QUOTE_QTY",
+          "min": "5"
         }
-    },
-    "XRP/USDT": {
-        "id": "xrp_usdt",
-        "symbol": "XRP/USDT",
-        "base": "XRP",
-        "quote": "USDT",
-        "baseId": "xrp",
-        "quoteId": "usdt",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "index": false,
-        "active": true,
-        "contract": false,
-        "precision": {
-            "price": 0.0001,
-            "amount": 0.01
-        },
-        "limits": {
-            "leverage": {
-                "min": 1
-            },
-            "amount": {},
-            "price": {},
-            "cost": {
-                "min": 5
-            }
-        },
-        "info": {
-            "id": "621",
-            "symbol": "xrp_usdt",
-            "displayName": "XRP/USDT",
-            "type": "normal",
-            "state": "ONLINE",
-            "stateTime": "1554048000000",
-            "tradingEnabled": true,
-            "openapiEnabled": true,
-            "nextStateTime": null,
-            "nextState": null,
-            "depthMergePrecision": "5",
-            "baseCurrency": "xrp",
-            "baseCurrencyPrecision": "8",
-            "baseCurrencyId": "90",
-            "baseCurrencyLogo": "https://a.static-global.com/1/currency/xrp.png",
-            "quoteCurrency": "usdt",
-            "quoteCurrencyPrecision": "8",
-            "quoteCurrencyId": "11",
-            "pricePrecision": "4",
-            "quantityPrecision": "2",
-            "orderTypes": [
-                "LIMIT",
-                "MARKET"
-            ],
-            "timeInForces": [
-                "GTC",
-                "IOC"
-            ],
-            "displayWeight": "9995",
-            "displayLevel": "FULL",
-            "plates": [],
-            "filters": [
-                {
-                    "filter": "QUOTE_QTY",
-                    "min": "5"
-                },
-                {
-                    "filter": "PROTECTION_LIMIT",
-                    "sellPriceLimitCoefficient": "0.8",
-                    "buyMaxDeviation": "0.8",
-                    "buyPriceLimitCoefficient": "4",
-                    "sellMaxDeviation": "4"
-                },
-                {
-                    "filter": "PROTECTION_MARKET",
-                    "maxDeviation": "0.02"
-                }
-            ]
-        }
-    },
-    "SOL/USDT": {
-        "id": "sol_usdt",
-        "symbol": "SOL/USDT",
-        "base": "SOL",
-        "quote": "USDT",
-        "baseId": "sol",
-        "quoteId": "usdt",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "index": false,
-        "active": true,
-        "contract": false,
-        "precision": {
-            "price": 0.01,
-            "amount": 0.001
-        },
-        "limits": {
-            "leverage": {
-                "min": 1
-            },
-            "amount": {},
-            "price": {},
-            "cost": {
-                "min": 5
-            }
-        },
-        "info": {
-            "id": "7487",
-            "symbol": "sol_usdt",
-            "displayName": "SOL/USDT",
-            "type": "normal",
-            "state": "ONLINE",
-            "stateTime": "1629190800000",
-            "tradingEnabled": true,
-            "openapiEnabled": true,
-            "nextStateTime": null,
-            "nextState": null,
-            "depthMergePrecision": "5",
-            "baseCurrency": "sol",
-            "baseCurrencyPrecision": "8",
-            "baseCurrencyId": "941",
-            "baseCurrencyLogo": "https://a.static-global.com/1/currency/sol.png",
-            "quoteCurrency": "usdt",
-            "quoteCurrencyPrecision": "8",
-            "quoteCurrencyId": "11",
-            "pricePrecision": "2",
-            "quantityPrecision": "3",
-            "orderTypes": [
-                "LIMIT",
-                "MARKET"
-            ],
-            "timeInForces": [
-                "GTC",
-                "IOC"
-            ],
-            "displayWeight": "9997",
-            "displayLevel": "FULL",
-            "plates": [
-                251
-            ],
-            "filters": [
-                {
-                    "filter": "QUOTE_QTY",
-                    "min": "5"
-                },
-                {
-                    "filter": "PROTECTION_LIMIT",
-                    "sellPriceLimitCoefficient": "0.8",
-                    "buyMaxDeviation": "0.8",
-                    "buyPriceLimitCoefficient": "4",
-                    "sellMaxDeviation": "4"
-                },
-                {
-                    "filter": "PROTECTION_MARKET",
-                    "maxDeviation": "0.02"
-                }
-            ]
-        }
-    },
-    "TRX/USDT": {
-        "id": "trx_usdt",
-        "symbol": "TRX/USDT",
-        "base": "TRX",
-        "quote": "USDT",
-        "baseId": "trx",
-        "quoteId": "usdt",
-        "type": "spot",
-        "spot": true,
-        "swap": false,
-        "future": false,
-        "option": false,
-        "index": false,
-        "active": true,
-        "contract": false,
-        "precision": {
-            "price": 0.00001,
-            "amount": 0.1
-        },
-        "limits": {
-            "leverage": {
-                "min": 1
-            },
-            "amount": {},
-            "price": {},
-            "cost": {
-                "min": 5
-            }
-        },
-        "info": {
-            "id": "970",
-            "symbol": "trx_usdt",
-            "displayName": "TRX/USDT",
-            "type": "normal",
-            "state": "ONLINE",
-            "stateTime": "1557072000000",
-            "tradingEnabled": true,
-            "openapiEnabled": true,
-            "nextStateTime": null,
-            "nextState": null,
-            "depthMergePrecision": "5",
-            "baseCurrency": "trx",
-            "baseCurrencyPrecision": "8",
-            "baseCurrencyId": "73",
-            "baseCurrencyLogo": "https://a.static-global.com/1/currency/trx.png",
-            "quoteCurrency": "usdt",
-            "quoteCurrencyPrecision": "8",
-            "quoteCurrencyId": "11",
-            "pricePrecision": "5",
-            "quantityPrecision": "1",
-            "orderTypes": [
-                "LIMIT",
-                "MARKET"
-            ],
-            "timeInForces": [
-                "GTC",
-                "IOC"
-            ],
-            "displayWeight": "9989",
-            "displayLevel": "FULL",
-            "plates": [],
-            "filters": [
-                {
-                    "filter": "QUOTE_QTY",
-                    "min": "5"
-                },
-                {
-                    "filter": "PROTECTION_LIMIT",
-                    "sellPriceLimitCoefficient": "0.8",
-                    "buyMaxDeviation": "0.8",
-                    "buyPriceLimitCoefficient": "4",
-                    "sellMaxDeviation": "4"
-                },
-                {
-                    "filter": "PROTECTION_MARKET",
-                    "maxDeviation": "0.02"
-                }
-            ]
-        }
-    },
-    "LTC/USDT:USDT": {
-        "id": "ltc_usdt",
-        "symbol": "LTC/USDT:USDT",
-        "base": "LTC",
-        "quote": "USDT",
-        "settle": "USDT",
-        "baseId": "ltc",
-        "quoteId": "usdt",
-        "settleId": "ltc",
-        "type": "swap",
-        "spot": false,
-        "swap": true,
-        "future": false,
-        "option": false,
-        "active": true,
-        "contract": true,
-        "linear": true,
-        "inverse": false,
-        "subType": "linear",
-        "taker": 0.0006,
-        "maker": 0.0004,
-        "contractSize": 0.1,
-        "precision": {
-            "price": 0.01,
-            "amount": 1,
-            "base": 1e-8,
-            "quote": 1e-8
-        },
-        "limits": {
-            "leverage": {
-                "min": 1
-            },
-            "amount": {
-                "min": 1
-            },
-            "price": {},
-            "cost": {
-                "min": 5,
-                "max": 15000000
-            }
-        },
-        "info": {
-            "id": "18",
-            "symbol": "ltc_usdt",
-            "symbolGroupId": "3",
-            "pair": "ltc_usdt",
-            "contractType": "PERPETUAL",
-            "productType": "perpetual",
-            "predictEventType": null,
-            "predictEventParam": null,
-            "predictEventSort": null,
-            "underlyingType": "U_BASED",
-            "contractSize": "0.1",
-            "tradeSwitch": true,
-            "openSwitch": true,
-            "isDisplay": true,
-            "isOpenApi": true,
-            "state": "0",
-            "initLeverage": "50",
-            "initPositionType": "CROSSED",
-            "baseCoin": "ltc",
-            "quoteCoin": "usdt",
-            "baseCoinPrecision": "8",
-            "baseCoinDisplayPrecision": "2",
-            "quoteCoinPrecision": "8",
-            "quoteCoinDisplayPrecision": "4",
-            "quantityPrecision": "0",
-            "pricePrecision": "2",
-            "supportOrderType": "LIMIT,MARKET",
-            "supportTimeInForce": "GTC,FOK,IOC,GTX",
-            "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
-            "supportPositionType": "CROSSED,ISOLATED",
-            "minQty": "1",
-            "minNotional": "5",
-            "maxNotional": "15000000",
-            "multiplierDown": "0.05",
-            "multiplierUp": "0.05",
-            "maxOpenOrders": "200",
-            "maxEntrusts": "120",
-            "makerFee": "0.0004",
-            "takerFee": "0.0006",
-            "liquidationFee": "0.0125",
-            "marketTakeBound": "0.05",
-            "depthPrecisionMerge": "5",
-            "labels": [],
-            "onboardDate": "1656057600000",
-            "enName": "LTCUSDT ",
-            "cnName": "LTCUSDT",
-            "minStepPrice": "0.01",
-            "minPrice": null,
-            "maxPrice": null,
-            "deliveryDate": null,
-            "deliveryPrice": null,
-            "deliveryCompletion": false,
-            "cnDesc": null,
-            "enDesc": null,
-            "cnRemark": null,
-            "enRemark": null,
-            "plates": [
-                1,
-                13
-            ],
-            "fastTrackCallbackRate1": "0.01",
-            "fastTrackCallbackRate2": "0.02",
-            "minTrackCallbackRate": "0.001",
-            "maxTrackCallbackRate": "0.1"
-        }
-    },
-    "BTC/USDT:USDT": {
-        "id": "btc_usdt",
-        "symbol": "BTC/USDT:USDT",
-        "base": "BTC",
-        "quote": "USDT",
-        "settle": "USDT",
-        "baseId": "btc",
-        "quoteId": "usdt",
-        "settleId": "btc",
-        "type": "swap",
-        "spot": false,
-        "swap": true,
-        "future": false,
-        "option": false,
-        "active": true,
-        "contract": true,
-        "linear": true,
-        "inverse": false,
-        "subType": "linear",
-        "taker": 0.0006,
-        "maker": 0.0004,
-        "contractSize": 0.0001,
-        "precision": {
-            "price": 0.1,
-            "amount": 1,
-            "base": 1e-8,
-            "quote": 1e-8
-        },
-        "limits": {
-            "leverage": {
-                "min": 1
-            },
-            "amount": {
-                "min": 1
-            },
-            "price": {},
-            "cost": {
-                "min": 10,
-                "max": 25000000
-            }
-        },
-        "info": {
-            "id": "8",
-            "symbol": "btc_usdt",
-            "symbolGroupId": "1",
-            "pair": "btc_usdt",
-            "contractType": "PERPETUAL",
-            "productType": "perpetual",
-            "predictEventType": null,
-            "predictEventParam": null,
-            "predictEventSort": null,
-            "underlyingType": "U_BASED",
-            "contractSize": "0.0001",
-            "tradeSwitch": true,
-            "openSwitch": true,
-            "isDisplay": true,
-            "isOpenApi": true,
-            "state": "0",
-            "initLeverage": "100",
-            "initPositionType": "CROSSED",
-            "baseCoin": "btc",
-            "quoteCoin": "usdt",
-            "baseCoinPrecision": "8",
-            "baseCoinDisplayPrecision": "4",
-            "quoteCoinPrecision": "8",
-            "quoteCoinDisplayPrecision": "4",
-            "quantityPrecision": "0",
-            "pricePrecision": "1",
-            "supportOrderType": "LIMIT,MARKET",
-            "supportTimeInForce": "GTC,FOK,IOC,GTX",
-            "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
-            "supportPositionType": "CROSSED,ISOLATED",
-            "minQty": "1",
-            "minNotional": "10",
-            "maxNotional": "25000000",
-            "multiplierDown": "0.05",
-            "multiplierUp": "0.05",
-            "maxOpenOrders": "200",
-            "maxEntrusts": "120",
-            "makerFee": "0.0004",
-            "takerFee": "0.0006",
-            "liquidationFee": "0.0125",
-            "marketTakeBound": "0.05",
-            "depthPrecisionMerge": "5",
-            "labels": [
-                "HOT"
-            ],
-            "onboardDate": "1654857001000",
-            "enName": "BTCUSDT ",
-            "cnName": "BTCUSDT ",
-            "minStepPrice": "0.1",
-            "minPrice": null,
-            "maxPrice": null,
-            "deliveryDate": null,
-            "deliveryPrice": null,
-            "deliveryCompletion": false,
-            "cnDesc": null,
-            "enDesc": null,
-            "cnRemark": null,
-            "enRemark": null,
-            "plates": [
-                1,
-                13
-            ],
-            "fastTrackCallbackRate1": "0.01",
-            "fastTrackCallbackRate2": "0.02",
-            "minTrackCallbackRate": "0.001",
-            "maxTrackCallbackRate": "0.1"
-        }
-    },
-    "ADA/USDT:USDT": {
-        "id": "ada_usdt",
-        "symbol": "ADA/USDT:USDT",
-        "base": "ADA",
-        "quote": "USDT",
-        "settle": "USDT",
-        "baseId": "ada",
-        "quoteId": "usdt",
-        "settleId": "ada",
-        "type": "swap",
-        "spot": false,
-        "swap": true,
-        "future": false,
-        "option": false,
-        "active": true,
-        "contract": true,
-        "linear": true,
-        "inverse": false,
-        "subType": "linear",
-        "taker": 0.0006,
-        "maker": 0.0004,
-        "contractSize": 10,
-        "precision": {
-            "price": 0.0001,
-            "amount": 1,
-            "base": 1e-8,
-            "quote": 1e-8
-        },
-        "limits": {
-            "leverage": {
-                "min": 1
-            },
-            "amount": {
-                "min": 1
-            },
-            "price": {},
-            "cost": {
-                "min": 5,
-                "max": 10000000
-            }
-        },
-        "info": {
-            "id": "27",
-            "symbol": "ada_usdt",
-            "symbolGroupId": "8",
-            "pair": "ada_usdt",
-            "contractType": "PERPETUAL",
-            "productType": "perpetual",
-            "predictEventType": null,
-            "predictEventParam": null,
-            "predictEventSort": null,
-            "underlyingType": "U_BASED",
-            "contractSize": "10",
-            "tradeSwitch": true,
-            "openSwitch": true,
-            "isDisplay": true,
-            "isOpenApi": true,
-            "state": "0",
-            "initLeverage": "50",
-            "initPositionType": "CROSSED",
-            "baseCoin": "ada",
-            "quoteCoin": "usdt",
-            "baseCoinPrecision": "8",
-            "baseCoinDisplayPrecision": "4",
-            "quoteCoinPrecision": "8",
-            "quoteCoinDisplayPrecision": "4",
-            "quantityPrecision": "0",
-            "pricePrecision": "4",
-            "supportOrderType": "LIMIT,MARKET",
-            "supportTimeInForce": "GTC,FOK,IOC,GTX",
-            "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
-            "supportPositionType": "CROSSED,ISOLATED",
-            "minQty": "1",
-            "minNotional": "5",
-            "maxNotional": "10000000",
-            "multiplierDown": "0.05",
-            "multiplierUp": "0.05",
-            "maxOpenOrders": "200",
-            "maxEntrusts": "200",
-            "makerFee": "0.0004",
-            "takerFee": "0.0006",
-            "liquidationFee": "0.01",
-            "marketTakeBound": "0.05",
-            "depthPrecisionMerge": "5",
-            "labels": [],
-            "onboardDate": "1656489600000",
-            "enName": "ADAUSDT ",
-            "cnName": "ADAUSDT",
-            "minStepPrice": "0.0001",
-            "minPrice": null,
-            "maxPrice": null,
-            "deliveryDate": null,
-            "deliveryPrice": null,
-            "deliveryCompletion": false,
-            "cnDesc": null,
-            "enDesc": null,
-            "cnRemark": null,
-            "enRemark": null,
-            "plates": [
-                1,
-                9
-            ],
-            "fastTrackCallbackRate1": "0.01",
-            "fastTrackCallbackRate2": "0.02",
-            "minTrackCallbackRate": "0.001",
-            "maxTrackCallbackRate": "0.1"
-        }
+      ]
     }
+  },
+  "LTC/USDT": {
+    "id": "ltc_usdt",
+    "symbol": "LTC/USDT",
+    "base": "LTC",
+    "quote": "USDT",
+    "baseId": "ltc",
+    "quoteId": "usdt",
+    "type": "spot",
+    "spot": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "precision": {
+      "price": 0.01,
+      "amount": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": 1
+      },
+      "amount": {},
+      "price": {},
+      "cost": {
+        "min": 5
+      }
+    },
+    "marginModes": {},
+    "info": {
+      "id": "618",
+      "symbol": "ltc_usdt",
+      "displayName": "LTC/USDT",
+      "type": "normal",
+      "state": "ONLINE",
+      "stateTime": "1554048000000",
+      "tradingEnabled": true,
+      "openapiEnabled": true,
+      "nextStateTime": null,
+      "nextState": null,
+      "depthMergePrecision": "5",
+      "baseCurrency": "ltc",
+      "baseCurrencyPrecision": "8",
+      "baseCurrencyId": "21",
+      "baseCurrencyLogo": "https://a.static-global.com/1/currency/ltc.png",
+      "quoteCurrency": "usdt",
+      "quoteCurrencyPrecision": "8",
+      "quoteCurrencyId": "11",
+      "pricePrecision": "2",
+      "quantityPrecision": "3",
+      "orderTypes": [
+        "LIMIT",
+        "MARKET"
+      ],
+      "timeInForces": [
+        "GTC",
+        "IOC"
+      ],
+      "displayWeight": "9983",
+      "displayLevel": "FULL",
+      "plates": [],
+      "filters": [
+        {
+          "filter": "PROTECTION_LIMIT",
+          "sellPriceLimitCoefficient": "0.8",
+          "buyMaxDeviation": "0.8",
+          "buyPriceLimitCoefficient": "4",
+          "sellMaxDeviation": "4"
+        },
+        {
+          "filter": "PROTECTION_MARKET",
+          "maxDeviation": "0.02"
+        },
+        {
+          "filter": "QUOTE_QTY",
+          "min": "5"
+        }
+      ]
+    }
+  },
+  "ADA/USDT": {
+    "id": "ada_usdt",
+    "symbol": "ADA/USDT",
+    "base": "ADA",
+    "quote": "USDT",
+    "baseId": "ada",
+    "quoteId": "usdt",
+    "type": "spot",
+    "spot": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "precision": {
+      "price": 0.0001,
+      "amount": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": 1
+      },
+      "amount": {},
+      "price": {},
+      "cost": {
+        "min": 5
+      }
+    },
+    "marginModes": {},
+    "info": {
+      "id": "619",
+      "symbol": "ada_usdt",
+      "displayName": "ADA/USDT",
+      "type": "normal",
+      "state": "ONLINE",
+      "stateTime": "1554048000000",
+      "tradingEnabled": true,
+      "openapiEnabled": true,
+      "nextStateTime": null,
+      "nextState": null,
+      "depthMergePrecision": "5",
+      "baseCurrency": "ada",
+      "baseCurrencyPrecision": "8",
+      "baseCurrencyId": "101",
+      "baseCurrencyLogo": "https://a.static-global.com/1/currency/ada.png",
+      "quoteCurrency": "usdt",
+      "quoteCurrencyPrecision": "8",
+      "quoteCurrencyId": "11",
+      "pricePrecision": "4",
+      "quantityPrecision": "1",
+      "orderTypes": [
+        "LIMIT",
+        "MARKET"
+      ],
+      "timeInForces": [
+        "GTC",
+        "IOC"
+      ],
+      "displayWeight": "9992",
+      "displayLevel": "FULL",
+      "plates": [],
+      "filters": [
+        {
+          "filter": "PROTECTION_LIMIT",
+          "sellPriceLimitCoefficient": "0.8",
+          "buyMaxDeviation": "0.8",
+          "buyPriceLimitCoefficient": "4",
+          "sellMaxDeviation": "4"
+        },
+        {
+          "filter": "PROTECTION_MARKET",
+          "maxDeviation": "0.02"
+        },
+        {
+          "filter": "QUOTE_QTY",
+          "min": "5"
+        }
+      ]
+    }
+  },
+  "XRP/USDT": {
+    "id": "xrp_usdt",
+    "symbol": "XRP/USDT",
+    "base": "XRP",
+    "quote": "USDT",
+    "baseId": "xrp",
+    "quoteId": "usdt",
+    "type": "spot",
+    "spot": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "precision": {
+      "price": 0.0001,
+      "amount": 1
+    },
+    "limits": {
+      "leverage": {
+        "min": 1
+      },
+      "amount": {},
+      "price": {},
+      "cost": {
+        "min": 5
+      }
+    },
+    "marginModes": {},
+    "info": {
+      "id": "621",
+      "symbol": "xrp_usdt",
+      "displayName": "XRP/USDT",
+      "type": "normal",
+      "state": "ONLINE",
+      "stateTime": "1554048000000",
+      "tradingEnabled": true,
+      "openapiEnabled": true,
+      "nextStateTime": null,
+      "nextState": null,
+      "depthMergePrecision": "5",
+      "baseCurrency": "xrp",
+      "baseCurrencyPrecision": "8",
+      "baseCurrencyId": "90",
+      "baseCurrencyLogo": "https://a.static-global.com/1/currency/xrp.png",
+      "quoteCurrency": "usdt",
+      "quoteCurrencyPrecision": "8",
+      "quoteCurrencyId": "11",
+      "pricePrecision": "4",
+      "quantityPrecision": "0",
+      "orderTypes": [
+        "LIMIT",
+        "MARKET"
+      ],
+      "timeInForces": [
+        "GTC",
+        "IOC"
+      ],
+      "displayWeight": "9995",
+      "displayLevel": "FULL",
+      "plates": [],
+      "filters": [
+        {
+          "filter": "PROTECTION_LIMIT",
+          "sellPriceLimitCoefficient": "0.8",
+          "buyMaxDeviation": "0.8",
+          "buyPriceLimitCoefficient": "4",
+          "sellMaxDeviation": "4"
+        },
+        {
+          "filter": "PROTECTION_MARKET",
+          "maxDeviation": "0.02"
+        },
+        {
+          "filter": "QUOTE_QTY",
+          "min": "5"
+        }
+      ]
+    }
+  },
+  "SOL/USDT": {
+    "id": "sol_usdt",
+    "symbol": "SOL/USDT",
+    "base": "SOL",
+    "quote": "USDT",
+    "baseId": "sol",
+    "quoteId": "usdt",
+    "type": "spot",
+    "spot": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "precision": {
+      "price": 0.01,
+      "amount": 0.001
+    },
+    "limits": {
+      "leverage": {
+        "min": 1
+      },
+      "amount": {},
+      "price": {},
+      "cost": {
+        "min": 5
+      }
+    },
+    "marginModes": {},
+    "info": {
+      "id": "7487",
+      "symbol": "sol_usdt",
+      "displayName": "SOL/USDT",
+      "type": "normal",
+      "state": "ONLINE",
+      "stateTime": "1629190800000",
+      "tradingEnabled": true,
+      "openapiEnabled": true,
+      "nextStateTime": null,
+      "nextState": null,
+      "depthMergePrecision": "5",
+      "baseCurrency": "sol",
+      "baseCurrencyPrecision": "8",
+      "baseCurrencyId": "941",
+      "baseCurrencyLogo": "https://a.static-global.com/1/currency/sol.png",
+      "quoteCurrency": "usdt",
+      "quoteCurrencyPrecision": "8",
+      "quoteCurrencyId": "11",
+      "pricePrecision": "2",
+      "quantityPrecision": "3",
+      "orderTypes": [
+        "LIMIT",
+        "MARKET"
+      ],
+      "timeInForces": [
+        "GTC",
+        "IOC"
+      ],
+      "displayWeight": "9997",
+      "displayLevel": "FULL",
+      "plates": [
+        251
+      ],
+      "filters": [
+        {
+          "filter": "PROTECTION_LIMIT",
+          "sellPriceLimitCoefficient": "0.8",
+          "buyMaxDeviation": "0.8",
+          "buyPriceLimitCoefficient": "4",
+          "sellMaxDeviation": "4"
+        },
+        {
+          "filter": "PROTECTION_MARKET",
+          "maxDeviation": "0.02"
+        },
+        {
+          "filter": "QUOTE_QTY",
+          "min": "5"
+        }
+      ]
+    }
+  },
+  "TRX/USDT": {
+    "id": "trx_usdt",
+    "symbol": "TRX/USDT",
+    "base": "TRX",
+    "quote": "USDT",
+    "baseId": "trx",
+    "quoteId": "usdt",
+    "type": "spot",
+    "spot": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "precision": {
+      "price": 0.0001,
+      "amount": 0.1
+    },
+    "limits": {
+      "leverage": {
+        "min": 1
+      },
+      "amount": {},
+      "price": {},
+      "cost": {
+        "min": 5
+      }
+    },
+    "marginModes": {},
+    "info": {
+      "id": "970",
+      "symbol": "trx_usdt",
+      "displayName": "TRX/USDT",
+      "type": "normal",
+      "state": "ONLINE",
+      "stateTime": "1557072000000",
+      "tradingEnabled": true,
+      "openapiEnabled": true,
+      "nextStateTime": null,
+      "nextState": null,
+      "depthMergePrecision": "5",
+      "baseCurrency": "trx",
+      "baseCurrencyPrecision": "8",
+      "baseCurrencyId": "73",
+      "baseCurrencyLogo": "https://a.static-global.com/1/currency/trx.png",
+      "quoteCurrency": "usdt",
+      "quoteCurrencyPrecision": "8",
+      "quoteCurrencyId": "11",
+      "pricePrecision": "4",
+      "quantityPrecision": "1",
+      "orderTypes": [
+        "LIMIT",
+        "MARKET"
+      ],
+      "timeInForces": [
+        "GTC",
+        "IOC"
+      ],
+      "displayWeight": "9989",
+      "displayLevel": "FULL",
+      "plates": [],
+      "filters": [
+        {
+          "filter": "PROTECTION_LIMIT",
+          "sellPriceLimitCoefficient": "0.8",
+          "buyMaxDeviation": "0.8",
+          "buyPriceLimitCoefficient": "4",
+          "sellMaxDeviation": "4"
+        },
+        {
+          "filter": "PROTECTION_MARKET",
+          "maxDeviation": "0.02"
+        },
+        {
+          "filter": "QUOTE_QTY",
+          "min": "5"
+        }
+      ]
+    }
+  },
+  "LTC/USDT:USDT": {
+    "id": "ltc_usdt",
+    "symbol": "LTC/USDT:USDT",
+    "base": "LTC",
+    "quote": "USDT",
+    "settle": "USDT",
+    "baseId": "ltc",
+    "quoteId": "usdt",
+    "settleId": "ltc",
+    "type": "swap",
+    "spot": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "active": true,
+    "contract": true,
+    "linear": true,
+    "inverse": false,
+    "subType": "linear",
+    "taker": 0.0006,
+    "maker": 0.0004,
+    "contractSize": 0.1,
+    "precision": {
+      "price": 0.01,
+      "amount": 1,
+      "base": 1e-8,
+      "quote": 1e-8
+    },
+    "limits": {
+      "leverage": {
+        "min": 1
+      },
+      "amount": {
+        "min": 1
+      },
+      "price": {},
+      "cost": {
+        "min": 5,
+        "max": 15000000
+      }
+    },
+    "marginModes": {},
+    "info": {
+      "id": "18",
+      "symbol": "ltc_usdt",
+      "symbolGroupId": "3",
+      "pair": "ltc_usdt",
+      "contractType": "PERPETUAL",
+      "productType": "perpetual",
+      "predictEventType": null,
+      "predictEventParam": null,
+      "predictEventSort": null,
+      "underlyingType": "U_BASED",
+      "contractSize": "0.1",
+      "tradeSwitch": true,
+      "openSwitch": true,
+      "isDisplay": true,
+      "isOpenApi": true,
+      "state": "0",
+      "initLeverage": "20",
+      "initPositionType": "CROSSED",
+      "baseCoin": "ltc",
+      "spotCoin": "ltc",
+      "quoteCoin": "usdt",
+      "baseCoinPrecision": "8",
+      "baseCoinDisplayPrecision": "2",
+      "quoteCoinPrecision": "8",
+      "quoteCoinDisplayPrecision": "4",
+      "quantityPrecision": "0",
+      "pricePrecision": "2",
+      "supportOrderType": "LIMIT,MARKET",
+      "supportTimeInForce": "GTC,FOK,IOC,GTX",
+      "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+      "supportPositionType": "CROSSED,ISOLATED",
+      "minQty": "1",
+      "minNotional": "5",
+      "maxNotional": "15000000",
+      "multiplierDown": "0.05",
+      "multiplierUp": "0.05",
+      "maxOpenOrders": "200",
+      "maxEntrusts": "120",
+      "makerFee": "0.0004",
+      "takerFee": "0.0006",
+      "liquidationFee": "0.0125",
+      "marketTakeBound": "0.05",
+      "depthPrecisionMerge": "5",
+      "labels": [],
+      "onboardDate": "1656057600000",
+      "enName": "LTCUSDT ",
+      "cnName": "LTCUSDT",
+      "minStepPrice": "0.01",
+      "minPrice": null,
+      "maxPrice": null,
+      "deliveryDate": null,
+      "deliveryPrice": null,
+      "deliveryCompletion": false,
+      "cnDesc": null,
+      "enDesc": null,
+      "cnRemark": null,
+      "enRemark": null,
+      "plates": [
+        1,
+        13
+      ],
+      "fastTrackCallbackRate1": "0.01",
+      "fastTrackCallbackRate2": "0.02",
+      "minTrackCallbackRate": "0.001",
+      "maxTrackCallbackRate": "0.1",
+      "latestPriceDeviation": "0.0100"
+    }
+  },
+  "BTC/USDT:USDT": {
+    "id": "btc_usdt",
+    "symbol": "BTC/USDT:USDT",
+    "base": "BTC",
+    "quote": "USDT",
+    "settle": "USDT",
+    "baseId": "btc",
+    "quoteId": "usdt",
+    "settleId": "btc",
+    "type": "swap",
+    "spot": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "active": true,
+    "contract": true,
+    "linear": true,
+    "inverse": false,
+    "subType": "linear",
+    "taker": 0.0006,
+    "maker": 0.0004,
+    "contractSize": 0.0001,
+    "precision": {
+      "price": 0.1,
+      "amount": 1,
+      "base": 1e-8,
+      "quote": 1e-8
+    },
+    "limits": {
+      "leverage": {
+        "min": 1
+      },
+      "amount": {
+        "min": 1
+      },
+      "price": {},
+      "cost": {
+        "min": 10,
+        "max": 25000000
+      }
+    },
+    "marginModes": {},
+    "info": {
+      "id": "8",
+      "symbol": "btc_usdt",
+      "symbolGroupId": "1",
+      "pair": "btc_usdt",
+      "contractType": "PERPETUAL",
+      "productType": "perpetual",
+      "predictEventType": null,
+      "predictEventParam": null,
+      "predictEventSort": null,
+      "underlyingType": "U_BASED",
+      "contractSize": "0.0001",
+      "tradeSwitch": true,
+      "openSwitch": true,
+      "isDisplay": true,
+      "isOpenApi": true,
+      "state": "0",
+      "initLeverage": "50",
+      "initPositionType": "CROSSED",
+      "baseCoin": "btc",
+      "spotCoin": "btc",
+      "quoteCoin": "usdt",
+      "baseCoinPrecision": "8",
+      "baseCoinDisplayPrecision": "4",
+      "quoteCoinPrecision": "8",
+      "quoteCoinDisplayPrecision": "4",
+      "quantityPrecision": "0",
+      "pricePrecision": "1",
+      "supportOrderType": "LIMIT,MARKET",
+      "supportTimeInForce": "GTC,FOK,IOC,GTX",
+      "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+      "supportPositionType": "CROSSED,ISOLATED",
+      "minQty": "1",
+      "minNotional": "10",
+      "maxNotional": "25000000",
+      "multiplierDown": "0.05",
+      "multiplierUp": "0.05",
+      "maxOpenOrders": "200",
+      "maxEntrusts": "120",
+      "makerFee": "0.0004",
+      "takerFee": "0.0006",
+      "liquidationFee": "0.0125",
+      "marketTakeBound": "0.05",
+      "depthPrecisionMerge": "5",
+      "labels": [
+        "HOT"
+      ],
+      "onboardDate": "1654857001000",
+      "enName": "BTCUSDT ",
+      "cnName": "BTCUSDT ",
+      "minStepPrice": "0.1",
+      "minPrice": null,
+      "maxPrice": null,
+      "deliveryDate": null,
+      "deliveryPrice": null,
+      "deliveryCompletion": false,
+      "cnDesc": null,
+      "enDesc": null,
+      "cnRemark": null,
+      "enRemark": null,
+      "plates": [
+        1,
+        13
+      ],
+      "fastTrackCallbackRate1": "0.01",
+      "fastTrackCallbackRate2": "0.02",
+      "minTrackCallbackRate": "0.001",
+      "maxTrackCallbackRate": "0.1",
+      "latestPriceDeviation": "0.0100"
+    }
+  },
+  "ADA/USDT:USDT": {
+    "id": "ada_usdt",
+    "symbol": "ADA/USDT:USDT",
+    "base": "ADA",
+    "quote": "USDT",
+    "settle": "USDT",
+    "baseId": "ada",
+    "quoteId": "usdt",
+    "settleId": "ada",
+    "type": "swap",
+    "spot": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "active": true,
+    "contract": true,
+    "linear": true,
+    "inverse": false,
+    "subType": "linear",
+    "taker": 0.0006,
+    "maker": 0.0004,
+    "contractSize": 10,
+    "precision": {
+      "price": 0.0001,
+      "amount": 1,
+      "base": 1e-8,
+      "quote": 1e-8
+    },
+    "limits": {
+      "leverage": {
+        "min": 1
+      },
+      "amount": {
+        "min": 1
+      },
+      "price": {},
+      "cost": {
+        "min": 5,
+        "max": 10000000
+      }
+    },
+    "marginModes": {},
+    "info": {
+      "id": "27",
+      "symbol": "ada_usdt",
+      "symbolGroupId": "8",
+      "pair": "ada_usdt",
+      "contractType": "PERPETUAL",
+      "productType": "perpetual",
+      "predictEventType": null,
+      "predictEventParam": null,
+      "predictEventSort": null,
+      "underlyingType": "U_BASED",
+      "contractSize": "10",
+      "tradeSwitch": true,
+      "openSwitch": true,
+      "isDisplay": true,
+      "isOpenApi": true,
+      "state": "0",
+      "initLeverage": "20",
+      "initPositionType": "CROSSED",
+      "baseCoin": "ada",
+      "spotCoin": "ada",
+      "quoteCoin": "usdt",
+      "baseCoinPrecision": "8",
+      "baseCoinDisplayPrecision": "4",
+      "quoteCoinPrecision": "8",
+      "quoteCoinDisplayPrecision": "4",
+      "quantityPrecision": "0",
+      "pricePrecision": "4",
+      "supportOrderType": "LIMIT,MARKET",
+      "supportTimeInForce": "GTC,FOK,IOC,GTX",
+      "supportEntrustType": "TAKE_PROFIT,STOP,TAKE_PROFIT_MARKET,STOP_MARKET,TRAILING_STOP_MARKET",
+      "supportPositionType": "CROSSED,ISOLATED",
+      "minQty": "1",
+      "minNotional": "5",
+      "maxNotional": "10000000",
+      "multiplierDown": "0.05",
+      "multiplierUp": "0.05",
+      "maxOpenOrders": "200",
+      "maxEntrusts": "200",
+      "makerFee": "0.0004",
+      "takerFee": "0.0006",
+      "liquidationFee": "0.0125",
+      "marketTakeBound": "0.05",
+      "depthPrecisionMerge": "5",
+      "labels": [],
+      "onboardDate": "1656489600000",
+      "enName": "ADAUSDT ",
+      "cnName": "ADAUSDT",
+      "minStepPrice": "0.0001",
+      "minPrice": null,
+      "maxPrice": null,
+      "deliveryDate": null,
+      "deliveryPrice": null,
+      "deliveryCompletion": false,
+      "cnDesc": null,
+      "enDesc": null,
+      "cnRemark": null,
+      "enRemark": null,
+      "plates": [
+        1,
+        9
+      ],
+      "fastTrackCallbackRate1": "0.01",
+      "fastTrackCallbackRate2": "0.02",
+      "minTrackCallbackRate": "0.001",
+      "maxTrackCallbackRate": "0.1",
+      "latestPriceDeviation": "0.0100"
+    }
+  }
 }
