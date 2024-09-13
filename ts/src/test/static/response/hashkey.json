@@ -1573,7 +1573,7 @@
                         "type": "transfer",
                         "currency": "USDT",
                         "amount": -1,
-                        "before": null,
+                        "before": 9.015680088,
                         "after": 8.015680088,
                         "status": "ok",
                         "fee": null,
