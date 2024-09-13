@@ -5203,6 +5203,16 @@ export default class mexc extends Exchange {
     }
 
     async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string} symbol not used by mexc setPositionMode ()
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
         const request: Dict = {
             'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         };
@@ -5219,6 +5229,7 @@ export default class mexc extends Exchange {
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
         /**
          * @method
+         * @name mexc#fetchPositionMode
          * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
          * @param {string} symbol not used by mexc fetchPositionMode
