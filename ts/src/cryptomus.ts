@@ -689,6 +689,7 @@ export default class cryptomus extends Exchange {
         [ cost, params ] = this.handleParamString (params, 'cost');
         let response = undefined;
         if (type === 'market') {
+            const sideBuy = side === 'buy';
             if (side === 'buy') {
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -702,6 +703,7 @@ export default class cryptomus extends Exchange {
                     cost = cost ? cost : amountToString;
                 }
             }
+            request['amount'] = sideBuy ? cost : amountToString;
             response = await this.privatePostV2UserApiConvert (this.extend (request, params));
         } else if (type === 'limit') {
             if (price === undefined) {
