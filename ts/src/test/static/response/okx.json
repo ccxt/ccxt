@@ -1666,7 +1666,6 @@
                         "referenceAccount": null,
                         "type": "trade",
                         "currency": "USDT",
-                        "symbol": "LTC/USDT",
                         "amount": -10.158,
                         "before": null,
                         "after": 67533.74569945144,

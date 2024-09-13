@@ -1933,7 +1933,7 @@
                         "account": null,
                         "referenceAccount": null,
                         "referenceId": null,
-                        "status": null,
+                        "status": "ok",
                         "amount": 0.0006935,
                         "before": 94.05001087,
                         "after": 94.05070437,
