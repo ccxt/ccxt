@@ -1667,7 +1667,7 @@
                         "type": "trade",
                         "currency": "USDT",
                         "amount": -10.158,
-                        "before": null,
+                        "before": 67543.90369945145,
                         "after": 67533.74569945144,
                         "status": "ok",
                         "fee": {
