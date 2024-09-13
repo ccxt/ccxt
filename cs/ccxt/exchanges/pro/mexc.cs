@@ -151,10 +151,6 @@ public partial class mexc : ccxt.mexc
         object marketIds = this.marketIds(symbols);
         object firstMarket = this.market(getValue(symbols, 0));
         object isSpot = getValue(firstMarket, "spot");
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
-        {
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
-        }
         object url = ((bool) isTrue((isSpot))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
         object request = new Dictionary<string, object>() {};
         if (isTrue(isSpot))
@@ -163,6 +159,7 @@ public partial class mexc : ccxt.mexc
             for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
                 object marketId = getValue(marketIds, i);
+                ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
                 ((IList<object>)topics).Add(add("spot@public.bookTicker.v3.api@", marketId));
             }
             ((IDictionary<string,object>)request)["method"] = "SUBSCRIPTION";
@@ -171,9 +168,10 @@ public partial class mexc : ccxt.mexc
         {
             ((IDictionary<string,object>)request)["method"] = "sub.tickers";
             ((IDictionary<string,object>)request)["params"] = new Dictionary<string, object>() {};
+            ((IList<object>)messageHashes).Add("ticker");
         }
         object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
-        if (isTrue(this.newUpdates))
+        if (isTrue(isTrue(isSpot) && isTrue(this.newUpdates)))
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -207,14 +205,18 @@ public partial class mexc : ccxt.mexc
         //     }
         //
         object data = this.safeList(message, "data");
+        object topic = "ticker";
+        object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.parseTicker(getValue(data, i));
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            object messageHash = add("ticker:", symbol);
+            ((IList<object>)result).Add(ticker);
+            object messageHash = add(add(topic, ":"), symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)

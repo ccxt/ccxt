@@ -145,15 +145,13 @@ export default class mexc extends mexcRest {
         const marketIds = this.marketIds(symbols);
         const firstMarket = this.market(symbols[0]);
         const isSpot = firstMarket['spot'];
-        for (let i = 0; i < marketIds.length; i++) {
-            messageHashes.push('ticker:' + symbols[i]);
-        }
         const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
         const request = {};
         if (isSpot) {
             const topics = [];
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
+                messageHashes.push('ticker:' + symbols[i]);
                 topics.push('spot@public.bookTicker.v3.api@' + marketId);
             }
             request['method'] = 'SUBSCRIPTION';
@@ -162,9 +160,10 @@ export default class mexc extends mexcRest {
         else {
             request['method'] = 'sub.tickers';
             request['params'] = {};
+            messageHashes.push('ticker');
         }
         const ticker = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
-        if (this.newUpdates) {
+        if (isSpot && this.newUpdates) {
             const result = {};
             result[ticker['symbol']] = ticker;
             return result;
@@ -195,13 +194,17 @@ export default class mexc extends mexcRest {
         //     }
         //
         const data = this.safeList(message, 'data');
+        const topic = 'ticker';
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker(data[i]);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const messageHash = 'ticker:' + symbol;
+            result.push(ticker);
+            const messageHash = topic + ':' + symbol;
             client.resolve(ticker, messageHash);
         }
+        client.resolve(result, topic);
     }
     parseWsTicker(ticker, market = undefined) {
         //

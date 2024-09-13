@@ -1138,17 +1138,21 @@ class xt(Exchange, ImplicitAPI):
         maxCost = None
         minPrice = None
         maxPrice = None
+        amountPrecision = None
         for i in range(0, len(filters)):
             entry = filters[i]
             filter = self.safe_string(entry, 'filter')
             if filter == 'QUANTITY':
                 minAmount = self.safe_number(entry, 'min')
                 maxAmount = self.safe_number(entry, 'max')
+                amountPrecision = self.safe_number(entry, 'tickSize')
             if filter == 'QUOTE_QTY':
                 minCost = self.safe_number(entry, 'min')
             if filter == 'PRICE':
                 minPrice = self.safe_number(entry, 'min')
                 maxPrice = self.safe_number(entry, 'max')
+        if amountPrecision is None:
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
         underlyingType = self.safe_string(market, 'underlyingType')
         linear = None
         inverse = None
@@ -1223,7 +1227,7 @@ class xt(Exchange, ImplicitAPI):
             'optionType': None,
             'precision': {
                 'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
+                'amount': amountPrecision,
                 'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseCoinPrecision'))),
                 'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteCoinPrecision'))),
             },

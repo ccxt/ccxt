@@ -147,15 +147,13 @@ class mexc extends \ccxt\async\mexc {
             $marketIds = $this->market_ids($symbols);
             $firstMarket = $this->market($symbols[0]);
             $isSpot = $firstMarket['spot'];
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $messageHashes[] = 'ticker:' . $symbols[$i];
-            }
             $url = ($isSpot) ? $this->urls['api']['ws']['spot'] : $this->urls['api']['ws']['swap'];
             $request = array();
             if ($isSpot) {
                 $topics = array();
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
+                    $messageHashes[] = 'ticker:' . $symbols[$i];
                     $topics[] = 'spot@public.bookTicker.v3.api@' . $marketId;
                 }
                 $request['method'] = 'SUBSCRIPTION';
@@ -163,9 +161,10 @@ class mexc extends \ccxt\async\mexc {
             } else {
                 $request['method'] = 'sub.tickers';
                 $request['params'] = array();
+                $messageHashes[] = 'ticker';
             }
             $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
-            if ($this->newUpdates) {
+            if ($isSpot && $this->newUpdates) {
                 $result = array();
                 $result[$ticker['symbol']] = $ticker;
                 return $result;
@@ -198,13 +197,17 @@ class mexc extends \ccxt\async\mexc {
         //     }
         //
         $data = $this->safe_list($message, 'data');
+        $topic = 'ticker';
+        $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ticker($data[$i]);
             $symbol = $ticker['symbol'];
             $this->tickers[$symbol] = $ticker;
-            $messageHash = 'ticker:' . $symbol;
+            $result[] = $ticker;
+            $messageHash = $topic . ':' . $symbol;
             $client->resolve ($ticker, $messageHash);
         }
+        $client->resolve ($result, $topic);
     }
 
     public function parse_ws_ticker($ticker, $market = null) {

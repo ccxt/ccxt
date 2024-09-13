@@ -1154,12 +1154,14 @@ class xt extends Exchange {
         $maxCost = null;
         $minPrice = null;
         $maxPrice = null;
+        $amountPrecision = null;
         for ($i = 0; $i < count($filters); $i++) {
             $entry = $filters[$i];
             $filter = $this->safe_string($entry, 'filter');
             if ($filter === 'QUANTITY') {
                 $minAmount = $this->safe_number($entry, 'min');
                 $maxAmount = $this->safe_number($entry, 'max');
+                $amountPrecision = $this->safe_number($entry, 'tickSize');
             }
             if ($filter === 'QUOTE_QTY') {
                 $minCost = $this->safe_number($entry, 'min');
@@ -1168,6 +1170,9 @@ class xt extends Exchange {
                 $minPrice = $this->safe_number($entry, 'min');
                 $maxPrice = $this->safe_number($entry, 'max');
             }
+        }
+        if ($amountPrecision === null) {
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision')));
         }
         $underlyingType = $this->safe_string($market, 'underlyingType');
         $linear = null;
@@ -1248,7 +1253,7 @@ class xt extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
-                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision'))),
+                'amount' => $amountPrecision,
                 'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseCoinPrecision'))),
                 'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteCoinPrecision'))),
             ),
