@@ -231,6 +231,7 @@ export default class bitmart extends Exchange {
                         'spot/v4/query/trades': 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/order-trades': 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/cancel_orders': 3,
+                        'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
                         // newer endpoint
                         'spot/v3/cancel_order': 1,
@@ -2970,7 +2971,7 @@ export default class bitmart extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (type === 'spot') {
-            response = await this.privatePostSpotV1CancelOrders (this.extend (request, params));
+            response = await this.privatePostSpotV4CancelAll (this.extend (request, params));
         } else if (type === 'swap') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
