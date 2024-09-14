@@ -1014,8 +1014,9 @@ class mexc extends mexc$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const spotMarket = await this.fetchSpotMarkets(params);
-        const swapMarket = await this.fetchSwapMarkets(params);
+        const spotMarketPromise = this.fetchSpotMarkets(params);
+        const swapMarketPromise = this.fetchSwapMarkets(params);
+        const [spotMarket, swapMarket] = await Promise.all([spotMarketPromise, swapMarketPromise]);
         return this.arrayConcat(spotMarket, swapMarket);
     }
     async fetchSpotMarkets(params = {}) {
@@ -1154,7 +1155,10 @@ class mexc extends mexc$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        const currentRl = this.rateLimit;
+        this.setProperty(this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         const response = await this.contractPublicGetDetail(params);
+        this.setProperty(this, 'rateLimit', currentRl);
         //
         //     {
         //         "success":true,

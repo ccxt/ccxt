@@ -15,6 +15,7 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class mexc extends Exchange {
@@ -1021,8 +1022,9 @@ class mexc extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $spotMarket = Async\await($this->fetch_spot_markets($params));
-            $swapMarket = Async\await($this->fetch_swap_markets($params));
+            $spotMarketPromise = $this->fetch_spot_markets($params);
+            $swapMarketPromise = $this->fetch_swap_markets($params);
+            list($spotMarket, $swapMarket) = Async\await(Promise\all(array( $spotMarketPromise, $swapMarketPromise )));
             return $this->array_concat($spotMarket, $swapMarket);
         }) ();
     }
@@ -1163,7 +1165,10 @@ class mexc extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market $data
              */
+            $currentRl = $this->rateLimit;
+            $this->set_property($this, 'rateLimit', 10); // see comment => https://github.com/ccxt/ccxt/pull/23698
             $response = Async\await($this->contractPublicGetDetail ($params));
+            $this->set_property($this, 'rateLimit', $currentRl);
             //
             //     {
             //         "success":true,
