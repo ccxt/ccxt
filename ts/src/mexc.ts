@@ -1162,9 +1162,9 @@ export default class mexc extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const currentRl: number = this.rateLimit;
-        this.rateLimit = 10; // see comment: https://github.com/ccxt/ccxt/pull/23698
+        this.setProperty (this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         const response = await this.contractPublicGetDetail (params);
-        this.rateLimit = currentRl;
+        this.setProperty (this, 'rateLimit', currentRl);
         //
         //     {
         //         "success":true,
