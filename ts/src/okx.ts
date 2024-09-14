@@ -792,6 +792,7 @@ export default class okx extends Exchange {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': ExchangeError, // Margin transactions unavailable
                     '54001': ExchangeError, // Only Multi-currency margin account can be set to borrow coins automatically
+                    '54011': InvalidOrder, // 200	Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
                     // Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder, // Take profit % should be within the range of {parameter1}-{parameter2}
                     '55101': InvalidOrder, // Stop loss % should be within the range of {parameter1}-{parameter2}
