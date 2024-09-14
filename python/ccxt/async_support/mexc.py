@@ -4855,6 +4855,14 @@ class mexc(Exchange, ImplicitAPI):
         return self.parse_transaction(response, currency)
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+        :param bool hedged: set to True to use dualSidePosition
+        :param str symbol: not used by mexc setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
         request: dict = {
             'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         }
@@ -4868,6 +4876,13 @@ class mexc(Exchange, ImplicitAPI):
         return response
 
     async def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+        :param str symbol: not used by mexc fetchPositionMode
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
         response = await self.contractPrivateGetPositionPositionMode(params)
         #
         #     {
