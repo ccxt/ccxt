@@ -4592,6 +4592,14 @@ class mexc(Exchange, ImplicitAPI):
         })
 
     def fetch_transfer(self, id: str, code: Str = None, params={}) -> TransferEntry:
+        """
+        fetches a transfer
+        :see: https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+        :param str id: transfer id
+        :param [str] code: not used by mexc fetchTransfer
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)
         self.load_markets()
         if marketType == 'spot':
@@ -4621,6 +4629,8 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
+        :see: https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve

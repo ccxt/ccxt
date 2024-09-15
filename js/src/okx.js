@@ -793,6 +793,7 @@ export default class okx extends Exchange {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': ExchangeError,
                     '54001': ExchangeError,
+                    '54011': InvalidOrder,
                     // Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder,
                     '55101': InvalidOrder,

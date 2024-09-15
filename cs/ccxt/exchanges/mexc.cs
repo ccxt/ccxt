@@ -4850,6 +4850,16 @@ public partial class mexc : Exchange
 
     public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name mexc#fetchTransfer
+        * @description fetches a transfer
+        * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+        * @param {string} id transfer id
+        * @param {[string]} code not used by mexc fetchTransfer
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTransfer", null, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
@@ -4889,6 +4899,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchTransfers
         * @description fetch a history of internal transfers made on an account
+        * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
         * @param {string} code unified currency code of the currency transferred
         * @param {int} [since] the earliest time in ms to fetch transfers for
         * @param {int} [limit] the maximum number of  transfers structures to retrieve

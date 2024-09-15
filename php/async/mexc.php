@@ -4927,6 +4927,14 @@ class mexc extends Exchange {
 
     public function fetch_transfer(string $id, ?string $code = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetches a transfer
+             * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+             * @param {string} $id transfer $id
+             * @param {[string]} $code not used by mexc fetchTransfer
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transfer-structure transfer structure~
+             */
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
             Async\await($this->load_markets());
             if ($marketType === 'spot') {
@@ -4960,6 +4968,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
+             * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of  transfers structures to retrieve

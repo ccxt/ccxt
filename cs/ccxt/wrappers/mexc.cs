@@ -1119,6 +1119,15 @@ public partial class mexc
         var res = await this.fetchPositions(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
+    /// <summary>
+    /// fetches a transfer
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry"/>  <br/>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> FetchTransfer(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransfer(id, code, parameters);
@@ -1128,6 +1137,8 @@ public partial class mexc
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

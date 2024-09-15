@@ -747,6 +747,7 @@ public partial class okx : Exchange
                     { "52000", typeof(ExchangeError) },
                     { "54000", typeof(ExchangeError) },
                     { "54001", typeof(ExchangeError) },
+                    { "54011", typeof(InvalidOrder) },
                     { "55100", typeof(InvalidOrder) },
                     { "55101", typeof(InvalidOrder) },
                     { "55102", typeof(InvalidOrder) },
