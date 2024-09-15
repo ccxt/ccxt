@@ -4743,7 +4743,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string_2(response, 'msg', 'data', '')
-        feedback = self.id + ' ' + message
+        feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

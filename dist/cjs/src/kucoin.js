@@ -5061,7 +5061,7 @@ class kucoin extends kucoin$1 {
         //
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString2(response, 'msg', 'data', '');
-        const feedback = this.id + ' ' + message;
+        const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);

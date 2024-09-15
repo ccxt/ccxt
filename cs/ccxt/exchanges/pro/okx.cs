@@ -1594,8 +1594,12 @@ public partial class okx : ccxt.okx
     { "sign", signature },
 }} },
             };
-            object message = this.extend(request, parameters);
-            this.watch(url, messageHash, message, messageHash);
+            // Only add params['access'] to prevent sending custom parameters, such as extraParams.
+            if (isTrue(inOp(parameters, "access")))
+            {
+                ((IDictionary<string,object>)request)["access"] = getValue(parameters, "access");
+            }
+            this.watch(url, messageHash, request, messageHash);
         }
         return await (future as Exchange.Future);
     }
@@ -1792,7 +1796,7 @@ public partial class okx : ccxt.okx
                 { "channel", "positions" },
                 { "instType", "ANY" },
             };
-            object args = new List<object>() {arg};
+            object args = new List<object> {this.extend(arg, parameters)};
             object nonSymbolRequest = new Dictionary<string, object>() {
                 { "op", "subscribe" },
                 { "args", args },

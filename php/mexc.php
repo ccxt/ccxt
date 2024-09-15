@@ -1005,8 +1005,9 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $spotMarket = $this->fetch_spot_markets($params);
-        $swapMarket = $this->fetch_swap_markets($params);
+        $spotMarketPromise = $this->fetch_spot_markets($params);
+        $swapMarketPromise = $this->fetch_swap_markets($params);
+        list($spotMarket, $swapMarket) = array( $spotMarketPromise, $swapMarketPromise );
         return $this->array_concat($spotMarket, $swapMarket);
     }
 
@@ -1143,7 +1144,10 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market $data
          */
+        $currentRl = $this->rateLimit;
+        $this->set_property($this, 'rateLimit', 10); // see comment => https://github.com/ccxt/ccxt/pull/23698
         $response = $this->contractPublicGetDetail ($params);
+        $this->set_property($this, 'rateLimit', $currentRl);
         //
         //     {
         //         "success":true,
@@ -5104,6 +5108,14 @@ class mexc extends Exchange {
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+         * @param {bool} $hedged set to true to use dualSidePosition
+         * @param {string} $symbol not used by mexc setPositionMode ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $response from the exchange
+         */
         $request = array(
             'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         );
@@ -5118,6 +5130,13 @@ class mexc extends Exchange {
     }
 
     public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        /**
+         * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+         * @param {string} $symbol not used by mexc fetchPositionMode
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         */
         $response = $this->contractPrivateGetPositionPositionMode ($params);
         //
         //     {

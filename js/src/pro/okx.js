@@ -1445,8 +1445,11 @@ export default class okx extends okxRest {
                     },
                 ],
             };
-            const message = this.extend(request, params);
-            this.watch(url, messageHash, message, messageHash);
+            // Only add params['access'] to prevent sending custom parameters, such as extraParams.
+            if ('access' in params) {
+                request['access'] = params['access'];
+            }
+            this.watch(url, messageHash, request, messageHash);
         }
         return await future;
     }
@@ -1616,7 +1619,7 @@ export default class okx extends okxRest {
                 'channel': 'positions',
                 'instType': 'ANY',
             };
-            const args = [arg];
+            const args = [this.extend(arg, params)];
             const nonSymbolRequest = {
                 'op': 'subscribe',
                 'args': args,

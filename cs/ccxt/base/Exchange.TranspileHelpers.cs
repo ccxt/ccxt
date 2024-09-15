@@ -983,21 +983,21 @@ public partial class Exchange
         }
     }
 
-    // clashing with the current method, need to rename it to concat instead of arrayConcat
-    // public static object arrayConcat(object a, object b)
-    // {
-    //     if (a == null && b == null)
-    //     {
-    //         return null;
-    //     }
-    //     else if (a == null)
-    //     {
-    //         return b;
-    //     }
-    //     else if (b == null)
-    //     {
-    //         return a;
-    //     }
+    //clashing with the current method, need to rename it to concat instead of arrayConcat
+    public static object concat(object a, object b)
+    {
+        if (a == null && b == null)
+        {
+            return null;
+        }
+        else if (a == null)
+        {
+            return b;
+        }
+        else if (b == null)
+        {
+            return a;
+        }
 
     //     if (a is IList<object> && b is IList<object>)
     //     {

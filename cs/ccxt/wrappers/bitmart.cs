@@ -710,6 +710,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#cancel-all-orders"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed"/>  <br/>
     /// <list type="table">

@@ -1017,8 +1017,9 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const spotMarket = await this.fetchSpotMarkets(params);
-        const swapMarket = await this.fetchSwapMarkets(params);
+        const spotMarketPromise = this.fetchSpotMarkets(params);
+        const swapMarketPromise = this.fetchSwapMarkets(params);
+        const [spotMarket, swapMarket] = await Promise.all([spotMarketPromise, swapMarketPromise]);
         return this.arrayConcat(spotMarket, swapMarket);
     }
     async fetchSpotMarkets(params = {}) {
@@ -1157,7 +1158,10 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        const currentRl = this.rateLimit;
+        this.setProperty(this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         const response = await this.contractPublicGetDetail(params);
+        this.setProperty(this, 'rateLimit', currentRl);
         //
         //     {
         //         "success":true,
@@ -5196,6 +5200,16 @@ export default class mexc extends Exchange {
         return this.parseTransaction(response, currency);
     }
     async setPositionMode(hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string} symbol not used by mexc setPositionMode ()
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
         const request = {
             'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         };
@@ -5209,6 +5223,15 @@ export default class mexc extends Exchange {
         return response;
     }
     async fetchPositionMode(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchPositionMode
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+         * @param {string} symbol not used by mexc fetchPositionMode
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
         const response = await this.contractPrivateGetPositionPositionMode(params);
         //
         //     {

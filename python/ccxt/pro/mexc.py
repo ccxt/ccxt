@@ -141,22 +141,22 @@ class mexc(ccxt.async_support.mexc):
         marketIds = self.market_ids(symbols)
         firstMarket = self.market(symbols[0])
         isSpot = firstMarket['spot']
-        for i in range(0, len(marketIds)):
-            messageHashes.append('ticker:' + symbols[i])
         url = self.urls['api']['ws']['spot'] if (isSpot) else self.urls['api']['ws']['swap']
         request: dict = {}
         if isSpot:
             topics = []
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
+                messageHashes.append('ticker:' + symbols[i])
                 topics.append('spot@public.bookTicker.v3.api@' + marketId)
             request['method'] = 'SUBSCRIPTION'
             request['params'] = topics
         else:
             request['method'] = 'sub.tickers'
             request['params'] = {}
+            messageHashes.append('ticker')
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
-        if self.newUpdates:
+        if isSpot and self.newUpdates:
             result: dict = {}
             result[ticker['symbol']] = ticker
             return result
@@ -186,12 +186,16 @@ class mexc(ccxt.async_support.mexc):
         #     }
         #
         data = self.safe_list(message, 'data')
+        topic = 'ticker'
+        result = []
         for i in range(0, len(data)):
             ticker = self.parse_ticker(data[i])
             symbol = ticker['symbol']
             self.tickers[symbol] = ticker
-            messageHash = 'ticker:' + symbol
+            result.append(ticker)
+            messageHash = topic + ':' + symbol
             client.resolve(ticker, messageHash)
+        client.resolve(result, topic)
 
     def parse_ws_ticker(self, ticker, market=None):
         #

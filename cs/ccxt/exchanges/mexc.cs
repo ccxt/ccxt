@@ -848,8 +848,11 @@ public partial class mexc : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object spotMarket = await this.fetchSpotMarkets(parameters);
-        object swapMarket = await this.fetchSwapMarkets(parameters);
+        object spotMarketPromise = this.fetchSpotMarkets(parameters);
+        object swapMarketPromise = this.fetchSwapMarkets(parameters);
+        var spotMarketswapMarketVariable = await promiseAll(new List<object>() {spotMarketPromise, swapMarketPromise});
+        var spotMarket = ((IList<object>) spotMarketswapMarketVariable)[0];
+        var swapMarket = ((IList<object>) spotMarketswapMarketVariable)[1];
         return this.arrayConcat(spotMarket, swapMarket);
     }
 
@@ -996,7 +999,10 @@ public partial class mexc : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
+        object currentRl = this.rateLimit;
+        this.setProperty(this, "rateLimit", 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         object response = await this.contractPublicGetDetail(parameters);
+        this.setProperty(this, "rateLimit", currentRl);
         //
         //     {
         //         "success":true,
@@ -5148,6 +5154,16 @@ public partial class mexc : Exchange
 
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name mexc#setPositionMode
+        * @description set hedged to true or false for a market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+        * @param {bool} hedged set to true to use dualSidePosition
+        * @param {string} symbol not used by mexc setPositionMode ()
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} response from the exchange
+        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "positionMode", ((bool) isTrue(hedged)) ? 1 : 2 },
@@ -5164,6 +5180,15 @@ public partial class mexc : Exchange
 
     public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name mexc#fetchPositionMode
+        * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+        * @param {string} symbol not used by mexc fetchPositionMode
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an object detailing whether the market is in hedged or one-way mode
+        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.contractPrivateGetPositionPositionMode(parameters);
         //
