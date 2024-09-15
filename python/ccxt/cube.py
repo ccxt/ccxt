@@ -1,9 +1,10 @@
-import sys
-sys.path.append('/Users/admin/Documents/PROG/Cube/ccxt/python/ccxt')
-
+import requests
+from ccxt.base.errors import ExchangeError
 from ccxt.base.exchange import Exchange
 
 class cube(Exchange):
+    def __init__(self, config={}):
+        super().__init__(config)
 
     def describe(self):
         return self.deep_extend(super(cube, self).describe(), {
@@ -26,7 +27,6 @@ class cube(Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'book/{market_id}/snapshot',
                         'tickers/snapshot',
                         'parsed/tickers',
                         'parsed/book/{market_symbol}/snapshot',
@@ -38,150 +38,163 @@ class cube(Exchange):
 
     def request(self, endpoint, method='GET', params={}):
         url = self.urls['api']['public'] + '/' + endpoint
-        response = self.fetch(url, method, params)
-        return response
+        response = requests.get(url, params=params)
+        return response.json()
 
     def fetch_markets(self, params={}):
         try:
-            response = self.request('tickers/snapshot', 'GET', params)
-            print(f"Raw API response for markets: {response}")  # Debugging line to see raw API output
+            response = self.request('parsed/tickers', 'GET', params)
+            #print(f"Raw API response for markets: {response}")
 
-            if response is None or 'result' not in response or 'tops' not in response['result']:
+            if response is None or 'result' not in response:
                 raise Exception('Invalid response structure for markets')
 
-            self.markets = self.parse_markets(response['result']['tops'])
+            markets = []
+            for market in response['result']:
+                ticker_id = market.get('ticker_id')
+                base = market.get('base_currency', 'UNKNOWN')
+                quote = market.get('quote_currency', 'UNKNOWN')
+                symbol = f"{base}/{quote}"
+
+                markets.append({
+                    'id': ticker_id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'active': True,
+                    'spot': True,
+                    'info': market,
+                    'precision': {
+                        'amount': None,
+                        'price': None
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None
+                        }
+                    }
+                })
+
+            self.markets = self.index_by(markets, 'symbol')
+            #print(f"Markets loaded: {self.markets}")  # Debug print
             return self.markets
+
         except Exception as e:
             print(f"Error fetching markets: {e}")
             raise
 
-    def parse_markets(self, tops):
-        result = []
-        for market in tops:
-            id = str(market.get('marketId', 'UNKNOWN'))
-            base = market.get('base', 'UNKNOWN')  # Update as per actual data fields
-            quote = market.get('quote', 'UNKNOWN') # Update as per actual data fields
-            symbol = f"{base}/{quote}"  # Construct symbol if available
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-            })
-        return result
-
-    def fetch_ticker(self, symbol, params={}):
-        if not hasattr(self, 'markets') or not self.markets:
-            raise Exception('Markets not loaded')
+    def fetch_ticker(self, symbol: str, params={}):
+        self.fetch_markets()  # Ensure markets are loaded
+        market = self.market(symbol)
+        ticker_id = market.get('id', None)
+        
+        if not ticker_id:
+            raise ExchangeError(f'No ticker ID found for symbol {symbol}')
         
         try:
-            # Ensure markets are loaded
-            self.load_markets()
-            
-            market = self.market(symbol)
-            if market is None:
-                raise Exception(f'Market for symbol {symbol} not found')
-
-            # Fetch the tickers data
             response = self.request('parsed/tickers', 'GET', params)
-            print(f"Raw ticker response: {response}")
+            # Explicitly avoid printing raw API response here
+            # print(f"Raw API response for tickers: {response}")
 
-            # Check if response is valid
-            if response is None:
-                raise Exception('Received None from API')
-            if 'result' not in response:
-                raise Exception('Response does not contain result')
-    
-            # Safe access to ticker data
-            ticker_info = next((item for item in response['result'] if item['ticker_id'] == market['id']), None)
-            if ticker_info is None:
-                raise Exception(f'Ticker information for {symbol} not found')
+            if response is None or 'result' not in response:
+                raise Exception('Invalid response structure for tickers')
 
-            return self.parse_ticker(ticker_info)
+            ticker_data = None
+            for ticker in response['result']:
+                if ticker['ticker_id'] == ticker_id:
+                    ticker_data = ticker
+                    break
+            
+            if ticker_data is None:
+                raise ExchangeError(f'Ticker for {symbol} not found')
+
+            # Set spot explicitly
+            ticker_data['spot'] = True
+            
+            return self.parse_ticker(ticker_data, market)
 
         except Exception as e:
             print(f"Error fetching ticker: {e}")
             raise
 
-    def parse_ticker(self, ticker):
-        if ticker is None:
-            return {
-                'symbol': 'UNKNOWN',
-                'last': 0,
-                'high': 0,
-                'low': 0,
-                'bid': 0,
-                'ask': 0,
-                'baseVolume': 0,
-                'quoteVolume': 0,
-                'timestamp': 0,
-                'info': {},
-            }
-        
+    def parse_ticker(self, ticker, market):
         return {
-            'symbol': ticker.get('ticker_id', 'UNKNOWN'),
-            'last': ticker.get('last_price', 0),
-            'high': ticker.get('high', 0),
-            'low': ticker.get('low', 0),
-            'bid': ticker.get('bid', 0),
-            'ask': ticker.get('ask', 0),
-            'baseVolume': ticker.get('base_volume', 0),
-            'quoteVolume': ticker.get('quote_volume', 0),
-            'timestamp': ticker.get('timestamp', 0),
-            'info': ticker,
+            'symbol': market['symbol'],
+            'timestamp': None,
+            'datetime': None,
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
+            'bidVolume': self.safe_number(ticker, 'bid_quantity'),
+            'ask': self.safe_number(ticker, 'ask'),
+            'askVolume': self.safe_number(ticker, 'ask_quantity'),
+            'vwap': None,
+            'open': self.safe_number(ticker, 'open'),
+            'close': self.safe_number(ticker, 'last_price'),
+            'last': self.safe_number(ticker, 'last_price'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_number(ticker, 'base_volume'),
+            'quoteVolume': self.safe_number(ticker, 'quote_volume'),
+            'info': ticker,  # Original response
         }
-
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        if not hasattr(self, 'markets') or not self.markets:
-            raise Exception('Markets not loaded')
+        self.fetch_markets()  # Ensure markets are loaded
         market = self.market(symbol)
         if market is None:
-            raise Exception(f'Market for symbol {symbol} not found')
-        response = self.request(f'book/{market["id"]}/snapshot', 'GET', params)
-        return self.parse_order_book(response.get('result', {}))
+            print(f"Market for symbol {symbol} not found.")
+            return None
+        
+        try:
+            response = self.request(f'parsed/book/{market["id"]}/snapshot', 'GET', params)
+            # Explicitly avoid printing raw API response here
+            # print(f"Raw API response for order book: {response}")
+            
+            if response is None or 'result' not in response:
+                raise Exception('Invalid response structure for order book')
+            
+            order_book_data = response['result']
+            formatted_order_book = self.parse_order_book(order_book_data)
+            self.print_order_book(formatted_order_book)
+       
+        except Exception as e:
+            print(f"Error fetching order book: {e}")
+            return None
 
-    def parse_order_book(self, orderbook):
-        if orderbook is None:
-            return {
-                'bids': [],
-                'asks': [],
-                'timestamp': 0,
-                'info': {},
-            }
-        return {
-            'bids': [level for level in orderbook.get('bids', [])],
-            'asks': [level for level in orderbook.get('asks', [])],
-            'timestamp': orderbook.get('timestamp', 0),
-            'info': orderbook,
+    def parse_order_book(self, order_book):
+        formatted_order_book = {
+            'bids': [self.format_order(level) for level in order_book.get('bids', [])],
+            'asks': [self.format_order(level) for level in order_book.get('asks', [])],
+            'timestamp': order_book.get('timestamp', 0),
+            'info': order_book,
         }
+        return formatted_order_book
 
-# Test the updated cube class
-def test_cube():
-    exchange = cube()
+    def format_order(self, order):
+        if order and len(order) == 2:
+            price, quantity = order
+            return f"Price: {price}, Quantity: {quantity}"
+        return "Invalid order"
 
-    try:
-        # Fetch markets
-        print("Fetching markets...")
-        markets = exchange.fetch_markets()
-        print("Markets:", markets)
+    def print_order_book(self, order_book):
+        print("Order Book:")
+        print(f"Timestamp: {order_book['timestamp']}")
+        print("Bids:")
+        for bid in order_book['bids']:
+            print(f"  {bid}")
+        print("Asks:")
+        for ask in order_book['asks']:
+            print(f"  {ask}")
 
-        # Assuming BTC/USDT is available in the market data
-        symbol = 'BTC/USDT'
-
-        # Fetch ticker
-        print(f"\nFetching ticker for {symbol}...")
-        ticker = exchange.fetch_ticker(symbol)
-        print("Ticker:", ticker)
-
-        # Fetch order book
-        print(f"\nFetching order book for {symbol}...")
-        order_book = exchange.fetch_order_book(symbol)
-        print("Order Book:", order_book)
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-if __name__ == "__main__":
-    test_cube()
