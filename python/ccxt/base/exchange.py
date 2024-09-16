@@ -226,7 +226,6 @@ class Exchange(object):
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
     twofa = None
-
     markets_by_id = None
     currencies_by_id = None
 

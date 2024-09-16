@@ -262,7 +262,6 @@ class Exchange {
     public $token = ''; // reserved for HTTP auth in some cases
 
     public $twofa = null;
-
     public $markets_by_id = null;
     public $currencies_by_id = null;
     public $minFundingAddressLength = 1; // used in check_address
