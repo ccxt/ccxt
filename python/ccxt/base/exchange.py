@@ -226,6 +226,7 @@ class Exchange(object):
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     token = ''  # reserved for HTTP auth in some cases
     twofa = None
+
     markets_by_id = None
     currencies_by_id = None
 
@@ -294,6 +295,7 @@ class Exchange(object):
     quote_currencies = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
+    isSandboxMode = False
     accounts = None
     positions = None
 

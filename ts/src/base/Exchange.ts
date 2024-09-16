@@ -175,6 +175,7 @@ export default class Exchange {
     options: {
         [key: string]: any;
     }
+    isSandboxMode: boolean = false
 
     throttleProp = undefined
     sleep = sleep;

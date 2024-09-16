@@ -122,6 +122,7 @@ class Exchange {
     public $hostname = null; // in case of inaccessibility of the "main" domain
 
     public $options = array(); // exchange-specific options if any
+    public $isSandboxMode = false;
 
     public $skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
     public $quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
@@ -261,6 +262,7 @@ class Exchange {
     public $token = ''; // reserved for HTTP auth in some cases
 
     public $twofa = null;
+
     public $markets_by_id = null;
     public $currencies_by_id = null;
     public $minFundingAddressLength = 1; // used in check_address
