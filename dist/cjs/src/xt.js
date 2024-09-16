@@ -3597,8 +3597,10 @@ class xt extends xt$1 {
         const side = this.safeString(item, 'side');
         const direction = (side === 'ADD') ? 'in' : 'out';
         const currencyId = this.safeString(item, 'coin');
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'createdTime');
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'id'),
             'direction': direction,
             'account': undefined,
@@ -3616,8 +3618,7 @@ class xt extends xt$1 {
                 'currency': undefined,
                 'cost': undefined,
             },
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {

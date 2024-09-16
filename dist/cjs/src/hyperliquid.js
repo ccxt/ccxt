@@ -2794,9 +2794,9 @@ class hyperliquid extends hyperliquid$1 {
          * @method
          * @name hyperliquid#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
-         * @param {int} [limit] max number of ledger entrys to return
+         * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -2856,7 +2856,8 @@ class hyperliquid extends hyperliquid$1 {
         }
         const type = this.safeString(delta, 'type');
         const amount = this.safeString(delta, 'usdc');
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'hash'),
             'direction': undefined,
             'account': undefined,
@@ -2871,8 +2872,7 @@ class hyperliquid extends hyperliquid$1 {
             'after': undefined,
             'status': undefined,
             'fee': fee,
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {

@@ -1960,7 +1960,7 @@ class bitstamp extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     array(
         //         array(
@@ -2004,9 +2004,9 @@ class bitstamp extends Exchange {
                 $market = $this->get_market_from_trade($item);
             }
             $direction = ($parsedTrade['side'] === 'buy') ? 'in' : 'out';
-            return array(
-                'id' => $parsedTrade['id'],
+            return $this->safe_ledger_entry(array(
                 'info' => $item,
+                'id' => $parsedTrade['id'],
                 'timestamp' => $parsedTrade['timestamp'],
                 'datetime' => $parsedTrade['datetime'],
                 'direction' => $direction,
@@ -2020,7 +2020,7 @@ class bitstamp extends Exchange {
                 'after' => null,
                 'status' => 'ok',
                 'fee' => $parsedTrade['fee'],
-            );
+            ), $currency);
         } else {
             $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
@@ -2033,9 +2033,9 @@ class bitstamp extends Exchange {
                 $amount = $this->safe_string($item, $currency['id']);
                 $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
             }
-            return array(
-                'id' => $parsedTransaction['id'],
+            return $this->safe_ledger_entry(array(
                 'info' => $item,
+                'id' => $parsedTransaction['id'],
                 'timestamp' => $parsedTransaction['timestamp'],
                 'datetime' => $parsedTransaction['datetime'],
                 'direction' => $direction,
@@ -2049,18 +2049,18 @@ class bitstamp extends Exchange {
                 'after' => null,
                 'status' => $parsedTransaction['status'],
                 'fee' => $parsedTransaction['fee'],
-            );
+            ), $currency);
         }
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-             * @param {string} $code unified $currency $code, default is null
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */

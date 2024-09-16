@@ -2387,12 +2387,12 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-             * @param {string} $code unified $currency $code
+             * @param {string} [$code] unified $currency $code
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry
              * @param {int} [$limit] max number of $ledger entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2452,7 +2452,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "account_id" => "ce075cef-1234-4321-bd6e-gf9007351e64",
@@ -2475,6 +2475,8 @@ class cryptocom extends Exchange {
         //
         $timestamp = $this->safe_integer($item, 'event_timestamp_ms');
         $currencyId = $this->safe_string($item, 'instrument_name');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_string($item, 'transaction_qty');
         $direction = null;
         if (Precise::string_lt($amount, '0')) {
@@ -2483,14 +2485,15 @@ class cryptocom extends Exchange {
         } else {
             $direction = 'in';
         }
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string($item, 'order_id'),
             'direction' => $direction,
             'account' => $this->safe_string($item, 'account_id'),
             'referenceId' => $this->safe_string($item, 'trade_id'),
             'referenceAccount' => $this->safe_string($item, 'trade_match_id'),
             'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'journal_type')),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $code,
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2501,8 +2504,7 @@ class cryptocom extends Exchange {
                 'currency' => null,
                 'cost' => null,
             ),
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {

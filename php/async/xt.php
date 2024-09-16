@@ -3497,7 +3497,7 @@ class xt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -3561,7 +3561,7 @@ class xt extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null): array {
         //
         //     {
         //         "id" => "207260567109387524",
@@ -3577,8 +3577,10 @@ class xt extends Exchange {
         $side = $this->safe_string($item, 'side');
         $direction = ($side === 'ADD') ? 'in' : 'out';
         $currencyId = $this->safe_string($item, 'coin');
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'createdTime');
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string($item, 'id'),
             'direction' => $direction,
             'account' => null,
@@ -3596,8 +3598,7 @@ class xt extends Exchange {
                 'currency' => null,
                 'cost' => null,
             ),
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {

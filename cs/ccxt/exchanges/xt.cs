@@ -3783,8 +3783,10 @@ public partial class xt : Exchange
         object side = this.safeString(item, "side");
         object direction = ((bool) isTrue((isEqual(side, "ADD")))) ? "in" : "out";
         object currencyId = this.safeString(item, "coin");
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "createdTime");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "id") },
             { "direction", direction },
             { "account", null },
@@ -3802,8 +3804,7 @@ public partial class xt : Exchange
                 { "currency", null },
                 { "cost", null },
             } },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

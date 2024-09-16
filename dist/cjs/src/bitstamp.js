@@ -1978,9 +1978,9 @@ class bitstamp extends bitstamp$1 {
                 market = this.getMarketFromTrade(item);
             }
             const direction = (parsedTrade['side'] === 'buy') ? 'in' : 'out';
-            return {
-                'id': parsedTrade['id'],
+            return this.safeLedgerEntry({
                 'info': item,
+                'id': parsedTrade['id'],
                 'timestamp': parsedTrade['timestamp'],
                 'datetime': parsedTrade['datetime'],
                 'direction': direction,
@@ -1994,7 +1994,7 @@ class bitstamp extends bitstamp$1 {
                 'after': undefined,
                 'status': 'ok',
                 'fee': parsedTrade['fee'],
-            };
+            }, currency);
         }
         else {
             const parsedTransaction = this.parseTransaction(item, currency);
@@ -2009,9 +2009,9 @@ class bitstamp extends bitstamp$1 {
                 const amount = this.safeString(item, currency['id']);
                 direction = Precise["default"].stringGt(amount, '0') ? 'in' : 'out';
             }
-            return {
-                'id': parsedTransaction['id'],
+            return this.safeLedgerEntry({
                 'info': item,
+                'id': parsedTransaction['id'],
                 'timestamp': parsedTransaction['timestamp'],
                 'datetime': parsedTransaction['datetime'],
                 'direction': direction,
@@ -2025,18 +2025,18 @@ class bitstamp extends bitstamp$1 {
                 'after': undefined,
                 'status': parsedTransaction['status'],
                 'fee': parsedTransaction['fee'],
-            };
+            }, currency);
         }
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */

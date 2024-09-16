@@ -990,11 +990,11 @@ class luno extends luno$1 {
         /**
          * @method
          * @name luno#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -1081,6 +1081,7 @@ class luno extends luno$1 {
         const timestamp = this.safeInteger(entry, 'timestamp');
         const currencyId = this.safeString(entry, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const available_delta = this.safeString(entry, 'available_delta');
         const balance_delta = this.safeString(entry, 'balance_delta');
         const after = this.safeString(entry, 'balance');
@@ -1111,7 +1112,8 @@ class luno extends luno$1 {
         else if (Precise["default"].stringLt(balance_delta, '0') || Precise["default"].stringLt(available_delta, '0')) {
             direction = 'out';
         }
-        return {
+        return this.safeLedgerEntry({
+            'info': entry,
             'id': id,
             'direction': direction,
             'account': account_id,
@@ -1119,15 +1121,14 @@ class luno extends luno$1 {
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
-            'amount': this.parseNumber(amount),
+            'amount': this.parseToNumeric(amount),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'before': this.parseNumber(before),
-            'after': this.parseNumber(after),
+            'before': this.parseToNumeric(before),
+            'after': this.parseToNumeric(after),
             'status': status,
             'fee': undefined,
-            'info': entry,
-        };
+        }, currency);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams(path, params);

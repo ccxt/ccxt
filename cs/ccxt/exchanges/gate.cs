@@ -7166,12 +7166,12 @@ public partial class gate : Exchange
         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
-        * @param {string} code unified currency code
+        * @param {string} [code] unified currency code
         * @param {int} [since] timestamp in ms of the earliest ledger entry
         * @param {int} [limit] max number of ledger entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] end time in ms
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -7345,6 +7345,7 @@ public partial class gate : Exchange
             direction = "in";
         }
         object currencyId = this.safeString(item, "currency");
+        currency = this.safeCurrency(currencyId, currency);
         object type = this.safeString(item, "type");
         object rawTimestamp = this.safeString(item, "time");
         object timestamp = null;
@@ -7358,7 +7359,8 @@ public partial class gate : Exchange
         object balanceString = this.safeString(item, "balance");
         object changeString = this.safeString(item, "change");
         object before = this.parseNumber(Precise.stringSub(balanceString, changeString));
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "id") },
             { "direction", direction },
             { "account", null },
@@ -7373,8 +7375,7 @@ public partial class gate : Exchange
             { "after", this.safeNumber(item, "balance") },
             { "status", null },
             { "fee", null },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

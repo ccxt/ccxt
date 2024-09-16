@@ -2844,13 +2844,13 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
-             * @param {string} $code unified currency $code
+             * @param {string} [$code] unified currency $code
              * @param {int} [$since] timestamp in ms of the earliest ledger entry
-             * @param {int} [$limit] max number of ledger entrys to return
+             * @param {int} [$limit] max number of ledger entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
@@ -2888,7 +2888,7 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // {
         //     "time":1724762307531,
@@ -2912,7 +2912,8 @@ class hyperliquid extends Exchange {
         }
         $type = $this->safe_string($delta, 'type');
         $amount = $this->safe_string($delta, 'usdc');
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string($item, 'hash'),
             'direction' => null,
             'account' => null,
@@ -2927,8 +2928,7 @@ class hyperliquid extends Exchange {
             'after' => null,
             'status' => null,
             'fee' => $fee,
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {

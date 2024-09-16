@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1831,7 +1831,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     [
         #         {
@@ -1872,9 +1872,9 @@ class bitstamp(Exchange, ImplicitAPI):
             if market is None:
                 market = self.get_market_from_trade(item)
             direction = 'in' if (parsedTrade['side'] == 'buy') else 'out'
-            return {
-                'id': parsedTrade['id'],
+            return self.safe_ledger_entry({
                 'info': item,
+                'id': parsedTrade['id'],
                 'timestamp': parsedTrade['timestamp'],
                 'datetime': parsedTrade['datetime'],
                 'direction': direction,
@@ -1888,7 +1888,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'after': None,
                 'status': 'ok',
                 'fee': parsedTrade['fee'],
-            }
+            }, currency)
         else:
             parsedTransaction = self.parse_transaction(item, currency)
             direction = None
@@ -1900,9 +1900,9 @@ class bitstamp(Exchange, ImplicitAPI):
                 currency = self.currency(currencyCode)
                 amount = self.safe_string(item, currency['id'])
                 direction = 'in' if Precise.string_gt(amount, '0') else 'out'
-            return {
-                'id': parsedTransaction['id'],
+            return self.safe_ledger_entry({
                 'info': item,
+                'id': parsedTransaction['id'],
                 'timestamp': parsedTransaction['timestamp'],
                 'datetime': parsedTransaction['datetime'],
                 'direction': direction,
@@ -1916,15 +1916,15 @@ class bitstamp(Exchange, ImplicitAPI):
                 'after': None,
                 'status': parsedTransaction['status'],
                 'fee': parsedTransaction['fee'],
-            }
+            }, currency)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """

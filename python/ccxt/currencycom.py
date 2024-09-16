@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1619,13 +1619,13 @@ class currencycom(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getLedgerUsingGET
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
@@ -1668,19 +1668,20 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         id = self.safe_string(item, 'id')
         amountString = self.safe_string(item, 'amount')
         amount = Precise.string_abs(amountString)
         timestamp = self.safe_integer(item, 'timestamp')
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         feeCost = self.safe_string(item, 'commission')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         direction = 'out' if Precise.string_lt(amountString, '0') else 'in'
-        result: dict = {
+        return self.safe_ledger_entry({
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1696,8 +1697,7 @@ class currencycom(Exchange, ImplicitAPI):
             'status': self.parse_ledger_entry_status(self.safe_string(item, 'status')),
             'fee': fee,
             'info': item,
-        }
-        return result
+        }, currency)
 
     def parse_ledger_entry_status(self, status):
         statuses: dict = {

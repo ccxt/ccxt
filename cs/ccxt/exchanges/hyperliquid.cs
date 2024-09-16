@@ -3047,9 +3047,9 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchLedger
         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        * @param {string} code unified currency code
+        * @param {string} [code] unified currency code
         * @param {int} [since] timestamp in ms of the earliest ledger entry
-        * @param {int} [limit] max number of ledger entrys to return
+        * @param {int} [limit] max number of ledger entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -3117,7 +3117,8 @@ public partial class hyperliquid : Exchange
         }
         object type = this.safeString(delta, "type");
         object amount = this.safeString(delta, "usdc");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "hash") },
             { "direction", null },
             { "account", null },
@@ -3132,8 +3133,7 @@ public partial class hyperliquid : Exchange
             { "after", null },
             { "status", null },
             { "fee", fee },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

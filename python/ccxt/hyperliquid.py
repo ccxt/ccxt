@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -2639,12 +2639,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :param str code: unified currency code
+        :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
-        :param int [limit]: max number of ledger entrys to return
+        :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
@@ -2678,7 +2678,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, None, since, limit)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         # {
         #     "time":1724762307531,
@@ -2701,7 +2701,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             }
         type = self.safe_string(delta, 'type')
         amount = self.safe_string(delta, 'usdc')
-        return {
+        return self.safe_ledger_entry({
+            'info': item,
             'id': self.safe_string(item, 'hash'),
             'direction': None,
             'account': None,
@@ -2716,8 +2717,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'after': None,
             'status': None,
             'fee': fee,
-            'info': item,
-        }
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         ledgerType: dict = {

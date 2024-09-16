@@ -2090,9 +2090,9 @@ public partial class bitstamp : Exchange
                 market = this.getMarketFromTrade(item);
             }
             object direction = ((bool) isTrue((isEqual(getValue(parsedTrade, "side"), "buy")))) ? "in" : "out";
-            return new Dictionary<string, object>() {
-                { "id", getValue(parsedTrade, "id") },
+            return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
+                { "id", getValue(parsedTrade, "id") },
                 { "timestamp", getValue(parsedTrade, "timestamp") },
                 { "datetime", getValue(parsedTrade, "datetime") },
                 { "direction", direction },
@@ -2106,7 +2106,7 @@ public partial class bitstamp : Exchange
                 { "after", null },
                 { "status", "ok" },
                 { "fee", getValue(parsedTrade, "fee") },
-            };
+            }, currency);
         } else
         {
             object parsedTransaction = this.parseTransaction(item, currency);
@@ -2122,9 +2122,9 @@ public partial class bitstamp : Exchange
                 object amount = this.safeString(item, getValue(currency, "id"));
                 direction = ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "in" : "out";
             }
-            return new Dictionary<string, object>() {
-                { "id", getValue(parsedTransaction, "id") },
+            return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
+                { "id", getValue(parsedTransaction, "id") },
                 { "timestamp", getValue(parsedTransaction, "timestamp") },
                 { "datetime", getValue(parsedTransaction, "datetime") },
                 { "direction", direction },
@@ -2138,7 +2138,7 @@ public partial class bitstamp : Exchange
                 { "after", null },
                 { "status", getValue(parsedTransaction, "status") },
                 { "fee", getValue(parsedTransaction, "fee") },
-            };
+            }, currency);
         }
     }
 
@@ -2147,11 +2147,11 @@ public partial class bitstamp : Exchange
         /**
         * @method
         * @name bitstamp#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */

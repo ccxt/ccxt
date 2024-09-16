@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Currencies, Currency, Int, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry
+from ccxt.base.types import Currencies, Currency, Int, LedgerEntry, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3311,7 +3311,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://doc.xt.com/#futures_usergetBalanceBill
@@ -3368,7 +3368,7 @@ class xt(Exchange, ImplicitAPI):
         ledger = self.safe_value(data, 'items', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency=None) -> LedgerEntry:
         #
         #     {
         #         "id": "207260567109387524",
@@ -3384,8 +3384,10 @@ class xt(Exchange, ImplicitAPI):
         side = self.safe_string(item, 'side')
         direction = 'in' if (side == 'ADD') else 'out'
         currencyId = self.safe_string(item, 'coin')
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'createdTime')
-        return {
+        return self.safe_ledger_entry({
+            'info': item,
             'id': self.safe_string(item, 'id'),
             'direction': direction,
             'account': None,
@@ -3403,8 +3405,7 @@ class xt(Exchange, ImplicitAPI):
                 'currency': None,
                 'cost': None,
             },
-            'info': item,
-        }
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         ledgerType = {
