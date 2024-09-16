@@ -12491,7 +12491,7 @@ export default class binance extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market: Market = undefined) {
+    parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         // margin
         //

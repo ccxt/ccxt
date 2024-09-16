@@ -446,6 +446,8 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+    contracts: number;
+    contractSize: number;
 }
 
 export interface OrderRequest {
