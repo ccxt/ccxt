@@ -2995,7 +2995,9 @@ export default class okcoin extends Exchange {
         //         "ts": "1597026383085"
         //     }
         //
-        const code = this.safeCurrencyCode (this.safeString (item, 'ccy'), currency);
+        const currencyId = this.safeString (item, 'ccy');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'ts');
         const feeCostString = this.safeString (item, 'fee');
         let fee = undefined;

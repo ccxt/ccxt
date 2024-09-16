@@ -1675,7 +1675,9 @@ export default class blofin extends Exchange {
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
-        const code = this.safeCurrencyCode (this.safeString (item, 'currency'), currency);
+        const currencyId = this.safeString (item, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'ts');
         return this.safeLedgerEntry ({
             'info': item,

@@ -1156,6 +1156,7 @@ export default class bitmex extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const amountString = this.safeString (item, 'amount');
         let amount = this.convertToRealAmount (code, amountString);
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));

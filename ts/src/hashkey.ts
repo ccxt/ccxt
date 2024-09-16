@@ -2347,7 +2347,9 @@ export default class hashkey extends Exchange {
         const account = this.safeString (item, 'accountId');
         const timestamp = this.safeInteger (item, 'created');
         const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue'));
-        const code = this.safeCurrencyCode (this.safeString (item, 'coin'), currency);
+        const currencyId = this.safeString (item, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const amountString = this.safeString (item, 'change');
         const amount = this.parseNumber (amountString);
         let direction = 'in';

@@ -5960,6 +5960,7 @@ export default class bitget extends Exchange {
         //
         const currencyId = this.safeString (item, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'cTime');
         const after = this.safeNumber (item, 'balance');
         const fee = this.safeNumber2 (item, 'fees', 'fee');

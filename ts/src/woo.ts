@@ -2167,6 +2167,7 @@ export default class woo extends Exchange {
         const networkizedCode = this.safeString (item, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
+        currency = this.safeCurrency (code, currency);
         const amount = this.safeNumber (item, 'amount');
         const side = this.safeString (item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';

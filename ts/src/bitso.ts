@@ -308,6 +308,7 @@ export default class bitso extends Exchange {
         const amount = this.safeString (firstBalance, 'amount');
         const currencyId = this.safeString (firstBalance, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const details = this.safeValue (item, 'details', {});
         let referenceId = this.safeString2 (details, 'fid', 'wid');
         if (referenceId === undefined) {

@@ -1096,6 +1096,7 @@ export default class luno extends Exchange {
         const timestamp = this.safeInteger (entry, 'timestamp');
         const currencyId = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const available_delta = this.safeString (entry, 'available_delta');
         const balance_delta = this.safeString (entry, 'balance_delta');
         const after = this.safeString (entry, 'balance');

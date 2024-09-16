@@ -11213,6 +11213,8 @@ export default class binance extends Exchange {
             direction = 'in';
         }
         const currencyId = this.safeString (item, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger2 (item, 'createDate', 'time');
         const type = this.safeString2 (item, 'type', 'incomeType');
         return this.safeLedgerEntry ({
@@ -11223,7 +11225,7 @@ export default class binance extends Exchange {
             'referenceAccount': undefined,
             'referenceId': this.safeString (item, 'tradeId'),
             'type': this.parseLedgerEntryType (type),
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': code,
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

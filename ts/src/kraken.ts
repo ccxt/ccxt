@@ -1085,7 +1085,9 @@ export default class kraken extends Exchange {
         const referenceId = this.safeString (item, 'refid');
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
+        const currencyId = this.safeString (item, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         let amount = this.safeString (item, 'amount');
         if (Precise.stringLt (amount, '0')) {
             direction = 'out';

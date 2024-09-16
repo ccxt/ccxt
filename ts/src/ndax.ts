@@ -1151,6 +1151,7 @@ export default class ndax extends Exchange {
         //     }
         //
         const currencyId = this.safeString (item, 'ProductId');
+        currency = this.safeCurrency (currencyId, currency);
         const credit = this.safeString (item, 'CR');
         const debit = this.safeString (item, 'DR');
         let amount = undefined;

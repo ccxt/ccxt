@@ -6758,6 +6758,7 @@ export default class gate extends Exchange {
             direction = 'in';
         }
         const currencyId = this.safeString (item, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
         const type = this.safeString (item, 'type');
         const rawTimestamp = this.safeString (item, 'time');
         let timestamp = undefined;

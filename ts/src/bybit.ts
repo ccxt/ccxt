@@ -6121,6 +6121,7 @@ export default class bybit extends Exchange {
         //
         const currencyId = this.safeString2 (item, 'coin', 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeString2 (item, 'amount', 'change');
         const after = this.safeString2 (item, 'wallet_balance', 'cashBalance');
         const direction = Precise.stringLt (amount, '0') ? 'out' : 'in';

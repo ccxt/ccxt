@@ -2613,6 +2613,7 @@ export default class coinbase extends Exchange {
         }
         const currencyId = this.safeString (amountInfo, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         //
         // the address and txid do not belong to the unified ledger structure
         //

@@ -2137,7 +2137,9 @@ export default class woofipro extends Exchange {
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
-        const code = this.safeString (item, 'token');
+        const currencyId = this.safeString (item, 'token');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeNumber (item, 'amount');
         const side = this.safeString (item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';

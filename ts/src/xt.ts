@@ -3557,6 +3557,7 @@ export default class xt extends Exchange {
         const side = this.safeString (item, 'side');
         const direction = (side === 'ADD') ? 'in' : 'out';
         const currencyId = this.safeString (item, 'coin');
+        currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (item, 'createdTime');
         return this.safeLedgerEntry ({
             'info': item,

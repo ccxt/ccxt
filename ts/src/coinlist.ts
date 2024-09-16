@@ -2303,6 +2303,7 @@ export default class coinlist extends Exchange {
         }
         const currencyId = this.safeString (item, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         return this.safeLedgerEntry ({
             'info': item,

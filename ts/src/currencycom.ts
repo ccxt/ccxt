@@ -1778,6 +1778,7 @@ export default class currencycom extends Exchange {
         const timestamp = this.safeInteger (item, 'timestamp');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const feeCost = this.safeString (item, 'commission');
         let fee = undefined;
         if (feeCost !== undefined) {

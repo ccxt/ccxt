@@ -7921,6 +7921,7 @@ export default class htx extends Exchange {
         //
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const id = this.safeString (item, 'transactId');
         const transferType = this.safeString (item, 'transferType');
         const timestamp = this.safeInteger (item, 'transactTime');

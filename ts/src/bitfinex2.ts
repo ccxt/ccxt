@@ -2941,6 +2941,7 @@ export default class bitfinex2 extends Exchange {
         const id = this.safeString (itemList, 0);
         const currencyId = this.safeString (itemList, 1);
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger (itemList, 3);
         const amount = this.safeNumber (itemList, 5);
         const after = this.safeNumber (itemList, 6);

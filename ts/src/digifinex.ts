@@ -2564,7 +2564,9 @@ export default class digifinex extends Exchange {
         //     }
         //
         const type = this.parseLedgerEntryType (this.safeString2 (item, 'type', 'finance_type'));
-        const code = this.safeCurrencyCode (this.safeString2 (item, 'currency_mark', 'currency'), currency);
+        const currencyId = this.safeString2 (item, 'currency_mark', 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeNumber2 (item, 'num', 'change');
         const after = this.safeNumber (item, 'balance');
         let timestamp = this.safeTimestamp (item, 'time');

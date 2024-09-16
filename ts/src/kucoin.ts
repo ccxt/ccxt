@@ -4201,7 +4201,7 @@ export default class kucoin extends Exchange {
         const id = this.safeString (item, 'id');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.currency (code);
+        currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeNumber (item, 'amount');
         const balanceAfter = undefined;
         // const balanceAfter = this.safeNumber (item, 'balance'); only returns zero string

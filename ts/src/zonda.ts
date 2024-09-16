@@ -1128,6 +1128,7 @@ export default class zonda extends Exchange {
         const timestamp = this.safeInteger (item, 'time');
         const balance = this.safeValue (item, 'balance', {});
         const currencyId = this.safeString (balance, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
         const change = this.safeValue (item, 'change', {});
         let amount = this.safeString (change, 'total');
         let direction = 'in';

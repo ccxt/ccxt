@@ -2469,6 +2469,8 @@ export default class cryptocom extends Exchange {
         //
         const timestamp = this.safeInteger (item, 'event_timestamp_ms');
         const currencyId = this.safeString (item, 'instrument_name');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         let amount = this.safeString (item, 'transaction_qty');
         let direction = undefined;
         if (Precise.stringLt (amount, '0')) {
@@ -2485,7 +2487,7 @@ export default class cryptocom extends Exchange {
             'referenceId': this.safeString (item, 'trade_id'),
             'referenceAccount': this.safeString (item, 'trade_match_id'),
             'type': this.parseLedgerEntryType (this.safeString (item, 'journal_type')),
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': code,
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
