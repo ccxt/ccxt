@@ -821,6 +821,7 @@ public partial class mexc
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -840,6 +841,7 @@ public partial class mexc
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -873,6 +875,7 @@ public partial class mexc
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -892,6 +895,7 @@ public partial class mexc
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

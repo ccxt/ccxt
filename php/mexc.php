@@ -3892,6 +3892,7 @@ class mexc extends Exchange {
     public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3903,6 +3904,7 @@ class mexc extends Exchange {
     public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3914,6 +3916,7 @@ class mexc extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-$leverage
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3944,6 +3947,7 @@ class mexc extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -4059,6 +4063,7 @@ class mexc extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4091,6 +4096,7 @@ class mexc extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] not used by mexc, but filtered internally by ccxt
          * @param {int} [$limit] mexc $limit is page_size default 20, maximum is 100

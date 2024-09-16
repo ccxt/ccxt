@@ -3715,6 +3715,7 @@ class mexc(Exchange, ImplicitAPI):
     async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3725,6 +3726,7 @@ class mexc(Exchange, ImplicitAPI):
     async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3735,6 +3737,7 @@ class mexc(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3762,6 +3765,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -3872,6 +3876,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -3903,6 +3908,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by mexc, but filtered internally by ccxt
         :param int [limit]: mexc limit is page_size default 20, maximum is 100
