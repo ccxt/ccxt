@@ -1504,10 +1504,12 @@ export default class binance extends Exchange {
                     'sandbox': true,
                     'createOrder': {
                         'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined, // not supported
-                        'marginMode': true, // this means we support `marginMode` param, available modes are shown within fetchMarkets->marginModes
+                        'marginMode': true,
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
@@ -1564,6 +1566,7 @@ export default class binance extends Exchange {
                         'triggerPriceType': {
                             'mark': true,
                             'last': true,
+                            'index': false,
                         },
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
@@ -1586,7 +1589,7 @@ export default class binance extends Exchange {
                         'oco': false,
                     },
                     'createOrders': {
-                        'max': 20,
+                        'max': 5,
                     },
                     'fetchMyTrades': {
                         'daysBack': undefined,

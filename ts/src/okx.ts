@@ -1164,8 +1164,10 @@ export default class okx extends Exchange {
                             'mark': true,
                             'index': true,
                         },
+                        'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
+                        'marginMode': true,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': true,
@@ -1174,7 +1176,6 @@ export default class okx extends Exchange {
                             },
                             'limitPrice': true,
                         },
-                        'marginMode': true, // this means we support `marginMode` param, available modes are shown within fetchMarkets->marginModes
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
