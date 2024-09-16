@@ -350,6 +350,16 @@ export default class hyperliquid extends Exchange {
         return this.parseMarkets (result);
     }
 
+    getDecimalPlacesFromPrice (price: Str) {
+        if (price === undefined) {
+            return undefined;
+        }
+        const parts = price.split ('.');
+        const secondPart = this.safeString (parts, 1, '');
+        const partsLength = secondPart.length;
+        return partsLength > 1 ? partsLength : 0;
+    }
+
     async fetchSpotMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
@@ -416,10 +426,10 @@ export default class hyperliquid extends Exchange {
             const market = this.safeDict (meta, i, {});
             const extraData = this.safeDict (second, i, {});
             const marketName = this.safeString (market, 'name');
-            if (marketName.indexOf ('/') < 0) {
-                // there are some weird spot markets in testnet, eg @2
-                continue;
-            }
+            // if (marketName.indexOf ('/') < 0) {
+            //     // there are some weird spot markets in testnet, eg @2
+            //     continue;
+            // }
             // const marketParts = marketName.split ('/');
             // const baseName = this.safeString (marketParts, 0);
             // const quoteId = this.safeString (marketParts, 1);
@@ -440,6 +450,8 @@ export default class hyperliquid extends Exchange {
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecision = this.parseToInt (this.safeString (innerBaseTokenInfo, 'szDecimals'));
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
+            const midprice = this.safeString (extraData, 'midPx');
+            const pricePrecision = this.getDecimalPlacesFromPrice (midprice);
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
                 'id': marketName,
@@ -470,7 +482,7 @@ export default class hyperliquid extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': amountPrecision, // decimal places
-                    'price': 8 - amountPrecision, // MAX_DECIMALS is 8
+                    'price': 8 - pricePrecision, // MAX_DECIMALS is 8
                 },
                 'limits': {
                     'leverage': {
@@ -536,6 +548,8 @@ export default class hyperliquid extends Exchange {
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecision = this.parseToInt (this.safeString (market, 'szDecimals'));
+        const midPrice = this.safeString (market, 'midPx');
+        const priceDecimals = this.getDecimalPlacesFromPrice (midPrice);
         return {
             'id': baseId,
             'symbol': symbol,
@@ -564,7 +578,7 @@ export default class hyperliquid extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': amountPrecision, // decimal places
-                'price': 6 - amountPrecision, // MAX_DECIMALS is 6
+                'price': 6 - priceDecimals, // MAX_DECIMALS is 6
             },
             'limits': {
                 'leverage': {
