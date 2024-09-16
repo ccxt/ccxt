@@ -35,7 +35,7 @@ export default class coincatch extends Exchange {
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'cancelWithdraw': false,
                 'closePosition': false,
                 'createConvertTrade': false,
@@ -210,8 +210,8 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/trade/cancel-order': 1, // not used
                         'api/spot/v1/trade/cancel-order-v2': 2, // done
                         'api/spot/v1/trade/cancel-symbol-order': 2, // done
-                        'api/spot/v1/trade/cancel-batch-orders': 1,
-                        'api/spot/v1/trade/cancel-batch-orders-v2': 1,
+                        'api/spot/v1/trade/cancel-batch-orders': 1, // not used
+                        'api/spot/v1/trade/cancel-batch-orders-v2': 1, // done
                         'api/spot/v1/trade/orderInfo': 1, // done
                         'api/spot/v1/trade/open-orders': 1, // done
                         'api/spot/v1/trade/history': 1, // done
@@ -357,6 +357,8 @@ export default class coincatch extends Exchange {
                     // {"code":"45110","msg":"less than the minimum amount 1 USDT","requestTime":1726152020258,"data":null}
                     // {"code":"40019","msg":"Parameter side cannot be empty","requestTime":1726160656036,"data":null}
                     // {"code":"40913","msg":"orderId or clientOrderId must be passed one","requestTime":1726160988275,"data":null}
+                    // {"code":"40019","msg":"Parameter spotCancelBatchOrderDTO cannot be empty","requestTime":1726490870921,"data":null}
+                    // {"code":"400172","msg":"symbol cannot be empty","requestTime":1726491190749,"data":null}
                 },
                 'broad': {},
             },
@@ -2665,6 +2667,79 @@ export default class coincatch extends Exchange {
         const order = this.safeOrder (response);
         order['info'] = response;
         return [ order ];
+    }
+
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#cancelOrders
+         * @description cancel multiple non-trigger orders
+         * @see https://coincatch.github.io/github.io/en/spot/#cancel-order-in-batch-v2-single-instruments
+         * @param {string[]} ids order ids
+         * @param {string} symbol *is mandatory* unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const methodName = 'cancelOrders';
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + methodName + '() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const marketType = market['type'];
+        const clientOrderIds = this.safeList (params, 'clientOrderIds');
+        if (clientOrderIds !== undefined) {
+            request['clientOids'] = clientOrderIds;
+            params = this.omit (params, 'clientOrderIds');
+        } else if (ids === undefined) {
+            throw new ArgumentsRequired (this.id + methodName + '() requires either ids argument or clientOrderIds parameter');
+        } else {
+            request['orderIds'] = ids;
+        }
+        let response = undefined;
+        let result = undefined;
+        if (marketType === 'spot') {
+            response = await this.privatePostApiSpotV1TradeCancelBatchOrdersV2 (this.extend (request));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1726491486352,
+            //         "data": {
+            //             "resultList": [
+            //                 {
+            //                     "orderId": "1219555778395160576",
+            //                     "clientOrderId": "e229d70a-bb16-4633-a45c-d7f4d3b5d2cf"
+            //                 }
+            //             ],
+            //             "failure": [
+            //                 {
+            //                     "orderId": "123124124",
+            //                     "clientOrderId": null,
+            //                     "errorMsg": "The order does not exist",
+            //                     "errorCode": "43001"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {}); // todo add failure to handle errors
+            result = this.safeList (data, 'resultList', []);
+        } else if (marketType === 'swap') {
+            request['marginCoin'] = market['settleId'];
+            response = await this.privatePostApiMixV1OrderCancelBatchOrders (this.extend (request, params));
+            //
+            //
+            const data = this.safeDict (response, 'data', {});
+            result = this.safeList (data, 'order_ids', []); // todo check
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
+        return this.parseOrders (result);
     }
 
     parseOrder (order, market = undefined): Order {
