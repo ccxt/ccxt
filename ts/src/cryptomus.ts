@@ -190,6 +190,7 @@ export default class cryptomus extends Exchange {
             'exceptions': {
                 'exact': {
                     // todo
+                    // {"message":"Insufficient funds. ETH wallet balance is 0.00039618.","state":1}
                 },
                 'broad': {},
             },
@@ -480,7 +481,7 @@ export default class cryptomus extends Exchange {
         //         "quote_volume": "55.523761128544"
         //     }
         //
-        const marketId = this.safeString (ticker, 's');
+        const marketId = this.safeString (ticker, 'currency_pair');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_price');
