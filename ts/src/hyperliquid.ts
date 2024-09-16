@@ -351,15 +351,6 @@ export default class hyperliquid extends Exchange {
         return this.parseMarkets (result);
     }
 
-    getDecimalPlacesFromPrice (price: Str) {
-        if (price === undefined) {
-            return undefined;
-        }
-        const parts = price.split ('.');
-        const decimalsPart = this.safeString (parts, 1, '');
-        return decimalsPart.length;
-    }
-
     async fetchSpotMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
@@ -448,10 +439,8 @@ export default class hyperliquid extends Exchange {
             const symbol = base + '/' + quote;
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            const amountPrecision = this.parseToInt (this.safeString (innerBaseTokenInfo, 'szDecimals'));
+            const amountPrecision = this.safeInteger (innerBaseTokenInfo, 'szDecimals');
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            const midprice = this.safeString (extraData, 'midPx');
-            const pricePrecision = this.getDecimalPlacesFromPrice (midprice);
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
                 'id': marketName,
@@ -482,7 +471,7 @@ export default class hyperliquid extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': amountPrecision, // decimal places
-                    'price': 8 - pricePrecision, // MAX_DECIMALS is 8
+                    'price': 8 - amountPrecision, // MAX_DECIMALS is 8
                 },
                 'limits': {
                     'leverage': {
@@ -547,10 +536,8 @@ export default class hyperliquid extends Exchange {
         const fees = this.safeDict (this.fees, 'swap', {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
-        const amountPrecision = this.parseToInt (this.safeString (market, 'szDecimals'));
-        const midPrice = this.safeString (market, 'midPx');
-        const priceDecimals = this.getDecimalPlacesFromPrice (midPrice);
-        return {
+        const amountPrecision = this.safeInteger (market, 'szDecimals');
+        return this.safeMarketStructure ({
             'id': baseId,
             'symbol': symbol,
             'base': base,
@@ -578,7 +565,7 @@ export default class hyperliquid extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': amountPrecision, // decimal places
-                'price': 6 - priceDecimals, // MAX_DECIMALS is 6
+                'price': 6 - amountPrecision, // MAX_DECIMALS is 6
             },
             'limits': {
                 'leverage': {
@@ -600,7 +587,7 @@ export default class hyperliquid extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
