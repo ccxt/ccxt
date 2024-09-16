@@ -2655,10 +2655,10 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
-        this.generateFeatures ();
+        this.featuresGenerator ();
     }
 
-    generateFeatures () {
+    featuresGenerator () {
         //
         // the exchange-specific features can be something like this, where we support 'string' aliases too:
         //
@@ -2692,11 +2692,11 @@ export default class Exchange {
         //         }
         //     }
         //
-        const populatedFeatures = this.features;
-        if (populatedFeatures === undefined) {
+        if (this.features === undefined) {
             return;
         }
-        // else reconstruct
+        // reconstruct
+        const initialFeatures = this.features;
         this.features = {};
         const unifiedMarketTypes = [ 'spot', 'swap', 'future', 'option' ];
         const subTypes = [ 'linear', 'inverse' ];
@@ -2704,51 +2704,44 @@ export default class Exchange {
         for (let i = 0; i < unifiedMarketTypes.length; i++) {
             const marketType = unifiedMarketTypes[i];
             // if marketType is not filled for this exchange, don't add that in `features`
-            if (!(marketType in populatedFeatures)) {
+            if (!(marketType in initialFeatures)) {
                 this.features[marketType] = undefined;
             } else {
                 if (marketType === 'spot') {
-                    const valueDict = this.safeDict (populatedFeatures, marketType);
-                    if (valueDict !== undefined) {
-                        // if it's dict, assign directly
-                        this.features[marketType] = valueDict;
-                    } else {
-                        // if it's string, then it's alias
-                        const valueString = this.safeString (populatedFeatures, marketType);
-                        this.features[marketType] = this.featureCorrection (marketType, populatedFeatures[valueString]);
-                    }
+                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType, undefined);
                 } else {
                     this.features[marketType] = {};
                     for (let j = 0; j < subTypes.length; j++) {
                         const subType = subTypes[j];
-                        const valueDict = this.safeDict (populatedFeatures[marketType], subType);
-                        if (valueDict !== undefined) {
-                            // if it's dict, assign directly
-                            this.features[marketType] = valueDict;
-                        } else {
-                            // if it's string, then it's alias
-                            const valueString = this.safeString (populatedFeatures[marketType], subType);
-                            this.features[marketType][subType] = this.featureCorrection (marketType, populatedFeatures[valueString]);
-                        }
+                        this.features[marketType][subType] = this.featuresMapper (initialFeatures, marketType, subType);
                     }
                 }
             }
         }
     }
 
-    featureCorrection (marketType: string, featuresContainer: Dict) {
-        if ('createOrder' in featuresContainer) {
-            const value = this.safeDict (featuresContainer['createOrder'], 'attachedStopLossTakeProfit');
+    featuresMapper (initialFeatures: any, marketType: Str, subType: Str = undefined) {
+        let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
+        const extendsStr: Str = this.safeString (featuresObj, 'extends');
+        if (extendsStr !== undefined) {
+            const extendObj =  initialFeatures[extendsStr];
+            featuresObj = this.extend (extendObj, featuresObj); // Warning, do not use deepExtend here, because we override only one level
+        }
+        //
+        // corrections
+        //
+        if ('createOrder' in featuresObj) {
+            const value = this.safeDict (featuresObj['createOrder'], 'attachedStopLossTakeProfit');
             if (value !== undefined) {
-                featuresContainer['createOrder']['stopLoss'] = value;
-                featuresContainer['createOrder']['takeProfit'] = value;
+                featuresObj['createOrder']['stopLoss'] = value;
+                featuresObj['createOrder']['takeProfit'] = value;
             }
             // omit 'hedged' from spot
             if (marketType === 'spot') {
-                featuresContainer['createOrder']['hedged'] = undefined;
+                featuresObj['createOrder']['hedged'] = undefined;
             }
         }
-        return featuresContainer;
+        return featuresObj;
     }
 
     orderbookChecksumMessage (symbol:Str) {
