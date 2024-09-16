@@ -1192,6 +1192,8 @@ public partial class bitget : Exchange
                     { "40714", typeof(ExchangeError) },
                     { "40762", typeof(InsufficientFunds) },
                     { "40768", typeof(OrderNotFound) },
+                    { "40808", typeof(InvalidOrder) },
+                    { "41103", typeof(InvalidOrder) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
                     { "43012", typeof(InsufficientFunds) },
@@ -1267,10 +1269,11 @@ public partial class bitget : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "JADE", "Jade Protocol" },
+                { "APX", "AstroPepeX" },
                 { "DEGEN", "DegenReborn" },
-                { "TONCOIN", "TON" },
+                { "JADE", "Jade Protocol" },
                 { "OMNI", "omni" },
+                { "TONCOIN", "TON" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeframes", new Dictionary<string, object>() {
@@ -4183,7 +4186,7 @@ public partial class bitget : Exchange
         {
             // swap
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringAbs(feeCostString)) },
+                { "cost", this.parseNumber(Precise.stringNeg(feeCostString)) },
                 { "currency", getValue(market, "settle") },
             };
         }
@@ -4203,7 +4206,7 @@ public partial class bitget : Exchange
                 }
             }
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringAbs(this.safeString(feeObject, "totalFee"))) },
+                { "cost", this.parseNumber(Precise.stringNeg(this.safeString(feeObject, "totalFee"))) },
                 { "currency", this.safeCurrencyCode(this.safeString(feeObject, "feeCoinCode")) },
             };
         }
@@ -6278,12 +6281,12 @@ public partial class bitget : Exchange
         /**
         * @method
         * @name bitget#fetchLedger
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
         * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] end time in ms
         * @param {string} [params.symbol] *contract only* unified market symbol
@@ -6444,6 +6447,7 @@ public partial class bitget : Exchange
         //
         object currencyId = this.safeString(item, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "cTime");
         object after = this.safeNumber(item, "balance");
         object fee = this.safeNumber2(item, "fees", "fee");
@@ -6454,7 +6458,7 @@ public partial class bitget : Exchange
         {
             direction = "out";
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", this.safeString(item, "billId") },
             { "timestamp", timestamp },
@@ -6469,8 +6473,11 @@ public partial class bitget : Exchange
             { "before", null },
             { "after", after },
             { "status", null },
-            { "fee", fee },
-        };
+            { "fee", new Dictionary<string, object>() {
+                { "currency", code },
+                { "cost", fee },
+            } },
+        }, currency);
     }
 
     public virtual object parseLedgerType(object type)

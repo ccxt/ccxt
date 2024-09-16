@@ -30,7 +30,7 @@ export default class mexc extends mexcRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -127,6 +127,84 @@ export default class mexc extends mexcRest {
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const marketIds = this.marketIds(symbols);
+        const firstMarket = this.market(symbols[0]);
+        const isSpot = firstMarket['spot'];
+        const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
+        const request = {};
+        if (isSpot) {
+            const topics = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                messageHashes.push('ticker:' + symbols[i]);
+                topics.push('spot@public.bookTicker.v3.api@' + marketId);
+            }
+            request['method'] = 'SUBSCRIPTION';
+            request['params'] = topics;
+        }
+        else {
+            request['method'] = 'sub.tickers';
+            request['params'] = {};
+            messageHashes.push('ticker');
+        }
+        const ticker = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        if (isSpot && this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    handleTickers(client, message) {
+        //
+        //     {
+        //       "channel": "push.tickers",
+        //       "data": [
+        //         {
+        //           "symbol": "ETH_USDT",
+        //           "lastPrice": 2324.5,
+        //           "riseFallRate": 0.0356,
+        //           "fairPrice": 2324.32,
+        //           "indexPrice": 2325.44,
+        //           "volume24": 25868309,
+        //           "amount24": 591752573.9792,
+        //           "maxBidPrice": 2557.98,
+        //           "minAskPrice": 2092.89,
+        //           "lower24Price": 2239.39,
+        //           "high24Price": 2332.59,
+        //           "timestamp": 1725872514111
+        //         }
+        //       ],
+        //       "ts": 1725872514111
+        //     }
+        //
+        const data = this.safeList(message, 'data');
+        const topic = 'ticker';
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseTicker(data[i]);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            result.push(ticker);
+            const messageHash = topic + ':' + symbol;
+            client.resolve(ticker, messageHash);
+        }
+        client.resolve(result, topic);
     }
     parseWsTicker(ticker, market = undefined) {
         //
@@ -1135,8 +1213,8 @@ export default class mexc extends mexcRest {
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
-        //
-        const msg = this.safeString(message, 'msg');
+        // Set the default to an empty string if the message is empty during the test.
+        const msg = this.safeString(message, 'msg', '');
         if (msg === 'PONG') {
             this.handlePong(client, message);
         }
@@ -1180,6 +1258,7 @@ export default class mexc extends mexcRest {
             'push.kline': this.handleOHLCV,
             'public.bookTicker.v3.api': this.handleTicker,
             'push.ticker': this.handleTicker,
+            'push.tickers': this.handleTickers,
             'public.increase.depth.v3.api': this.handleOrderBook,
             'push.depth': this.handleOrderBook,
             'private.orders.v3.api': this.handleOrder,

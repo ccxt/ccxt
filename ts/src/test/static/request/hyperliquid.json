@@ -557,12 +557,25 @@
                     }
                 ],
                 "output": "{\"type\":\"orderStatus\",\"oid\":3998833804,\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            },
+            {
+                "description": "fetchOrder with clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                  "0x1234567890abcdef1234567890abcded",
+                  "SOL/USDC:USDC",
+                    {
+                        "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
+                    }
+                ],
+                "output": "{\"type\":\"orderStatus\",\"oid\":\"0x1234567890abcdef1234567890abcded\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
             }
         ],
         "fetchTrades": [
             {
                 "description": "fetchTrades",
-                "method": "fetchTrades",
+                "method": "fetchTradesxp",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     "ETH/USDC:USDC",
@@ -748,6 +761,21 @@
                   "0xc950889d14a3717f541ec246bc253d7a9e98c78f"
                 ],
                 "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"destination\":\"0xc950889d14a3717f541ec246bc253d7a9e98c78f\",\"amount\":\"10\",\"time\":1718451417480,\"type\":\"withdraw3\"},\"nonce\":1718451417480,\"signature\":{\"r\":\"0x307d794d5235c9d7d6b931741a487b6b0ec2a756177b7b473c6746c96f31d23c\",\"s\":\"0x27734ee21a070c0f97ffc1f5de99b70120f8c5c6b352e4e5f4e88d48cafd02ce\",\"v\":27}}"
+            },
+            {
+                "description": "withdraw from vault",
+                "method": "withdraw",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                  "USDC",
+                  100,
+                  "0xc751489d24a33172541ea451bc253d7a9e98c781",
+                  "",
+                  {
+                    "vaultAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781"
+                  }
+                ],
+                "output": "{\"action\":{\"vaultAddress\":\"0xc751489d24a33172541ea451bc253d7a9e98c781\",\"isDeposit\":false,\"usd\":100,\"type\":\"vaultTransfer\"},\"nonce\":1718449507245,\"signature\":{\"r\":\"0x10bb60d01ebab494400e5509b50881f6967389adbe04579419ae5fdb3555fae1\",\"s\":\"0x232044e07569968bfe6f2a52ecb0d9e85b9f5215174e39c8a82241d244860b9\",\"v\":27}}"
             }
         ],
         "cancelOrdersForSymbols": [
@@ -796,6 +824,54 @@
                     }
                 ],
                 "output": "{\"type\":\"userFees\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "USDC",
+                    1725278637122,
+                    10,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"userNonFundingLedgerUpdates\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\",\"startTime\":1725278637122}"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "USDC",
+                    1725278637122,
+                    10,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"userNonFundingLedgerUpdates\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\",\"startTime\":1725278637122}"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "USDC",
+                    1725278637122,
+                    10,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"userNonFundingLedgerUpdates\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\",\"startTime\":1725278637122}"
             }
         ]
     }

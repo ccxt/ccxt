@@ -2319,11 +2319,11 @@ public partial class hashkey : Exchange
         /**
         * @method
         * @name hashkey#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
-        * @param {string} code unified currency code, default is undefined (not used)
+        * @param {string} [code] unified currency code, default is undefined (not used)
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] the latest time in ms to fetch entries for
         * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
@@ -2424,7 +2424,9 @@ public partial class hashkey : Exchange
         object account = this.safeString(item, "accountId");
         object timestamp = this.safeInteger(item, "created");
         object type = this.parseLedgerEntryType(this.safeString(item, "flowTypeValue"));
-        object code = this.safeCurrencyCode(this.safeString(item, "coin"), currency);
+        object currencyId = this.safeString(item, "coin");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amountString = this.safeString(item, "change");
         object amount = this.parseNumber(amountString);
         object direction = "in";
@@ -2435,9 +2437,9 @@ public partial class hashkey : Exchange
         object afterString = this.safeString(item, "total");
         object after = this.parseNumber(afterString);
         object status = "ok";
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "account", account },
@@ -2452,7 +2454,7 @@ public partial class hashkey : Exchange
             { "after", after },
             { "status", status },
             { "fee", null },
-        };
+        }, currency);
     }
 
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)

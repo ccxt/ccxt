@@ -1,5 +1,5 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoinfutures extends kucoinfuturesRest {
     describe(): any;
@@ -8,6 +8,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     requestId(): any;
     subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
     subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, subscriptionArgs: any, params?: {}): Promise<any>;
+    unSubscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, params?: {}, subscription?: Dict): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
@@ -22,11 +23,15 @@ export default class kucoinfutures extends kucoinfuturesRest {
     handlePosition(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): any;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleDelta(orderbook: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;
@@ -48,5 +53,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
     };
     handlePong(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): void;
+    handleSubscriptionStatus(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
 }

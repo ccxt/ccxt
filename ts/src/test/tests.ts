@@ -372,7 +372,7 @@ class testMainClass extends baseMainTestClass {
                     else {
                         // wait and retry again
                         // (increase wait time on every retry)
-                        await exchange.sleep (i * 1000);
+                        await exchange.sleep ((i + 1) * 1000);
                         continue;
                     }
                 }
@@ -1207,6 +1207,10 @@ class testMainClass extends baseMainTestClass {
                 }
                 const isDisabled = exchange.safeBool (result, 'disabled', false);
                 if (isDisabled) {
+                    continue;
+                }
+                const disabledString = exchange.safeString (result, 'disabled', '');
+                if (disabledString !== '') {
                     continue;
                 }
                 const isDisabledCSharp = exchange.safeBool (result, 'disabledCS', false);

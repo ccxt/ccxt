@@ -248,6 +248,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v4/query/trades': 5,  # 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/order-trades': 5,  # 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/cancel_orders': 3,
+                        'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
                         # newer endpoint
                         'spot/v3/cancel_order': 1,
@@ -2789,6 +2790,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
         :see: https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+        :see: https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
         :see: https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
         :see: https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
         :param str symbol: unified market symbol of the market to cancel orders in
@@ -2806,7 +2808,7 @@ class bitmart(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if type == 'spot':
-            response = await self.privatePostSpotV1CancelOrders(self.extend(request, params))
+            response = await self.privatePostSpotV4CancelAll(self.extend(request, params))
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -3209,7 +3211,10 @@ class bitmart(Exchange, ImplicitAPI):
             parts = chain.split('-')
             partsLength = len(parts)
             networkId = self.safe_string(parts, partsLength - 1)
-            network = self.safe_network_code(networkId, currency)
+            if networkId == self.safe_string(currency, 'name'):
+                network = self.safe_string(currency, 'code')
+            else:
+                network = self.network_id_to_code(networkId)
         self.check_address(address)
         return {
             'info': depositAddress,
@@ -3218,13 +3223,6 @@ class bitmart(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'address_memo'),
             'network': network,
         }
-
-    def safe_network_code(self, networkId, currency=None):
-        name = self.safe_string(currency, 'name')
-        if networkId == name:
-            code = self.safe_string(currency, 'code')
-            return code
-        return self.network_id_to_code(networkId)
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """

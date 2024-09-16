@@ -208,6 +208,7 @@ public partial class bitmart : Exchange
                         { "spot/v4/query/trades", 5 },
                         { "spot/v4/query/order-trades", 5 },
                         { "spot/v4/cancel_orders", 3 },
+                        { "spot/v4/cancel_all", 90 },
                         { "spot/v4/batch_orders", 3 },
                         { "spot/v3/cancel_order", 1 },
                         { "spot/v2/batch_orders", 1 },
@@ -2982,6 +2983,7 @@ public partial class bitmart : Exchange
         * @name bitmart#cancelAllOrders
         * @description cancel all open orders in a market
         * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+        * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
         * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
         * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
         * @param {string} symbol unified market symbol of the market to cancel orders in
@@ -3005,7 +3007,7 @@ public partial class bitmart : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "spot")))
         {
-            response = await this.privatePostSpotV1CancelOrders(this.extend(request, parameters));
+            response = await this.privatePostSpotV4CancelAll(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(isEqual(symbol, null)))
@@ -3518,7 +3520,13 @@ public partial class bitmart : Exchange
             object parts = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             object partsLength = getArrayLength(parts);
             object networkId = this.safeString(parts, subtract(partsLength, 1));
-            network = this.safeNetworkCode(networkId, currency);
+            if (isTrue(isEqual(networkId, this.safeString(currency, "name"))))
+            {
+                network = this.safeString(currency, "code");
+            } else
+            {
+                network = this.networkIdToCode(networkId);
+            }
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
@@ -3528,17 +3536,6 @@ public partial class bitmart : Exchange
             { "tag", this.safeString(depositAddress, "address_memo") },
             { "network", network },
         };
-    }
-
-    public virtual object safeNetworkCode(object networkId, object currency = null)
-    {
-        object name = this.safeString(currency, "name");
-        if (isTrue(isEqual(networkId, name)))
-        {
-            object code = this.safeString(currency, "code");
-            return code;
-        }
-        return this.networkIdToCode(networkId);
     }
 
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)

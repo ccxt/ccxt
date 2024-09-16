@@ -1230,6 +1230,8 @@ class bitget extends bitget$1 {
                     '40714': errors.ExchangeError,
                     '40762': errors.InsufficientFunds,
                     '40768': errors.OrderNotFound,
+                    '40808': errors.InvalidOrder,
+                    '41103': errors.InvalidOrder,
                     '41114': errors.OnMaintenance,
                     '43011': errors.InvalidOrder,
                     '43012': errors.InsufficientFunds,
@@ -1306,10 +1308,11 @@ class bitget extends bitget$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {
-                'JADE': 'Jade Protocol',
+                'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'JADE': 'Jade Protocol',
+                'OMNI': 'omni',
                 'TONCOIN': 'TON',
-                'OMNI': 'omni', // conflict with Omni Network
             },
             'options': {
                 'timeframes': {
@@ -4001,7 +4004,7 @@ class bitget extends bitget$1 {
         if (feeCostString !== undefined) {
             // swap
             fee = {
-                'cost': this.parseNumber(Precise["default"].stringAbs(feeCostString)),
+                'cost': this.parseNumber(Precise["default"].stringNeg(feeCostString)),
                 'currency': market['settle'],
             };
         }
@@ -4018,7 +4021,7 @@ class bitget extends bitget$1 {
                 }
             }
             fee = {
-                'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString(feeObject, 'totalFee'))),
+                'cost': this.parseNumber(Precise["default"].stringNeg(this.safeString(feeObject, 'totalFee'))),
                 'currency': this.safeCurrencyCode(this.safeString(feeObject, 'feeCoinCode')),
             };
         }
@@ -5898,12 +5901,12 @@ class bitget extends bitget$1 {
         /**
          * @method
          * @name bitget#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
          * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] end time in ms
          * @param {string} [params.symbol] *contract only* unified market symbol
@@ -6043,6 +6046,7 @@ class bitget extends bitget$1 {
         //
         const currencyId = this.safeString(item, 'coin');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'cTime');
         const after = this.safeNumber(item, 'balance');
         const fee = this.safeNumber2(item, 'fees', 'fee');
@@ -6052,7 +6056,7 @@ class bitget extends bitget$1 {
         if (amountRaw.indexOf('-') >= 0) {
             direction = 'out';
         }
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': this.safeString(item, 'billId'),
             'timestamp': timestamp,
@@ -6067,8 +6071,11 @@ class bitget extends bitget$1 {
             'before': undefined,
             'after': after,
             'status': undefined,
-            'fee': fee,
-        };
+            'fee': {
+                'currency': code,
+                'cost': fee,
+            },
+        }, currency);
     }
     parseLedgerType(type) {
         const types = {

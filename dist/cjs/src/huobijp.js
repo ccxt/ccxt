@@ -1648,15 +1648,6 @@ class huobijp extends huobijp$1 {
     currencyToPrecision(code, fee, networkCode = undefined) {
         return this.decimalToPrecision(fee, 0, this.currencies[code]['precision'], this.precisionMode);
     }
-    safeNetwork(networkId) {
-        const lastCharacterIndex = networkId.length - 1;
-        const lastCharacter = networkId[lastCharacterIndex];
-        if (lastCharacter === '1') {
-            networkId = networkId.slice(0, lastCharacterIndex);
-        }
-        const networksById = {};
-        return this.safeString(networksById, networkId, networkId);
-    }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
         //     {

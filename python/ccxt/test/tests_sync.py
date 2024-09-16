@@ -279,7 +279,7 @@ class testMainClass(baseMainTestClass):
                     else:
                         # wait and retry again
                         # (increase wait time on every retry)
-                        exchange.sleep(i * 1000)
+                        exchange.sleep((i + 1) * 1000)
                         continue
                 else:
                     # if it's loadMarkets, then fail test, because it's mandatory for tests
@@ -916,6 +916,9 @@ class testMainClass(baseMainTestClass):
                     continue
                 is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
+                    continue
+                disabled_string = exchange.safe_string(result, 'disabled', '')
+                if disabled_string != '':
                     continue
                 is_disabled_c_sharp = exchange.safe_bool(result, 'disabledCS', False)
                 if is_disabled_c_sharp and (self.lang == 'C#'):

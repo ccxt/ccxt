@@ -229,6 +229,7 @@ class bitmart extends bitmart$1 {
                         'spot/v4/query/trades': 5,
                         'spot/v4/query/order-trades': 5,
                         'spot/v4/cancel_orders': 3,
+                        'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
                         // newer endpoint
                         'spot/v3/cancel_order': 1,
@@ -2964,6 +2965,7 @@ class bitmart extends bitmart$1 {
          * @name bitmart#cancelAllOrders
          * @description cancel all open orders in a market
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+         * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
          * @param {string} symbol unified market symbol of the market to cancel orders in
@@ -2982,7 +2984,7 @@ class bitmart extends bitmart$1 {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         if (type === 'spot') {
-            response = await this.privatePostSpotV1CancelOrders(this.extend(request, params));
+            response = await this.privatePostSpotV4CancelAll(this.extend(request, params));
         }
         else if (type === 'swap') {
             if (symbol === undefined) {
@@ -3435,7 +3437,12 @@ class bitmart extends bitmart$1 {
             const parts = chain.split('-');
             const partsLength = parts.length;
             const networkId = this.safeString(parts, partsLength - 1);
-            network = this.safeNetworkCode(networkId, currency);
+            if (networkId === this.safeString(currency, 'name')) {
+                network = this.safeString(currency, 'code');
+            }
+            else {
+                network = this.networkIdToCode(networkId);
+            }
         }
         this.checkAddress(address);
         return {
@@ -3445,14 +3452,6 @@ class bitmart extends bitmart$1 {
             'tag': this.safeString(depositAddress, 'address_memo'),
             'network': network,
         };
-    }
-    safeNetworkCode(networkId, currency = undefined) {
-        const name = this.safeString(currency, 'name');
-        if (networkId === name) {
-            const code = this.safeString(currency, 'code');
-            return code;
-        }
-        return this.networkIdToCode(networkId);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**

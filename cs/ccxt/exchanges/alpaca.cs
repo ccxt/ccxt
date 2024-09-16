@@ -471,8 +471,8 @@ public partial class alpaca : Exchange
         //       }
         //   }
         //
-        object orderbooks = this.safeValue(response, "orderbooks", new Dictionary<string, object>() {});
-        object rawOrderbook = this.safeValue(orderbooks, id, new Dictionary<string, object>() {});
+        object orderbooks = this.safeDict(response, "orderbooks", new Dictionary<string, object>() {});
+        object rawOrderbook = this.safeDict(orderbooks, id, new Dictionary<string, object>() {});
         object timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
         return this.parseOrderBook(rawOrderbook, getValue(market, "symbol"), timestamp, "b", "a", "p", "s");
     }

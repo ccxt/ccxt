@@ -352,7 +352,7 @@ class testMainClass extends baseMainTestClass {
                         } else {
                             // wait and retry again
                             // (increase wait time on every retry)
-                            Async\await($exchange->sleep($i * 1000));
+                            Async\await($exchange->sleep(($i + 1) * 1000));
                             continue;
                         }
                     } else {
@@ -1144,6 +1144,10 @@ class testMainClass extends baseMainTestClass {
                     }
                     $is_disabled = $exchange->safe_bool($result, 'disabled', false);
                     if ($is_disabled) {
+                        continue;
+                    }
+                    $disabled_string = $exchange->safe_string($result, 'disabled', '');
+                    if ($disabled_string !== '') {
                         continue;
                     }
                     $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);

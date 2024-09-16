@@ -916,6 +916,7 @@ public partial class bybit : Exchange
                     { "3200300", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Not supported symbols", typeof(BadSymbol) },
                     { "Request timeout", typeof(RequestTimeout) },
                     { "unknown orderInfo", typeof(OrderNotFound) },
                     { "invalid api_key", typeof(AuthenticationError) },
@@ -6340,18 +6341,27 @@ public partial class bybit : Exchange
         /**
         * @method
         * @name bybit#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
         * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
+        }
         object request = new Dictionary<string, object>() {};
         object enableUnified = await this.isUnifiedEnabled();
         object currency = null;
@@ -6395,7 +6405,7 @@ public partial class bybit : Exchange
             }
         } else
         {
-            response = await this.privateGetV2PrivateWalletFundRecords(this.extend(request, parameters));
+            response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, parameters));
         }
         //
         //     {
@@ -6544,6 +6554,7 @@ public partial class bybit : Exchange
         //
         object currencyId = this.safeString2(item, "coin", "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeString2(item, "amount", "change");
         object after = this.safeString2(item, "wallet_balance", "cashBalance");
         object direction = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "out" : "in";
@@ -6558,26 +6569,26 @@ public partial class bybit : Exchange
         {
             timestamp = this.safeInteger(item, "transactionTime");
         }
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object id = this.safeString(item, "id");
-        object referenceId = this.safeString(item, "tx_id");
-        return new Dictionary<string, object>() {
-            { "id", id },
-            { "currency", code },
-            { "account", this.safeString(item, "wallet_id") },
-            { "referenceAccount", null },
-            { "referenceId", referenceId },
-            { "status", null },
-            { "amount", this.parseNumber(Precise.stringAbs(amount)) },
-            { "before", this.parseNumber(before) },
-            { "after", this.parseNumber(after) },
-            { "fee", this.parseNumber(this.safeString(item, "fee")) },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
+            { "id", this.safeString(item, "id") },
             { "direction", direction },
+            { "account", this.safeString(item, "wallet_id") },
+            { "referenceId", this.safeString(item, "tx_id") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
+            { "currency", code },
+            { "amount", this.parseToNumeric(Precise.stringAbs(amount)) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "type", type },
-            { "info", item },
-        };
+            { "before", this.parseToNumeric(before) },
+            { "after", this.parseToNumeric(after) },
+            { "status", "ok" },
+            { "fee", new Dictionary<string, object>() {
+                { "currency", code },
+                { "cost", this.parseToNumeric(this.safeString(item, "fee")) },
+            } },
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
