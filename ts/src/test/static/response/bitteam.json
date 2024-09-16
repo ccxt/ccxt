@@ -72,8 +72,7 @@
                         "cost": 0.14475,
                         "fee": {
                             "currency": "DEL",
-                            "cost": 0.02,
-                            "rate": null
+                            "cost": 0.02
                         },
                         "info": {
                             "id": "36378860",
@@ -119,8 +118,7 @@
                         "fees": [
                             {
                                 "currency": "DEL",
-                                "cost": 0.02,
-                                "rate": null
+                                "cost": 0.02
                             }
                         ]
                     }

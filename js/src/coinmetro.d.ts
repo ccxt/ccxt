@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinmetro.js';
-import { Balances, Currencies, Currency, Dict, IndexType, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Currencies, Currency, Dict, IndexType, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, LedgerEntry } from './base/types.js';
 /**
  * @class coinmetro
  * @augments Exchange
@@ -23,24 +23,8 @@ export default class coinmetro extends Exchange {
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(balances: any): Balances;
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntry(item: Dict, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
-        direction: string;
-        account: string;
-        referenceId: string;
-        referenceAccount: string;
-        type: string;
-        currency: string;
-        amount: number;
-        before: number;
-        after: number;
-        status: string;
-        fee: any;
-        info: import("./base/types.js").Dictionary<any>;
-    };
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryDescription(description: any): any[];
     parseLedgerEntryType(type: any): string;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;

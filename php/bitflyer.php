@@ -584,7 +584,13 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
             'child_order_acceptance_id' => $id,
         );
-        return $this->privatePostCancelchildorder ($this->extend($request, $params));
+        $response = $this->privatePostCancelchildorder ($this->extend($request, $params));
+        //
+        //    200 OK.
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function parse_order_status(?string $status) {
@@ -708,6 +714,7 @@ class bitflyer extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

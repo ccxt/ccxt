@@ -1616,7 +1616,29 @@ public partial class bigone : Exchange
         //         }
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object cancelled = this.safeList(data, "cancelled", new List<object>() {});
+        object failed = this.safeList(data, "failed", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(cancelled)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(cancelled, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", orderId },
+                { "id", orderId },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(failed, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", orderId },
+                { "id", orderId },
+                { "status", "failed" },
+            }));
+        }
+        return result;
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1626,6 +1648,7 @@ public partial class bigone : Exchange
         * @name bigone#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://open.big.one/docs/spot_orders.html#get-one-order
+        * @param {string} id the order id
         * @param {string} symbol not used by bigone fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

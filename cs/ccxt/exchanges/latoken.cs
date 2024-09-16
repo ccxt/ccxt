@@ -1498,7 +1498,9 @@ public partial class latoken : Exchange
         //         "status":"SUCCESS"
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
@@ -1625,6 +1627,7 @@ public partial class latoken : Exchange
         object statuses = new Dictionary<string, object>() {
             { "TRANSACTION_STATUS_CONFIRMED", "ok" },
             { "TRANSACTION_STATUS_EXECUTED", "ok" },
+            { "TRANSACTION_STATUS_CHECKING", "pending" },
             { "TRANSACTION_STATUS_CANCELLED", "canceled" },
         };
         return this.safeString(statuses, status, status);

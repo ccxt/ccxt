@@ -1692,11 +1692,11 @@ class currencycom extends currencycom$1 {
         /**
          * @method
          * @name currencycom#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getLedgerUsingGET
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -1749,13 +1749,14 @@ class currencycom extends currencycom$1 {
         const timestamp = this.safeInteger(item, 'timestamp');
         const currencyId = this.safeString(item, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const feeCost = this.safeString(item, 'commission');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const direction = Precise["default"].stringLt(amountString, '0') ? 'out' : 'in';
-        const result = {
+        return this.safeLedgerEntry({
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -1771,8 +1772,7 @@ class currencycom extends currencycom$1 {
             'status': this.parseLedgerEntryStatus(this.safeString(item, 'status')),
             'fee': fee,
             'info': item,
-        };
-        return result;
+        }, currency);
     }
     parseLedgerEntryStatus(status) {
         const statuses = {
@@ -1989,7 +1989,7 @@ class currencycom extends currencycom$1 {
             'collateral': undefined,
             'side': side,
             // 'realizedProfit': this.safeNumber (position, 'rpl'),
-            'unrealizedProfit': unrealizedProfit,
+            'unrealizedPnl': unrealizedProfit,
             'leverage': leverage,
             'percentage': undefined,
             'marginMode': undefined,
@@ -2003,7 +2003,6 @@ class currencycom extends currencycom$1 {
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
             'id': undefined,
-            'unrealizedPnl': undefined,
             'hedged': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,

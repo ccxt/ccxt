@@ -5,9 +5,10 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, Market, Order, OrderBook, Str, Trade
+from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 
 
@@ -17,14 +18,18 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         return self.deep_extend(super(hyperliquid, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': True,
+                'createOrdersWs': True,
+                'editOrderWs': True,
                 'watchBalance': False,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTicker': False,
-                'watchTickers': False,
+                'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPosition': False,
             },
             'urls': {
@@ -53,9 +58,88 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             },
         })
 
+    async def create_orders_ws(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders using WebSocket post request
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        url = self.urls['api']['ws']['public']
+        ordersRequest = self.createOrdersRequest(orders, params)
+        wrapped = self.wrap_as_post_action(ordersRequest)
+        request = self.safe_dict(wrapped, 'request', {})
+        requestId = self.safe_string(wrapped, 'requestId')
+        response = await self.watch(url, requestId, request, requestId)
+        responseOjb = self.safe_dict(response, 'response', {})
+        data = self.safe_dict(responseOjb, 'data', {})
+        statuses = self.safe_list(data, 'statuses', [])
+        return self.parse_orders(statuses, None)
+
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a trade order using WebSocket post request
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: 'Gtc', 'Ioc', 'Alo'
+        :param bool [params.postOnly]: True or False whether the order is post-only
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        :param str [params.slippage]: the slippage for market order
+        :param str [params.vaultAddress]: the vault address for order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        order, globalParams = self.parseCreateOrderArgs(symbol, type, side, amount, price, params)
+        orders = await self.create_orders_ws([order], globalParams)
+        return orders[0]
+
+    async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: 'Gtc', 'Ioc', 'Alo'
+        :param bool [params.postOnly]: True or False whether the order is post-only
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        :param str [params.vaultAddress]: the vault address for order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        url = self.urls['api']['ws']['public']
+        postRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        wrapped = self.wrap_as_post_action(postRequest)
+        request = self.safe_dict(wrapped, 'request', {})
+        requestId = self.safe_string(wrapped, 'requestId')
+        response = await self.watch(url, requestId, request, requestId)
+        # response is the same self.edit_order
+        responseObject = self.safe_dict(response, 'response', {})
+        dataObject = self.safe_dict(responseObject, 'data', {})
+        statuses = self.safe_list(dataObject, 'statuses', [])
+        first = self.safe_dict(statuses, 0, {})
+        return self.parse_order(first, market)
+
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -76,6 +160,32 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        subMessageHash = 'orderbook:' + symbol
+        messageHash = 'unsubscribe:' + subMessageHash
+        url = self.urls['api']['ws']['public']
+        id = str(self.nonce())
+        request: dict = {
+            'id': id,
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'l2Book',
+                'coin': market['base'] if market['swap'] else market['id'],
+            },
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, messageHash)
 
     def handle_order_book(self, client, message):
         #
@@ -123,15 +233,62 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True)
+        messageHash = 'tickers'
+        url = self.urls['api']['ws']['public']
+        request: dict = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'webData2',  # allMids
+                'user': '0x0000000000000000000000000000000000000000',
+            },
+        }
+        tickers = await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        if self.newUpdates:
+            return self.filter_by_array_tickers(tickers, 'symbol', symbols)
+        return self.tickers
+
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True)
+        subMessageHash = 'tickers'
+        messageHash = 'unsubscribe:' + subMessageHash
+        url = self.urls['api']['ws']['public']
+        request: dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'webData2',  # allMids
+                'user': '0x0000000000000000000000000000000000000000',
+            },
+        }
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
+
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         userAddress = None
         userAddress, params = self.handlePublicAddress('watchMyTrades', params)
@@ -153,6 +310,82 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+
+    def handle_ws_tickers(self, client: Client, message):
+        #
+        #     {
+        #         "channel": "webData2",
+        #         "data": {
+        #             "meta": {
+        #                 "universe": [
+        #                     {
+        #                         "szDecimals": 5,
+        #                         "name": "BTC",
+        #                         "maxLeverage": 50,
+        #                         "onlyIsolated": False
+        #                     },
+        #                     ...
+        #                 ],
+        #             },
+        #             "assetCtxs": [
+        #                 {
+        #                     "funding": "0.00003005",
+        #                     "openInterest": "2311.50778",
+        #                     "prevDayPx": "63475.0",
+        #                     "dayNtlVlm": "468043329.64289033",
+        #                     "premium": "0.00094264",
+        #                     "oraclePx": "64712.0",
+        #                     "markPx": "64774.0",
+        #                     "midPx": "64773.5",
+        #                     "impactPxs": [
+        #                         "64773.0",
+        #                         "64774.0"
+        #                     ]
+        #                 },
+        #                 ...
+        #             ],
+        #             "spotAssetCtxs": [
+        #                 {
+        #                     "prevDayPx": "0.20937",
+        #                     "dayNtlVlm": "11188888.61984999",
+        #                     "markPx": "0.19722",
+        #                     "midPx": "0.197145",
+        #                     "circulatingSupply": "598760557.12072003",
+        #                     "coin": "PURR/USDC"
+        #                 },
+        #                 ...
+        #             ],
+        #         }
+        #     }
+        #
+        # spot
+        rawData = self.safe_dict(message, 'data', {})
+        spotAssets = self.safe_list(rawData, 'spotAssetCtxs', [])
+        parsedTickers = []
+        for i in range(0, len(spotAssets)):
+            assetObject = spotAssets[i]
+            marketId = self.safe_string(assetObject, 'coin')
+            market = self.safe_market(marketId, None, None, 'spot')
+            ticker = self.parse_ws_ticker(assetObject, market)
+            parsedTickers.append(ticker)
+        # perpetuals
+        meta = self.safe_dict(rawData, 'meta', {})
+        universe = self.safe_list(meta, 'universe', [])
+        assetCtxs = self.safe_list(rawData, 'assetCtxs', [])
+        for i in range(0, len(universe)):
+            data = self.extend(
+                self.safe_dict(universe, i, {}),
+                self.safe_dict(assetCtxs, i, {})
+            )
+            id = data['name'] + '/USDC:USDC'
+            market = self.safe_market(id, None, None, 'swap')
+            ticker = self.parse_ws_ticker(data, market)
+            parsedTickers.append(ticker)
+        tickers = self.index_by(parsedTickers, 'symbol')
+        client.resolve(tickers, 'tickers')
+
+    def parse_ws_ticker(self, rawTicker, market: Market = None) -> Ticker:
+        return self.parse_ticker(rawTicker, market)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -208,14 +441,17 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         client.resolve(trades, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
-        """
-        watches information on multiple trades made in a market
-        :param str symbol: unified market symbol of the market trades were made in
-        :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trade structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
-        """
+        # s
+        # @method
+        # @name hyperliquid#watchTrades
+        # @description watches information on multiple trades made in a market
+        # @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+        # @param {string} symbol unified market symbol of the market trades were made in
+        # @param {int} [since] the earliest time in ms to fetch trades for
+        # @param {int} [limit] the maximum number of trade structures to retrieve
+        # @param {object} [params] extra parameters specific to the exchange API endpoint
+        # @returns {object[]} a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        #
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -233,6 +469,30 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unWatches information on multiple trades made in a market
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+        :param str symbol: unified market symbol of the market trades were made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        subMessageHash = 'trade:' + symbol
+        messageHash = 'unsubscribe:' + subMessageHash
+        url = self.urls['api']['ws']['public']
+        request: dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'trades',
+                'coin': market['base'] if market['swap'] else market['id'],
+            },
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, messageHash)
 
     def handle_trades(self, client: Client, message):
         #
@@ -269,7 +529,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'trade:' + symbol
         client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchMyTrades
         #
@@ -334,6 +594,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -359,6 +620,32 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+        """
+        watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        url = self.urls['api']['ws']['public']
+        request: dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'candle',
+                'coin': market['base'] if market['swap'] else market['id'],
+                'interval': timeframe,
+            },
+        }
+        subMessageHash = 'candles:' + timeframe + ':' + symbol
+        messagehash = 'unsubscribe:' + subMessageHash
+        message = self.extend(request, params)
+        return await self.watch(url, messagehash, message, messagehash)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -395,15 +682,32 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(ohlcv, messageHash)
 
+    def handle_ws_post(self, client: Client, message: dict):
+        #    {
+        #         channel: "post",
+        #         data: {
+        #             id: <number>,
+        #             response: {
+        #                  type: "info" | "action" | "error",
+        #                  payload: {...}
+        #         }
+        #    }
+        data = self.safe_dict(message, 'data')
+        id = self.safe_string(data, 'id')
+        response = self.safe_dict(data, 'response')
+        payload = self.safe_dict(response, 'payload')
+        client.resolve(payload, id)
+
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         userAddress = None
@@ -486,7 +790,111 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         else:
             return False
 
+    def handle_order_book_unsubscription(self, client: Client, subscription: dict):
+        #
+        #        "subscription":{
+        #           "type":"l2Book",
+        #           "coin":"BTC",
+        #           "nSigFigs":5,
+        #           "mantissa":null
+        #        }
+        #
+        coin = self.safe_string(subscription, 'coin')
+        marketId = self.coinToMarketId(coin)
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = 'orderbook:' + symbol
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.orderbooks:
+            del self.orderbooks[symbol]
+
+    def handle_trades_unsubscription(self, client: Client, subscription: dict):
+        #
+        coin = self.safe_string(subscription, 'coin')
+        marketId = self.coinToMarketId(coin)
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = 'trade:' + symbol
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.trades:
+            del self.trades[symbol]
+
+    def handle_tickers_unsubscription(self, client: Client, subscription: dict):
+        #
+        subMessageHash = 'tickers'
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        symbols = list(self.tickers.keys())
+        for i in range(0, len(symbols)):
+            del self.tickers[symbols[i]]
+
+    def handle_ohlcv_unsubscription(self, client: Client, subscription: dict):
+        coin = self.safe_string(subscription, 'coin')
+        marketId = self.coinToMarketId(coin)
+        symbol = self.safe_symbol(marketId)
+        interval = self.safe_string(subscription, 'interval')
+        timeframe = self.find_timeframe(interval)
+        subMessageHash = 'candles:' + timeframe + ':' + symbol
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.ohlcvs:
+            if timeframe in self.ohlcvs[symbol]:
+                del self.ohlcvs[symbol][timeframe]
+
+    def handle_subscription_response(self, client: Client, message):
+        # {
+        #     "channel":"subscriptionResponse",
+        #     "data":{
+        #        "method":"unsubscribe",
+        #        "subscription":{
+        #           "type":"l2Book",
+        #           "coin":"BTC",
+        #           "nSigFigs":5,
+        #           "mantissa":null
+        #        }
+        #     }
+        # }
+        #
+        #  {
+        #      "channel":"subscriptionResponse",
+        #      "data":{
+        #         "method":"unsubscribe",
+        #         "subscription":{
+        #            "type":"trades",
+        #            "coin":"PURR/USDC"
+        #         }
+        #      }
+        #  }
+        #
+        data = self.safe_dict(message, 'data', {})
+        method = self.safe_string(data, 'method')
+        if method == 'unsubscribe':
+            subscription = self.safe_dict(data, 'subscription', {})
+            type = self.safe_string(subscription, 'type')
+            if type == 'l2Book':
+                self.handle_order_book_unsubscription(client, subscription)
+            elif type == 'trades':
+                self.handle_trades_unsubscription(client, subscription)
+            elif type == 'webData2':
+                self.handle_tickers_unsubscription(client, subscription)
+            elif type == 'candle':
+                self.handle_ohlcv_unsubscription(client, subscription)
+
     def handle_message(self, client: Client, message):
+        #
+        # {
+        #     "channel":"subscriptionResponse",
+        #     "data":{
+        #        "method":"unsubscribe",
+        #        "subscription":{
+        #           "type":"l2Book",
+        #           "coin":"BTC",
+        #           "nSigFigs":5,
+        #           "mantissa":null
+        #        }
+        #     }
+        # }
+        #
         if self.handle_error_message(client, message):
             return
         topic = self.safe_string(message, 'channel', '')
@@ -497,6 +905,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'candle': self.handle_ohlcv,
             'orderUpdates': self.handle_order,
             'userFills': self.handle_my_trades,
+            'webData2': self.handle_ws_tickers,
+            'post': self.handle_ws_post,
+            'subscriptionResponse': self.handle_subscription_response,
         }
         exacMethod = self.safe_value(methods, topic)
         if exacMethod is not None:
@@ -510,7 +921,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 method(client, message)
                 return
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'method': 'ping',
         }
@@ -523,3 +934,22 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         client.lastPong = self.safe_integer(message, 'pong')
         return message
+
+    def request_id(self) -> float:
+        requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
+        self.options['requestId'] = requestId
+        return requestId
+
+    def wrap_as_post_action(self, request: dict) -> dict:
+        requestId = self.request_id()
+        return {
+            'requestId': requestId,
+            'request': {
+                'method': 'post',
+                'id': requestId,
+                'request': {
+                    'type': 'action',
+                    'payload': request,
+                },
+            },
+        }

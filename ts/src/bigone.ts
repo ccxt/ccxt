@@ -1623,7 +1623,27 @@ export default class bigone extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        const cancelled = this.safeList (data, 'cancelled', []);
+        const failed = this.safeList (data, 'failed', []);
+        const result = [];
+        for (let i = 0; i < cancelled.length; i++) {
+            const orderId = cancelled[i];
+            result.push (this.safeOrder ({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < failed.length; i++) {
+            const orderId = failed[i];
+            result.push (this.safeOrder ({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }));
+        }
+        return result;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1632,6 +1652,7 @@ export default class bigone extends Exchange {
          * @name bigone#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://open.big.one/docs/spot_orders.html#get-one-order
+         * @param {string} id the order id
          * @param {string} symbol not used by bigone fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

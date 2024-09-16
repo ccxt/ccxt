@@ -28,6 +28,7 @@ class oxfun extends \ccxt\async\oxfun {
                 'watchMyTrades' => false,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchBalance' => true,
                 'createOrderWs' => true,
                 'editOrderWs' => true,
@@ -86,7 +87,7 @@ class oxfun extends \ccxt\async\oxfun {
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int|string} [$params->tag] If given it will be echoed in the reply and the max size of tag is 32
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
@@ -515,6 +516,80 @@ class oxfun extends \ccxt\async\oxfun {
             $this->tickers[$symbol] = $ticker;
             $client->resolve ($ticker, $messageHash);
         }
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://docs.ox.fun/?json#best-bid-ask
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $messageHashes = array();
+            $args = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $args[] = 'bestBidAsk:' . $market['id'];
+                $messageHashes[] = 'bidask:' . $market['symbol'];
+            }
+            $newTickers = Async\await($this->subscribe_multiple($messageHashes, $args, $params));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        //
+        //     {
+        //       "table" => "bestBidAsk",
+        //       "data" => {
+        //         "ask" => array(
+        //           19045.0,
+        //           1.0
+        //         ),
+        //         "checksum" => 3790706311,
+        //         "marketCode" => "BTC-USD-SWAP-LIN",
+        //         "bid" => array(
+        //           19015.0,
+        //           1.0
+        //         ),
+        //         "timestamp" => "1665456882928"
+        //       }
+        //     }
+        //
+        $data = $this->safe_dict($message, 'data', array());
+        $parsedTicker = $this->parse_ws_bid_ask($data);
+        $symbol = $parsedTicker['symbol'];
+        $this->bidsasks[$symbol] = $parsedTicker;
+        $messageHash = 'bidask:' . $symbol;
+        $client->resolve ($parsedTicker, $messageHash);
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'marketCode');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $ask = $this->safe_list($ticker, 'ask', array());
+        $bid = $this->safe_list($ticker, 'bid', array());
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_number($ask, 0),
+            'askVolume' => $this->safe_number($ask, 1),
+            'bid' => $this->safe_number($bid, 0),
+            'bidVolume' => $this->safe_number($bid, 1),
+            'info' => $ticker,
+        ), $market);
     }
 
     public function watch_balance($params = array ()): PromiseInterface {
@@ -1017,7 +1092,7 @@ class oxfun extends \ccxt\async\oxfun {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return 'ping';
     }
 
@@ -1055,6 +1130,9 @@ class oxfun extends \ccxt\async\oxfun {
             }
             if (mb_strpos($table, 'order') > -1) {
                 $this->handle_orders($client, $message);
+            }
+            if ($table === 'bestBidAsk') {
+                $this->handle_bid_ask($client, $message);
             }
         } else {
             if ($event === 'login') {

@@ -26,6 +26,7 @@ class htx extends htx$1 {
                 'watchTickers': false,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
@@ -97,6 +98,7 @@ class htx extends htx$1 {
                 'api': 'api',
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': true,
                 },
                 'ws': {
                     'gunzip': true,
@@ -568,7 +570,10 @@ class htx extends htx$1 {
             orderbook['nonce'] = version;
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
-            throw new errors.InvalidNonce(this.id + ' watchOrderBook() received a mesage out of order');
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+            }
         }
         const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);
@@ -668,7 +673,7 @@ class htx extends htx$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();

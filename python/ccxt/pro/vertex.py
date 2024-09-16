@@ -28,6 +28,7 @@ class vertex(ccxt.async_support.vertex):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPositions': True,
             },
             'urls': {
@@ -90,7 +91,7 @@ class vertex(ccxt.async_support.vertex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -147,7 +148,7 @@ class vertex(ccxt.async_support.vertex):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol.')
@@ -256,7 +257,7 @@ class vertex(ccxt.async_support.vertex):
         price = self.convertFromX18(self.safe_string(trade, 'price'))
         amount = self.convertFromX18(self.safe_string_2(trade, 'taker_qty', 'filled_qty'))
         cost = Precise.string_mul(price, amount)
-        timestamp = Precise.string_div(self.safe_string(trade, 'timestamp'), '1000000')
+        timestamp = self.safe_integer_product(trade, 'timestamp', 0.000001)
         takerOrMaker = None
         isTaker = self.safe_bool(trade, 'is_taker')
         if isTaker is not None:
@@ -545,7 +546,7 @@ class vertex(ccxt.async_support.vertex):
         client = self.client(url)
         self.set_positions_cache(client, symbols, params)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
@@ -798,9 +799,10 @@ class vertex(ccxt.async_support.vertex):
         #
         marketId = self.safe_string(order, 'product_id')
         timestamp = self.parse_to_int(Precise.string_div(self.safe_string(order, 'timestamp'), '1000000'))
-        remaining = self.parse_to_numeric(self.convertFromX18(self.safe_string(order, 'amount')))
+        remainingString = self.convertFromX18(self.safe_string(order, 'amount'))
+        remaining = self.parse_to_numeric(remainingString)
         status = self.parse_ws_order_status(self.safe_string(order, 'reason'))
-        if remaining == 0 and status == 'open':
+        if Precise.string_eq(remainingString, '0') and status == 'open':
             status = 'closed'
         market = self.safe_market(marketId, market)
         symbol = market['symbol']

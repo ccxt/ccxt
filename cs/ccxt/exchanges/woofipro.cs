@@ -691,6 +691,11 @@ public partial class woofipro : Exchange
         object amount = this.safeString(trade, "executed_quantity");
         object order_id = this.safeString(trade, "order_id");
         object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        object feeCost = this.safeString(fee, "cost");
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            ((IDictionary<string,object>)fee)["cost"] = feeCost;
+        }
         object cost = Precise.stringMul(price, amount);
         object side = this.safeStringLower(trade, "side");
         object id = this.safeString(trade, "id");
@@ -1788,6 +1793,7 @@ public partial class woofipro : Exchange
         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.trigger] whether the order is a stop/algo order
@@ -2250,13 +2256,15 @@ public partial class woofipro : Exchange
 
     public override object parseLedgerEntry(object item, object currency = null)
     {
-        object code = this.safeString(item, "token");
+        object currencyId = this.safeString(item, "token");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeNumber(item, "amount");
         object side = this.safeString(item, "token_side");
         object direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
         object timestamp = this.safeInteger(item, "created_time");
         object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", this.safeString(item, "id") },
             { "currency", code },
             { "account", this.safeString(item, "account") },
@@ -2272,7 +2280,7 @@ public partial class woofipro : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
             { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -2289,11 +2297,11 @@ public partial class woofipro : Exchange
         /**
         * @method
         * @name woofipro#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */

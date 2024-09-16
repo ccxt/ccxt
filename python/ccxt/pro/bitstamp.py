@@ -21,6 +21,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOHLCV': False,
                 'watchTicker': False,
                 'watchTickers': False,

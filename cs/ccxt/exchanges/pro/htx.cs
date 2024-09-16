@@ -26,6 +26,7 @@ public partial class htx : ccxt.htx
                 { "watchTickers", false },
                 { "watchTicker", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchBalance", true },
                 { "watchOHLCV", true },
@@ -96,6 +97,7 @@ public partial class htx : ccxt.htx
                 { "api", "api" },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "maxRetries", 3 },
+                    { "checksum", true },
                 } },
                 { "ws", new Dictionary<string, object>() {
                     { "gunzip", true },
@@ -618,7 +620,11 @@ public partial class htx : ccxt.htx
         }
         if (isTrue(isTrue((!isEqual(prevSeqNum, null))) && isTrue(isGreaterThan(prevSeqNum, getValue(orderbook, "nonce")))))
         {
-            throw new InvalidNonce ((string)add(this.id, " watchOrderBook() received a mesage out of order")) ;
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            if (isTrue(checksum))
+            {
+                throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+            }
         }
         object spotConditon = isTrue(getValue(market, "spot")) && isTrue((isEqual(prevSeqNum, getValue(orderbook, "nonce"))));
         object nonSpotCondition = isTrue(getValue(market, "contract")) && isTrue((isEqual(subtract(version, 1), getValue(orderbook, "nonce"))));
@@ -728,7 +734,7 @@ public partial class htx : ccxt.htx
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

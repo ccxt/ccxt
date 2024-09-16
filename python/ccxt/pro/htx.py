@@ -16,6 +16,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 
 
 class htx(ccxt.async_support.htx):
@@ -38,6 +39,7 @@ class htx(ccxt.async_support.htx):
                 'watchTickers': False,
                 'watchTicker': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
@@ -109,6 +111,7 @@ class htx(ccxt.async_support.htx):
                 'api': 'api',  # or api-aws for clients hosted on AWS
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': True,
                 },
                 'ws': {
                     'gunzip': True,
@@ -124,7 +127,7 @@ class htx(ccxt.async_support.htx):
                         '2002': AuthenticationError,  # {action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state'}
                         '2021': BadRequest,
                         '2001': BadSymbol,  # {action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
-                        '2011': BadSymbol,  # {op: 'sub', cid: '1649149285', topic: 'orders_cross.hereltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637}
+                        '2011': BadSymbol,  # {op: 'sub', cid: '1649149285', topic: 'orders_cross.ltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637}
                         '2040': BadRequest,  # {op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684}
                         '4007': BadRequest,  # {op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540}
                     },
@@ -549,7 +552,9 @@ class htx(ccxt.async_support.htx):
             orderbook.reset(snapshot)
             orderbook['nonce'] = version
         if (prevSeqNum is not None) and prevSeqNum > orderbook['nonce']:
-            raise InvalidNonce(self.id + ' watchOrderBook() received a mesage out of order')
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
         spotConditon = market['spot'] and (prevSeqNum == orderbook['nonce'])
         nonSpotCondition = market['contract'] and (version - 1 == orderbook['nonce'])
         if spotConditon or nonSpotCondition:
@@ -641,7 +646,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()

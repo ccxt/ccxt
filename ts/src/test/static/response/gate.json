@@ -248,19 +248,15 @@
                         "price": 68.01,
                         "amount": 0.0485,
                         "cost": 3.298485,
-                        "fee": null,
+                        "fee": 
+                        {
+                            "cost": 0.000097,
+                            "currency": "LTC"
+                        },
                         "fees": [
                             {
-                                "cost": "0.000097",
+                                "cost": 0.000097,
                                 "currency": "LTC"
-                            },
-                            {
-                                "cost": "0.0",
-                                "currency": "GT"
-                            },
-                            {
-                                "cost": "0.0",
-                                "currency": "GatePoint"
                             }
                         ]
                     },
@@ -294,19 +290,14 @@
                         "price": 68.02,
                         "amount": 0.025,
                         "cost": 1.7005,
-                        "fee": null,
+                        "fee": {
+                            "cost": 0.000050,
+                            "currency": "LTC"
+                        },
                         "fees": [
                             {
-                                "cost": "0.000050",
+                                "cost": 0.000050,
                                 "currency": "LTC"
-                            },
-                            {
-                                "cost": "0.0",
-                                "currency": "GT"
-                            },
-                            {
-                                "cost": "0.0",
-                                "currency": "GatePoint"
                             }
                         ]
                     }
@@ -363,15 +354,14 @@
                         "price": 68.42,
                         "amount": 1,
                         "cost": 6.842,
-                        "fee": null,
+                        "fee" : {
+                            "cost": 0.003421,
+                            "currency": "USDT"
+                        },
                         "fees": [
                             {
-                                "cost": "0.003421",
+                                "cost": 0.003421,
                                 "currency": "USDT"
-                            },
-                            {
-                                "cost": "0",
-                                "currency": "GatePoint"
                             }
                         ]
                     }
@@ -443,14 +433,19 @@
                         "cost": 5,
                         "filled": 0.07349286974419289,
                         "remaining": 0.000014922081740664,
-                        "fee": {
-                            "currency": "LTC",
-                            "cost": 0.000147
-                        },
+                        "fee": null,
                         "fees": [
+                            {
+                                "currency":"GT",
+                                "cost":0
+                            },
                             {
                                 "currency": "LTC",
                                 "cost": 0.000147
+                            },
+                            {
+                                "currency":"USDT",
+                                "cost":0
                             }
                         ],
                         "trades": [],
@@ -622,7 +617,7 @@
                         "price": 73236.4,
                         "amount": 0.0002,
                         "cost": 14.64728,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]

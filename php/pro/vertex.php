@@ -27,6 +27,7 @@ class vertex extends \ccxt\async\vertex {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPositions' => true,
             ),
             'urls' => array(
@@ -95,7 +96,7 @@ class vertex extends \ccxt\async\vertex {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -158,7 +159,7 @@ class vertex extends \ccxt\async\vertex {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades requires a $symbol->');
@@ -273,7 +274,7 @@ class vertex extends \ccxt\async\vertex {
         $price = $this->convertFromX18 ($this->safe_string($trade, 'price'));
         $amount = $this->convertFromX18 ($this->safe_string_2($trade, 'taker_qty', 'filled_qty'));
         $cost = Precise::string_mul($price, $amount);
-        $timestamp = Precise::string_div($this->safe_string($trade, 'timestamp'), '1000000');
+        $timestamp = $this->safe_integer_product($trade, 'timestamp', 0.000001);
         $takerOrMaker = null;
         $isTaker = $this->safe_bool($trade, 'is_taker');
         if ($isTaker !== null) {
@@ -597,7 +598,7 @@ class vertex extends \ccxt\async\vertex {
             $client = $this->client($url);
             $this->set_positions_cache($client, $symbols, $params);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
@@ -883,9 +884,10 @@ class vertex extends \ccxt\async\vertex {
         //
         $marketId = $this->safe_string($order, 'product_id');
         $timestamp = $this->parse_to_int(Precise::string_div($this->safe_string($order, 'timestamp'), '1000000'));
-        $remaining = $this->parse_to_numeric($this->convertFromX18 ($this->safe_string($order, 'amount')));
+        $remainingString = $this->convertFromX18 ($this->safe_string($order, 'amount'));
+        $remaining = $this->parse_to_numeric($remainingString);
         $status = $this->parse_ws_order_status($this->safe_string($order, 'reason'));
-        if ($remaining === 0 && $status === 'open') {
+        if (Precise::string_eq($remainingString, '0') && $status === 'open') {
             $status = 'closed';
         }
         $market = $this->safe_market($marketId, $market);

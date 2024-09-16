@@ -915,6 +915,7 @@ public partial class bitmex : Exchange
         * @name bitmex#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1207,6 +1208,7 @@ public partial class bitmex : Exchange
         object type = this.parseLedgerEntryType(this.safeString(item, "transactType"));
         object currencyId = this.safeString(item, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amountString = this.safeString(item, "amount");
         object amount = this.convertToRealAmount(code, amountString);
         object timestamp = this.parse8601(this.safeString(item, "transactTime"));
@@ -1223,7 +1225,7 @@ public partial class bitmex : Exchange
             feeCost = this.convertToRealAmount(code, feeCost);
         }
         object fee = new Dictionary<string, object>() {
-            { "cost", this.parseNumber(feeCost) },
+            { "cost", this.parseToNumeric(feeCost) },
             { "currency", code },
         };
         object after = this.safeString(item, "walletBalance");
@@ -1231,7 +1233,7 @@ public partial class bitmex : Exchange
         {
             after = this.convertToRealAmount(code, after);
         }
-        object before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
+        object before = this.parseToNumeric(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         object direction = null;
         if (isTrue(Precise.stringLt(amountString, "0")))
         {
@@ -1242,9 +1244,9 @@ public partial class bitmex : Exchange
             direction = "in";
         }
         object status = this.parseTransactionStatus(this.safeString(item, "transactStatus"));
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "direction", direction },
@@ -1253,12 +1255,12 @@ public partial class bitmex : Exchange
             { "referenceAccount", referenceAccount },
             { "type", type },
             { "currency", code },
-            { "amount", amount },
+            { "amount", this.parseToNumeric(amount) },
             { "before", before },
-            { "after", this.parseNumber(after) },
+            { "after", this.parseToNumeric(after) },
             { "status", status },
             { "fee", fee },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -1266,11 +1268,11 @@ public partial class bitmex : Exchange
         /**
         * @method
         * @name bitmex#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -2636,6 +2638,10 @@ public partial class bitmex : Exchange
             { "address", address },
             { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
+        if (isTrue(!isEqual(this.twofa, null)))
+        {
+            ((IDictionary<string,object>)request)["otpToken"] = totp(this.twofa);
+        }
         object response = await this.privatePostUserRequestWithdrawal(this.extend(request, parameters));
         //
         //     {

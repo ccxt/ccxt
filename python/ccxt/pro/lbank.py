@@ -26,6 +26,7 @@ class lbank(ccxt.async_support.lbank):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -482,7 +483,7 @@ class lbank(ccxt.async_support.lbank):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+        :see: https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
         get the list of trades associated with the user
         :param str [symbol]: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -665,7 +666,6 @@ class lbank(ccxt.async_support.lbank):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://www.lbank.com/en-US/docs/index.html#market-depth
-        :see: https://www.lbank.com/en-US/docs/index.html#market-increment-depth
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return

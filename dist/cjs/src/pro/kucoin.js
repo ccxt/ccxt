@@ -40,6 +40,9 @@ class kucoin extends kucoin$1 {
                     'snapshotMaxRetries': 3,
                     'method': '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                 },
+                'watchMyTrades': {
+                    'method': '/spotMarket/tradeOrders', // or '/spot/tradeFills'
+                },
             },
             'streaming': {
                 // kucoin does not support built-in ws protocol-level ping-pong
@@ -142,6 +145,27 @@ class kucoin extends kucoin$1 {
             'response': true,
         };
         const message = this.extend(request, params);
+        const client = this.client(url);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            if (!(subscriptionHash in client.subscriptions)) {
+                client.subscriptions[requestId] = subscriptionHash;
+            }
+        }
+        return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
+    }
+    async unSubscribeMultiple(url, messageHashes, topic, subscriptionHashes, params = {}, subscription = undefined) {
+        const requestId = this.requestId().toString();
+        const request = {
+            'id': requestId,
+            'type': 'unsubscribe',
+            'topic': topic,
+            'response': true,
+        };
+        const message = this.extend(request, params);
+        if (subscription !== undefined) {
+            subscription[requestId] = requestId;
+        }
         const client = this.client(url);
         for (let i = 0; i < subscriptionHashes.length; i++) {
             const subscriptionHash = subscriptionHashes[i];
@@ -504,6 +528,49 @@ class kucoin extends kucoin$1 {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        /**
+         * @method
+         * @name kucoin#unWatchTradesForSymbols
+         * @description unWatches trades stream
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const marketIds = this.marketIds(symbols);
+        const url = await this.negotiate(false);
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        const topic = '/market/match:' + marketIds.join(',');
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('unsubscribe:trades:' + symbol);
+            subscriptionHashes.push('trades:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'subMessageHashes': subscriptionHashes,
+            'topic': 'trades',
+            'unsubscribe': true,
+            'symbols': symbols,
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription);
+    }
+    async unWatchTrades(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoin#unWatchTrades
+         * @description unWatches trades stream
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
     handleTrade(client, message) {
         //
         //     {
@@ -569,6 +636,22 @@ class kucoin extends kucoin$1 {
         //
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
+    async unWatchOrderBook(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoin#unWatchOrderBook
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.unWatchOrderBookForSymbols([symbol], params);
+    }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
          * @method
@@ -621,6 +704,49 @@ class kucoin extends kucoin$1 {
         }
         const orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params, subscription);
         return orderbook.limit();
+    }
+    async unWatchOrderBookForSymbols(symbols, params = {}) {
+        /**
+         * @method
+         * @name kucoin#unWatchOrderBookForSymbols
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const limit = this.safeInteger(params, 'limit');
+        params = this.omit(params, 'limit');
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const marketIds = this.marketIds(symbols);
+        const url = await this.negotiate(false);
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'method', '/market/level2');
+        if ((limit === 5) || (limit === 50)) {
+            method = '/spotMarket/level2Depth' + limit.toString();
+        }
+        const topic = method + ':' + marketIds.join(',');
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('unsubscribe:orderbook:' + symbol);
+            subscriptionHashes.push('orderbook:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'unsubscribe': true,
+            'topic': 'orderbook',
+            'subMessageHashes': subscriptionHashes,
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription);
     }
     handleOrderBook(client, message) {
         //
@@ -787,6 +913,17 @@ class kucoin extends kucoin$1 {
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
             method.call(this, client, message, subscription);
+        }
+        const isUnSub = this.safeBool(subscription, 'unsubscribe', false);
+        if (isUnSub) {
+            const messageHashes = this.safeList(subscription, 'messageHashes', []);
+            const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription(client, subHash, messageHash);
+            }
+            this.cleanCache(subscription);
         }
     }
     handleSystemStatus(client, message) {
@@ -983,11 +1120,13 @@ class kucoin extends kucoin$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @param {string} [params.method] '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const url = await this.negotiate(true);
-        const topic = '/spotMarket/tradeOrders';
+        let topic = undefined;
+        [topic, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'method', '/spotMarket/tradeOrders');
         const request = {
             'privateChannel': true,
         };
@@ -1046,6 +1185,8 @@ class kucoin extends kucoin$1 {
     }
     parseWsTrade(trade, market = undefined) {
         //
+        // /spotMarket/tradeOrders
+        //
         //     {
         //         "symbol": "KCS-USDT",
         //         "orderType": "limit",
@@ -1067,16 +1208,40 @@ class kucoin extends kucoin$1 {
         //         "ts": 1670329987311000000
         //     }
         //
+        // /spot/tradeFills
+        //
+        //    {
+        //        "fee": 0.00262148,
+        //        "feeCurrency": "USDT",
+        //        "feeRate": 0.001,
+        //        "orderId": "62417436b29df8000183df2f",
+        //        "orderType": "market",
+        //        "price": 131.074,
+        //        "side": "sell",
+        //        "size": 0.02,
+        //        "symbol": "LTC-USDT",
+        //        "time": "1648456758734571745",
+        //        "tradeId": "624174362e113d2f467b3043"
+        //    }
+        //
         const marketId = this.safeString(trade, 'symbol');
         market = this.safeMarket(marketId, market, '-');
         const symbol = market['symbol'];
         const type = this.safeString(trade, 'orderType');
         const side = this.safeString(trade, 'side');
         const tradeId = this.safeString(trade, 'tradeId');
-        const price = this.safeString(trade, 'matchPrice');
-        const amount = this.safeString(trade, 'matchSize');
+        let price = this.safeString(trade, 'matchPrice');
+        let amount = this.safeString(trade, 'matchSize');
+        if (price === undefined) {
+            // /spot/tradeFills
+            price = this.safeString(trade, 'price');
+            amount = this.safeString(trade, 'size');
+        }
         const order = this.safeString(trade, 'orderId');
-        const timestamp = this.safeIntegerProduct(trade, 'ts', 0.000001);
+        const timestamp = this.safeIntegerProduct2(trade, 'ts', 'time', 0.000001);
+        const feeCurrency = market['quote'];
+        const feeRate = this.safeString(trade, 'feeRate');
+        const feeCost = this.safeString(trade, 'fee');
         return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
@@ -1090,7 +1255,11 @@ class kucoin extends kucoin$1 {
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': undefined,
+            'fee': {
+                'cost': feeCost,
+                'rate': feeRate,
+                'currency': feeCurrency,
+            },
         }, market);
     }
     async watchBalance(params = {}) {
@@ -1199,6 +1368,7 @@ class kucoin extends kucoin$1 {
             'account.balance': this.handleBalance,
             'orderChange': this.handleOrder,
             'stopOrder': this.handleOrder,
+            '/spot/tradeFills': this.handleMyTrade,
         };
         const method = this.safeValue(methods, subject);
         if (method !== undefined) {

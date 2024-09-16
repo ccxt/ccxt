@@ -5,7 +5,7 @@ import mexcRest from '../mexc.js';
 import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -30,8 +30,9 @@ export default class mexc extends mexcRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {
@@ -76,6 +77,8 @@ export default class mexc extends mexcRest {
          * @method
          * @name mexc#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -125,6 +128,85 @@ export default class mexc extends mexcRest {
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name mexc#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHashes = [];
+        const marketIds = this.marketIds (symbols);
+        const firstMarket = this.market (symbols[0]);
+        const isSpot = firstMarket['spot'];
+        const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
+        const request: Dict = {};
+        if (isSpot) {
+            const topics = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                messageHashes.push ('ticker:' + symbols[i]);
+                topics.push ('spot@public.bookTicker.v3.api@' + marketId);
+            }
+            request['method'] = 'SUBSCRIPTION';
+            request['params'] = topics;
+        } else {
+            request['method'] = 'sub.tickers';
+            request['params'] = {};
+            messageHashes.push ('ticker');
+        }
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (isSpot && this.newUpdates) {
+            const result: Dict = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    handleTickers (client: Client, message) {
+        //
+        //     {
+        //       "channel": "push.tickers",
+        //       "data": [
+        //         {
+        //           "symbol": "ETH_USDT",
+        //           "lastPrice": 2324.5,
+        //           "riseFallRate": 0.0356,
+        //           "fairPrice": 2324.32,
+        //           "indexPrice": 2325.44,
+        //           "volume24": 25868309,
+        //           "amount24": 591752573.9792,
+        //           "maxBidPrice": 2557.98,
+        //           "minAskPrice": 2092.89,
+        //           "lower24Price": 2239.39,
+        //           "high24Price": 2332.59,
+        //           "timestamp": 1725872514111
+        //         }
+        //       ],
+        //       "ts": 1725872514111
+        //     }
+        //
+        const data = this.safeList (message, 'data');
+        const topic = 'ticker';
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseTicker (data[i]);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            result.push (ticker);
+            const messageHash = topic + ':' + symbol;
+            client.resolve (ticker, messageHash);
+        }
+        client.resolve (result, topic);
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -213,7 +295,7 @@ export default class mexc extends mexcRest {
         /**
          * @method
          * @name mexc#watchOHLCV
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -361,7 +443,8 @@ export default class mexc extends mexcRest {
         /**
          * @method
          * @name mexc#watchOrderBook
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -534,7 +617,8 @@ export default class mexc extends mexcRest {
         /**
          * @method
          * @name mexc#watchTrades
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -623,13 +707,14 @@ export default class mexc extends mexcRest {
         /**
          * @method
          * @name mexc#watchMyTrades
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let messageHash = 'myTrades';
@@ -771,8 +856,8 @@ export default class mexc extends mexcRest {
         /**
          * @method
          * @name mexc#watchOrders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1027,7 +1112,7 @@ export default class mexc extends mexcRest {
         /**
          * @method
          * @name mexc#watchBalance
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -1149,8 +1234,8 @@ export default class mexc extends mexcRest {
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
-        //
-        const msg = this.safeString (message, 'msg');
+        // Set the default to an empty string if the message is empty during the test.
+        const msg = this.safeString (message, 'msg', '');
         if (msg === 'PONG') {
             this.handlePong (client, message);
         } else if (msg.indexOf ('@') > -1) {
@@ -1193,6 +1278,7 @@ export default class mexc extends mexcRest {
             'push.kline': this.handleOHLCV,
             'public.bookTicker.v3.api': this.handleTicker,
             'push.ticker': this.handleTicker,
+            'push.tickers': this.handleTickers,
             'public.increase.depth.v3.api': this.handleOrderBook,
             'push.depth': this.handleOrderBook,
             'private.orders.v3.api': this.handleOrder,
@@ -1209,7 +1295,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return { 'method': 'ping' };
     }
 }

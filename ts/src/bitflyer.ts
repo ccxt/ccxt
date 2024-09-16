@@ -605,7 +605,13 @@ export default class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
             'child_order_acceptance_id': id,
         };
-        return await this.privatePostCancelchildorder (this.extend (request, params));
+        const response = await this.privatePostCancelchildorder (this.extend (request, params));
+        //
+        //    200 OK.
+        //
+        return this.safeOrder ({
+            'info': response,
+        });
     }
 
     parseOrderStatus (status: Str) {
@@ -737,6 +743,7 @@ export default class bitflyer extends Exchange {
          * @name bitflyer#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

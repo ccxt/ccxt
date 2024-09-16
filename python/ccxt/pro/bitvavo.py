@@ -476,7 +476,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
@@ -602,6 +602,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

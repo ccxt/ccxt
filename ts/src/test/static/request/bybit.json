@@ -1,7 +1,9 @@
 {
     "exchange": "bybit",
     "skipKeys": [
-        "transferId"
+        "transferId",
+        "orderLinkId",
+        "timestamp"
     ],
     "outputType": "json",
     "methods": {
@@ -341,6 +343,57 @@
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"1\",\"price\":\"50\",\"stopLoss\":\"50\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"49\",\"takeProfit\":\"100\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"90\"}"
+            },
+            {
+                "description": "spot order with weird price and amount",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1444444234234234,
+                  60.423423423
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"60.42\",\"category\":\"spot\",\"qty\":\"0.14444\"}"
+            },
+            {
+                "description": "swap order with weird price and amount",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1.1444444234234235,
+                  60.423423423
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"60.4234\",\"category\":\"linear\",\"qty\":\"1\"}"
+            },
+            {
+                "description": "market option order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "BTC-25OCT24-46000-C",
+                  "market",
+                  "buy",
+                  1
+                ],
+                "output": "{\"symbol\":\"BTC-25OCT24-46000-C\",\"side\":\"Buy\",\"orderType\":\"Market\",\"orderLinkId\":\"8b2c958a6470a4da\",\"category\":\"option\",\"qty\":\"1\"}"
+            },
+            {
+                "description": "limit option order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "BTC-25OCT24-46000-C",
+                  "limit",
+                  "buy",
+                  1,
+                  15000
+                ],
+                "output": "{\"symbol\":\"BTC-25OCT24-46000-C\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"orderLinkId\":\"1b152a3bc495b57c\",\"price\":\"15000\",\"category\":\"option\",\"qty\":\"1\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -644,6 +697,51 @@
                 "method": "fetchBalance",
                 "url": "https://api-testnet.bybit.com/v5/account/wallet-balance?accountType=UNIFIED",
                 "input": []
+            },
+            {
+                "description": "fetch funding balance",
+                "method": "fetchBalance",
+                "url": "https://api.bybit.com/v5/asset/transfer/query-account-coins-balance?accountType=FUND",
+                "input": [
+                  {
+                    "type": "funding"
+                  }
+                ]
+            },
+            {
+                "description": "fetch funding balance using options",
+                "method": "fetchBalance",
+                "options": {
+                    "fetchBalance": {
+                        "defaultType": "fund"
+                    }
+                },
+                "url": "https://api.bybit.com/v5/asset/transfer/query-account-coins-balance?accountType=FUND",
+                "input": [
+                ]
+            },
+            {
+                "description": "fetch funding balance using options: funding",
+                "method": "fetchBalance",
+                "options": {
+                    "fetchBalance": {
+                        "defaultType": "funding"
+                    }
+                },
+                "url": "https://api.bybit.com/v5/asset/transfer/query-account-coins-balance?accountType=FUND",
+                "input": [
+                ]
+            },
+            {
+                "description": "fetch inverse balance",
+                "method": "fetchBalance",
+                "url": "https://api.bybit.com/v5/account/wallet-balance?accountType=CONTRACT",
+                "input": [
+                  {
+                    "type": "swap",
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "setLeverage": [
@@ -682,6 +780,19 @@
                 "method": "fetchLedger",
                 "url": "https://api-testnet.bybit.com/v5/account/transaction-log?",
                 "input": []
+            },
+            {
+                "description": "Ledger from inverse wallet",
+                "method": "fetchLedger",
+                "url": "https://api-testnet.bybit.com/v5/account/contract-transaction-log?",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "fetchTransfers": [
@@ -1040,6 +1151,23 @@
                   }
                 ]
               }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw usdt on tron",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                  "USDT",
+                  5,
+                  "TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz\",\"timestamp\":1723663288607,\"accountType\":\"SPOT\",\"chain\":\"TRX\"}"
+            }
         ]
     },
     "disabled": []

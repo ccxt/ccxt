@@ -16,6 +16,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 { "watchTickers", false },
                 { "watchOrderBook", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchBalance", true },
                 { "watchOHLCV", true },
@@ -33,9 +34,9 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "prec", "P0" },
                     { "freq", "F0" },
+                    { "checksum", true },
                 } },
                 { "ordersLimit", 1000 },
-                { "checksum", true },
             } },
         });
     }
@@ -233,7 +234,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -752,10 +753,14 @@ public partial class bitfinex2 : ccxt.bitfinex2
         object responseChecksum = this.safeInteger(message, 2);
         if (isTrue(!isEqual(responseChecksum, localChecksum)))
         {
-            var error = new InvalidNonce(add(this.id, " invalid checksum"));
 
 
-            ((WebSocketClient)client).reject(error, messageHash);
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            if (isTrue(checksum))
+            {
+                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
+                ((WebSocketClient)client).reject(error, messageHash);
+            }
         }
     }
 
@@ -987,7 +992,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

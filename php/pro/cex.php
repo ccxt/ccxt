@@ -23,6 +23,7 @@ class cex extends \ccxt\async\cex {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -1046,7 +1047,7 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
-        $incrementalId = $this->safe_number($data, 'id');
+        $incrementalId = $this->safe_integer($data, 'id');
         $pair = $this->safe_string($data, 'pair', '');
         $symbol = $this->pair_to_symbol($pair);
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
@@ -1232,6 +1233,7 @@ class cex extends \ccxt\async\cex {
             /**
              * fetches information on an order made by the user
              * @see https://docs.cex.io/#ws-api-get-order
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by cex fetchOrder
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

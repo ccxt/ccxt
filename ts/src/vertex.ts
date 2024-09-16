@@ -404,7 +404,16 @@ export default class vertex extends Exchange {
                 'withdraw': this.safeBool (data, 'can_withdraw'),
                 'networks': undefined,
                 'fee': undefined,
-                'limits': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             };
         }
         return result;
@@ -668,6 +677,13 @@ export default class vertex extends Exchange {
         let amount = undefined;
         let side = undefined;
         let fee = undefined;
+        const feeCost = this.convertFromX18 (this.safeString (trade, 'fee'));
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
         const id = this.safeString2 (trade, 'trade_id', 'submission_idx');
         const order = this.safeString (trade, 'digest');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
@@ -684,10 +700,6 @@ export default class vertex extends Exchange {
             const subOrder = this.safeDict (trade, 'order', {});
             price = this.convertFromX18 (this.safeString (subOrder, 'priceX18'));
             amount = this.convertFromX18 (this.safeString (trade, 'base_filled'));
-            fee = {
-                'cost': this.convertFromX18 (this.safeString (trade, 'fee')),
-                'currency': undefined,
-            };
             if (Precise.stringLt (amount, '0')) {
                 side = 'sell';
             } else {
@@ -1994,6 +2006,7 @@ export default class vertex extends Exchange {
          * @name vertex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

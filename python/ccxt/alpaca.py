@@ -553,8 +553,8 @@ class alpaca(Exchange, ImplicitAPI):
         #       }
         #   }
         #
-        orderbooks = self.safe_value(response, 'orderbooks', {})
-        rawOrderbook = self.safe_value(orderbooks, id, {})
+        orderbooks = self.safe_dict(response, 'orderbooks', {})
+        rawOrderbook = self.safe_dict(orderbooks, id, {})
         timestamp = self.parse8601(self.safe_string(rawOrderbook, 't'))
         return self.parse_order_book(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's')
 
@@ -787,12 +787,17 @@ class alpaca(Exchange, ImplicitAPI):
         if isinstance(response, list):
             return self.parse_orders(response, None)
         else:
-            return response
+            return [
+                self.safe_order({
+                    'info': response,
+                }),
+            ]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.alpaca.markets/reference/getorderbyorderid
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1052,6 +1057,7 @@ class alpaca(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][api[0]])
         headers = headers if (headers is not None) else {}
         if api[1] == 'private':
+            self.check_required_credentials()
             headers['APCA-API-KEY-ID'] = self.apiKey
             headers['APCA-API-SECRET-KEY'] = self.secret
         query = self.omit(params, self.extract_params(path))

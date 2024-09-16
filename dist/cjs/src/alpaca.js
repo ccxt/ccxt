@@ -557,8 +557,8 @@ class alpaca extends alpaca$1 {
         //       }
         //   }
         //
-        const orderbooks = this.safeValue(response, 'orderbooks', {});
-        const rawOrderbook = this.safeValue(orderbooks, id, {});
+        const orderbooks = this.safeDict(response, 'orderbooks', {});
+        const rawOrderbook = this.safeDict(orderbooks, id, {});
         const timestamp = this.parse8601(this.safeString(rawOrderbook, 't'));
         return this.parseOrderBook(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
@@ -809,7 +809,11 @@ class alpaca extends alpaca$1 {
             return this.parseOrders(response, undefined);
         }
         else {
-            return response;
+            return [
+                this.safeOrder({
+                    'info': response,
+                }),
+            ];
         }
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -818,6 +822,7 @@ class alpaca extends alpaca$1 {
          * @name alpaca#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.alpaca.markets/reference/getorderbyorderid
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1092,6 +1097,7 @@ class alpaca extends alpaca$1 {
         let url = this.implodeHostname(this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
         if (api[1] === 'private') {
+            this.checkRequiredCredentials();
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }

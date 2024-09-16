@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NetworkError;
 use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -35,6 +36,7 @@ class htx extends \ccxt\async\htx {
                 'watchTickers' => false,
                 'watchTicker' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
@@ -106,6 +108,7 @@ class htx extends \ccxt\async\htx {
                 'api' => 'api', // or api-aws for clients hosted on AWS
                 'watchOrderBook' => array(
                     'maxRetries' => 3,
+                    'checksum' => true,
                 ),
                 'ws' => array(
                     'gunzip' => true,
@@ -121,7 +124,7 @@ class htx extends \ccxt\async\htx {
                         '2002' => '\\ccxt\\AuthenticationError', // array( action => 'sub', code => 2002, ch => 'accounts.update#2', message => 'invalid.auth.state' )
                         '2021' => '\\ccxt\\BadRequest',
                         '2001' => '\\ccxt\\BadSymbol', // array( action => 'sub', code => 2001, ch => 'orders#2ltcusdt', message => 'invalid.symbol')
-                        '2011' => '\\ccxt\\BadSymbol', // array( op => 'sub', cid => '1649149285', topic => 'orders_cross.hereltc-usdt', 'err-code' => 2011, 'err-msg' => "Contract doesn't exist.", ts => 1649149287637 )
+                        '2011' => '\\ccxt\\BadSymbol', // array( op => 'sub', cid => '1649149285', topic => 'orders_cross.ltc-usdt', 'err-code' => 2011, 'err-msg' => "Contract doesn't exist.", ts => 1649149287637 )
                         '2040' => '\\ccxt\\BadRequest', // array( op => 'sub', cid => '1649152947', 'err-code' => 2040, 'err-msg' => 'Missing required parameter.', ts => 1649152948684 )
                         '4007' => '\\ccxt\\BadRequest', // array( op => 'sub', cid => '1', topic => 'accounts_unify.USDT', 'err-code' => 4007, 'err-msg' => 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts => 1698419318540 )
                     ),
@@ -587,7 +590,10 @@ class htx extends \ccxt\async\htx {
             $orderbook['nonce'] = $version;
         }
         if (($prevSeqNum !== null) && $prevSeqNum > $orderbook['nonce']) {
-            throw new InvalidNonce($this->id . ' watchOrderBook() received a mesage out of order');
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+            }
         }
         $spotConditon = $market['spot'] && ($prevSeqNum === $orderbook['nonce']);
         $nonSpotCondition = $market['contract'] && ($version - 1 === $orderbook['nonce']);
@@ -688,7 +694,7 @@ class htx extends \ccxt\async\htx {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());

@@ -318,6 +318,10 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
     // todo: remove undefined check to make stricter
     if ($fee_object !== null) {
         assert(is_array($fee_object) && array_key_exists('cost', $fee_object), $key_string . ' fee object should contain \"cost\" key' . $log_text);
+        if ($fee_object['cost'] === null) {
+            return;  // todo: remove undefined check to make stricter
+        }
+        assert((is_int($fee_object['cost']) || is_float($fee_object['cost'])), $key_string . ' \"cost\" must be numeric type' . $log_text);
         // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
         assert(is_array($fee_object) && array_key_exists('currency', $fee_object), '\"' . $key_string . '\" fee object should contain \"currency\" key' . $log_text);
         assert_currency_code($exchange, $skipped_properties, $method, $entry, $fee_object['currency']);

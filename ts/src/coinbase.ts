@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees, LedgerEntry } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -269,8 +269,8 @@ export default class coinbase extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'taker': this.parseNumber ('0.006'),
-                    'maker': this.parseNumber ('0.004'),
+                    'taker': this.parseNumber ('0.012'),
+                    'maker': this.parseNumber ('0.006'), // {"pricing_tier":"Advanced 1","usd_from":"0","usd_to":"1000","taker_fee_rate":"0.012","maker_fee_rate":"0.006","aop_from":"","aop_to":""}
                     'tierBased': true,
                     'percentage': true,
                     'tiers': {
@@ -1386,6 +1386,10 @@ export default class coinbase extends Exchange {
         const marketType = this.safeStringLower (market, 'product_type');
         const tradingDisabled = this.safeBool (market, 'trading_disabled');
         const stablePairs = this.safeList (this.options, 'stablePairs', []);
+        const defaultTakerFee = this.safeNumber (this.fees['trading'], 'taker');
+        const defaultMakerFee = this.safeNumber (this.fees['trading'], 'maker');
+        const takerFee = this.inArray (id, stablePairs) ? 0.00001 : this.safeNumber (feeTier, 'taker_fee_rate', defaultTakerFee);
+        const makerFee = this.inArray (id, stablePairs) ? 0.0 : this.safeNumber (feeTier, 'maker_fee_rate', defaultMakerFee);
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
@@ -1405,8 +1409,8 @@ export default class coinbase extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': this.inArray (id, stablePairs) ? 0.00001 : this.safeNumber (feeTier, 'taker_fee_rate'),
-            'maker': this.inArray (id, stablePairs) ? 0.0 : this.safeNumber (feeTier, 'maker_fee_rate'),
+            'taker': takerFee,
+            'maker': makerFee,
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -2267,24 +2271,24 @@ export default class coinbase extends Exchange {
         return this.parseCustomBalance (response, params);
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name coinbase#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', undefined, 100);
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', undefined, 100) as LedgerEntry[];
         }
         let currency = undefined;
         if (code !== undefined) {
@@ -2306,8 +2310,28 @@ export default class coinbase extends Exchange {
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'next_starting_after');
         if ((cursor !== undefined) && (cursor !== '')) {
+            const lastFee = this.safeDict (last, 'fee');
             last['next_starting_after'] = cursor;
-            ledger[lastIndex] = last;
+            ledger[lastIndex] = {
+                'info': this.safeDict (last, 'info'),
+                'id': this.safeString (last, 'id'),
+                'timestamp': this.safeInteger (last, 'timestamp'),
+                'datetime': this.safeString (last, 'datetime'),
+                'direction': this.safeString (last, 'direction'),
+                'account': this.safeString (last, 'account'),
+                'referenceId': undefined,
+                'referenceAccount': undefined,
+                'type': this.safeString (last, 'type'),
+                'currency': this.safeString (last, 'currency'),
+                'amount': this.safeNumber (last, 'amount'),
+                'before': undefined,
+                'after': undefined,
+                'status': this.safeString (last, 'status'),
+                'fee': {
+                    'cost': this.safeNumber (lastFee, 'cost'),
+                    'currency': this.safeString (lastFee, 'currency'),
+                },
+            };
         }
         return ledger;
     }
@@ -2334,7 +2358,7 @@ export default class coinbase extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         // crypto deposit transaction
         //
@@ -2589,6 +2613,7 @@ export default class coinbase extends Exchange {
         }
         const currencyId = this.safeString (amountInfo, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         //
         // the address and txid do not belong to the unified ledger structure
         //
@@ -2624,7 +2649,7 @@ export default class coinbase extends Exchange {
                 accountId = parts[3];
             }
         }
-        return {
+        return this.safeLedgerEntry ({
             'info': item,
             'id': id,
             'timestamp': timestamp,
@@ -2640,7 +2665,7 @@ export default class coinbase extends Exchange {
             'after': undefined,
             'status': status,
             'fee': fee,
-        };
+        }, currency) as LedgerEntry;
     }
 
     async findAccountId (code, params = {}) {

@@ -10,6 +10,7 @@ public partial class whitebit
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/websocket/#kline"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -43,6 +44,7 @@ public partial class whitebit
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/websocket/#market-depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -69,6 +71,7 @@ public partial class whitebit
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/websocket/#market-statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -88,6 +91,7 @@ public partial class whitebit
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/public/websocket/#market-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -121,6 +125,7 @@ public partial class whitebit
     /// watches trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/websocket/#deals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -154,6 +159,7 @@ public partial class whitebit
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/websocket/#orders-pending"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -175,7 +181,7 @@ public partial class whitebit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -187,6 +193,8 @@ public partial class whitebit
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.whitebit.com/private/websocket/#balance-spot"/>  <br/>
+    /// See <see href="https://docs.whitebit.com/private/websocket/#balance-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

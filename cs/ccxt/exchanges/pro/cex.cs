@@ -16,6 +16,7 @@ public partial class cex : ccxt.cex
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -1101,7 +1102,7 @@ public partial class cex : ccxt.cex
         //     }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object incrementalId = this.safeNumber(data, "id");
+        object incrementalId = this.safeInteger(data, "id");
         object pair = this.safeString(data, "pair", "");
         object symbol = this.pairToSymbol(pair);
         object storedOrderBook = this.safeValue(this.orderbooks, symbol);
@@ -1289,6 +1290,7 @@ public partial class cex : ccxt.cex
         * @name cex#fetchOrderWs
         * @description fetches information on an order made by the user
         * @see https://docs.cex.io/#ws-api-get-order
+        * @param {string} id the order id
         * @param {string} symbol not used by cex fetchOrder
         * @param {object} [params] extra parameters specific to the cex api endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

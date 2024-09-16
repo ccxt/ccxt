@@ -16,14 +16,18 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWs' => true,
+                'createOrdersWs' => true,
+                'editOrderWs' => true,
                 'watchBalance' => false,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTicker' => false,
-                'watchTickers' => false,
+                'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPosition' => false,
             ),
             'urls' => array(
@@ -53,10 +57,97 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         ));
     }
 
+    public function create_orders_ws(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders using WebSocket post $request
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $url = $this->urls['api']['ws']['public'];
+            $ordersRequest = $this->createOrdersRequest ($orders, $params);
+            $wrapped = $this->wrap_as_post_action($ordersRequest);
+            $request = $this->safe_dict($wrapped, 'request', array());
+            $requestId = $this->safe_string($wrapped, 'requestId');
+            $response = Async\await($this->watch($url, $requestId, $request, $requestId));
+            $responseOjb = $this->safe_dict($response, 'response', array());
+            $data = $this->safe_dict($responseOjb, 'data', array());
+            $statuses = $this->safe_list($data, 'statuses', array());
+            return $this->parse_orders($statuses, null);
+        }) ();
+    }
+
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade $order using WebSocket post request
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-$order
+             * @param {string} $symbol unified $symbol of the market to create an $order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in market $orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->timeInForce] 'Gtc', 'Ioc', 'Alo'
+             * @param {bool} [$params->postOnly] true or false whether the $order is post-only
+             * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
+             * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+             * @param {string} [$params->clientOrderId] client $order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+             * @param {string} [$params->slippage] the slippage for market $order
+             * @param {string} [$params->vaultAddress] the vault address for $order
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             */
+            Async\await($this->load_markets());
+            list($order, $globalParams) = $this->parseCreateOrderArgs ($symbol, $type, $side, $amount, $price, $params);
+            $orders = Async\await($this->create_orders_ws(array( $order ), $globalParams));
+            return $orders[0];
+        }) ();
+    }
+
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+             * @param {string} $id cancel order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->timeInForce] 'Gtc', 'Ioc', 'Alo'
+             * @param {bool} [$params->postOnly] true or false whether the order is post-only
+             * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+             * @param {string} [$params->vaultAddress] the vault address for order
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $url = $this->urls['api']['ws']['public'];
+            $postRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
+            $wrapped = $this->wrap_as_post_action($postRequest);
+            $request = $this->safe_dict($wrapped, 'request', array());
+            $requestId = $this->safe_string($wrapped, 'requestId');
+            $response = Async\await($this->watch($url, $requestId, $request, $requestId));
+            // $response is the same array($this, 'edit_order')            $responseObject = $this->safe_dict($response, 'response', array());
+            $dataObject = $this->safe_dict($responseObject, 'data', array());
+            $statuses = $this->safe_list($dataObject, 'statuses', array());
+            $first = $this->safe_dict($statuses, 0, array());
+            return $this->parse_order($first, $market);
+        }) ();
+    }
+
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -77,6 +168,35 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             return $orderbook->limit ();
+        }) ();
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?$id=order-book-structure order book structures~ indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $subMessageHash = 'orderbook:' . $symbol;
+            $messageHash = 'unsubscribe:' . $subMessageHash;
+            $url = $this->urls['api']['ws']['public'];
+            $id = (string) $this->nonce();
+            $request = array(
+                'id' => $id,
+                'method' => 'unsubscribe',
+                'subscription' => array(
+                    'type' => 'l2Book',
+                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                ),
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
 
@@ -128,16 +248,70 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve ($orderbook, $messageHash);
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true);
+            $messageHash = 'tickers';
+            $url = $this->urls['api']['ws']['public'];
+            $request = array(
+                'method' => 'subscribe',
+                'subscription' => array(
+                    'type' => 'webData2', // allMids
+                    'user' => '0x0000000000000000000000000000000000000000',
+                ),
+            );
+            $tickers = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+            if ($this->newUpdates) {
+                return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
+            }
+            return $this->tickers;
+        }) ();
+    }
+
+    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true);
+            $subMessageHash = 'tickers';
+            $messageHash = 'unsubscribe:' . $subMessageHash;
+            $url = $this->urls['api']['ws']['public'];
+            $request = array(
+                'method' => 'unsubscribe',
+                'subscription' => array(
+                    'type' => 'webData2', // allMids
+                    'user' => '0x0000000000000000000000000000000000000000',
+                ),
+            );
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        }) ();
+    }
+
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handlePublicAddress ('watchMyTrades', $params);
@@ -162,6 +336,86 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             }
             return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
         }) ();
+    }
+
+    public function handle_ws_tickers(Client $client, $message) {
+        //
+        //     {
+        //         "channel" => "webData2",
+        //         "data" => {
+        //             "meta" => array(
+        //                 "universe" => array(
+        //                     array(
+        //                         "szDecimals" => 5,
+        //                         "name" => "BTC",
+        //                         "maxLeverage" => 50,
+        //                         "onlyIsolated" => false
+        //                     ),
+        //                     ...
+        //                 ),
+        //             ),
+        //             "assetCtxs" => array(
+        //                 array(
+        //                     "funding" => "0.00003005",
+        //                     "openInterest" => "2311.50778",
+        //                     "prevDayPx" => "63475.0",
+        //                     "dayNtlVlm" => "468043329.64289033",
+        //                     "premium" => "0.00094264",
+        //                     "oraclePx" => "64712.0",
+        //                     "markPx" => "64774.0",
+        //                     "midPx" => "64773.5",
+        //                     "impactPxs" => array(
+        //                         "64773.0",
+        //                         "64774.0"
+        //                     )
+        //                 ),
+        //                 ...
+        //             ),
+        //             "spotAssetCtxs" => array(
+        //                 array(
+        //                     "prevDayPx" => "0.20937",
+        //                     "dayNtlVlm" => "11188888.61984999",
+        //                     "markPx" => "0.19722",
+        //                     "midPx" => "0.197145",
+        //                     "circulatingSupply" => "598760557.12072003",
+        //                     "coin" => "PURR/USDC"
+        //                 ),
+        //                 ...
+        //             ),
+        //         }
+        //     }
+        //
+        // spot
+        $rawData = $this->safe_dict($message, 'data', array());
+        $spotAssets = $this->safe_list($rawData, 'spotAssetCtxs', array());
+        $parsedTickers = array();
+        for ($i = 0; $i < count($spotAssets); $i++) {
+            $assetObject = $spotAssets[$i];
+            $marketId = $this->safe_string($assetObject, 'coin');
+            $market = $this->safe_market($marketId, null, null, 'spot');
+            $ticker = $this->parse_ws_ticker($assetObject, $market);
+            $parsedTickers[] = $ticker;
+        }
+        // perpetuals
+        $meta = $this->safe_dict($rawData, 'meta', array());
+        $universe = $this->safe_list($meta, 'universe', array());
+        $assetCtxs = $this->safe_list($rawData, 'assetCtxs', array());
+        for ($i = 0; $i < count($universe); $i++) {
+            $data = $this->extend(
+                $this->safe_dict($universe, $i, array()),
+                $this->safe_dict($assetCtxs, $i, array())
+            );
+            $id = $data['name'] . '/USDC:USDC';
+            $market = $this->safe_market($id, null, null, 'swap');
+            $ticker = $this->parse_ws_ticker($data, $market);
+            $parsedTickers[] = $ticker;
+        }
+        $tickers = $this->index_by($parsedTickers, 'symbol');
+        $client->resolve ($tickers, 'tickers');
+    }
+
+    public function parse_ws_ticker($rawTicker, ?array $market = null): array {
+        return $this->parse_ticker($rawTicker, $market);
     }
 
     public function handle_my_trades(Client $client, $message) {
@@ -224,14 +478,17 @@ class hyperliquid extends \ccxt\async\hyperliquid {
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made in a $market
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
-             */
+            // s
+            // @method
+            // @name hyperliquid#watchTrades
+            // @description watches information on multiple $trades made in a $market
+            // @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+            // @param {string} $symbol unified $market $symbol of the $market $trades were made in
+            // @param {int} [$since] the earliest time in ms to fetch $trades for
+            // @param {int} [$limit] the maximum number of trade structures to retrieve
+            // @param {object} [$params] extra parameters specific to the exchange API endpoint
+            // @returns {objectarray()} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+            //
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -250,6 +507,33 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches information on multiple trades made in a $market
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             * @param {string} $symbol unified $market $symbol of the $market trades were made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $subMessageHash = 'trade:' . $symbol;
+            $messageHash = 'unsubscribe:' . $subMessageHash;
+            $url = $this->urls['api']['ws']['public'];
+            $request = array(
+                'method' => 'unsubscribe',
+                'subscription' => array(
+                    'type' => 'trades',
+                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                ),
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
 
@@ -291,7 +575,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // fetchMyTrades
         //
@@ -359,6 +643,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -385,6 +670,35 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
+    }
+
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $url = $this->urls['api']['ws']['public'];
+            $request = array(
+                'method' => 'unsubscribe',
+                'subscription' => array(
+                    'type' => 'candle',
+                    'coin' => $market['swap'] ? $market['base'] : $market['id'],
+                    'interval' => $timeframe,
+                ),
+            );
+            $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
+            $messagehash = 'unsubscribe:' . $subMessageHash;
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch($url, $messagehash, $message, $messagehash));
         }) ();
     }
 
@@ -426,16 +740,34 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve ($ohlcv, $messageHash);
     }
 
+    public function handle_ws_post(Client $client, array $message) {
+        //    {
+        //         channel => "post",
+        //         $data => {
+        //             $id => <number>,
+        //             $response => {
+        //                  type => "info" | "action" | "error",
+        //                  $payload => array( ... )
+        //         }
+        //    }
+        $data = $this->safe_dict($message, 'data');
+        $id = $this->safe_string($data, 'id');
+        $response = $this->safe_dict($data, 'response');
+        $payload = $this->safe_dict($response, 'payload');
+        $client->resolve ($payload, $id);
+    }
+
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $userAddress = null;
@@ -529,7 +861,123 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
+    public function handle_order_book_unsubscription(Client $client, array $subscription) {
+        //
+        //        "subscription":{
+        //           "type":"l2Book",
+        //           "coin":"BTC",
+        //           "nSigFigs":5,
+        //           "mantissa":null
+        //        }
+        //
+        $coin = $this->safe_string($subscription, 'coin');
+        $marketId = $this->coinToMarketId ($coin);
+        $symbol = $this->safe_symbol($marketId);
+        $subMessageHash = 'orderbook:' . $symbol;
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
+        }
+    }
+
+    public function handle_trades_unsubscription(Client $client, array $subscription) {
+        //
+        $coin = $this->safe_string($subscription, 'coin');
+        $marketId = $this->coinToMarketId ($coin);
+        $symbol = $this->safe_symbol($marketId);
+        $subMessageHash = 'trade:' . $symbol;
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+            unset($this->trades[$symbol]);
+        }
+    }
+
+    public function handle_tickers_unsubscription(Client $client, array $subscription) {
+        //
+        $subMessageHash = 'tickers';
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        $symbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            unset($this->tickers[$symbols[$i]]);
+        }
+    }
+
+    public function handle_ohlcv_unsubscription(Client $client, array $subscription) {
+        $coin = $this->safe_string($subscription, 'coin');
+        $marketId = $this->coinToMarketId ($coin);
+        $symbol = $this->safe_symbol($marketId);
+        $interval = $this->safe_string($subscription, 'interval');
+        $timeframe = $this->find_timeframe($interval);
+        $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                unset($this->ohlcvs[$symbol][$timeframe]);
+            }
+        }
+    }
+
+    public function handle_subscription_response(Client $client, $message) {
+        // {
+        //     "channel":"subscriptionResponse",
+        //     "data":{
+        //        "method":"unsubscribe",
+        //        "subscription":{
+        //           "type":"l2Book",
+        //           "coin":"BTC",
+        //           "nSigFigs":5,
+        //           "mantissa":null
+        //        }
+        //     }
+        // }
+        //
+        //  {
+        //      "channel":"subscriptionResponse",
+        //      "data":{
+        //         "method":"unsubscribe",
+        //         "subscription":{
+        //            "type":"trades",
+        //            "coin":"PURR/USDC"
+        //         }
+        //      }
+        //  }
+        //
+        $data = $this->safe_dict($message, 'data', array());
+        $method = $this->safe_string($data, 'method');
+        if ($method === 'unsubscribe') {
+            $subscription = $this->safe_dict($data, 'subscription', array());
+            $type = $this->safe_string($subscription, 'type');
+            if ($type === 'l2Book') {
+                $this->handle_order_book_unsubscription($client, $subscription);
+            } elseif ($type === 'trades') {
+                $this->handle_trades_unsubscription($client, $subscription);
+            } elseif ($type === 'webData2') {
+                $this->handle_tickers_unsubscription($client, $subscription);
+            } elseif ($type === 'candle') {
+                $this->handle_ohlcv_unsubscription($client, $subscription);
+            }
+        }
+    }
+
     public function handle_message(Client $client, $message) {
+        //
+        // {
+        //     "channel":"subscriptionResponse",
+        //     "data":{
+        //        "method":"unsubscribe",
+        //        "subscription":{
+        //           "type":"l2Book",
+        //           "coin":"BTC",
+        //           "nSigFigs":5,
+        //           "mantissa":null
+        //        }
+        //     }
+        // }
+        //
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -541,6 +989,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'candle' => array($this, 'handle_ohlcv'),
             'orderUpdates' => array($this, 'handle_order'),
             'userFills' => array($this, 'handle_my_trades'),
+            'webData2' => array($this, 'handle_ws_tickers'),
+            'post' => array($this, 'handle_ws_post'),
+            'subscriptionResponse' => array($this, 'handle_subscription_response'),
         );
         $exacMethod = $this->safe_value($methods, $topic);
         if ($exacMethod !== null) {
@@ -558,7 +1009,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'method' => 'ping',
         );
@@ -572,5 +1023,26 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         //
         $client->lastPong = $this->safe_integer($message, 'pong');
         return $message;
+    }
+
+    public function request_id(): float {
+        $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
+        $this->options['requestId'] = $requestId;
+        return $requestId;
+    }
+
+    public function wrap_as_post_action(array $request): array {
+        $requestId = $this->request_id();
+        return array(
+            'requestId' => $requestId,
+            'request' => array(
+                'method' => 'post',
+                'id' => $requestId,
+                'request' => array(
+                    'type' => 'action',
+                    'payload' => $request,
+                ),
+            ),
+        );
     }
 }

@@ -49,6 +49,7 @@ spl_autoload_register(function ($class) {
     }
     $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class);
     $class_name = str_replace('Web3\\', 'web3.php/src/', $class_name);
+    $class_name = str_replace('StarkNet\\', 'starknet.php/src/', $class_name);
     $class_name = str_replace('phpseclib\\Math\\BigInteger', 'phpseclib/Math/BigInteger', $class_name);
     $class_name = str_replace('Sop\\', 'Sop/', $class_name);
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
@@ -74,21 +75,19 @@ require_once PATH_TO_CCXT . 'OperationRejected.php';
 require_once PATH_TO_CCXT . 'NoChange.php';
 require_once PATH_TO_CCXT . 'MarginModeAlreadySet.php';
 require_once PATH_TO_CCXT . 'MarketClosed.php';
-require_once PATH_TO_CCXT . 'BadResponse.php';
-require_once PATH_TO_CCXT . 'NullResponse.php';
+require_once PATH_TO_CCXT . 'ManualInteractionNeeded.php';
 require_once PATH_TO_CCXT . 'InsufficientFunds.php';
 require_once PATH_TO_CCXT . 'InvalidAddress.php';
 require_once PATH_TO_CCXT . 'AddressPending.php';
 require_once PATH_TO_CCXT . 'InvalidOrder.php';
 require_once PATH_TO_CCXT . 'OrderNotFound.php';
 require_once PATH_TO_CCXT . 'OrderNotCached.php';
-require_once PATH_TO_CCXT . 'CancelPending.php';
 require_once PATH_TO_CCXT . 'OrderImmediatelyFillable.php';
 require_once PATH_TO_CCXT . 'OrderNotFillable.php';
 require_once PATH_TO_CCXT . 'DuplicateOrderId.php';
 require_once PATH_TO_CCXT . 'ContractUnavailable.php';
 require_once PATH_TO_CCXT . 'NotSupported.php';
-require_once PATH_TO_CCXT . 'ProxyError.php';
+require_once PATH_TO_CCXT . 'InvalidProxySettings.php';
 require_once PATH_TO_CCXT . 'ExchangeClosedByUser.php';
 require_once PATH_TO_CCXT . 'OperationFailed.php';
 require_once PATH_TO_CCXT . 'NetworkError.php';
@@ -97,7 +96,12 @@ require_once PATH_TO_CCXT . 'RateLimitExceeded.php';
 require_once PATH_TO_CCXT . 'ExchangeNotAvailable.php';
 require_once PATH_TO_CCXT . 'OnMaintenance.php';
 require_once PATH_TO_CCXT . 'InvalidNonce.php';
+require_once PATH_TO_CCXT . 'ChecksumError.php';
 require_once PATH_TO_CCXT . 'RequestTimeout.php';
+require_once PATH_TO_CCXT . 'BadResponse.php';
+require_once PATH_TO_CCXT . 'NullResponse.php';
+require_once PATH_TO_CCXT . 'CancelPending.php';
+require_once PATH_TO_CCXT . 'UnsubscribeError.php';
 
 
 require_once PATH_TO_WS_CCXT . 'ClientTrait.php';

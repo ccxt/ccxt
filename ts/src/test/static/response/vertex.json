@@ -42,7 +42,16 @@
                         "withdraw": true,
                         "networks": null,
                         "fee": null,
-                        "limits": null
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
                     }
                 }
             }
@@ -206,7 +215,7 @@
                         "order": null,
                         "takerOrMaker": null,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "ticker_id": "USDT_USDC",
                             "trade_id": "20295068",

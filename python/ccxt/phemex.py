@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Currencies, Currency, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -19,10 +19,10 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import CancelPending
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -2800,6 +2800,7 @@ class phemex(Exchange, ImplicitAPI):
         """
         :see: https://phemex-docs.github.io/#query-orders-by-ids
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2821,7 +2822,7 @@ class phemex(Exchange, ImplicitAPI):
         if market['settle'] == 'USDT':
             response = self.privateGetApiDataGFuturesOrdersByOrderId(self.extend(request, params))
         elif market['spot']:
-            response = self.privateGetSpotOrdersActive(self.extend(request, params))
+            response = self.privateGetApiDataSpotsOrdersByOrderId(self.extend(request, params))
         else:
             response = self.privateGetExchangeOrder(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
@@ -2833,7 +2834,10 @@ class phemex(Exchange, ImplicitAPI):
                     raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found')
                 else:
                     raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found')
-            order = self.safe_value(data, 0, {})
+            order = self.safe_dict(data, 0, {})
+        elif market['spot']:
+            rows = self.safe_list(data, 'rows', [])
+            order = self.safe_dict(rows, 0, {})
         return self.parse_order(order, market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2864,7 +2868,7 @@ class phemex(Exchange, ImplicitAPI):
         elif market['swap']:
             response = self.privateGetExchangeOrderList(self.extend(request, params))
         else:
-            response = self.privateGetSpotOrders(self.extend(request, params))
+            response = self.privateGetApiDataSpotsOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         rows = self.safe_list(data, 'rows', data)
         return self.parse_orders(rows, market, since, limit)
@@ -4233,7 +4237,7 @@ class phemex(Exchange, ImplicitAPI):
                 transfer['currency'] = code
         return transfer
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
