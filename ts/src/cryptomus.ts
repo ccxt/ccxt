@@ -673,10 +673,11 @@ export default class cryptomus extends Exchange {
         const base = this.safeCurrencyCode (market['base']);
         const quote = this.safeCurrencyCode (market['quote']);
         const request: Dict = {};
-        if (side === 'buy') {
+        const sideBuy = side === 'buy';
+        if (sideBuy) {
             request['from'] = quote;
             request['to'] = base;
-        } else if (side === 'sell') {
+        } else {
             request['from'] = base;
             request['to'] = quote;
         }
@@ -689,8 +690,7 @@ export default class cryptomus extends Exchange {
         [ cost, params ] = this.handleParamString (params, 'cost');
         let response = undefined;
         if (type === 'market') {
-            const sideBuy = side === 'buy';
-            if (side === 'buy') {
+            if (sideBuy) {
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 if (createMarketBuyOrderRequiresPrice) {
@@ -710,7 +710,11 @@ export default class cryptomus extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price parameter for a ' + type + ' order');
             } else {
                 request['price'] = priceToString;
+            }
+            if (sideBuy) {
                 request['amount'] = Precise.stringMul (amountToString, priceToString);
+            } else {
+                request['amount'] = amountToString;
             }
             response = await this.privatePostV2UserApiConvertLimit (this.extend (request, params));
         } else {
