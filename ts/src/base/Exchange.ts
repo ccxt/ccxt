@@ -2303,6 +2303,8 @@ export default class Exchange {
             } else {
                 throw new NotSupported (this.id + ' does not have a sandbox URL');
             }
+            // set flag
+            this.isSandboxMode = true;
         } else if ('apiBackup' in this.urls) {
             if (typeof this.urls['api'] === 'string') {
                 this.urls['api'] = this.urls['apiBackup'] as any;
@@ -2311,6 +2313,8 @@ export default class Exchange {
             }
             const newUrls = this.omit (this.urls, 'apiBackup');
             this.urls = newUrls;
+            // set flag
+            this.isSandboxMode = false;
         }
     }
 
