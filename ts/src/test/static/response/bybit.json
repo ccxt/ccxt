@@ -1933,11 +1933,14 @@
                         "account": null,
                         "referenceAccount": null,
                         "referenceId": null,
-                        "status": null,
+                        "status": "ok",
                         "amount": 0.0006935,
                         "before": 94.05001087,
                         "after": 94.05070437,
-                        "fee": 0,
+                        "fee": {
+                            "currency":"USDT",
+                            "cost":0
+                        },
                         "direction": "out",
                         "timestamp": 1707897600000,
                         "datetime": "2024-02-14T08:00:00.000Z",

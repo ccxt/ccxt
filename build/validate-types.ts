@@ -11,11 +11,9 @@ const skipMethods = [
     "fetchLeverageTiers",
     "fetchDepositWithdrawFees",
     "fetchFundingRate",
-    "fetchLedger",
     "fetchBorrowInterest",
     "withdraw",
     "fetchDepositWithdrawFee",
-    "fetchLedgerEntry",
     'watchTickers', // will be updated later
 ]
 
