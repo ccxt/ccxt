@@ -1153,12 +1153,20 @@ export default class bybit extends Exchange {
                     },
                 },
                 'swap': {
-                    'linear': 'custom1',
-                    'inverse': 'custom1',
+                    'linear': {
+                        'extends': 'custom1',
+                    },
+                    'inverse': {
+                        'extends': 'custom1',
+                    },
                 },
                 'future': {
-                    'linear': 'custom1',
-                    'inverse': 'custom1',
+                    'linear': {
+                        'extends': 'custom1',
+                    },
+                    'inverse': {
+                        'extends': 'custom1',
+                    },
                 },
             },
             'fees': {
