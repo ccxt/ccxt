@@ -1608,7 +1608,7 @@ export default class poloniex extends Exchange {
         return this.parseTrades (trades);
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1660,7 +1660,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     async fetchTradingFees (params = {}): Promise<TradingFees> {

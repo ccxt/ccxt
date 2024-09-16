@@ -2954,7 +2954,7 @@ export default class bybit extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'b', 'a');
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         // cross
         //     {

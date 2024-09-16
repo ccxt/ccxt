@@ -713,7 +713,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         //
         //     [
         //         {
@@ -837,7 +837,7 @@ export default class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {

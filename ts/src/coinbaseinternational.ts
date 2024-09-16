@@ -1579,7 +1579,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseBalance (balances);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         //    {
         //       "asset_id":"0-0-1",

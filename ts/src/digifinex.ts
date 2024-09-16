@@ -769,7 +769,7 @@ export default class digifinex extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         //
         // spot and margin
         //
@@ -873,8 +873,8 @@ export default class digifinex extends Exchange {
         //     }
         //
         const balanceRequest = (marketType === 'swap') ? 'data' : 'list';
-        const balances = this.safeValue (response, balanceRequest, []);
-        return this.parseBalance (balances);
+        const balances = this.safeList (response, balanceRequest, []);
+        return this.parseBalanceList (balances);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {

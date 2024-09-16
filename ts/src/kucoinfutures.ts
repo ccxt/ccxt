@@ -2206,7 +2206,7 @@ export default class kucoinfutures extends kucoin {
         };
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

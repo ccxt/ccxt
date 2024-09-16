@@ -672,7 +672,7 @@ export default class lykke extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         //
         //     [
         //         {
@@ -723,7 +723,7 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return this.parseBalance (payload);
+        return this.parseBalanceList (payload);
     }
 
     parseOrderStatus (status: Str) {

@@ -642,7 +642,7 @@ export default class btcalpha extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -667,7 +667,17 @@ export default class btcalpha extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetWallets (params);
-        return this.parseBalance (response);
+        //
+        //    [
+        //        {
+        //            "currency": "BTC",
+        //            "balance": 0.00000000,
+        //            "reserve": 0.00000000
+        //         }
+        //         ...
+        //    ]
+        //
+        return this.parseBalanceList (response);
     }
 
     parseOrderStatus (status: Str) {

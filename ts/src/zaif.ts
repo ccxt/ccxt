@@ -235,7 +235,38 @@ export default class zaif extends Exchange {
         };
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
+        //
+        //    {
+        //        "success": 1,
+        //        "return": {
+        //            "funds": {
+        //                "jpy": 15320,
+        //                "btc": 1.389,
+        //                "xem": 100.2,
+        //                "mona": 2600,
+        //                "pepecash": 0.1
+        //            },
+        //            "deposit": {
+        //                "jpy": 20440,
+        //                "btc": 1.479,
+        //                "xem": 100.2,
+        //                "mona": 3200,
+        //                "pepecash": 0.1
+        //            },
+        //            "rights": {
+        //                "info": 1,
+        //                "trade": 1,
+        //                "withdraw": 0,
+        //                "personal_info": 0,
+        //                "id_info": 0,
+        //            },
+        //            "trade_count": 18,
+        //            "open_orders": 3,
+        //            "server_time": 1401950833
+        //        }
+        //    }
+        //
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
         const result: Dict = {
@@ -273,6 +304,37 @@ export default class zaif extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
+        //
+        //    {
+        //        "success": 1,
+        //        "return": {
+        //            "funds": {
+        //                "jpy": 15320,
+        //                "btc": 1.389,
+        //                "xem": 100.2,
+        //                "mona": 2600,
+        //                "pepecash": 0.1
+        //            },
+        //            "deposit": {
+        //                "jpy": 20440,
+        //                "btc": 1.479,
+        //                "xem": 100.2,
+        //                "mona": 3200,
+        //                "pepecash": 0.1
+        //            },
+        //            "rights": {
+        //                "info": 1,
+        //                "trade": 1,
+        //                "withdraw": 0,
+        //                "personal_info": 0,
+        //                "id_info": 0,
+        //            },
+        //            "trade_count": 18,
+        //            "open_orders": 3,
+        //            "server_time": 1401950833
+        //        }
+        //    }
+        //
         return this.parseBalance (response);
     }
 

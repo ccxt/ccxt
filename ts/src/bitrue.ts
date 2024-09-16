@@ -911,7 +911,7 @@ export default class bitrue extends Exchange {
         };
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         // spot
         //

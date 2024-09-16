@@ -2071,7 +2071,7 @@ export default class krakenfutures extends Exchange {
         return balance;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         // cashAccount
         //

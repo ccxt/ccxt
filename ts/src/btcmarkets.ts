@@ -484,7 +484,18 @@ export default class btcmarkets extends Exchange {
         return this.parse8601 (this.safeString (response, 'timestamp'));
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
+        //
+        //    [
+        //        {
+        //            "assetName": "LTC",
+        //            "balance": "5",
+        //            "available": "5",
+        //            "locked": "0"
+        //        },
+        //        ...
+        //    ]
+        //
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -509,7 +520,18 @@ export default class btcmarkets extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccountsMeBalances (params);
-        return this.parseBalance (response);
+        //
+        //    [
+        //        {
+        //            "assetName": "LTC",
+        //            "balance": "5",
+        //            "available": "5",
+        //            "locked": "0"
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseBalanceList (response);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {

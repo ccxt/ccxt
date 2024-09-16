@@ -685,7 +685,7 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    parseBalance (response, type = undefined) {
+    parseBalance (response: Dict): Balances {
         //
         //     {
         //         "makerCommission":0.20,

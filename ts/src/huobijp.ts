@@ -1099,7 +1099,7 @@ export default class huobijp extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const balances = this.safeValue (response['data'], 'list', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {

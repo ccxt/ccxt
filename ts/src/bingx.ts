@@ -1929,7 +1929,7 @@ export default class bingx extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         // standard
         //

@@ -1551,7 +1551,7 @@ export default class whitebit extends Exchange {
         return response;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const balanceKeys = Object.keys (response);
         const result: Dict = {};
         for (let i = 0; i < balanceKeys.length; i++) {

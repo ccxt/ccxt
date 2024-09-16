@@ -846,7 +846,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         //
         //     [{
         //         "currency":"twd",
@@ -899,7 +899,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseBalance (balances);
+        return this.parseBalanceList (balances);
     }
 
     parseOrderStatus (status: Str) {

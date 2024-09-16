@@ -234,7 +234,19 @@ export default class independentreserve extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
+        //
+        //    [
+        //        {
+        //            "AccountGuid": "66dcac65-bf07-4e68-ad46-838f51100424",
+        //            "AccountStatus": "Active",
+        //            "AvailableBalance": 45.334,
+        //            "CurrencyCode": "Xbt",
+        //            "TotalBalance": 46.81
+        //        },
+        //        ...
+        //    ]
+        //
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -253,12 +265,25 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.independentreserve.com/features/api#GetAccounts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostGetAccounts (params);
-        return this.parseBalance (response);
+        //
+        //    [
+        //        {
+        //            "AccountGuid": "66dcac65-bf07-4e68-ad46-838f51100424",
+        //            "AccountStatus": "Active",
+        //            "AvailableBalance": 45.334,
+        //            "CurrencyCode": "Xbt",
+        //            "TotalBalance": 46.81
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseBalanceList (response);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {

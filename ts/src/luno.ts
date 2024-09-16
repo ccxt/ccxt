@@ -304,7 +304,7 @@ export default class luno extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const wallets = this.safeValue (response, 'balance', []);
         const result: Dict = {
             'info': response,

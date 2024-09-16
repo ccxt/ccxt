@@ -795,7 +795,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -830,15 +830,6 @@ export default class idex extends Exchange {
             'nonce': nonce1,
             'wallet': this.walletAddress,
         };
-        // [
-        //   {
-        //     "asset": "DIL",
-        //     "quantity": "0.00000000",
-        //     "availableForTrade": "0.00000000",
-        //     "locked": "0.00000000",
-        //     "usdValue": null
-        //   }, ...
-        // ]
         const extendedRequest = this.extend (request, params);
         if (extendedRequest['wallet'] === undefined) {
             throw new BadRequest (this.id + ' fetchBalance() wallet is undefined, set this.walletAddress or "address" in params');
@@ -855,7 +846,18 @@ export default class idex extends Exchange {
                 throw e;
             }
         }
-        return this.parseBalance (response);
+        //
+        //    [
+        //        {
+        //            "asset": "DIL",
+        //            "quantity": "0.00000000",
+        //            "availableForTrade": "0.00000000",
+        //            "locked": "0.00000000",
+        //            "usdValue": null
+        //        }, ...
+        //    ]
+        //
+        return this.parseBalanceList (response);
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

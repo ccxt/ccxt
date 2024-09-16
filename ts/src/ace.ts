@@ -980,7 +980,7 @@ export default class ace extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         //
         //     [
         //         {
@@ -1038,7 +1038,7 @@ export default class ace extends Exchange {
         //         "status": "200"
         //     }
         //
-        return this.parseBalance (balances);
+        return this.parseBalanceList (balances);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

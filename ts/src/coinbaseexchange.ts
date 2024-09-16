@@ -485,7 +485,66 @@ export default class coinbaseexchange extends Exchange {
         };
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
+        //
+        //    {
+        //        "description": "",
+        //        "schema": {
+        //            "type": "array",
+        //            "items": {
+        //                "type": "object",
+        //                "example": {
+        //                    "id": "7fd0abc0-e5ad-4cbb-8d54-f2b3f43364da",
+        //                    "currency": "USD",
+        //                    "balance": "0.0000000000000000",
+        //                    "hold": "0.0000000000000000",
+        //                    "available": "0",
+        //                    "profile_id": "8058d771-2d88-4f0f-ab6e-299c153d4308",
+        //                    "trading_enabled": true
+        //                },
+        //                "properties": {
+        //                    "id": {
+        //                        "type": "string"
+        //                    },
+        //                    "currency": {
+        //                        "type": "string"
+        //                    },
+        //                    "balance": {
+        //                        "type": "string"
+        //                    },
+        //                    "hold": {
+        //                        "type": "string"
+        //                    },
+        //                    "available": {
+        //                        "type": "string"
+        //                    },
+        //                    "profile_id": {
+        //                        "type": "string"
+        //                    },
+        //                    "trading_enabled": {
+        //                        "type": "boolean"
+        //                    },
+        //                    "pending_deposit": {
+        //                        "type": "string",
+        //                        "description": "Amount in pending deposits transfers."
+        //                    },
+        //                    "display_name": {
+        //                        "type": "string"
+        //                    }
+        //                },
+        //                "required": [
+        //                    "id",
+        //                    "currency",
+        //                    "balance",
+        //                    "hold",
+        //                    "available",
+        //                    "profile_id",
+        //                    "trading_enabled"
+        //                ]
+        //            }
+        //        }
+        //    }
+        //
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -511,6 +570,65 @@ export default class coinbaseexchange extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
+        //
+        //    {
+        //        "description": "",
+        //        "schema": {
+        //            "type": "array",
+        //            "items": {
+        //                "type": "object",
+        //                "example": {
+        //                    "id": "7fd0abc0-e5ad-4cbb-8d54-f2b3f43364da",
+        //                    "currency": "USD",
+        //                    "balance": "0.0000000000000000",
+        //                    "hold": "0.0000000000000000",
+        //                    "available": "0",
+        //                    "profile_id": "8058d771-2d88-4f0f-ab6e-299c153d4308",
+        //                    "trading_enabled": true
+        //                },
+        //                "properties": {
+        //                    "id": {
+        //                        "type": "string"
+        //                    },
+        //                    "currency": {
+        //                        "type": "string"
+        //                    },
+        //                    "balance": {
+        //                        "type": "string"
+        //                    },
+        //                    "hold": {
+        //                        "type": "string"
+        //                    },
+        //                    "available": {
+        //                        "type": "string"
+        //                    },
+        //                    "profile_id": {
+        //                        "type": "string"
+        //                    },
+        //                    "trading_enabled": {
+        //                        "type": "boolean"
+        //                    },
+        //                    "pending_deposit": {
+        //                        "type": "string",
+        //                        "description": "Amount in pending deposits transfers."
+        //                    },
+        //                    "display_name": {
+        //                        "type": "string"
+        //                    }
+        //                },
+        //                "required": [
+        //                    "id",
+        //                    "currency",
+        //                    "balance",
+        //                    "hold",
+        //                    "available",
+        //                    "profile_id",
+        //                    "trading_enabled"
+        //                ]
+        //            }
+        //        }
+        //    }
+        //
         return this.parseBalance (response);
     }
 

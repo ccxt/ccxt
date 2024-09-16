@@ -1160,7 +1160,7 @@ export default class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1204,7 +1204,7 @@ export default class bitstamp extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {

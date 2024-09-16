@@ -1989,7 +1989,7 @@ export default class bitteam extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         //     {
         //         "ok": true,

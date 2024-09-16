@@ -173,7 +173,24 @@ export default class coincheck extends Exchange {
         });
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
+        //
+        //    {
+        //        "success": true,
+        //        "jpy": "0.8401",
+        //        "btc": "7.75052654",
+        //        "jpy_reserved": "3000.0",
+        //        "btc_reserved": "3.5002",
+        //        "jpy_lend_in_use": "0",
+        //        "btc_lend_in_use": "0.3",
+        //        "jpy_lent": "0",
+        //        "btc_lent": "1.2",
+        //        "jpy_debt": "0",
+        //        "btc_debt": "0",
+        //        "jpy_tsumitate": "10000.0",
+        //        "btc_tsumitate": "0.4034"
+        //    }
+        //
         const result: Dict = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
@@ -202,6 +219,23 @@ export default class coincheck extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccountsBalance (params);
+        //
+        //    {
+        //        "success": true,
+        //        "jpy": "0.8401",
+        //        "btc": "7.75052654",
+        //        "jpy_reserved": "3000.0",
+        //        "btc_reserved": "3.5002",
+        //        "jpy_lend_in_use": "0",
+        //        "btc_lend_in_use": "0.3",
+        //        "jpy_lent": "0",
+        //        "btc_lent": "1.2",
+        //        "jpy_debt": "0",
+        //        "btc_debt": "0",
+        //        "jpy_tsumitate": "10000.0",
+        //        "btc_tsumitate": "0.4034"
+        //    }
+        //
         return this.parseBalance (response);
     }
 

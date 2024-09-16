@@ -757,7 +757,7 @@ export default class ascendex extends Exchange {
         ];
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

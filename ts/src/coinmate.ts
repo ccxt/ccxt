@@ -320,7 +320,22 @@ export default class coinmate extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
+        //
+        //    {
+        //        "error": false,
+        //        "errorMessage": null,
+        //        "data": {
+        //            "EUR": {
+        //                "currency": "EUR",
+        //                "balance": 19057043.75233651,
+        //                "reserved": 6.4958894,
+        //                "available": 19057037.25644711
+        //            },
+        //            ...
+        //        }
+        //    }
+        //
         const balances = this.safeValue (response, 'data', {});
         const result: Dict = { 'info': response };
         const currencyIds = Object.keys (balances);
@@ -348,6 +363,21 @@ export default class coinmate extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostBalances (params);
+        //
+        //    {
+        //        "error": false,
+        //        "errorMessage": null,
+        //        "data": {
+        //            "EUR": {
+        //                "currency": "EUR",
+        //                "balance": 19057043.75233651,
+        //                "reserved": 6.4958894,
+        //                "available": 19057037.25644711
+        //            },
+        //            ...
+        //        }
+        //    }
+        //
         return this.parseBalance (response);
     }
 
