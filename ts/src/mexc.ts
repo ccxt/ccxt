@@ -3959,6 +3959,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#reduceMargin
          * @description remove margin from a position
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3972,6 +3973,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#addMargin
          * @description add margin
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3985,6 +3987,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#setLeverage
          * @description set the level of leverage for a market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4017,6 +4020,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -4134,6 +4138,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -4168,6 +4173,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchFundingRateHistory
          * @description fetches historical funding rate prices
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] not used by mexc, but filtered internally by ccxt
          * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
