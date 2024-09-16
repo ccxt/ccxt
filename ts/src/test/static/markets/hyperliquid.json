@@ -40,16 +40,16 @@
             "maxLeverage": "10",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "32931296.0",
-            "prevDayPx": "0.010144",
-            "dayNtlVlm": "595800.244757",
+            "openInterest": "32215268.0",
+            "prevDayPx": "0.0101",
+            "dayNtlVlm": "601402.58994",
             "premium": "0.0",
-            "oraclePx": "0.009245",
-            "markPx": "0.009237",
-            "midPx": "0.009239",
+            "oraclePx": "0.009227",
+            "markPx": "0.009221",
+            "midPx": "0.009219",
             "impactPxs": [
-                "0.009226",
-                "0.009246"
+                "0.009208",
+                "0.009229"
             ],
             "baseId": 75
         }
@@ -78,7 +78,7 @@
         "contractSize": 1,
         "precision": {
             "amount": 5,
-            "price": 6
+            "price": 5
         },
         "limits": {
             "leverage": {
@@ -95,16 +95,16 @@
             "maxLeverage": "50",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "4884.68978",
-            "prevDayPx": "60040.0",
-            "dayNtlVlm": "441104429.16779995",
-            "premium": "-0.00027644",
-            "oraclePx": "57878.0",
-            "markPx": "57858.0",
-            "midPx": "57861.5",
+            "openInterest": "4901.38098",
+            "prevDayPx": "60124.0",
+            "dayNtlVlm": "453845229.9745996",
+            "premium": "0.00005369",
+            "oraclePx": "57734.0",
+            "markPx": "57732.0",
+            "midPx": "57738.5",
             "impactPxs": [
-                "57861.0",
-                "57862.0"
+                "57737.1",
+                "57739.0"
             ],
             "baseId": 0
         }
@@ -150,16 +150,16 @@
             "maxLeverage": "20",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "691196.9",
-            "prevDayPx": "135.19",
-            "dayNtlVlm": "66293612.99769996",
-            "premium": "0.0",
-            "oraclePx": "130.84",
-            "markPx": "130.83",
-            "midPx": "130.835",
+            "openInterest": "688844.3",
+            "prevDayPx": "135.34",
+            "dayNtlVlm": "66713566.02469995",
+            "premium": "-0.00007656",
+            "oraclePx": "130.61",
+            "markPx": "130.59",
+            "midPx": "130.595",
             "impactPxs": [
-                "130.8262",
-                "130.84"
+                "130.5809",
+                "130.6"
             ],
             "baseId": 5
         }
@@ -205,16 +205,16 @@
             "maxLeverage": "50",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "79514.8372",
-            "prevDayPx": "2403.8",
-            "dayNtlVlm": "219404839.72116005",
-            "premium": "-0.00017539",
-            "oraclePx": "2280.6",
-            "markPx": "2280.3",
-            "midPx": "2280.15",
+            "openInterest": "77573.9136",
+            "prevDayPx": "2406.0",
+            "dayNtlVlm": "223471018.15140003",
+            "premium": "-0.00030744",
+            "oraclePx": "2276.9",
+            "markPx": "2276.1",
+            "midPx": "2276.15",
             "impactPxs": [
-                "2280.1",
-                "2280.2"
+                "2276.1",
+                "2276.2"
             ],
             "baseId": 1
         }
@@ -260,16 +260,16 @@
             "maxLeverage": "20",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "5032540.0",
-            "prevDayPx": "0.34674",
-            "dayNtlVlm": "541042.10176",
-            "premium": "-0.00014303",
-            "oraclePx": "0.3286",
-            "markPx": "0.32842",
-            "midPx": "0.32839",
+            "openInterest": "5033512.0",
+            "prevDayPx": "0.34876",
+            "dayNtlVlm": "539721.11512",
+            "premium": "-0.00065703",
+            "oraclePx": "0.32875",
+            "markPx": "0.32854",
+            "midPx": "0.32848",
             "impactPxs": [
-                "0.328317",
-                "0.328553"
+                "0.32841",
+                "0.328534"
             ],
             "baseId": 65
         }
@@ -303,11 +303,11 @@
         },
         "marginModes": {},
         "info": {
-            "prevDayPx": "0.13061",
-            "dayNtlVlm": "2180749.62525",
-            "markPx": "0.13138",
-            "midPx": "0.131415",
-            "circulatingSupply": "598449400.68904996",
+            "prevDayPx": "0.1312",
+            "dayNtlVlm": "2177753.48562",
+            "markPx": "0.1307",
+            "midPx": "0.130705",
+            "circulatingSupply": "598449395.85017002",
             "coin": "PURR/USDC",
             "tokens": [
                 1,
