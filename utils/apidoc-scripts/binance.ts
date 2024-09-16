@@ -14,7 +14,7 @@ class binance extends ParserBase {
         'dapi': 'https://dapi.binance.com/dapi/v1/exchangeInfo',
         'fapi': 'https://fapi.binance.com/fapi/v1/exchangeInfo',
         'eapi': 'https://eapi.binance.com/eapi/v1/exchangeInfo',
-        'papi': 2400, // papi doesn't have its own limits documented, but is said to belong to fapi/dapi, so same max-requests-per-minute
+        'papi': 6000, // https://t.me/binance_api_english/375933
         'dapiData': 2400,
         'fapiData': 2400,
     };
