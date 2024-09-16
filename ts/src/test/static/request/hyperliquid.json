@@ -361,7 +361,7 @@
                   0.5,
                   55.423434234
                 ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"55.423\",\"s\":\"0.5\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1726519973492,\"signature\":{\"r\":\"0xf308ca59b87e83d9bf559e0977b3842a5c60f6c0d84ce6278270d86a01c945ff\",\"s\":\"0x7ac1e8412972624409312685422fbfc325fbf7f9cbb133cca5a6980650d66e47\",\"v\":28}}"
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":true,\"p\":\"55.423\",\"s\":\"0.5\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1726519973492,\"signature\":{\"r\":\"0xf308ca59b87e83d9bf559e0977b3842a5c60f6c0d84ce6278270d86a01c945ff\",\"s\":\"0x7ac1e8412972624409312685422fbfc325fbf7f9cbb133cca5a6980650d66e47\",\"v\":28}}"
             },
             {
                 "description": "SOL swap order price should have 5 significan digits and 2 decimals",
@@ -374,7 +374,7 @@
                   0.5,
                   100.3424324
                 ],
-                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":false,\"p\":\"100.34\",\"s\":\"0.5\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1726520138074,\"signature\":{\"r\":\"0xa144d396caa8b1fdb10594f998b57ec6ac387331647b781a555a3d3a829bd6f4\",\"s\":\"0x58ab6363a56b7c0f1380b1a233f6b53245ce9d4fc815f55ac3d3dd3a1ce56181\",\"v\":27}}"
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":5,\"b\":false,\"p\":\"100.34\",\"s\":\"0.5\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1726520138074,\"signature\":{\"r\":\"0xa144d396caa8b1fdb10594f998b57ec6ac387331647b781a555a3d3a829bd6f4\",\"s\":\"0x58ab6363a56b7c0f1380b1a233f6b53245ce9d4fc815f55ac3d3dd3a1ce56181\",\"v\":27}}"
             }
         ],
         "createOrders": [
