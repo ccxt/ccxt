@@ -358,7 +358,7 @@ export default class hyperliquid extends Exchange {
         const parts = price.split ('.');
         const secondPart = this.safeString (parts, 1, '');
         const partsLength = secondPart.length;
-        return partsLength > 1 ? partsLength : 0;
+        return partsLength;
     }
 
     async fetchSpotMarkets (params = {}): Promise<Market[]> {
