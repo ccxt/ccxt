@@ -31,7 +31,9 @@
             },
             "amount": {},
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 10
+            }
         },
         "marginModes": {},
         "info": {
@@ -40,16 +42,16 @@
             "maxLeverage": "10",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "36410734.0",
-            "prevDayPx": "0.009912",
-            "dayNtlVlm": "843869.828006",
-            "premium": "-0.00065239",
-            "oraclePx": "0.009197",
-            "markPx": "0.009192",
-            "midPx": "0.009189",
+            "openInterest": "40171458.0",
+            "prevDayPx": "0.009559",
+            "dayNtlVlm": "630891.175177",
+            "premium": "-0.00085197",
+            "oraclePx": "0.00939",
+            "markPx": "0.00938",
+            "midPx": "0.009379",
             "impactPxs": [
-                "0.009185",
-                "0.009191"
+                "0.009376",
+                "0.009382"
             ],
             "baseId": 75
         }
@@ -86,7 +88,9 @@
             },
             "amount": {},
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 10
+            }
         },
         "marginModes": {},
         "info": {
@@ -95,16 +99,16 @@
             "maxLeverage": "50",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "4809.40132",
-            "prevDayPx": "59780.0",
-            "dayNtlVlm": "516341447.97345072",
-            "premium": "-0.00022752",
-            "oraclePx": "58016.0",
-            "markPx": "58014.0",
-            "midPx": "58001.5",
+            "openInterest": "4860.76306",
+            "prevDayPx": "59020.0",
+            "dayNtlVlm": "403052868.24544066",
+            "premium": "-0.00025449",
+            "oraclePx": "58941.0",
+            "markPx": "58923.0",
+            "midPx": "58925.5",
             "impactPxs": [
-                "58001.0",
-                "58002.8"
+                "58925.0",
+                "58926.0"
             ],
             "baseId": 0
         }
@@ -141,7 +145,9 @@
             },
             "amount": {},
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 10
+            }
         },
         "marginModes": {},
         "info": {
@@ -150,16 +156,16 @@
             "maxLeverage": "20",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "687613.8",
-            "prevDayPx": "133.26",
-            "dayNtlVlm": "76969960.65129983",
-            "premium": "0.0",
-            "oraclePx": "130.78",
-            "markPx": "130.78",
-            "midPx": "130.775",
+            "openInterest": "670378.48",
+            "prevDayPx": "132.2",
+            "dayNtlVlm": "69242191.25269997",
+            "premium": "0.00015102",
+            "oraclePx": "132.43",
+            "markPx": "132.39",
+            "midPx": "132.455",
             "impactPxs": [
-                "130.76",
-                "130.79"
+                "132.45",
+                "132.4695"
             ],
             "baseId": 5
         }
@@ -196,7 +202,9 @@
             },
             "amount": {},
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 10
+            }
         },
         "marginModes": {},
         "info": {
@@ -205,16 +213,16 @@
             "maxLeverage": "50",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "86657.0618",
-            "prevDayPx": "2377.0",
-            "dayNtlVlm": "257268759.83585006",
-            "premium": "0.00040848",
-            "oraclePx": "2301.2",
-            "markPx": "2302.4",
-            "midPx": "2302.45",
+            "openInterest": "82260.911",
+            "prevDayPx": "2316.4",
+            "dayNtlVlm": "180940345.04384011",
+            "premium": "0.00004325",
+            "oraclePx": "2311.9",
+            "markPx": "2312.4",
+            "midPx": "2312.45",
             "impactPxs": [
-                "2302.14",
-                "2302.5"
+                "2312.0",
+                "2312.5"
             ],
             "baseId": 1
         }
@@ -251,7 +259,9 @@
             },
             "amount": {},
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 10
+            }
         },
         "marginModes": {},
         "info": {
@@ -260,16 +270,16 @@
             "maxLeverage": "20",
             "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "5024322.0",
-            "prevDayPx": "0.34354",
-            "dayNtlVlm": "575885.03009",
-            "premium": "-0.00022693",
-            "oraclePx": "0.3305",
-            "markPx": "0.33035",
-            "midPx": "0.330335",
+            "openInterest": "5069486.0",
+            "prevDayPx": "0.33606",
+            "dayNtlVlm": "237499.13368",
+            "premium": "-0.00048438",
+            "oraclePx": "0.33445",
+            "markPx": "0.33417",
+            "midPx": "0.334215",
             "impactPxs": [
-                "0.330223",
-                "0.330425"
+                "0.334135",
+                "0.334288"
             ],
             "baseId": 65
         }
@@ -299,15 +309,17 @@
             "leverage": {},
             "amount": {},
             "price": {},
-            "cost": {}
+            "cost": {
+                "min": 10
+            }
         },
         "marginModes": {},
         "info": {
-            "prevDayPx": "0.12879",
-            "dayNtlVlm": "2215774.50503",
-            "markPx": "0.13084",
-            "midPx": "0.130845",
-            "circulatingSupply": "598448975.45502996",
+            "prevDayPx": "0.13414",
+            "dayNtlVlm": "1804263.16197",
+            "markPx": "0.13172",
+            "midPx": "0.131725",
+            "circulatingSupply": "598447701.53980005",
             "coin": "PURR/USDC",
             "tokens": [
                 1,
