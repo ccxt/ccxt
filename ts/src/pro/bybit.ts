@@ -620,8 +620,8 @@ export default class bybit extends bybitRest {
 
     parseWsBidAsk (orderbook, market = undefined) {
         const timestamp = this.safeInteger (orderbook, 'timestamp');
-        const bids = this.sortBy (this.safeList (orderbook, 'bids', []), 0);
-        const asks = this.sortBy (this.safeList (orderbook, 'asks', []), 0);
+        const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
+        const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);
         const bestBid = this.safeList (bids, 0, []);
         const bestAsk = this.safeList (asks, 0, []);
         return this.safeTicker ({
