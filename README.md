@@ -20,7 +20,7 @@ Current feature list:
 
 
 ## Sponsored Promotion
-[![hashkey-campaign](https://github.com/user-attachments/assets/1622ba7d-637d-41e3-9ad4-d61a6ea69881)](https://support.global.hashkey.com/hc/en-us/articles/15485543021468-Trade-Through-CCXT-to-Grab-up-to-1-000-USDT-30-Day-VIP5-Trial)
+[![bitmart-campaign](https://github-production-user-asset-6210df.s3.amazonaws.com/43336371/368140830-0148e114-a937-40b4-8cc3-f836ae1bfafe.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240917%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240917T111656Z&X-Amz-Expires=300&X-Amz-Signature=e2fcc2cec4c61cf400bbcc41af23efffbe8d2419841bb50fd11bafaf9b1b7d45&X-Amz-SignedHeaders=host&actor_id=43336371&key_id=0&repo_id=91253698)](https://www.bitmart.com/activity/BitMartxCCXT/en-US)
 
 ## See Also
 
