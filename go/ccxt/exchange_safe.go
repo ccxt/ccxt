@@ -259,7 +259,7 @@ func (this *Exchange) SafeStringUpper(obj interface{}, key interface{}, defaultV
 	if res != nil {
 		return strings.ToUpper(res.(string))
 	}
-	return "" // check this return type
+	return nil // check this return type
 }
 
 func (this *Exchange) SafeStringLower(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
@@ -268,7 +268,7 @@ func (this *Exchange) SafeStringLower(obj interface{}, key interface{}, defaultV
 	if res != "" && res != nil {
 		return strings.ToLower(res.(string))
 	}
-	return "" // check this return type
+	return nil // check this return type
 }
 
 func (this *Exchange) SafeStringLower2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
@@ -277,7 +277,7 @@ func (this *Exchange) SafeStringLower2(obj interface{}, key interface{}, key2 in
 	if res != "" && res != nil {
 		return strings.ToLower(res.(string))
 	}
-	return "" // check this return type
+	return nil // check this return type
 }
 
 func (this *Exchange) SafeStringUpper2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
@@ -286,7 +286,7 @@ func (this *Exchange) SafeStringUpper2(obj interface{}, key interface{}, key2 in
 	if res != "" && res != nil {
 		return strings.ToUpper(res.(string))
 	}
-	return "" // check this return type
+	return nil // check this return type
 }
 
 func (this *Exchange) SafeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
