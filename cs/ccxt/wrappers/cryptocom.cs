@@ -30,7 +30,7 @@ public partial class cryptocom
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://exchange-docs.crypto.com/spot/index.html#public-get-ticker"/>  <br/>
+    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers"/>  <br/>
     /// See <see href="https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -566,6 +566,7 @@ public partial class cryptocom
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

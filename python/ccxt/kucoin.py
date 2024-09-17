@@ -3601,7 +3601,7 @@ class kucoin(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         hf = None
         hf, params = self.handle_hf_and_params(params)
-        if hf:
+        if hf and (type != 'main'):
             type = 'trade_hf'
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
         response = None
@@ -4742,7 +4742,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string_2(response, 'msg', 'data', '')
-        feedback = self.id + ' ' + message
+        feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

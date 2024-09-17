@@ -1095,6 +1095,7 @@ public partial class xt : Exchange
         object maxCost = null;
         object minPrice = null;
         object maxPrice = null;
+        object amountPrecision = null;
         for (object i = 0; isLessThan(i, getArrayLength(filters)); postFixIncrement(ref i))
         {
             object entry = getValue(filters, i);
@@ -1103,6 +1104,7 @@ public partial class xt : Exchange
             {
                 minAmount = this.safeNumber(entry, "min");
                 maxAmount = this.safeNumber(entry, "max");
+                amountPrecision = this.safeNumber(entry, "tickSize");
             }
             if (isTrue(isEqual(filter, "QUOTE_QTY")))
             {
@@ -1113,6 +1115,10 @@ public partial class xt : Exchange
                 minPrice = this.safeNumber(entry, "min");
                 maxPrice = this.safeNumber(entry, "max");
             }
+        }
+        if (isTrue(isEqual(amountPrecision, null)))
+        {
+            amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         }
         object underlyingType = this.safeString(market, "underlyingType");
         object linear = null;
@@ -1201,7 +1207,7 @@ public partial class xt : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
-                { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision"))) },
+                { "amount", amountPrecision },
                 { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseCoinPrecision"))) },
                 { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quoteCoinPrecision"))) },
             } },
@@ -1344,7 +1350,7 @@ public partial class xt : Exchange
         //     }
         //
         object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? "v" : "a";
-        return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, volumeIndex, "v")};
+        return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)};
     }
 
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)

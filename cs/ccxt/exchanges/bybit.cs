@@ -916,6 +916,7 @@ public partial class bybit : Exchange
                     { "3200300", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Not supported symbols", typeof(BadSymbol) },
                     { "Request timeout", typeof(RequestTimeout) },
                     { "unknown orderInfo", typeof(OrderNotFound) },
                     { "invalid api_key", typeof(AuthenticationError) },

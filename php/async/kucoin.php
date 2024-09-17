@@ -3837,7 +3837,7 @@ class kucoin extends Exchange {
             $params = $this->omit($params, 'type');
             $hf = null;
             list($hf, $params) = $this->handle_hf_and_params($params);
-            if ($hf) {
+            if ($hf && ($type !== 'main')) {
                 $type = 'trade_hf';
             }
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
@@ -5079,7 +5079,7 @@ class kucoin extends Exchange {
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string_2($response, 'msg', 'data', '');
-        $feedback = $this->id . ' ' . $message;
+        $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

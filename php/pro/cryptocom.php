@@ -10,7 +10,6 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
 use ccxt\ChecksumError;
-use ccxt\UnsubscribeError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -22,7 +21,8 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'ws' => true,
                 'watchBalance' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchMyTrades' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
@@ -391,7 +391,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 $messageHashes[] = 'unsubscribe:trades:' . $market['symbol'];
                 $topics[] = $currentTopic;
             }
-            return Async\await($this->un_watch_public_multiple('trade', $symbols, $messageHashes, $topics, $topics, $params));
+            return Async\await($this->un_watch_public_multiple('trades', $symbols, $messageHashes, $topics, $topics, $params));
         }) ();
     }
 
@@ -503,40 +503,215 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#$ticker-instrument_name
+             * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $messageHashes = array();
+            $marketIds = $this->market_ids($symbols);
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $messageHashes[] = 'ticker.' . $marketId;
+            }
+            $url = $this->urls['api']['ws']['public'];
+            $id = $this->nonce();
+            $request = array(
+                'method' => 'subscribe',
+                'params' => array(
+                    'channels' => $messageHashes,
+                ),
+                'nonce' => $id,
+            );
+            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+            if ($this->newUpdates) {
+                $result = array();
+                $result[$ticker['symbol']] = $ticker;
+                return $result;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * unWatches a price ticker
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+             * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $messageHashes = array();
+            $subMessageHashes = array();
+            $marketIds = $this->market_ids($symbols);
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $symbol = $symbols[$i];
+                $subMessageHashes[] = 'ticker.' . $marketId;
+                $messageHashes[] = 'unsubscribe:ticker:' . $symbol;
+            }
+            return Async\await($this->un_watch_public_multiple('ticker', $symbols, $messageHashes, $subMessageHashes, $subMessageHashes, $params));
+        }) ();
+    }
+
     public function handle_ticker(Client $client, $message) {
         //
-        // {
-        //     "info":{
-        //        "instrument_name":"BTC_USDT",
-        //        "subscription":"ticker.BTC_USDT",
-        //        "channel":"ticker",
-        //        "data":array(
-        //           {
-        //              "i":"BTC_USDT",
-        //              "b":43063.19,
-        //              "k":43063.2,
-        //              "a":43063.19,
-        //              "t":1648121165658,
-        //              "v":43573.912409,
-        //              "h":43498.51,
-        //              "l":41876.58,
-        //              "c":1087.43
-        //           }
-        //        )
+        //     {
+        //       "instrument_name" => "ETHUSD-PERP",
+        //       "subscription" => "ticker.ETHUSD-PERP",
+        //       "channel" => "ticker",
+        //       "data" => array(
+        //         {
+        //           "h" => "2400.20",
+        //           "l" => "2277.10",
+        //           "a" => "2335.25",
+        //           "c" => "-0.0022",
+        //           "b" => "2335.10",
+        //           "bs" => "5.4000",
+        //           "k" => "2335.16",
+        //           "ks" => "1.9970",
+        //           "i" => "ETHUSD-PERP",
+        //           "v" => "1305697.6462",
+        //           "vv" => "3058704939.17",
+        //           "oi" => "161646.3614",
+        //           "t" => 1726069647560
+        //         }
+        //       )
         //     }
-        //  }
         //
+        $this->handle_bid_ask($client, $message);
         $messageHash = $this->safe_string($message, 'subscription');
         $marketId = $this->safe_string($message, 'instrument_name');
         $market = $this->safe_market($marketId);
         $data = $this->safe_value($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $data[$i];
-            $parsed = $this->parse_ticker($ticker, $market);
+            $parsed = $this->parse_ws_ticker($ticker, $market);
             $symbol = $parsed['symbol'];
             $this->tickers[$symbol] = $parsed;
             $client->resolve ($parsed, $messageHash);
         }
+    }
+
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
+        //
+        //     {
+        //       "h" => "2400.20",
+        //       "l" => "2277.10",
+        //       "a" => "2335.25",
+        //       "c" => "-0.0022",
+        //       "b" => "2335.10",
+        //       "bs" => "5.4000",
+        //       "k" => "2335.16",
+        //       "ks" => "1.9970",
+        //       "i" => "ETHUSD-PERP",
+        //       "v" => "1305697.6462",
+        //       "vv" => "3058704939.17",
+        //       "oi" => "161646.3614",
+        //       "t" => 1726069647560
+        //     }
+        //
+        $timestamp = $this->safe_integer($ticker, 't');
+        $marketId = $this->safe_string($ticker, 'i');
+        $market = $this->safe_market($marketId, $market, '_');
+        $quote = $this->safe_string($market, 'quote');
+        $last = $this->safe_string($ticker, 'a');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_number($ticker, 'h'),
+            'low' => $this->safe_number($ticker, 'l'),
+            'bid' => $this->safe_number($ticker, 'b'),
+            'bidVolume' => $this->safe_number($ticker, 'bs'),
+            'ask' => $this->safe_number($ticker, 'k'),
+            'askVolume' => $this->safe_number($ticker, 'ks'),
+            'vwap' => null,
+            'open' => null,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => $this->safe_string($ticker, 'c'),
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, 'v'),
+            'quoteVolume' => ($quote === 'USD') ? $this->safe_string($ticker, 'vv') : null,
+            'info' => $ticker,
+        ), $market);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $messageHashes = array();
+            $topics = array();
+            $marketIds = $this->market_ids($symbols);
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $messageHashes[] = 'bidask.' . $symbols[$i];
+                $topics[] = 'ticker.' . $marketId;
+            }
+            $url = $this->urls['api']['ws']['public'];
+            $id = $this->nonce();
+            $request = array(
+                'method' => 'subscribe',
+                'params' => array(
+                    'channels' => $topics,
+                ),
+                'nonce' => $id,
+            );
+            $newTickers = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        $data = $this->safe_list($message, 'data', array());
+        $ticker = $this->safe_dict($data, 0, array());
+        $parsedTicker = $this->parse_ws_bid_ask($ticker);
+        $symbol = $parsedTicker['symbol'];
+        $this->bidsasks[$symbol] = $parsedTicker;
+        $messageHash = 'bidask.' . $symbol;
+        $client->resolve ($parsedTicker, $messageHash);
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'i');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 't');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string($ticker, 'k'),
+            'askVolume' => $this->safe_string($ticker, 'ks'),
+            'bid' => $this->safe_string($ticker, 'b'),
+            'bidVolume' => $this->safe_string($ticker, 'bs'),
+            'info' => $ticker,
+        ), $market);
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -1270,45 +1445,9 @@ class cryptocom extends \ccxt\async\cryptocom {
                 for ($j = 0; $j < count($messageHashes); $j++) {
                     $unsubHash = $messageHashes[$j];
                     $subHash = $subMessageHashes[$j];
-                    if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
-                        unset($client->subscriptions[$unsubHash]);
-                    }
-                    if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
-                        unset($client->subscriptions[$subHash]);
-                    }
-                    $error = new UnsubscribeError ($this->id . ' ' . $subHash);
-                    $client->reject ($error, $subHash);
-                    $client->resolve (true, $unsubHash);
+                    $this->clean_unsubscription($client, $subHash, $unsubHash);
                 }
                 $this->clean_cache($subscription);
-            }
-        }
-    }
-
-    public function clean_cache(array $subscription) {
-        $topic = $this->safe_string($subscription, 'topic');
-        $symbols = $this->safe_list($subscription, 'symbols', array());
-        $symbolsLength = count($symbols);
-        if ($topic === 'ohlcv') {
-            $symbolsAndTimeFrames = $this->safe_list($subscription, 'symbolsAndTimeframes', array());
-            for ($i = 0; $i < count($symbolsAndTimeFrames); $i++) {
-                $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
-                $symbol = $this->safe_string($symbolAndTimeFrame, 0);
-                $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
-                    unset($this->ohlcvs[$symbol][$timeframe]);
-                }
-            }
-        } elseif ($symbolsLength > 0) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                if ($topic === 'trade') {
-                    unset($this->trades[$symbol]);
-                } elseif ($topic === 'orderbook') {
-                    unset($this->orderbooks[$symbol]);
-                } elseif ($topic === 'ticker') {
-                    unset($this->tickers[$symbol]);
-                }
             }
         }
     }

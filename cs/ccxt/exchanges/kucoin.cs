@@ -3916,7 +3916,7 @@ public partial class kucoin : Exchange
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
-        if (isTrue(hf))
+        if (isTrue(isTrue(hf) && isTrue((!isEqual(type, "main")))))
         {
             type = "trade_hf";
         }
@@ -5269,7 +5269,7 @@ public partial class kucoin : Exchange
         //
         object errorCode = this.safeString(response, "code");
         object message = this.safeString2(response, "msg", "data", "");
-        object feedback = add(add(this.id, " "), message);
+        object feedback = add(add(this.id, " "), body);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);

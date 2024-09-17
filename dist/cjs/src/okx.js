@@ -790,6 +790,7 @@ class okx extends okx$1 {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': errors.ExchangeError,
                     '54001': errors.ExchangeError,
+                    '54011': errors.InvalidOrder,
                     // Trading bot Error Code from 55100 to 55999
                     '55100': errors.InvalidOrder,
                     '55101': errors.InvalidOrder,

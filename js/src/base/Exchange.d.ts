@@ -1147,5 +1147,7 @@ export default class Exchange {
     parseMarginModifications(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    cleanUnsubscription(client: any, subHash: string, unsubHash: string): void;
+    cleanCache(subscription: Dict): void;
 }
 export { Exchange, };

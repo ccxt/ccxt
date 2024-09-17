@@ -1,3 +1,134 @@
+## 4.4.3 (2024-09-14)
+
+*  4.4.2 [837b2513e2](https://github.com/ccxt/ccxt/commits/837b2513e214e549b1d1c67d488a1f04cafaf585)
+*  cryptocom: update @see (#23693) [a36e47b3c7](https://github.com/ccxt/ccxt/commits/a36e47b3c73236c7a1987406480de84f481c9a34)
+*  feat(cryptocom): update ws (#23689) [da9457b46f](https://github.com/ccxt/ccxt/commits/da9457b46f185b67057fba8f75fef2b08d35a35f)
+*  feat(phemex): add watchTickers (#23696) [73c8347ed7](https://github.com/ccxt/ccxt/commits/73c8347ed7385028366ffddffb614fcac9c012f3)
+*  mexc: add watchTickers (#23670) [aa2954807a](https://github.com/ccxt/ccxt/commits/aa2954807a2b4c6169609dfaf9b96101e96d1871)
+*  bybit error mapping (#23697) [e0ab29d33e](https://github.com/ccxt/ccxt/commits/e0ab29d33e7b42f720d0ee78188c0be3d4ce2abb)
+*  bybit error mapping (#23697) [0388f6a467](https://github.com/ccxt/ccxt/commits/0388f6a467e4c42be1359e3eff8f332c5e2df1e6)
+*  feat(c#): add arrayConcat helper (#23705) [7dcd711f96](https://github.com/ccxt/ccxt/commits/7dcd711f964cab021f59eae026c255cadce858fa)
+*  fix(okx): allow custom params in watchPositions (#23704) [d715598ed6](https://github.com/ccxt/ccxt/commits/d715598ed60d60387631bf875abe950d477835d9)
+*  fix(mexc): swap watchTickers (#23702) [d3f49b5986](https://github.com/ccxt/ccxt/commits/d3f49b5986436fd003bfee10a9a601e763b5c30d)
+*  feat(woofipro): add watchBidsAsks (#23701) [d4e05a39ee](https://github.com/ccxt/ccxt/commits/d4e05a39ee31b31413cf77c0eb30635861ccc733)
+*  feat(oxfun): add watchBidsAsks (#23703) [b05c51643e](https://github.com/ccxt/ccxt/commits/b05c51643e90d969f1c5548b324707257db9face)
+*  xt parseMarket fix (#23699) [98385a0c87](https://github.com/ccxt/ccxt/commits/98385a0c8796c5908f2b36664b17d36030279825)
+*  bitmart cancelAllOrders new endpoint (#23707) [30004c47c0](https://github.com/ccxt/ccxt/commits/30004c47c016c212727b5bd389141277a09207a6)
+*  fix(c#): rename name (#23709) [915c1b0a10](https://github.com/ccxt/ccxt/commits/915c1b0a10700f5da574fab02888996d8e3f755e)
+*  fix(c#): rename name (#23709) [daf3a00416](https://github.com/ccxt/ccxt/commits/daf3a0041615b28fc1b1b41db2096bc95d0f33f8)
+*  fetchPositionMode, setPositionMode docstrings (#23710) [c7cf926f1f](https://github.com/ccxt/ccxt/commits/c7cf926f1fa64c06c09cedd4e7d43f7d526cdf40)
+*  bitstamp update fee tiers (#23708) [615aa5d4af](https://github.com/ccxt/ccxt/commits/615aa5d4afab7679e3ab36b0edd83d6244b16de6)
+*  bitstamp update fee tiers (#23708) [c5870a079b](https://github.com/ccxt/ccxt/commits/c5870a079b984e44aa736f9b8e4a4df7ec0f79a2)
+*  4.4.3 [10dacb604f](https://github.com/ccxt/ccxt/commits/10dacb604fa2867e9b8373c19b506c0d4da25e74)
+
+
+## 4.4.2 (2024-09-11)
+
+*  4.4.1 [6d6bf08919](https://github.com/ccxt/ccxt/commits/6d6bf08919efbe231604f2f0b35ea034ce5f031a)
+*  fix(Unsubscription): clean subscription safely (#23667) [0ce4b1667e](https://github.com/ccxt/ccxt/commits/0ce4b1667eaf3bd4042f0922b2bcb13651adda5f)
+*  feat(kucoin): add unWatchOrderBook/unWatchTrades [wip] (#23668) [dfd174656b](https://github.com/ccxt/ccxt/commits/dfd174656bdfedd16421243a4975d899fbd74d0d)
+*  feat(kucoin): add unWatchOrderBook/unWatchTrades [wip] (#23668) [c394c03a3a](https://github.com/ccxt/ccxt/commits/c394c03a3a9b845c461138563447be6449516c5e)
+*  Mexc docstrings (#23672) [3d2449444e](https://github.com/ccxt/ccxt/commits/3d2449444e92f320e1dc906348c92b554d62e343)
+*  bitmex: add @see (#23669) [07c2cb1937](https://github.com/ccxt/ccxt/commits/07c2cb193773da91ae2b530822fd7bcf7bba446a)
+*  fix(binance): watchBidsAsks (#23676) [b8f439d1c6](https://github.com/ccxt/ccxt/commits/b8f439d1c65c34c9904eb78f5be547bcc7fdcab8)
+*  wiki/Manual.md minor edits on working with dates and timestamps [36676797db](https://github.com/ccxt/ccxt/commits/36676797dbf4a41c08affe9b5accc21ad47b573a)
+*  cryptocom referral discount [85d70bb730](https://github.com/ccxt/ccxt/commits/85d70bb7309e8e7e96b92895e35c2ac5df4eabc4)
+*  cryptocom referral discount [696073d646](https://github.com/ccxt/ccxt/commits/696073d646142e0f195f180708924fcbed9d5d43)
+*  fix(xt): OHLCV spot volume (#23683) [d8c1e623bf](https://github.com/ccxt/ccxt/commits/d8c1e623bfd762525ba0da2ef58588e3e873e89d)
+*  fix(xt): OHLCV spot volume (#23683) [ea779159b0](https://github.com/ccxt/ccxt/commits/ea779159b082f3e50ca1c2372072d1ab882cde3c)
+*  4.4.2 [4043cc615c](https://github.com/ccxt/ccxt/commits/4043cc615cb30b9a2e1617680a547e094c82608c)
+
+
+## 4.4.1 (2024-09-09)
+
+*  4.3.98 [23697ad39c](https://github.com/ccxt/ccxt/commits/23697ad39cb2c6bb7de6923074b2916a5b044cd9)
+*  bitget APX > AstroPepeX conflict resolved [ebb3d833ef](https://github.com/ccxt/ccxt/commits/ebb3d833ef997b926309500a9478f4712bb0f050)
+*  gate RED > RedLang fix [588a371bf1](https://github.com/ccxt/ccxt/commits/588a371bf1345de9d6648250c6523f73b56efd28)
+*  4.4.0 [845da9d99e](https://github.com/ccxt/ccxt/commits/845da9d99ea275dd3ad82171b7a9f71f9be5e59b)
+*  4.4.0 [43c2d57769](https://github.com/ccxt/ccxt/commits/43c2d577692b4aa2ce8d4d9655aa06e145e57276)
+*  chore: update changelog (#23664) [abb9b0c8cb](https://github.com/ccxt/ccxt/commits/abb9b0c8cb7f5db77b79ce8e14f4eb09bf134a26)
+*  cli.ts and cli.js fix printout for undefined keyvalues [3121cbf98d](https://github.com/ccxt/ccxt/commits/3121cbf98db7ee8f74f13108b257a0d3d9b95737)
+*  feat(hyperliquid): add unWatchTrades/OrderBook/OHLCV/Tickers (#23665) [391b9e5cc8](https://github.com/ccxt/ccxt/commits/391b9e5cc828361ef5150c017467d18281b49013)
+*  feat(hyperliquid): add unWatchTrades/OrderBook/OHLCV/Tickers (#23665) [7c98574256](https://github.com/ccxt/ccxt/commits/7c98574256245331f0e81e3e8df6791f1c4518f4)
+*  4.4.1 [b764ed456a](https://github.com/ccxt/ccxt/commits/b764ed456a35d88ac1d03478ecb3442de86d2541)
+
+
+## 4.3.98 (2024-09-07)
+
+*  4.3.97 [0f0bedee19](https://github.com/ccxt/ccxt/commits/0f0bedee19eff4a30ecf7d01697848836939632d)
+*  kraken: update doc (#23651) [406b6ee06a](https://github.com/ccxt/ccxt/commits/406b6ee06ac8b1383103434553581eb9fb3af98a)
+*  feat(htx): update watchOrderbook levels (#23649) [e5e88d2f50](https://github.com/ccxt/ccxt/commits/e5e88d2f50bc8775ce415a2b7b71512103cb90af)
+*  fix(gate): createOrderWs swap market orders (#23654) [717046fe68](https://github.com/ccxt/ccxt/commits/717046fe689d8b100676586c5e714b7c5a449d54)
+*  fix(gate): createOrderWs swap market orders (#23654) [a642897965](https://github.com/ccxt/ccxt/commits/a642897965a4a461b4aab675aa99ce809d192dcf)
+*  bitget error mapping (#23658) [d9614178f6](https://github.com/ccxt/ccxt/commits/d9614178f62172d31ccf0ad3d49fa864a5715e67)
+*  kucoin fetchBalance funding account (#23655) [358e4cad30](https://github.com/ccxt/ccxt/commits/358e4cad30553ce21f0c88a34c44729fb33e7757)
+*  fix(whitebit) cross market fetchOpenOrders (#23657) [3bd4dc504e](https://github.com/ccxt/ccxt/commits/3bd4dc504e55a0124953e4590b5b0687fc5973ce)
+*  fix(whitebit) cross market fetchOpenOrders (#23657) [bb2675e887](https://github.com/ccxt/ccxt/commits/bb2675e88774562f637fb25a77607d1010dc4823)
+*  feat(kucoin): add unWatchOrderBook (#23662) [4cd02b93d4](https://github.com/ccxt/ccxt/commits/4cd02b93d48e5a9084666c1958c8e262c4e3e7a3)
+*  4.3.98 [d1622cf877](https://github.com/ccxt/ccxt/commits/d1622cf8777619f347a0b5ce330e7cbe5c6d3e2d)
+
+
+## 4.3.97 (2024-09-06)
+
+*  feat(gate): add unWatchOrderBook/unWatchTradesForSymbols (#23647) [9ef96a3a14](https://github.com/ccxt/ccxt/commits/9ef96a3a14243640ff3c189e328d061fd85e73cc)
+*  coinex parseTrade fee (#23646) [6a2692aaec](https://github.com/ccxt/ccxt/commits/6a2692aaec3b65373d83bccc296184953833b85c)
+*  coinex parseTrade fee (#23646) [e8ea884da1](https://github.com/ccxt/ccxt/commits/e8ea884da150abb24f035325ecb6894f6881cbe6)
+*  feat(kucoin): add unWatchTrades (#23554) [69baee5ce9](https://github.com/ccxt/ccxt/commits/69baee5ce9517b9523cd4122217f5bd446d87162)
+*  fix(binance): use maxLimit when using since+until (#23620) [53657d1dc1](https://github.com/ccxt/ccxt/commits/53657d1dc1419ce08125c2522872591a42e9fe65)
+*  fix(binance): use maxLimit when using since+until (#23620) [1ee1b307b0](https://github.com/ccxt/ccxt/commits/1ee1b307b065aa6b6253fd7cd971fef3bb219a31)
+*  4.3.97 [6820b99f42](https://github.com/ccxt/ccxt/commits/6820b99f4247045fa25dd13e5376fb778396d922)
+
+
+## 4.3.96 (2024-09-05)
+
+*  4.3.95 [0587b51557](https://github.com/ccxt/ccxt/commits/0587b5155708db9553640b0527f1212e5ae2269d)
+*  feat(hyperliquid):  fetchLedger / fetchDeposits / fetchWithdrawals (#23616) [291ad701c9](https://github.com/ccxt/ccxt/commits/291ad701c9a9e9b8c679f3f65da4956d42122c94)
+*  fix(bybit): update fetchLedger endpoint for classic accounts (#23630) [cfd62c91cc](https://github.com/ccxt/ccxt/commits/cfd62c91cc9588b13c2f980f0c07a2280e6b512f)
+*  fix(bybit): update fetchLedger endpoint for classic accounts (#23630) [734560bf23](https://github.com/ccxt/ccxt/commits/734560bf2310aea0a54d5b4007bc631cf8d5043a)
+*  feat(binance, bybit): add unWatchOHLCVForSymbols (#23631) [2342d9399e](https://github.com/ccxt/ccxt/commits/2342d9399e1a8032fbc3682f67ab4b0880d274f9)
+*  feat(binance, bybit): add unWatchOHLCVForSymbols (#23631) [c4903176a1](https://github.com/ccxt/ccxt/commits/c4903176a10ae7782c156e52e5fc5e692168bcf4)
+*  Mexc docstring @see (#23634) [6f94014dc5](https://github.com/ccxt/ccxt/commits/6f94014dc5d3daa959d7b2ac4e48d03e8710ce95)
+*  fix(hyperliquid): correct market id in fetchMytrade (#23636) [a3c92275bc](https://github.com/ccxt/ccxt/commits/a3c92275bc63a6a4d7ac509b94aaabc5e668bfee)
+*  fix(hyperliquid): correct market id in fetchMytrade (#23636) [0c6a1191bd](https://github.com/ccxt/ccxt/commits/0c6a1191bdf643768f321d86725a89ff988b4ce3)
+*  feat(bybit): add pagination to fetchLedger (#23638) [9847193f0a](https://github.com/ccxt/ccxt/commits/9847193f0ab2b628a5ac8108bbc00a0563d63fcf)
+*  feat(bybit): add pagination to fetchLedger (#23638) [b457071ba6](https://github.com/ccxt/ccxt/commits/b457071ba6d410b7035c988491878b99b029c971)
+*  feat(okx, cryptocom): add unWatchOHLCVForSymbols/unWatchX (#23639) [dbebbad8fb](https://github.com/ccxt/ccxt/commits/dbebbad8fbafa1c2b4aece45c14507e193f5976c)
+*  feat(kucoin): remove hf detection (#23640) [bd4e1e2e13](https://github.com/ccxt/ccxt/commits/bd4e1e2e13446899f0c7aba90b8a41ab5bb0c6ba)
+*  bingx OMNI > OmniCat conflict [9da11daff7](https://github.com/ccxt/ccxt/commits/9da11daff710626d37c75b0eb61f6df54578f4f0)
+*  feat(okx): add watchBidsAsks and unwatchTickers (#23584) [2bfea64a9d](https://github.com/ccxt/ccxt/commits/2bfea64a9df718282882215eb58128b2d39de310)
+*  4.3.96 [910df0cfff](https://github.com/ccxt/ccxt/commits/910df0cfff72bfb351c9843d88c90fd6fcb7baac)
+
+
+## 4.3.95 (2024-09-03)
+
+*  4.3.94 [2a3f032d7d](https://github.com/ccxt/ccxt/commits/2a3f032d7d022c196b3d7f2a9fa8bc58629caa66)
+*  fix(mexc): withdraw (#23611) [bfd701992f](https://github.com/ccxt/ccxt/commits/bfd701992f516a055c515e9a8b0a4ae6f19a5004)
+*  fix(mexc): withdraw (#23611) [c31af9191d](https://github.com/ccxt/ccxt/commits/c31af9191d9dbf374226f66c07e3340c36564edb)
+*  fix(indodax): create limit order (#23619) [71f6cfbbc6](https://github.com/ccxt/ccxt/commits/71f6cfbbc657d80d0ca89572f7cf486e22b43c7c)
+*  fix(indodax): create limit order (#23619) [4a5cc39aac](https://github.com/ccxt/ccxt/commits/4a5cc39aac9e7201c0c40d874712b3fa95645798)
+*  feat(hyperliquid): add fetchOrders/ClosedOrder and other fixes (#23626) [5e2187c9e6](https://github.com/ccxt/ccxt/commits/5e2187c9e60e1027794cb2226b51c150087c8db8)
+*  fix(parseOHLCVs): tail cut (#23625) [f43048cd5c](https://github.com/ccxt/ccxt/commits/f43048cd5c7f89438f175290ace71d3c4698268d)
+*  fix(parseOHLCVs): tail cut (#23625) [aa6d1b5022](https://github.com/ccxt/ccxt/commits/aa6d1b50228794a0819b2445c7831472116eb1c9)
+*  4.3.95 [97cdb7c237](https://github.com/ccxt/ccxt/commits/97cdb7c2373d741cfc1c2ef8572d79ac30d84e66)
+
+
+## 4.3.94 (2024-09-02)
+
+*  4.3.93 [7e4c95d5f7](https://github.com/ccxt/ccxt/commits/7e4c95d5f7c0a42666835afe444ef266f07e2983)
+*  fix(bingx): swap reduceOnly order (#23608) [1f6570d9d0](https://github.com/ccxt/ccxt/commits/1f6570d9d09cbc90e6a9c7696bf4187f19d71a0c)
+*  4.3.94 [6f82f0888c](https://github.com/ccxt/ccxt/commits/6f82f0888c14216f71b39a085117e03df75d6555)
+
+
+## 4.3.93 (2024-09-01)
+
+*  4.3.92 [584b05733d](https://github.com/ccxt/ccxt/commits/584b05733dafcbd5c0f94bf26fad8c64957b4b73)
+*  fix(hyperliquid): fetchTickers (#23605) [7a6ddf1cc0](https://github.com/ccxt/ccxt/commits/7a6ddf1cc0e7147b3faf08a149c69d47a4df9100)
+*  chore: update changelog (#23603) [03700c7781](https://github.com/ccxt/ccxt/commits/03700c7781c368cd4f09d231e564de3711236af7)
+*  feat(kucoin): add hf sync endpoints (#23604) [83cf388c91](https://github.com/ccxt/ccxt/commits/83cf388c9163ff9a6ce2c5a4c082762343e335ce)
+*  fix(hyperliquid): spot balance parsing (#23606) [7e3d9704a8](https://github.com/ccxt/ccxt/commits/7e3d9704a89fdb806d42367969ad4b7d2fbf0e61)
+*  4.3.93 [ff3c716019](https://github.com/ccxt/ccxt/commits/ff3c716019dfbce2bd2c06359fa8966c9a43ee32)
+
+
 ## 4.3.92 (2024-08-31)
 
 *  4.3.91 [4ca3a23b24](https://github.com/ccxt/ccxt/commits/4ca3a23b240aa53f893f76979bb18372115c6bdf)

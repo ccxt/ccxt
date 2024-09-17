@@ -861,6 +861,10 @@ Each network is an associative array (aka dictionary) with the following keys:
         'cost':  { ... },     // same limits for order cost = price * amount
         'leverage': { ... },  // same min/max limits for the leverage of the order
     },
+    'marginModes': {
+        'cross': false,       // whether pair supports cross-margin trading
+        'isolated': false,    // whether pair supports isolated-margin trading
+    },
     'info':      { ... },     // the original unparsed market info from the exchange
 }
 ```
@@ -1861,11 +1865,13 @@ funding_rates = await binance.fetch_funding_rate_history("BTC/USDT:USDT", params
 
 ### Working With Datetimes And Timestamps
 
-The set of methods for working with UTC dates and timestamps and for converting between them:
+All unified timestamps throughout the CCXT library are integers **in milliseconds** unless explicitly stated otherwise.
 
-```javascript
-exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer, Z = UTC
-exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // iso8601 string
+Below is the set of methods for working with UTC dates and timestamps and for converting between them:
+
+```JavaScript
+exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer in milliseconds, Z = UTC
+exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // from milliseconds to iso8601 string
 exchange.seconds ()      // integer UTC timestamp in seconds
 exchange.milliseconds () // integer UTC timestamp in milliseconds
 ```
@@ -4329,17 +4335,19 @@ exchange.create_limit_buy_order (symbol, amount, price[, params])
 exchange.create_limit_sell_order (symbol, amount, price[, params])
 ```
 
-#### Stop Orders
+<a name="Stop Orders" id="Stop Orders"></a><a name="Trigger Orders" id="Trigger Orders"></a>
 
-Coming from traditional trading, the term "Stop" order has been a bit ambigious, so instead of it, in CCXT we use term "Trigger" order. When symbol's price reaches your "trigger"("stop") price, the order is activated - if you had chosen *market* order, then it will be executed immediately, if you have chosen limit order, it will be placed in the orderbook.
+#### Conditional Orders
+
+Coming from traditional trading, the term "Stop order" has been a bit ambigious, so instead of it, in CCXT we use term "Trigger" order. When symbol's price reaches your "trigger"("stop") price, the order is activated as `market` or `limit` order, depending which one you had chosen.
 
 We have different classification of trigger orders:
-* stand-alone [Trigger order](#trigger-orders) to buy/sell coin (open/close position)
-* stand-alone [Stop-Loss](#stop-loss-orders) or [Take-Profit](#take-profit-orders) order which are only designed to close an open position.
-* an attached Stop-Loss or Take-Profit order into a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
+1) stand-alone [Trigger order](#trigger-orders) to buy/sell coin (open/close position)
+2) stand-alone [Stop-Loss](#stop-loss-orders) or [Take-Profit](#take-profit-orders) order which are only designed to close an open position.
+3) an attached Stop-Loss or Take-Profit order into a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
 
 
-##### Trigger Orders
+##### Trigger order
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open or close a position.
 
@@ -4368,14 +4376,16 @@ $params = {
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
 ```
 <!-- tabs:end -->
-However, if some exchanges require that you provided `triggerDirection`, with either `above` or `below` values:
+Typically, it means to touch the price from **any direction**. However, if some exchanges require that you provided `triggerDirection`, with either `above` or `below` values:
 
 ```
 params = {
     'triggerPrice': 1700,
-    'triggerDirection': 'above', // order will be triggered when price is above 1700
+    'triggerDirection': 'above', // order will be triggered when price goes upward and touches 1700
 }
 ```
+
+Note, you can also add `reduceOnly: true` param to the trigger order (with a possible `triggerDirection: 'above/below'` param), so it would act as "stop-loss" or "take-profit" order. However, for some exchanges we support "stop-loss" and "take-profit" trigger order types, which automatically involve `reduceOnly` and `triggerDirection` handling (see them below).
 
 ##### Stop Loss Orders
 

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, ChecksumError, ExchangeError, NetworkError, UnsubscribeError } from '../base/errors.js';
+import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -17,7 +17,8 @@ export default class cryptocom extends cryptocomRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchMyTrades': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
@@ -374,7 +375,7 @@ export default class cryptocom extends cryptocomRest {
             messageHashes.push('unsubscribe:trades:' + market['symbol']);
             topics.push(currentTopic);
         }
-        return await this.unWatchPublicMultiple('trade', symbols, messageHashes, topics, topics, params);
+        return await this.unWatchPublicMultiple('trades', symbols, messageHashes, topics, topics, params);
     }
     handleTrades(client, message) {
         //
@@ -480,40 +481,209 @@ export default class cryptocom extends cryptocomRest {
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
         return await this.unWatchPublicMultiple('ticker', [market['symbol']], [messageHash], [subMessageHash], [subMessageHash], params);
     }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const marketIds = this.marketIds(symbols);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            messageHashes.push('ticker.' + marketId);
+        }
+        const url = this.urls['api']['ws']['public'];
+        const id = this.nonce();
+        const request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': messageHashes,
+            },
+            'nonce': id,
+        };
+        const ticker = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        if (this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    async unWatchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#unWatchTickers
+         * @description unWatches a price ticker
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const subMessageHashes = [];
+        const marketIds = this.marketIds(symbols);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const symbol = symbols[i];
+            subMessageHashes.push('ticker.' + marketId);
+            messageHashes.push('unsubscribe:ticker:' + symbol);
+        }
+        return await this.unWatchPublicMultiple('ticker', symbols, messageHashes, subMessageHashes, subMessageHashes, params);
+    }
     handleTicker(client, message) {
         //
-        // {
-        //     "info":{
-        //        "instrument_name":"BTC_USDT",
-        //        "subscription":"ticker.BTC_USDT",
-        //        "channel":"ticker",
-        //        "data":[
-        //           {
-        //              "i":"BTC_USDT",
-        //              "b":43063.19,
-        //              "k":43063.2,
-        //              "a":43063.19,
-        //              "t":1648121165658,
-        //              "v":43573.912409,
-        //              "h":43498.51,
-        //              "l":41876.58,
-        //              "c":1087.43
-        //           }
-        //        ]
+        //     {
+        //       "instrument_name": "ETHUSD-PERP",
+        //       "subscription": "ticker.ETHUSD-PERP",
+        //       "channel": "ticker",
+        //       "data": [
+        //         {
+        //           "h": "2400.20",
+        //           "l": "2277.10",
+        //           "a": "2335.25",
+        //           "c": "-0.0022",
+        //           "b": "2335.10",
+        //           "bs": "5.4000",
+        //           "k": "2335.16",
+        //           "ks": "1.9970",
+        //           "i": "ETHUSD-PERP",
+        //           "v": "1305697.6462",
+        //           "vv": "3058704939.17",
+        //           "oi": "161646.3614",
+        //           "t": 1726069647560
+        //         }
+        //       ]
         //     }
-        //  }
         //
+        this.handleBidAsk(client, message);
         const messageHash = this.safeString(message, 'subscription');
         const marketId = this.safeString(message, 'instrument_name');
         const market = this.safeMarket(marketId);
         const data = this.safeValue(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
-            const parsed = this.parseTicker(ticker, market);
+            const parsed = this.parseWsTicker(ticker, market);
             const symbol = parsed['symbol'];
             this.tickers[symbol] = parsed;
             client.resolve(parsed, messageHash);
         }
+    }
+    parseWsTicker(ticker, market = undefined) {
+        //
+        //     {
+        //       "h": "2400.20",
+        //       "l": "2277.10",
+        //       "a": "2335.25",
+        //       "c": "-0.0022",
+        //       "b": "2335.10",
+        //       "bs": "5.4000",
+        //       "k": "2335.16",
+        //       "ks": "1.9970",
+        //       "i": "ETHUSD-PERP",
+        //       "v": "1305697.6462",
+        //       "vv": "3058704939.17",
+        //       "oi": "161646.3614",
+        //       "t": 1726069647560
+        //     }
+        //
+        const timestamp = this.safeInteger(ticker, 't');
+        const marketId = this.safeString(ticker, 'i');
+        market = this.safeMarket(marketId, market, '_');
+        const quote = this.safeString(market, 'quote');
+        const last = this.safeString(ticker, 'a');
+        return this.safeTicker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeNumber(ticker, 'h'),
+            'low': this.safeNumber(ticker, 'l'),
+            'bid': this.safeNumber(ticker, 'b'),
+            'bidVolume': this.safeNumber(ticker, 'bs'),
+            'ask': this.safeNumber(ticker, 'k'),
+            'askVolume': this.safeNumber(ticker, 'ks'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString(ticker, 'c'),
+            'average': undefined,
+            'baseVolume': this.safeString(ticker, 'v'),
+            'quoteVolume': (quote === 'USD') ? this.safeString(ticker, 'vv') : undefined,
+            'info': ticker,
+        }, market);
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchBidsAsks
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const topics = [];
+        const marketIds = this.marketIds(symbols);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            messageHashes.push('bidask.' + symbols[i]);
+            topics.push('ticker.' + marketId);
+        }
+        const url = this.urls['api']['ws']['public'];
+        const id = this.nonce();
+        const request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': topics,
+            },
+            'nonce': id,
+        };
+        const newTickers = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[newTickers['symbol']] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    handleBidAsk(client, message) {
+        const data = this.safeList(message, 'data', []);
+        const ticker = this.safeDict(data, 0, {});
+        const parsedTicker = this.parseWsBidAsk(ticker);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = 'bidask.' + symbol;
+        client.resolve(parsedTicker, messageHash);
+    }
+    parseWsBidAsk(ticker, market = undefined) {
+        const marketId = this.safeString(ticker, 'i');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
+        const timestamp = this.safeInteger(ticker, 't');
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeString(ticker, 'k'),
+            'askVolume': this.safeString(ticker, 'ks'),
+            'bid': this.safeString(ticker, 'b'),
+            'bidVolume': this.safeString(ticker, 'bs'),
+            'info': ticker,
+        }, market);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -1208,47 +1378,9 @@ export default class cryptocom extends cryptocomRest {
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
-                    if (unsubHash in client.subscriptions) {
-                        delete client.subscriptions[unsubHash];
-                    }
-                    if (subHash in client.subscriptions) {
-                        delete client.subscriptions[subHash];
-                    }
-                    const error = new UnsubscribeError(this.id + ' ' + subHash);
-                    client.reject(error, subHash);
-                    client.resolve(true, unsubHash);
+                    this.cleanUnsubscription(client, subHash, unsubHash);
                 }
                 this.cleanCache(subscription);
-            }
-        }
-    }
-    cleanCache(subscription) {
-        const topic = this.safeString(subscription, 'topic');
-        const symbols = this.safeList(subscription, 'symbols', []);
-        const symbolsLength = symbols.length;
-        if (topic === 'ohlcv') {
-            const symbolsAndTimeFrames = this.safeList(subscription, 'symbolsAndTimeframes', []);
-            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
-                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
-                const symbol = this.safeString(symbolAndTimeFrame, 0);
-                const timeframe = this.safeString(symbolAndTimeFrame, 1);
-                if (timeframe in this.ohlcvs[symbol]) {
-                    delete this.ohlcvs[symbol][timeframe];
-                }
-            }
-        }
-        else if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                if (topic === 'trade') {
-                    delete this.trades[symbol];
-                }
-                else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
-                }
-                else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
-                }
             }
         }
     }

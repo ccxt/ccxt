@@ -1,10 +1,12 @@
 import mexcRest from '../mexc.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class mexc extends mexcRest {
     describe(): any;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: any): void;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleTickers(client: Client, message: any): void;
     parseWsTicker(ticker: any, market?: any): Ticker;
     watchSpotPublic(channel: any, messageHash: any, params?: {}): Promise<any>;
     watchSpotPrivate(channel: any, messageHash: any, params?: {}): Promise<any>;

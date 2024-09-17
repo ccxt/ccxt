@@ -475,13 +475,11 @@
                 "output": "{\"symbol\":\"LTCUSDT\"}"
             },
             {
-                "description": "Cancel spot orders",
+                "description": "cancelAll spot orders",
                 "method": "cancelAllOrders",
-                "url": "https://api-cloud.bitmart.com/spot/v1/cancel_orders",
-                "input": [
-                    "LTC/USDT"
-                ],
-                "output": "{\"symbol\":\"LTC_USDT\"}"
+                "url": "https://api-cloud.bitmart.com/spot/v4/cancel_all",
+                "input": [],
+                "output": "{}"
             }
         ],
         "fetchBalance": [

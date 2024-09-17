@@ -132,7 +132,7 @@ public partial class cryptocom : Exchange
                 { "www", "https://crypto.com/" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://crypto.com/exch/kdacthrnxt" },
-                    { "discount", 0.15 },
+                    { "discount", 0.75 },
                 } },
                 { "doc", new List<object>() {"https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html", "https://exchange-docs.crypto.com/spot/index.html", "https://exchange-docs.crypto.com/derivatives/index.html"} },
                 { "fees", "https://crypto.com/exchange/document/fees-limits" },
@@ -578,7 +578,7 @@ public partial class cryptocom : Exchange
         * @method
         * @name cryptocom#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1933,6 +1933,7 @@ public partial class cryptocom : Exchange
         * @method
         * @name cryptocom#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
