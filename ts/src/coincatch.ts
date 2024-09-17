@@ -40,13 +40,18 @@ export default class coincatch extends Exchange {
                 'closePosition': false,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'createMarketOrderWithCost': false,
+                'createMarketSellOrder': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopLossOrder': false,
@@ -227,7 +232,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/account/setMargin': 1,
                         'api/mix/v1/account/setMarginMode': 4, // done
                         'api/mix/v1/account/setPositionMode': 1,
-                        'api/mix/v1/order/placeOrder': 1,
+                        'api/mix/v1/order/placeOrder': 2, // done
                         'api/mix/v1/order/batch-orders': { 'cost': 4, 'step': 10 }, // done
                         'api/mix/v1/order/cancel-order': 2, // done
                         'api/mix/v1/order/cancel-batch-orders': 1,
