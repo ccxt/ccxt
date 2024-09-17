@@ -4,6 +4,7 @@
 import * as functions from './functions.js'
 const {
     isNode
+    , selfIsDefined
     , deepExtend
     , extend
     , clone
@@ -905,7 +906,7 @@ export default class Exchange {
                     }
                 }
             } else {
-                this.fetchImplementation = self.fetch
+                this.fetchImplementation = (selfIsDefined()) ? self.fetch: fetch
                 this.AbortError = DOMException
                 this.FetchError = TypeError
             }
