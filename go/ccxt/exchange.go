@@ -172,10 +172,12 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 		}
 
 		var currencies interface{} = nil
+		var defaultParams = map[string]interface{}{}
+		// func (this *Exchange) Describe()
 		if (this.Has["fetchCurrencies"] != nil) && this.Has["fetchCurrencies"].(bool) {
-			currencies = <-this.callInternal("fetchCurrencies")
+			currencies = <-this.callInternal("fetchCurrencies", defaultParams)
 		}
-		markets := <-this.callInternal("fetchMarkets")
+		markets := <-this.callInternal("fetchMarkets", defaultParams)
 		ch <- this.SetMarkets(markets, currencies)
 	}()
 	return ch
