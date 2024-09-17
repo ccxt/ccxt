@@ -2009,7 +2009,7 @@ export default class coincatch extends Exchange {
         const methodName = 'createMarketBuyOrderWithCost';
         const market = this.market (symbol);
         if (!market['spot']) {
-            throw new NotSupported (this.id + methodName + ' supports spot orders only');
+            throw new NotSupported (this.id + methodName + '() supports spot orders only');
         }
         params['methodName'] = methodName;
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2040,8 +2040,9 @@ export default class coincatch extends Exchange {
         const market = this.market (symbol);
         if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
+        } else if (market['swap']) {
+            return await this.createSwapOrder (symbol, type, side, amount, price, params);
         } else {
-            // return await this.createSwapOrder (symbol, type, side, amount, price, params);
             throw new NotSupported (this.id + ' createOrder() is not supported for ' + market['type'] + ' type of markets');
         }
     }
@@ -2103,7 +2104,7 @@ export default class coincatch extends Exchange {
          * @returns {object} request to be sent to the exchange
          */
         let methodName = 'createSpotOrderRequest';
-        // spot markets have no presicion so we do not use it
+        // spot market info has no presicion so we do not use it
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         const market = this.market (symbol);
         const request: Dict = {
@@ -2153,8 +2154,125 @@ export default class coincatch extends Exchange {
         return this.extend (request, params);
     }
 
+    async createSwapOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name coincatch#createSwapOrder
+         * @description create a trade order on swap market
+         * @see https://coincatch.github.io/github.io/en/mix/#place-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
+         * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC' or 'PO'
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['methodName'] = this.safeString (params, 'methodName', 'createSwapOrder');
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.privatePostApiMixV1OrderPlaceOrder (request);
+        //
+        //
+        return this.parseOrder (response, market);
+    }
+
     createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
-        return {};
+        /**
+         * @method
+         * @ignore
+         * @name hashkey#createSwapOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
+         * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC' or 'PO'
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @returns {object} request to be sent to the exchange
+         */
+        let methodName = 'createSwapOrderRequest';
+        // todo check it and add additional stop loss and take profit
+        [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
+        const market = this.market (symbol);
+        let request: Dict = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+            'orderType': type,
+            'side': side,
+            'size': this.amountToPrecision (symbol, amount),
+        };
+        [ request, params ] = this.handleOptionParamsAndRequest (params, methodName, 'clientOrderId', request, 'clientOid');
+        const isMarketOrder = (type === 'market');
+        let timeInForce: Str = undefined;
+        [ timeInForce, params ] = this.handleOptionAndParams (params, methodName, 'timeInForce', timeInForce);
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'post_only', params);
+        if (postOnly) {
+            timeInForce = 'PO';
+        }
+        if (timeInForce !== undefined) {
+            request['timeInForceValue'] = this.encodeTimeInForce (timeInForce);
+        }
+        let stopLossPrice = this.safeString (params, 'stopLossPrice');
+        let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const stopLossParams = this.safeDict (params, 'stopLoss', {});
+        const takeProfitParams = this.safeDict (params, 'takeProfit', {});
+        stopLossPrice = this.safeString (stopLossParams, 'triggerPrice', stopLossPrice);
+        takeProfitPrice = this.safeString (takeProfitParams, 'triggerPrice', takeProfitPrice);
+        if (stopLossPrice !== undefined) {
+            request['presetStopLossPrice'] = stopLossPrice;
+        }
+        if (takeProfitPrice !== undefined) {
+            request['presetTakeProfitPrice'] = takeProfitPrice;
+        }
+        return this.extend (request, params);
+    }
+
+    async createOrderWithTakeProfitAndStopLoss (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfit: Num = undefined, stopLoss: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name coincatch#createOrderWithTakeProfitAndStopLoss
+         * @description *swap markets only* create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const methodName = 'createOrderWithTakeProfitAndStopLoss';
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new NotSupported (this.id + methodName + '() is supported for swap markets only');
+        }
+        params['methodName'] = methodName;
+        return super.createOrderWithTakeProfitAndStopLoss (symbol, type, side, amount, price, takeProfit, stopLoss, params);
     }
 
     encodeTimeInForce (timeInForce: Str): Str {
