@@ -75,6 +75,9 @@ func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) 
 
 	switch v := value.(type) {
 	case string:
+		if v == "" {
+			return defaultValue
+		}
 		return v
 	case int:
 		return strconv.Itoa(v)
