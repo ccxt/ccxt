@@ -1005,8 +1005,9 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $spotMarket = $this->fetch_spot_markets($params);
-        $swapMarket = $this->fetch_swap_markets($params);
+        $spotMarketPromise = $this->fetch_spot_markets($params);
+        $swapMarketPromise = $this->fetch_swap_markets($params);
+        list($spotMarket, $swapMarket) = array( $spotMarketPromise, $swapMarketPromise );
         return $this->array_concat($spotMarket, $swapMarket);
     }
 
@@ -1143,7 +1144,10 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market $data
          */
+        $currentRl = $this->rateLimit;
+        $this->set_property($this, 'rateLimit', 10); // see comment => https://github.com/ccxt/ccxt/pull/23698
         $response = $this->contractPublicGetDetail ($params);
+        $this->set_property($this, 'rateLimit', $currentRl);
         //
         //     {
         //         "success":true,
@@ -3888,6 +3892,7 @@ class mexc extends Exchange {
     public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3899,6 +3904,7 @@ class mexc extends Exchange {
     public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3910,6 +3916,7 @@ class mexc extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-$leverage
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3940,6 +3947,7 @@ class mexc extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -4055,6 +4063,7 @@ class mexc extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4087,6 +4096,7 @@ class mexc extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] not used by mexc, but filtered internally by ccxt
          * @param {int} [$limit] mexc $limit is page_size default 20, maximum is 100
@@ -4793,7 +4803,7 @@ class mexc extends Exchange {
             'entryPrice' => $entryPrice,
             'collateral' => null,
             'side' => $side,
-            'unrealizedProfit' => null,
+            'unrealizedPnl' => null,
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginType,
@@ -4816,6 +4826,14 @@ class mexc extends Exchange {
     }
 
     public function fetch_transfer(string $id, ?string $code = null, $params = array ()): array {
+        /**
+         * fetches a transfer
+         * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+         * @param {string} $id transfer $id
+         * @param {[string]} $code not used by mexc fetchTransfer
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transfer-structure transfer structure~
+         */
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
         $this->load_markets();
         if ($marketType === 'spot') {
@@ -4847,6 +4865,8 @@ class mexc extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal transfers made on an account
+         * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of  transfers structures to retrieve
@@ -5104,6 +5124,14 @@ class mexc extends Exchange {
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+         * @param {bool} $hedged set to true to use dualSidePosition
+         * @param {string} $symbol not used by mexc setPositionMode ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $response from the exchange
+         */
         $request = array(
             'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         );
@@ -5118,6 +5146,13 @@ class mexc extends Exchange {
     }
 
     public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+        /**
+         * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+         * @param {string} $symbol not used by mexc fetchPositionMode
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         */
         $response = $this->contractPrivateGetPositionPositionMode ($params);
         //
         //     {

@@ -179,9 +179,11 @@ public partial class hyperliquid : Exchange
                     { "No liquidity available for market order.", typeof(InvalidOrder) },
                     { "Order was never placed, already canceled, or filled.", typeof(OrderNotFound) },
                     { "User or API Wallet ", typeof(InvalidOrder) },
+                    { "Order has invalid size", typeof(InvalidOrder) },
+                    { "Order price cannot be more than 80% away from the reference price", typeof(InvalidOrder) },
                 } },
             } },
-            { "precisionMode", TICK_SIZE },
+            { "precisionMode", DECIMAL_PLACES },
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "swap" },
@@ -204,7 +206,7 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchCurrencies
         * @description fetches all available currencies on an exchange
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-exchange-metadata
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an associative dictionary of currencies
         */
@@ -267,7 +269,8 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchMarkets
         * @description retrieves data on all markets for hyperliquid
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -285,7 +288,7 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchMarkets
         * @description retrieves data on all swap markets for hyperliquid
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -344,7 +347,7 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchMarkets
         * @description retrieves data on all spot markets for hyperliquid
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -356,102 +359,51 @@ public partial class hyperliquid : Exchange
         //
         // [
         //     {
-        //         'tokens': [
+        //         "tokens": [
         //             {
-        //                 'name': 'USDC',
-        //                 'szDecimals': '8',
-        //                 'weiDecimals': '8',
+        //                 "name": "USDC",
+        //                 "szDecimals": 8,
+        //                 "weiDecimals" 8,
+        //                 "index": 0,
+        //                 "tokenId": "0x6d1e7cde53ba9467b783cb7c530ce054",
+        //                 "isCanonical": true,
+        //                 "evmContract":null,
+        //                 "fullName":null
         //             },
         //             {
-        //                 'name': 'PURR',
-        //                 'szDecimals': '0',
-        //                 'weiDecimals': '5',
-        //             },
+        //                 "name": "PURR",
+        //                 "szDecimals": 0,
+        //                 "weiDecimals": 5,
+        //                 "index": 1,
+        //                 "tokenId": "0xc1fb593aeffbeb02f85e0308e9956a90",
+        //                 "isCanonical": true,
+        //                 "evmContract":null,
+        //                 "fullName":null
+        //             }
         //         ],
-        //         'universe': [
+        //         "universe": [
         //             {
-        //                 'name': 'PURR/USDC',
-        //                 'tokens': [
-        //                     1,
-        //                     0,
-        //                 ],
-        //             },
-        //         ],
+        //                 "name": "PURR/USDC",
+        //                 "tokens": [1, 0],
+        //                 "index": 0,
+        //                 "isCanonical": true
+        //             }
+        //         ]
         //     },
         //     [
         //         {
-        //             'dayNtlVlm': '264250385.14640012',
-        //             'markPx': '0.018314',
-        //             'midPx': '0.0182235',
-        //             'prevDayPx': '0.017427',
-        //         },
-        //     ],
-        // ];
-        // mainnet
-        // [
-        //     {
-        //        "canonical_tokens2":[
-        //           0,
-        //           1
-        //        ],
-        //        "spot_infos":[
-        //           {
-        //              "name":"PURR/USDC",
-        //              "tokens":[
-        //                 1,
-        //                 0
-        //              ]
-        //           }
-        //        ],
-        //        "token_id_to_token":[
-        //           [
-        //              "0x6d1e7cde53ba9467b783cb7c530ce054",
-        //              0
-        //           ],
-        //           [
-        //              "0xc1fb593aeffbeb02f85e0308e9956a90",
-        //              1
-        //           ]
-        //        ],
-        //        "token_infos":[
-        //           {
-        //              "deployer":null,
-        //              "spec":{
-        //                 "name":"USDC",
-        //                 "szDecimals":"8",
-        //                 "weiDecimals":"8"
-        //              },
-        //              "spots":[
-        //              ]
-        //           },
-        //           {
-        //              "deployer":null,
-        //              "spec":{
-        //                 "name":"PURR",
-        //                 "szDecimals":"0",
-        //                 "weiDecimals":"5"
-        //              },
-        //              "spots":[
-        //                 0
-        //              ]
-        //           }
-        //        ]
-        //     },
-        //     [
-        //        {
-        //           "dayNtlVlm":"35001170.16631",
-        //           "markPx":"0.15743",
-        //           "midPx":"0.157555",
-        //           "prevDayPx":"0.158"
-        //        }
+        //             "dayNtlVlm":"8906.0",
+        //             "markPx":"0.14",
+        //             "midPx":"0.209265",
+        //             "prevDayPx":"0.20432"
+        //         }
         //     ]
         // ]
         //
-        // response differs depending on the environment (mainnet vs sandbox)
         object first = this.safeDict(response, 0, new Dictionary<string, object>() {});
         object second = this.safeList(response, 1, new List<object>() {});
-        object meta = this.safeList2(first, "universe", "spot_infos", new List<object>() {});
-        object tokens = this.safeList2(first, "tokens", "token_infos", new List<object>() {});
+        object meta = this.safeList(first, "universe", new List<object>() {});
+        object tokens = this.safeList(first, "tokens", new List<object>() {});
         object markets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(meta)); postFixIncrement(ref i))
         {
@@ -480,7 +432,7 @@ public partial class hyperliquid : Exchange
             object symbol = add(add(bs, "/"), quote);
             object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(innerBaseTokenInfo, "szDecimals")));
+            object amountPrecision = this.safeInteger(innerBaseTokenInfo, "szDecimals");
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             object baseId = this.numberToString(add(i, 10000));
             ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
@@ -512,7 +464,7 @@ public partial class hyperliquid : Exchange
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", amountPrecision },
-                    { "price", 5 },
+                    { "price", subtract(8, amountPrecision) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -580,7 +532,8 @@ public partial class hyperliquid : Exchange
         object fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});
         object taker = this.safeNumber(fees, "taker");
         object maker = this.safeNumber(fees, "maker");
-        return new Dictionary<string, object>() {
+        object amountPrecision = this.safeInteger(market, "szDecimals");
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", baseId },
             { "symbol", symbol },
             { "base", bs },
@@ -607,8 +560,8 @@ public partial class hyperliquid : Exchange
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "szDecimals"))) },
-                { "price", 5 },
+                { "amount", amountPrecision },
+                { "price", subtract(6, amountPrecision) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -630,7 +583,7 @@ public partial class hyperliquid : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public async override Task<object> fetchBalance(object parameters = null)
@@ -639,7 +592,8 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
         * @param {string} [params.type] wallet type, ['spot', 'swap'], defaults to swap
@@ -735,7 +689,7 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#info
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -786,7 +740,8 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -846,7 +801,7 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#info-1
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents, support '1m', '15m', '1h', '1d'
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -982,18 +937,15 @@ public partial class hyperliquid : Exchange
     public override object amountToPrecision(object symbol, object amount)
     {
         object market = this.market(symbol);
-        if (isTrue(getValue(market, "spot")))
-        {
-            return base.amountToPrecision(symbol, amount);
-        }
-        return this.decimalToPrecision(amount, ROUND, getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"), this.precisionMode);
+        return this.decimalToPrecision(amount, ROUND, getValue(getValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
     }
 
     public override object priceToPrecision(object symbol, object price)
     {
         object market = this.market(symbol);
-        object result = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), SIGNIFICANT_DIGITS, this.paddingMode);
-        object decimalParsedResult = this.decimalToPrecision(result, ROUND, 6, DECIMAL_PLACES, this.paddingMode);
+        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
+        object result = this.decimalToPrecision(price, ROUND, 5, SIGNIFICANT_DIGITS, this.paddingMode);
+        object decimalParsedResult = this.decimalToPrecision(result, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         return decimalParsedResult;
     }
 
@@ -1780,7 +1732,7 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchFundingRateHistory
         * @description fetches historical funding rate prices
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-historical-funding-rates
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -2342,7 +2294,7 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchPosition
         * @description fetch data on an open position
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
         * @param {string} symbol unified market symbol of the market the position is held in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
@@ -2359,7 +2311,7 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchPositions
         * @description fetch all open positions
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
@@ -3047,9 +2999,9 @@ public partial class hyperliquid : Exchange
         * @method
         * @name hyperliquid#fetchLedger
         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        * @param {string} code unified currency code
+        * @param {string} [code] unified currency code
         * @param {int} [since] timestamp in ms of the earliest ledger entry
-        * @param {int} [limit] max number of ledger entrys to return
+        * @param {int} [limit] max number of ledger entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -3117,7 +3069,8 @@ public partial class hyperliquid : Exchange
         }
         object type = this.safeString(delta, "type");
         object amount = this.safeString(delta, "usdc");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "hash") },
             { "direction", null },
             { "account", null },
@@ -3132,8 +3085,7 @@ public partial class hyperliquid : Exchange
             { "after", null },
             { "status", null },
             { "fee", fee },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

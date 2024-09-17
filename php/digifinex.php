@@ -2497,7 +2497,7 @@ class digifinex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // spot and margin
         //
@@ -2519,14 +2519,16 @@ class digifinex extends Exchange {
         //     }
         //
         $type = $this->parse_ledger_entry_type($this->safe_string_2($item, 'type', 'finance_type'));
-        $code = $this->safe_currency_code($this->safe_string_2($item, 'currency_mark', 'currency'), $currency);
+        $currencyId = $this->safe_string_2($item, 'currency_mark', 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_number_2($item, 'num', 'change');
         $after = $this->safe_number($item, 'balance');
         $timestamp = $this->safe_timestamp($item, 'time');
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($item, 'timestamp');
         }
-        return array(
+        return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => null,
             'direction' => null,
@@ -2542,17 +2544,17 @@ class digifinex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fee' => null,
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
-         * @param {string} $code unified $currency $code, default is null
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
-         * @param {int} [$limit] max number of $ledger entrys to return, default is null
+         * @param {int} [$limit] max number of $ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
          */

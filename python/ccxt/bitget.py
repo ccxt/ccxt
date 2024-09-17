@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, FundingHistory, Int, IsolatedBorrowRate, Leverage, LeverageTier, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -5492,14 +5492,14 @@ class bitget(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
         :see: https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in ms
         :param str [params.symbol]: *contract only* unified market symbol
@@ -5597,7 +5597,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.parse_ledger(bills, currency, since, limit)
         return self.parse_ledger(data, currency, since, limit)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         # spot
         #
@@ -5627,6 +5627,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         currencyId = self.safe_string(item, 'coin')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'cTime')
         after = self.safe_number(item, 'balance')
         fee = self.safe_number_2(item, 'fees', 'fee')
@@ -5635,7 +5636,7 @@ class bitget(Exchange, ImplicitAPI):
         direction = 'in'
         if amountRaw.find('-') >= 0:
             direction = 'out'
-        return {
+        return self.safe_ledger_entry({
             'info': item,
             'id': self.safe_string(item, 'billId'),
             'timestamp': timestamp,
@@ -5650,8 +5651,11 @@ class bitget(Exchange, ImplicitAPI):
             'before': None,
             'after': after,
             'status': None,
-            'fee': fee,
-        }
+            'fee': {
+                'currency': code,
+                'cost': fee,
+            },
+        }, currency)
 
     def parse_ledger_type(self, type):
         types: dict = {

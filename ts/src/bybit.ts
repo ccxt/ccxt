@@ -3,11 +3,11 @@
 
 import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded } from './base/errors.js';
+import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -978,6 +978,7 @@ export default class bybit extends Exchange {
                     '3200300': InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
                 },
                 'broad': {
+                    'Not supported symbols': BadSymbol, // {"retCode":10001,"retMsg":"Not supported symbols","result":{},"retExtInfo":{},"time":1726147060461}
                     'Request timeout': RequestTimeout, // {"retCode":10016,"retMsg":"Request timeout, please try again later","result":{},"retExtInfo":{},"time":1675307914985}
                     'unknown orderInfo': OrderNotFound, // {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
                     'invalid api_key': AuthenticationError, // {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
@@ -5903,17 +5904,17 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name bybit#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
          * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -5922,7 +5923,7 @@ export default class bybit extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50);
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50) as LedgerEntry[];
         }
         const request: Dict = {
             // 'coin': currency['id'],
@@ -6082,7 +6083,7 @@ export default class bybit extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "id": 234467,
@@ -6121,6 +6122,7 @@ export default class bybit extends Exchange {
         //
         const currencyId = this.safeString2 (item, 'coin', 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeString2 (item, 'amount', 'change');
         const after = this.safeString2 (item, 'wallet_balance', 'cashBalance');
         const direction = Precise.stringLt (amount, '0') ? 'out' : 'in';
@@ -6133,26 +6135,26 @@ export default class bybit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.safeInteger (item, 'transactionTime');
         }
-        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const id = this.safeString (item, 'id');
-        const referenceId = this.safeString (item, 'tx_id');
-        return {
-            'id': id,
-            'currency': code,
-            'account': this.safeString (item, 'wallet_id'),
-            'referenceAccount': undefined,
-            'referenceId': referenceId,
-            'status': undefined,
-            'amount': this.parseNumber (Precise.stringAbs (amount)),
-            'before': this.parseNumber (before),
-            'after': this.parseNumber (after),
-            'fee': this.parseNumber (this.safeString (item, 'fee')),
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'id'),
             'direction': direction,
+            'account': this.safeString (item, 'wallet_id'),
+            'referenceId': this.safeString (item, 'tx_id'),
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
+            'currency': code,
+            'amount': this.parseToNumeric (Precise.stringAbs (amount)),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'type': type,
-            'info': item,
-        };
+            'before': this.parseToNumeric (before),
+            'after': this.parseToNumeric (after),
+            'status': 'ok',
+            'fee': {
+                'currency': code,
+                'cost': this.parseToNumeric (this.safeString (item, 'fee')),
+            },
+        }, currency) as LedgerEntry;
     }
 
     parseLedgerEntryType (type) {

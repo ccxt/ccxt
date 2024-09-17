@@ -5749,14 +5749,14 @@ class bitget extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
          * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} $code unified $currency $code, default is null
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] end time in ms
          * @param {string} [$params->symbol] *contract only* unified $market $symbol
@@ -5865,7 +5865,7 @@ class bitget extends Exchange {
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // spot
         //
@@ -5895,6 +5895,7 @@ class bitget extends Exchange {
         //
         $currencyId = $this->safe_string($item, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'cTime');
         $after = $this->safe_number($item, 'balance');
         $fee = $this->safe_number_2($item, 'fees', 'fee');
@@ -5904,7 +5905,7 @@ class bitget extends Exchange {
         if (mb_strpos($amountRaw, '-') !== false) {
             $direction = 'out';
         }
-        return array(
+        return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => $this->safe_string($item, 'billId'),
             'timestamp' => $timestamp,
@@ -5919,8 +5920,11 @@ class bitget extends Exchange {
             'before' => null,
             'after' => $after,
             'status' => null,
-            'fee' => $fee,
-        );
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $fee,
+            ),
+        ), $currency);
     }
 
     public function parse_ledger_type($type) {

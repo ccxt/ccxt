@@ -848,8 +848,11 @@ public partial class mexc : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object spotMarket = await this.fetchSpotMarkets(parameters);
-        object swapMarket = await this.fetchSwapMarkets(parameters);
+        object spotMarketPromise = this.fetchSpotMarkets(parameters);
+        object swapMarketPromise = this.fetchSwapMarkets(parameters);
+        var spotMarketswapMarketVariable = await promiseAll(new List<object>() {spotMarketPromise, swapMarketPromise});
+        var spotMarket = ((IList<object>) spotMarketswapMarketVariable)[0];
+        var swapMarket = ((IList<object>) spotMarketswapMarketVariable)[1];
         return this.arrayConcat(spotMarket, swapMarket);
     }
 
@@ -996,7 +999,10 @@ public partial class mexc : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
+        object currentRl = this.rateLimit;
+        this.setProperty(this, "rateLimit", 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         object response = await this.contractPublicGetDetail(parameters);
+        this.setProperty(this, "rateLimit", currentRl);
         //
         //     {
         //         "success":true,
@@ -3843,6 +3849,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#reduceMargin
         * @description remove margin from a position
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
         * @param {string} symbol unified market symbol
         * @param {float} amount the amount of margin to remove
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3858,6 +3865,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#addMargin
         * @description add margin
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
         * @param {string} symbol unified market symbol
         * @param {float} amount amount of margin to add
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3873,6 +3881,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#setLeverage
         * @description set the level of leverage for a market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
         * @param {float} leverage the rate of leverage
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3911,6 +3920,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchFundingHistory
         * @description fetch the history of funding payments paid and received on this account
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch funding history for
         * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -4029,6 +4039,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchFundingRate
         * @description fetch the current funding rate
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -4065,6 +4076,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchFundingRateHistory
         * @description fetches historical funding rate prices
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
         * @param {int} [since] not used by mexc, but filtered internally by ccxt
         * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
@@ -4820,7 +4832,7 @@ public partial class mexc : Exchange
             { "entryPrice", entryPrice },
             { "collateral", null },
             { "side", side },
-            { "unrealizedProfit", null },
+            { "unrealizedPnl", null },
             { "leverage", this.parseNumber(leverage) },
             { "percentage", null },
             { "marginMode", marginType },
@@ -4844,6 +4856,16 @@ public partial class mexc : Exchange
 
     public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name mexc#fetchTransfer
+        * @description fetches a transfer
+        * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+        * @param {string} id transfer id
+        * @param {[string]} code not used by mexc fetchTransfer
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTransfer", null, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
@@ -4883,6 +4905,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchTransfers
         * @description fetch a history of internal transfers made on an account
+        * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
         * @param {string} code unified currency code of the currency transferred
         * @param {int} [since] the earliest time in ms to fetch transfers for
         * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -5148,6 +5172,16 @@ public partial class mexc : Exchange
 
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name mexc#setPositionMode
+        * @description set hedged to true or false for a market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+        * @param {bool} hedged set to true to use dualSidePosition
+        * @param {string} symbol not used by mexc setPositionMode ()
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} response from the exchange
+        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "positionMode", ((bool) isTrue(hedged)) ? 1 : 2 },
@@ -5164,6 +5198,15 @@ public partial class mexc : Exchange
 
     public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name mexc#fetchPositionMode
+        * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+        * @param {string} symbol not used by mexc fetchPositionMode
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an object detailing whether the market is in hedged or one-way mode
+        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.contractPrivateGetPositionPositionMode(parameters);
         //

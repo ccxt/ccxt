@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
@@ -1007,8 +1008,9 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        spotMarket = await self.fetch_spot_markets(params)
-        swapMarket = await self.fetch_swap_markets(params)
+        spotMarketPromise = self.fetch_spot_markets(params)
+        swapMarketPromise = self.fetch_swap_markets(params)
+        spotMarket, swapMarket = await asyncio.gather(*[spotMarketPromise, swapMarketPromise])
         return self.array_concat(spotMarket, swapMarket)
 
     async def fetch_spot_markets(self, params={}):
@@ -1141,7 +1143,10 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        currentRl: number = self.rateLimit
+        self.set_property(self, 'rateLimit', 10)  # see comment: https://github.com/ccxt/ccxt/pull/23698
         response = await self.contractPublicGetDetail(params)
+        self.set_property(self, 'rateLimit', currentRl)
         #
         #     {
         #         "success":true,
@@ -3710,6 +3715,7 @@ class mexc(Exchange, ImplicitAPI):
     async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3720,6 +3726,7 @@ class mexc(Exchange, ImplicitAPI):
     async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3730,6 +3737,7 @@ class mexc(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3757,6 +3765,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -3867,6 +3876,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -3898,6 +3908,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by mexc, but filtered internally by ccxt
         :param int [limit]: mexc limit is page_size default 20, maximum is 100
@@ -4566,7 +4577,7 @@ class mexc(Exchange, ImplicitAPI):
             'entryPrice': entryPrice,
             'collateral': None,
             'side': side,
-            'unrealizedProfit': None,
+            'unrealizedPnl': None,
             'leverage': self.parse_number(leverage),
             'percentage': None,
             'marginMode': marginType,
@@ -4588,6 +4599,14 @@ class mexc(Exchange, ImplicitAPI):
         })
 
     async def fetch_transfer(self, id: str, code: Str = None, params={}) -> TransferEntry:
+        """
+        fetches a transfer
+        :see: https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+        :param str id: transfer id
+        :param [str] code: not used by mexc fetchTransfer
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)
         await self.load_markets()
         if marketType == 'spot':
@@ -4617,6 +4636,8 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
+        :see: https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
@@ -4855,6 +4876,14 @@ class mexc(Exchange, ImplicitAPI):
         return self.parse_transaction(response, currency)
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+        :param bool hedged: set to True to use dualSidePosition
+        :param str symbol: not used by mexc setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
         request: dict = {
             'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         }
@@ -4868,6 +4897,13 @@ class mexc(Exchange, ImplicitAPI):
         return response
 
     async def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+        :param str symbol: not used by mexc fetchPositionMode
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
         response = await self.contractPrivateGetPositionPositionMode(params)
         #
         #     {

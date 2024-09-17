@@ -1110,7 +1110,7 @@ class bitmex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "transactID" => "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1159,6 +1159,7 @@ class bitmex extends Exchange {
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'transactType'));
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amountString = $this->safe_string($item, 'amount');
         $amount = $this->convert_to_real_amount($code, $amountString);
         $timestamp = $this->parse8601($this->safe_string($item, 'transactTime'));
@@ -1173,14 +1174,14 @@ class bitmex extends Exchange {
             $feeCost = $this->convert_to_real_amount($code, $feeCost);
         }
         $fee = array(
-            'cost' => $this->parse_number($feeCost),
+            'cost' => $this->parse_to_numeric($feeCost),
             'currency' => $code,
         );
         $after = $this->safe_string($item, 'walletBalance');
         if ($after !== null) {
             $after = $this->convert_to_real_amount($code, $after);
         }
-        $before = $this->parse_number(Precise::string_sub($this->number_to_string($after), $this->number_to_string($amount)));
+        $before = $this->parse_to_numeric(Precise::string_sub($this->number_to_string($after), $this->number_to_string($amount)));
         $direction = null;
         if (Precise::string_lt($amountString, '0')) {
             $direction = 'out';
@@ -1189,9 +1190,9 @@ class bitmex extends Exchange {
             $direction = 'in';
         }
         $status = $this->parse_transaction_status($this->safe_string($item, 'transactStatus'));
-        return array(
-            'id' => $id,
+        return $this->safe_ledger_entry(array(
             'info' => $item,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'direction' => $direction,
@@ -1200,22 +1201,22 @@ class bitmex extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_to_numeric($amount),
             'before' => $before,
-            'after' => $this->parse_number($after),
+            'after' => $this->parse_to_numeric($after),
             'status' => $status,
             'fee' => $fee,
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-             * @param {string} $code unified $currency $code, default is null
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */

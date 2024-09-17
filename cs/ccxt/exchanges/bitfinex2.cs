@@ -3135,6 +3135,7 @@ public partial class bitfinex2 : Exchange
         object id = this.safeString(itemList, 0);
         object currencyId = this.safeString(itemList, 1);
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(itemList, 3);
         object amount = this.safeNumber(itemList, 5);
         object after = this.safeNumber(itemList, 6);
@@ -3145,7 +3146,8 @@ public partial class bitfinex2 : Exchange
             object first = this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", id },
             { "direction", null },
             { "account", null },
@@ -3160,8 +3162,7 @@ public partial class bitfinex2 : Exchange
             { "after", after },
             { "status", null },
             { "fee", null },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -3169,11 +3170,11 @@ public partial class bitfinex2 : Exchange
         /**
         * @method
         * @name bitfinex2#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined max is 2500
+        * @param {int} [limit] max number of ledger entries to return, default is undefined, max is 2500
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)

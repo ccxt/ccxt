@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -6033,8 +6033,8 @@ class binance(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchOrders', params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOrders', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
-        params = self.omit(params, ['stop', 'conditional', 'type'])
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
+        params = self.omit(params, ['stop', 'trigger', 'conditional', 'type'])
         request: dict = {
             'symbol': market['id'],
         }
@@ -6283,7 +6283,7 @@ class binance(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOpenOrders', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_n(params, ['stop', 'conditional', 'trigger'])
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -6297,7 +6297,7 @@ class binance(Exchange, ImplicitAPI):
             type = self.safe_string(params, 'type', defaultType)
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchOpenOrders', market, params)
-        params = self.omit(params, ['type', 'stop', 'conditional', 'trigger'])
+        params = self.omit(params, ['type', 'stop', 'trigger', 'conditional'])
         response = None
         if type == 'option':
             if since is not None:
@@ -6358,8 +6358,8 @@ class binance(Exchange, ImplicitAPI):
         }
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchOpenOrder', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_n(params, ['stop', 'conditional', 'trigger'])
-        params = self.omit(params, ['stop', 'conditional', 'trigger'])
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
+        params = self.omit(params, ['stop', 'trigger', 'conditional'])
         isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
         orderIdRequest = 'strategyId' if isPortfolioMarginConditional else 'orderId'
         request[orderIdRequest] = id
@@ -6649,7 +6649,7 @@ class binance(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'cancelOrder', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         request: dict = {
             'symbol': market['id'],
         }
@@ -6667,7 +6667,7 @@ class binance(Exchange, ImplicitAPI):
                 request['strategyId'] = id
             else:
                 request['orderId'] = id
-        params = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional'])
+        params = self.omit(params, ['type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional'])
         response = None
         if market['option']:
             response = await self.eapiPrivateDeleteOrder(self.extend(request, params))
@@ -6726,9 +6726,9 @@ class binance(Exchange, ImplicitAPI):
         }
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'cancelAllOrders', 'papi', 'portfolioMargin', False)
-        isConditional = self.safe_bool_2(params, 'stop', 'conditional')
+        isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         type = self.safe_string(params, 'type', market['type'])
-        params = self.omit(params, ['type', 'stop', 'conditional'])
+        params = self.omit(params, ['type', 'stop', 'trigger', 'conditional'])
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
         response = None
@@ -10362,19 +10362,42 @@ class binance(Exchange, ImplicitAPI):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    async def fetch_ledger_entry(self, id: str, code: Str = None, params={}):
+    async def fetch_ledger_entry(self, id: str, code: Str = None, params={}) -> LedgerEntry:
+        """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        :see: https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+        :param str id: the identification number of the ledger entry
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        """
         await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchLedgerEntry', None, params)
-        query: dict = {
-            'recordId': id,
-            'type': type,
-        }
         if type != 'option':
             raise BadRequest(self.id + ' fetchLedgerEntry() can only be used for type option')
-        return await self.fetch_ledger(code, None, None, self.extend(query, params))
+        self.check_required_argument('fetchLedgerEntry', code, 'code')
+        currency = self.currency(code)
+        request: dict = {
+            'recordId': id,
+            'currency': currency['id'],
+        }
+        response = await self.eapiPrivateGetBill(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": "1125899906845701870",
+        #             "asset": "USDT",
+        #             "amount": "-0.16518203",
+        #             "type": "FEE",
+        #             "createDate": 1676621042489
+        #         }
+        #     ]
+        #
+        first = self.safe_dict(response, 0, response)
+        return self.parse_ledger_entry(first, currency)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
@@ -10382,9 +10405,9 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
         :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
         :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
-        :param str code: unified currency code
+        :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
-        :param int [limit]: max number of ledger entrys to return
+        :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -10462,7 +10485,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         # options(eapi)
         #
@@ -10495,16 +10518,19 @@ class binance(Exchange, ImplicitAPI):
         else:
             direction = 'in'
         currencyId = self.safe_string(item, 'asset')
+        code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer_2(item, 'createDate', 'time')
         type = self.safe_string_2(item, 'type', 'incomeType')
-        return {
+        return self.safe_ledger_entry({
+            'info': item,
             'id': self.safe_string_2(item, 'id', 'tranId'),
             'direction': direction,
             'account': None,
             'referenceAccount': None,
             'referenceId': self.safe_string(item, 'tradeId'),
             'type': self.parse_ledger_entry_type(type),
-            'currency': self.safe_currency_code(currencyId, currency),
+            'currency': code,
             'amount': self.parse_number(amount),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -10512,8 +10538,7 @@ class binance(Exchange, ImplicitAPI):
             'after': None,
             'status': None,
             'fee': None,
-            'info': item,
-        }
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         ledgerType: dict = {

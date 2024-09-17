@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2147,13 +2147,13 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_integer(types, type, type)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
-        :param str code: unified currency code, default is None(not used)
+        :param str [code]: unified currency code, default is None(not used)
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param int [params.flowType]: trade, fee, transfer, deposit, withdrawal
@@ -2213,7 +2213,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "id": "1740844413612065537",
@@ -2233,7 +2233,9 @@ class hashkey(Exchange, ImplicitAPI):
         account = self.safe_string(item, 'accountId')
         timestamp = self.safe_integer(item, 'created')
         type = self.parse_ledger_entry_type(self.safe_string(item, 'flowTypeValue'))
-        code = self.safe_currency_code(self.safe_string(item, 'coin'), currency)
+        currencyId = self.safe_string(item, 'coin')
+        code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         amountString = self.safe_string(item, 'change')
         amount = self.parse_number(amountString)
         direction = 'in'
@@ -2242,9 +2244,9 @@ class hashkey(Exchange, ImplicitAPI):
         afterString = self.safe_string(item, 'total')
         after = self.parse_number(afterString)
         status = 'ok'
-        return {
-            'id': id,
+        return self.safe_ledger_entry({
             'info': item,
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'account': account,
@@ -2259,7 +2261,7 @@ class hashkey(Exchange, ImplicitAPI):
             'after': after,
             'status': status,
             'fee': None,
-        }
+        }, currency)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """

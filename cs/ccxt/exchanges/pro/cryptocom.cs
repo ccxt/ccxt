@@ -14,7 +14,8 @@ public partial class cryptocom : ccxt.cryptocom
                 { "ws", true },
                 { "watchBalance", true },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchMyTrades", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
@@ -556,30 +557,100 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.unWatchPublicMultiple("ticker", new List<object>() {getValue(market, "symbol")}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, new List<object>() {subMessageHash}, parameters);
     }
 
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object marketIds = this.marketIds(symbols);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            ((IList<object>)messageHashes).Add(add("ticker.", marketId));
+        }
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object id = this.nonce();
+        object request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", messageHashes },
+            } },
+            { "nonce", id },
+        };
+        object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#unWatchTickers
+        * @description unWatches a price ticker
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object subMessageHashes = new List<object>() {};
+        object marketIds = this.marketIds(symbols);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object symbol = getValue(symbols, i);
+            ((IList<object>)subMessageHashes).Add(add("ticker.", marketId));
+            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+        }
+        return await this.unWatchPublicMultiple("ticker", symbols, messageHashes, subMessageHashes, subMessageHashes, parameters);
+    }
+
     public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
-        // {
-        //     "info":{
-        //        "instrument_name":"BTC_USDT",
-        //        "subscription":"ticker.BTC_USDT",
-        //        "channel":"ticker",
-        //        "data":[
-        //           {
-        //              "i":"BTC_USDT",
-        //              "b":43063.19,
-        //              "k":43063.2,
-        //              "a":43063.19,
-        //              "t":1648121165658,
-        //              "v":43573.912409,
-        //              "h":43498.51,
-        //              "l":41876.58,
-        //              "c":1087.43
-        //           }
-        //        ]
+        //     {
+        //       "instrument_name": "ETHUSD-PERP",
+        //       "subscription": "ticker.ETHUSD-PERP",
+        //       "channel": "ticker",
+        //       "data": [
+        //         {
+        //           "h": "2400.20",
+        //           "l": "2277.10",
+        //           "a": "2335.25",
+        //           "c": "-0.0022",
+        //           "b": "2335.10",
+        //           "bs": "5.4000",
+        //           "k": "2335.16",
+        //           "ks": "1.9970",
+        //           "i": "ETHUSD-PERP",
+        //           "v": "1305697.6462",
+        //           "vv": "3058704939.17",
+        //           "oi": "161646.3614",
+        //           "t": 1726069647560
+        //         }
+        //       ]
         //     }
-        //  }
         //
+        this.handleBidAsk(client as WebSocketClient, message);
         object messageHash = this.safeString(message, "subscription");
         object marketId = this.safeString(message, "instrument_name");
         object market = this.safeMarket(marketId);
@@ -587,11 +658,130 @@ public partial class cryptocom : ccxt.cryptocom
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = getValue(data, i);
-            object parsed = this.parseTicker(ticker, market);
+            object parsed = this.parseWsTicker(ticker, market);
             object symbol = getValue(parsed, "symbol");
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
             callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, messageHash});
         }
+    }
+
+    public virtual object parseWsTicker(object ticker, object market = null)
+    {
+        //
+        //     {
+        //       "h": "2400.20",
+        //       "l": "2277.10",
+        //       "a": "2335.25",
+        //       "c": "-0.0022",
+        //       "b": "2335.10",
+        //       "bs": "5.4000",
+        //       "k": "2335.16",
+        //       "ks": "1.9970",
+        //       "i": "ETHUSD-PERP",
+        //       "v": "1305697.6462",
+        //       "vv": "3058704939.17",
+        //       "oi": "161646.3614",
+        //       "t": 1726069647560
+        //     }
+        //
+        object timestamp = this.safeInteger(ticker, "t");
+        object marketId = this.safeString(ticker, "i");
+        market = this.safeMarket(marketId, market, "_");
+        object quote = this.safeString(market, "quote");
+        object last = this.safeString(ticker, "a");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "high", this.safeNumber(ticker, "h") },
+            { "low", this.safeNumber(ticker, "l") },
+            { "bid", this.safeNumber(ticker, "b") },
+            { "bidVolume", this.safeNumber(ticker, "bs") },
+            { "ask", this.safeNumber(ticker, "k") },
+            { "askVolume", this.safeNumber(ticker, "ks") },
+            { "vwap", null },
+            { "open", null },
+            { "close", last },
+            { "last", last },
+            { "previousClose", null },
+            { "change", null },
+            { "percentage", this.safeString(ticker, "c") },
+            { "average", null },
+            { "baseVolume", this.safeString(ticker, "v") },
+            { "quoteVolume", ((bool) isTrue((isEqual(quote, "USD")))) ? this.safeString(ticker, "vv") : null },
+            { "info", ticker },
+        }, market);
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#watchBidsAsks
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object topics = new List<object>() {};
+        object marketIds = this.marketIds(symbols);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            ((IList<object>)messageHashes).Add(add("bidask.", getValue(symbols, i)));
+            ((IList<object>)topics).Add(add("ticker.", marketId));
+        }
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object id = this.nonce();
+        object request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", topics },
+            } },
+            { "nonce", id },
+        };
+        object newTickers = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        object data = this.safeList(message, "data", new List<object>() {});
+        object ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object parsedTicker = this.parseWsBidAsk(ticker);
+        object symbol = getValue(parsedTicker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        object messageHash = add("bidask.", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "i");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "t");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "k") },
+            { "askVolume", this.safeString(ticker, "ks") },
+            { "bid", this.safeString(ticker, "b") },
+            { "bidVolume", this.safeString(ticker, "bs") },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)

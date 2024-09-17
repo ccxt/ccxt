@@ -821,6 +821,7 @@ public partial class mexc
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -840,6 +841,7 @@ public partial class mexc
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -873,6 +875,7 @@ public partial class mexc
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -892,6 +895,7 @@ public partial class mexc
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1119,6 +1123,15 @@ public partial class mexc
         var res = await this.fetchPositions(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
+    /// <summary>
+    /// fetches a transfer
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry"/>  <br/>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> FetchTransfer(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransfer(id, code, parameters);
@@ -1128,6 +1141,8 @@ public partial class mexc
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1203,11 +1218,41 @@ public partial class mexc
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
     }
+    /// <summary>
+    /// set hedged to true or false for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
     public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
     public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionMode(symbol, parameters);

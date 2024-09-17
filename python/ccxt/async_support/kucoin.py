@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3932,7 +3932,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "id": "611a1e7c6a053300067a88d9",  #unique key for each ledger entry
@@ -3950,6 +3950,7 @@ class kucoin(Exchange, ImplicitAPI):
         id = self.safe_string(item, 'id')
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         amount = self.safe_number(item, 'amount')
         balanceAfter = None
         # balanceAfter = self.safe_number(item, 'balance'); only returns zero string
@@ -3992,7 +3993,8 @@ class kucoin(Exchange, ImplicitAPI):
         if feeCost != '0':
             feeCurrency = code
             fee = {'cost': self.parse_number(feeCost), 'currency': feeCurrency}
-        return {
+        return self.safe_ledger_entry({
+            'info': item,
             'id': id,
             'direction': direction,
             'account': account,
@@ -4007,22 +4009,21 @@ class kucoin(Exchange, ImplicitAPI):
             'after': balanceAfter,  # None
             'status': None,
             'fee': fee,
-            'info': item,
-        }
+        }, currency)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
         :see: https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
         :see: https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.hf]: default False, when True will fetch ledger entries for the high frequency trading account
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
@@ -4743,7 +4744,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string_2(response, 'msg', 'data', '')
-        feedback = self.id + ' ' + message
+        feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
