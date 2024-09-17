@@ -10,6 +10,8 @@ from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticke
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NotSupported
 
 
 class mexc(ccxt.async_support.mexc):
@@ -34,6 +36,7 @@ class mexc(ccxt.async_support.mexc):
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
             },
@@ -110,6 +113,7 @@ class mexc(ccxt.async_support.mexc):
         #        "t": 1678643605721
         #    }
         #
+        self.handle_bid_ask(client, message)
         rawTicker = self.safe_value_2(message, 'd', 'data')
         marketId = self.safe_string_2(message, 's', 'symbol')
         timestamp = self.safe_integer(message, 't')
@@ -226,6 +230,80 @@ class mexc(ccxt.async_support.mexc):
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,
+            'info': ticker,
+        }, market)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, False, True)
+        marketType = None
+        if symbols is None:
+            raise ArgumentsRequired(self.id + 'watchBidsAsks required symbols argument')
+        markets = self.markets_for_symbols(symbols)
+        marketType, params = self.handle_market_type_and_params('watchBidsAsks', markets[0], params)
+        isSpot = marketType == 'spot'
+        if not isSpot:
+            raise NotSupported(self.id + 'watchBidsAsks only support spot market')
+        messageHashes = []
+        topics = []
+        for i in range(0, len(symbols)):
+            if isSpot:
+                market = self.market(symbols[i])
+                topics.append('spot@public.bookTicker.v3.api@' + market['id'])
+            messageHashes.append('bidask:' + symbols[i])
+        url = self.urls['api']['ws']['spot']
+        request: dict = {
+            'method': 'SUBSCRIPTION',
+            'params': topics,
+        }
+        ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        if self.newUpdates:
+            tickers: dict = {}
+            tickers[ticker['symbol']] = ticker
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        #    {
+        #        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        #        "d": {
+        #            "A": "4.70432",
+        #            "B": "6.714863",
+        #            "a": "20744.54",
+        #            "b": "20744.17"
+        #        },
+        #        "s": "BTCUSDT",
+        #        "t": 1678643605721
+        #    }
+        #
+        parsedTicker = self.parse_ws_bid_ask(message)
+        symbol = parsedTicker['symbol']
+        self.bidsasks[symbol] = parsedTicker
+        messageHash = 'bidask:' + symbol
+        client.resolve(parsedTicker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        data = self.safe_dict(ticker, 'd')
+        marketId = self.safe_string(ticker, 's')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 't')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_number(data, 'a'),
+            'askVolume': self.safe_number(data, 'A'),
+            'bid': self.safe_number(data, 'b'),
+            'bidVolume': self.safe_number(data, 'B'),
             'info': ticker,
         }, market)
 
