@@ -1225,6 +1225,7 @@ export default class kucoin extends Exchange {
             const status: Int = this.safeInteger (data, 'status');
             this.options['hfMigrated'] = (status === 2);
         }
+        return true;
     }
 
     handleHfAndParams (params = {}) {

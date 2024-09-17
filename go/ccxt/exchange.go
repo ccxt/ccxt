@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Exchange struct {
@@ -116,7 +117,18 @@ type Exchange struct {
 
 	Twofa interface{}
 
+	//WS
+	Ohlcvs     interface{}
+	Trades     interface{}
+	Tickers    interface{}
+	Orders     interface{}
+	MyTrades   interface{}
+	Orderbooks interface{}
+
 	PaddingMode int
+
+	MinFundingAddressLength int
+	MaxEntriesPerRequest    int
 }
 
 var DECIMAL_PLACES int = 2
@@ -177,6 +189,53 @@ func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
 		return nil
 	}()
 	return ch
+}
+
+func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
+	var duration time.Duration
+
+	// Type assertion to handle various types for milliseconds
+	ch := make(chan bool)
+	go func() interface{} {
+		switch v := milliseconds.(type) {
+		case int:
+			duration = time.Duration(v) * time.Millisecond
+		case float64:
+			duration = time.Duration(v * float64(time.Millisecond))
+		case time.Duration:
+			// If already a time.Duration, use it directly
+			duration = v
+		default:
+			return false
+		}
+
+		// Sleep for the specified duration
+		time.Sleep(duration)
+		return true
+	}()
+	return ch
+}
+
+func Unique(obj interface{}) []string {
+	// Type assertion to check if obj is of type []string
+	strList, ok := obj.([]string)
+	if !ok {
+		return nil
+	}
+
+	// Use a map to ensure uniqueness
+	uniqueMap := make(map[string]struct{})
+	var result []string
+
+	for _, str := range strList {
+		// Check if the string is already in the map
+		if _, exists := uniqueMap[str]; !exists {
+			uniqueMap[str] = struct{}{}
+			result = append(result, str)
+		}
+	}
+
+	return result
 }
 
 func (this *Exchange) Log(args ...interface{}) {
@@ -382,10 +441,6 @@ func (this *Exchange) ParseTimeframe(timeframe interface{}) *int {
 
 	result := amount * scale
 	return &result
-}
-
-func (this *Exchange) CheckAddress(add interface{}) bool {
-	return true
 }
 
 func Totp(secret interface{}) string {
@@ -666,16 +721,6 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan int
 	return ch
 }
 
-func Capitalize(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	// Convert the first letter to uppercase
-	firstLetter := strings.ToUpper(string(s[0]))
-	// Combine the uppercase first letter with the rest of the string
-	return firstLetter + s[1:]
-}
-
 func (this *Exchange) RandomBytes(length interface{}) string {
 	var byteLength int
 
@@ -740,6 +785,51 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 	return chars
 }
 
+func (this *Exchange) SetProperty(obj interface{}, property interface{}, defaultValue interface{}) {
+	// Convert property to string
+	propName, ok := property.(string)
+	if !ok {
+		// fmt.Println("Property should be a string")
+		return
+	}
+
+	// Get the reflection object for the obj
+	val := reflect.ValueOf(obj).Elem()
+
+	// Get the field by name
+	field := val.FieldByName(propName)
+
+	// Check if the field exists and is settable
+	if field.IsValid() && field.CanSet() {
+		// Set the field with the default value, casting it to the right type
+		field.Set(reflect.ValueOf(defaultValue))
+	} else {
+		// fmt.Printf("Field '%s' is either invalid or cannot be set\n", propName)
+	}
+}
+
+func (this *Exchange) Unique(obj interface{}) []string {
+	// Type assertion to check if obj is a slice of strings
+	if list, ok := obj.([]string); ok {
+		// Create a map to track unique strings
+		uniqueMap := make(map[string]bool)
+		var uniqueList []string
+
+		// Iterate over the list and add only unique elements
+		for _, item := range list {
+			if !uniqueMap[item] {
+				uniqueMap[item] = true
+				uniqueList = append(uniqueList, item)
+			}
+		}
+
+		return uniqueList
+	}
+
+	// If obj is not a []string, return an empty slice
+	return []string{}
+}
+
 // func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
 // 	name := strings.Title(strings.ToLower(name2))
 // 	baseType := reflect.TypeOf(this.Itf)
@@ -778,3 +868,15 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 // 	}
 // 	return nil
 // }
+
+func (this *Exchange) RetrieveStarkAccount(sig interface{}, account interface{}, hash interface{}) interface{} {
+	return nil // to do
+}
+
+func (this *Exchange) StarknetEncodeStructuredData(a interface{}, b interface{}, c interface{}, d interface{}) interface{} {
+	return nil // to do
+}
+
+func (this *Exchange) StarknetSign(a interface{}, b interface{}) interface{} {
+	return nil // to do
+}

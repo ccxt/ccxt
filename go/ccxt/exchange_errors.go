@@ -38,11 +38,8 @@ package ccxt
    func MarketClosed(v ...interface{}) interface{} {
         return NewError("MarketClosed", v...)
     }
-   func BadResponse(v ...interface{}) interface{} {
-        return NewError("BadResponse", v...)
-    }
-   func NullResponse(v ...interface{}) interface{} {
-        return NewError("NullResponse", v...)
+   func ManualInteractionNeeded(v ...interface{}) interface{} {
+        return NewError("ManualInteractionNeeded", v...)
     }
    func InsufficientFunds(v ...interface{}) interface{} {
         return NewError("InsufficientFunds", v...)
@@ -62,9 +59,6 @@ package ccxt
    func OrderNotCached(v ...interface{}) interface{} {
         return NewError("OrderNotCached", v...)
     }
-   func CancelPending(v ...interface{}) interface{} {
-        return NewError("CancelPending", v...)
-    }
    func OrderImmediatelyFillable(v ...interface{}) interface{} {
         return NewError("OrderImmediatelyFillable", v...)
     }
@@ -80,8 +74,8 @@ package ccxt
    func NotSupported(v ...interface{}) interface{} {
         return NewError("NotSupported", v...)
     }
-   func ProxyError(v ...interface{}) interface{} {
-        return NewError("ProxyError", v...)
+   func InvalidProxySettings(v ...interface{}) interface{} {
+        return NewError("InvalidProxySettings", v...)
     }
    func ExchangeClosedByUser(v ...interface{}) interface{} {
         return NewError("ExchangeClosedByUser", v...)
@@ -107,6 +101,21 @@ package ccxt
    func InvalidNonce(v ...interface{}) interface{} {
         return NewError("InvalidNonce", v...)
     }
+   func ChecksumError(v ...interface{}) interface{} {
+        return NewError("ChecksumError", v...)
+    }
    func RequestTimeout(v ...interface{}) interface{} {
         return NewError("RequestTimeout", v...)
+    }
+   func BadResponse(v ...interface{}) interface{} {
+        return NewError("BadResponse", v...)
+    }
+   func NullResponse(v ...interface{}) interface{} {
+        return NewError("NullResponse", v...)
+    }
+   func CancelPending(v ...interface{}) interface{} {
+        return NewError("CancelPending", v...)
+    }
+   func UnsubscribeError(v ...interface{}) interface{} {
+        return NewError("UnsubscribeError", v...)
     }
