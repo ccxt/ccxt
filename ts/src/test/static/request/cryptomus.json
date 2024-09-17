@@ -1,0 +1,35 @@
+{
+    "exchange": "cryptomus",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api.cryptomus.com/v1/exchange/market/tickers",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.cryptomus.com/v1/exchange/market/assets",
+                "input": []
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "test",
+                "url": "https://api.cryptomus.com/v1/exchange/market/tickers",
+                "input": [
+                    [
+                        "ETH/USD"
+                    ]
+                ]
+            }
+        ]
+    }
+}
