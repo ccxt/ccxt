@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import mexcRest from '../mexc.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings } from '../base/types.js';
@@ -256,26 +256,24 @@ export default class mexc extends mexcRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        let firstMarket = undefined;
         let marketType = undefined;
-        const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
-            firstMarket = this.market (symbols[0]);
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + 'watchBidsAsks required symbols argument');
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
+        const markets = this.marketsForSymbols (symbols);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
         const isSpot = marketType === 'spot';
+        if (!isSpot) {
+            throw new NotSupported (this.id + 'watchBidsAsks only support spot market');
+        }
         const messageHashes = [];
         const topics = [];
-        if (symbolsDefined) {}
         for (let i = 0; i < symbols.length; i++) {
             if (isSpot) {
                 const market = this.market (symbols[i]);
                 topics.push ('spot@public.bookTicker.v3.api@' + market['id']);
             }
             messageHashes.push ('bidask:' + symbols[i]);
-        }
-        if (!isSpot) {
-            throw new NotSupported (this.id + 'watchBidsAsks only support spot market');
         }
         const url = this.urls['api']['ws']['spot'];
         const request: Dict = {
