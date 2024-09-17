@@ -144,7 +144,8 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 		precisionDigitsString := this._decimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING)
 		newNumPrecisionDigits := this.PrecisionFromString(precisionDigitsString)
 		missing := math.Mod(parsedX, numPrecisionDigits)
-		missingFloat, _ := strconv.ParseFloat(this._decimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING), 64)
+		missingRes := this._decimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING)
+		missingFloat, _ := strconv.ParseFloat(missingRes, 64)
 		missing = missingFloat
 		fpError := missing / numPrecisionDigits
 		fpErrorStr := this._decimalToPrecision(fpError, ROUND, math.Max(float64(newNumPrecisionDigits), 8), DECIMAL_PLACES, NO_PADDING)
@@ -225,7 +226,8 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 
 	precisionStart := digitsStart
 	if countMode == DECIMAL_PLACES {
-		precisionStart = afterDot + 1
+		// precisionStart = afterDot + 1
+		precisionStart = afterDot
 	}
 
 	precisionEnd := precisionStart + int(numPrecisionDigits)
@@ -243,8 +245,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 			if i >= precisionStart+int(numPrecisionDigits) {
 				ceil := roundingMode == ROUND && c >= FIVE && !(c == FIVE && memo == 1)
 				if ceil {
-					c = ZERO
-					memo = 1
+					c = NINE + 1
 				} else {
 					c = ZERO
 				}
