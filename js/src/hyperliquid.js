@@ -478,7 +478,7 @@ export default class hyperliquid extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.parseNumber('10'),
                         'max': undefined,
                     },
                 },
@@ -571,7 +571,7 @@ export default class hyperliquid extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.parseNumber('10'),
                     'max': undefined,
                 },
             },

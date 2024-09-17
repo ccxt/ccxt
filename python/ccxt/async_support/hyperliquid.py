@@ -477,7 +477,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.parse_number('10'),
                         'max': None,
                     },
                 },
@@ -567,7 +567,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'cost': {
-                    'min': None,
+                    'min': self.parse_number('10'),
                     'max': None,
                 },
             },

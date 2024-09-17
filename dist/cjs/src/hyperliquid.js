@@ -475,7 +475,7 @@ class hyperliquid extends hyperliquid$1 {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.parseNumber('10'),
                         'max': undefined,
                     },
                 },
@@ -568,7 +568,7 @@ class hyperliquid extends hyperliquid$1 {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.parseNumber('10'),
                     'max': undefined,
                 },
             },

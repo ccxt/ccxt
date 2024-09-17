@@ -480,7 +480,7 @@ public partial class hyperliquid : Exchange
                         { "max", null },
                     } },
                     { "cost", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.parseNumber("10") },
                         { "max", null },
                     } },
                 } },
@@ -577,7 +577,7 @@ public partial class hyperliquid : Exchange
                     { "max", null },
                 } },
                 { "cost", new Dictionary<string, object>() {
-                    { "min", null },
+                    { "min", this.parseNumber("10") },
                     { "max", null },
                 } },
             } },

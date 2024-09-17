@@ -659,6 +659,9 @@ public partial class mexc
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-symbol"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -689,6 +692,8 @@ public partial class mexc
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -708,6 +713,8 @@ public partial class mexc
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -755,6 +762,8 @@ public partial class mexc
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -788,6 +797,8 @@ public partial class mexc
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1129,6 +1140,12 @@ public partial class mexc
     /// <remarks>
     /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : not used by mexc fetchTransfer
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>

@@ -487,7 +487,7 @@ class hyperliquid extends Exchange {
                             'max' => null,
                         ),
                         'cost' => array(
-                            'min' => null,
+                            'min' => $this->parse_number('10'),
                             'max' => null,
                         ),
                     ),
@@ -582,7 +582,7 @@ class hyperliquid extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $this->parse_number('10'),
                     'max' => null,
                 ),
             ),
