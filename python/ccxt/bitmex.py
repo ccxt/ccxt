@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1050,7 +1050,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1099,6 +1099,7 @@ class bitmex(Exchange, ImplicitAPI):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'transactType'))
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         amountString = self.safe_string(item, 'amount')
         amount = self.convert_to_real_amount(code, amountString)
         timestamp = self.parse8601(self.safe_string(item, 'transactTime'))
@@ -1111,13 +1112,13 @@ class bitmex(Exchange, ImplicitAPI):
         if feeCost is not None:
             feeCost = self.convert_to_real_amount(code, feeCost)
         fee = {
-            'cost': self.parse_number(feeCost),
+            'cost': self.parse_to_numeric(feeCost),
             'currency': code,
         }
         after = self.safe_string(item, 'walletBalance')
         if after is not None:
             after = self.convert_to_real_amount(code, after)
-        before = self.parse_number(Precise.string_sub(self.number_to_string(after), self.number_to_string(amount)))
+        before = self.parse_to_numeric(Precise.string_sub(self.number_to_string(after), self.number_to_string(amount)))
         direction = None
         if Precise.string_lt(amountString, '0'):
             direction = 'out'
@@ -1125,9 +1126,9 @@ class bitmex(Exchange, ImplicitAPI):
         else:
             direction = 'in'
         status = self.parse_transaction_status(self.safe_string(item, 'transactStatus'))
-        return {
-            'id': id,
+        return self.safe_ledger_entry({
             'info': item,
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'direction': direction,
@@ -1136,20 +1137,20 @@ class bitmex(Exchange, ImplicitAPI):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_to_numeric(amount),
             'before': before,
-            'after': self.parse_number(after),
+            'after': self.parse_to_numeric(after),
             'status': status,
             'fee': fee,
-        }
+        }, currency)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://www.bitmex.com/api/explorer/#not /User/User_getWalletHistory
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """

@@ -22,6 +22,7 @@ public partial class bybit : ccxt.bybit
                 { "fetchTradesWs", false },
                 { "fetchBalanceWs", false },
                 { "watchBalance", true },
+                { "watchBidsAsks", true },
                 { "watchLiquidations", true },
                 { "watchLiquidationsForSymbols", false },
                 { "watchMyLiquidations", false },
@@ -618,6 +619,59 @@ public partial class bybit : ccxt.bybit
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
     }
 
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#watchBidsAsks
+        * @description watches best bid & ask for symbols
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchBidsAsks", parameters);
+        parameters = this.cleanParams(parameters);
+        object marketIds = this.marketIds(symbols);
+        object topics = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object topic = add("orderbook.1.", marketId);
+            ((IList<object>)topics).Add(topic);
+            ((IList<object>)messageHashes).Add(add("bidask:", getValue(symbols, i)));
+        }
+        object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            return ticker;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual object parseWsBidAsk(object orderbook, object market = null)
+    {
+        object timestamp = this.safeInteger(orderbook, "timestamp");
+        object bids = this.sortBy(this.aggregate(getValue(orderbook, "bids")), 0);
+        object asks = this.sortBy(this.aggregate(getValue(orderbook, "asks")), 0);
+        object bestBid = this.safeList(bids, 0, new List<object>() {});
+        object bestAsk = this.safeList(asks, 0, new List<object>() {});
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeNumber(bestAsk, 0) },
+            { "askVolume", this.safeNumber(bestAsk, 1) },
+            { "bid", this.safeNumber(bestBid, 0) },
+            { "bidVolume", this.safeNumber(bestBid, 1) },
+            { "info", orderbook },
+        }, market);
+    }
+
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -982,6 +1036,8 @@ public partial class bybit : ccxt.bybit
         //         }
         //     }
         //
+        object topic = this.safeString(message, "topic");
+        object limit = getValue(((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(), 1);
         object isSpot = isGreaterThanOrEqual(getIndexOf(client.url, "spot"), 0);
         object type = this.safeString(message, "type");
         object isSnapshot = (isEqual(type, "snapshot"));
@@ -1012,6 +1068,14 @@ public partial class bybit : ccxt.bybit
         object messageHash = add(add("orderbook", ":"), symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+        if (isTrue(isEqual(limit, "1")))
+        {
+            object bidask = this.parseWsBidAsk(getValue(this.orderbooks, symbol), market);
+            object newBidsAsks = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)newBidsAsks)[(string)symbol] = bidask;
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = bidask;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {newBidsAsks, add("bidask:", symbol)});
+        }
     }
 
     public override void handleDelta(object bookside, object delta)

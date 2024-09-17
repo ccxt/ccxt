@@ -411,7 +411,7 @@ public partial class testMainClass : BaseTest
                     {
                         // wait and retry again
                         // (increase wait time on every retry)
-                        await exchange.sleep(multiply(i, 1000));
+                        await exchange.sleep(multiply((add(i, 1)), 1000));
                         continue;
                     }
                 } else

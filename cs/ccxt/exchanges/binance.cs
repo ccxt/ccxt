@@ -6628,8 +6628,8 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBool2(parameters, "stop", "conditional");
-        parameters = this.omit(parameters, new List<object>() {"stop", "conditional", "type"});
+        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional", "type"});
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -6916,7 +6916,7 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchOpenOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "conditional", "trigger"});
+        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -6936,7 +6936,7 @@ public partial class binance : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        parameters = this.omit(parameters, new List<object>() {"type", "stop", "conditional", "trigger"});
+        parameters = this.omit(parameters, new List<object>() {"type", "stop", "trigger", "conditional"});
         object response = null;
         if (isTrue(isEqual(type, "option")))
         {
@@ -7035,8 +7035,8 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchOpenOrder", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "conditional", "trigger"});
-        parameters = this.omit(parameters, new List<object>() {"stop", "conditional", "trigger"});
+        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional"});
         object isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isTrue(isConditional));
         object orderIdRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "strategyId" : "orderId";
         ((IDictionary<string,object>)request)[(string)orderIdRequest] = id;
@@ -7377,7 +7377,7 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "cancelOrder", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBool2(parameters, "stop", "conditional");
+        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -7407,7 +7407,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["orderId"] = id;
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"type", "origClientOrderId", "clientOrderId", "newClientStrategyId", "stop", "conditional"});
+        parameters = this.omit(parameters, new List<object>() {"type", "origClientOrderId", "clientOrderId", "newClientStrategyId", "stop", "trigger", "conditional"});
         object response = null;
         if (isTrue(getValue(market, "option")))
         {
@@ -7498,9 +7498,9 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "cancelAllOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBool2(parameters, "stop", "conditional");
+        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         object type = this.safeString(parameters, "type", getValue(market, "type"));
-        parameters = this.omit(parameters, new List<object>() {"type", "stop", "conditional"});
+        parameters = this.omit(parameters, new List<object>() {"type", "stop", "trigger", "conditional"});
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -11609,21 +11609,46 @@ public partial class binance : Exchange
 
     public async override Task<object> fetchLedgerEntry(object id, object code = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name binance#fetchLedgerEntry
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+        * @param {string} id the identification number of the ledger entry
+        * @param {string} code unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchLedgerEntry", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object query = new Dictionary<string, object>() {
-            { "recordId", id },
-            { "type", type },
-        };
         if (isTrue(!isEqual(type, "option")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchLedgerEntry () can only be used for type option")) ;
+            throw new BadRequest ((string)add(this.id, " fetchLedgerEntry() can only be used for type option")) ;
         }
-        return await this.fetchLedger(code, null, null, this.extend(query, parameters));
+        this.checkRequiredArgument("fetchLedgerEntry", code, "code");
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "recordId", id },
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.eapiPrivateGetBill(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "id": "1125899906845701870",
+        //             "asset": "USDT",
+        //             "amount": "-0.16518203",
+        //             "type": "FEE",
+        //             "createDate": 1676621042489
+        //         }
+        //     ]
+        //
+        object first = this.safeDict(response, 0, response);
+        return this.parseLedgerEntry(first, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -11637,9 +11662,9 @@ public partial class binance : Exchange
         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
-        * @param {string} code unified currency code
+        * @param {string} [code] unified currency code
         * @param {int} [since] timestamp in ms of the earliest ledger entry
-        * @param {int} [limit] max number of ledger entrys to return
+        * @param {int} [limit] max number of ledger entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -11785,16 +11810,19 @@ public partial class binance : Exchange
             direction = "in";
         }
         object currencyId = this.safeString(item, "asset");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger2(item, "createDate", "time");
         object type = this.safeString2(item, "type", "incomeType");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString2(item, "id", "tranId") },
             { "direction", direction },
             { "account", null },
             { "referenceAccount", null },
             { "referenceId", this.safeString(item, "tradeId") },
             { "type", this.parseLedgerEntryType(type) },
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "currency", code },
             { "amount", this.parseNumber(amount) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -11802,8 +11830,7 @@ public partial class binance : Exchange
             { "after", null },
             { "status", null },
             { "fee", null },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

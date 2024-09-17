@@ -2257,13 +2257,13 @@ class coinbase extends coinbase$1 {
         /**
          * @method
          * @name coinbase#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -2292,8 +2292,28 @@ class coinbase extends coinbase$1 {
         const pagination = this.safeDict(response, 'pagination', {});
         const cursor = this.safeString(pagination, 'next_starting_after');
         if ((cursor !== undefined) && (cursor !== '')) {
+            const lastFee = this.safeDict(last, 'fee');
             last['next_starting_after'] = cursor;
-            ledger[lastIndex] = last;
+            ledger[lastIndex] = {
+                'info': this.safeDict(last, 'info'),
+                'id': this.safeString(last, 'id'),
+                'timestamp': this.safeInteger(last, 'timestamp'),
+                'datetime': this.safeString(last, 'datetime'),
+                'direction': this.safeString(last, 'direction'),
+                'account': this.safeString(last, 'account'),
+                'referenceId': undefined,
+                'referenceAccount': undefined,
+                'type': this.safeString(last, 'type'),
+                'currency': this.safeString(last, 'currency'),
+                'amount': this.safeNumber(last, 'amount'),
+                'before': undefined,
+                'after': undefined,
+                'status': this.safeString(last, 'status'),
+                'fee': {
+                    'cost': this.safeNumber(lastFee, 'cost'),
+                    'currency': this.safeString(lastFee, 'currency'),
+                },
+            };
         }
         return ledger;
     }
@@ -2573,6 +2593,7 @@ class coinbase extends coinbase$1 {
         }
         const currencyId = this.safeString(amountInfo, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         //
         // the address and txid do not belong to the unified ledger structure
         //
@@ -2608,7 +2629,7 @@ class coinbase extends coinbase$1 {
                 accountId = parts[3];
             }
         }
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': id,
             'timestamp': timestamp,
@@ -2624,7 +2645,7 @@ class coinbase extends coinbase$1 {
             'after': undefined,
             'status': status,
             'fee': fee,
-        };
+        }, currency);
     }
     async findAccountId(code, params = {}) {
         await this.loadMarkets();

@@ -7,10 +7,10 @@
 // eslint-disable-next-line no-shadow
 import WebSocket from 'ws';
 import Client from './Client.js';
-import { sleep, isNode, milliseconds, } from '../../base/functions.js';
+import { sleep, isNode, milliseconds, selfIsDefined, } from '../../base/functions.js';
 import { Future } from './Future.js';
 // eslint-disable-next-line no-restricted-globals
-const WebSocketPlatform = isNode ? WebSocket : self.WebSocket;
+const WebSocketPlatform = isNode || !selfIsDefined() ? WebSocket : self.WebSocket;
 export default class WsClient extends Client {
     constructor() {
         super(...arguments);

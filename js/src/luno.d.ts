@@ -1,5 +1,5 @@
 import Exchange from './abstract/luno.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int } from './base/types.js';
+import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry } from './base/types.js';
 /**
  * @class luno
  * @augments Exchange
@@ -29,29 +29,13 @@ export default class luno extends Exchange {
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchLedgerByEntries(code?: Str, entry?: any, limit?: any, params?: {}): Promise<any>;
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedgerByEntries(code?: Str, entry?: any, limit?: any, params?: {}): Promise<LedgerEntry[]>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerComment(comment: any): {
         type: string;
         referenceId: any;
     };
-    parseLedgerEntry(entry: any, currency?: Currency): {
-        id: string;
-        direction: any;
-        account: string;
-        referenceId: any;
-        referenceAccount: any;
-        type: string;
-        currency: string;
-        amount: number;
-        timestamp: number;
-        datetime: string;
-        before: number;
-        after: number;
-        status: any;
-        fee: any;
-        info: any;
-    };
+    parseLedgerEntry(entry: any, currency?: Currency): LedgerEntry;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

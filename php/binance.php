@@ -6249,8 +6249,8 @@ class binance extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrders', 'papi', 'portfolioMargin', false);
-        $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
-        $params = $this->omit($params, array( 'stop', 'conditional', 'type' ));
+        $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+        $params = $this->omit($params, array( 'stop', 'trigger', 'conditional', 'type' ));
         $request = array(
             'symbol' => $market['id'],
         );
@@ -6509,7 +6509,7 @@ class binance extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
-        $isConditional = $this->safe_bool_n($params, array( 'stop', 'conditional', 'trigger' ));
+        $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
@@ -6524,7 +6524,7 @@ class binance extends Exchange {
         }
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
-        $params = $this->omit($params, array( 'type', 'stop', 'conditional', 'trigger' ));
+        $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
         $response = null;
         if ($type === 'option') {
             if ($since !== null) {
@@ -6597,8 +6597,8 @@ class binance extends Exchange {
         );
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
-        $isConditional = $this->safe_bool_n($params, array( 'stop', 'conditional', 'trigger' ));
-        $params = $this->omit($params, array( 'stop', 'conditional', 'trigger' ));
+        $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+        $params = $this->omit($params, array( 'stop', 'trigger', 'conditional' ));
         $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
         $orderIdRequest = $isPortfolioMarginConditional ? 'strategyId' : 'orderId';
         $request[$orderIdRequest] = $id;
@@ -6902,7 +6902,7 @@ class binance extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelOrder', 'papi', 'portfolioMargin', false);
-        $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
+        $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
         $request = array(
             'symbol' => $market['id'],
         );
@@ -6924,7 +6924,7 @@ class binance extends Exchange {
                 $request['orderId'] = $id;
             }
         }
-        $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional' ));
+        $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional' ));
         $response = null;
         if ($market['option']) {
             $response = $this->eapiPrivateDeleteOrder ($this->extend($request, $params));
@@ -6992,9 +6992,9 @@ class binance extends Exchange {
         );
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
-        $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
+        $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
         $type = $this->safe_string($params, 'type', $market['type']);
-        $params = $this->omit($params, array( 'type', 'stop', 'conditional' ));
+        $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
         $response = null;
@@ -10908,21 +10908,44 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()): array {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+         * @param {string} $id the identification number of the ledger entry
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ledger-structure ledger structure~
+         */
         $this->load_markets();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchLedgerEntry', null, $params);
-        $query = array(
-            'recordId' => $id,
-            'type' => $type,
-        );
         if ($type !== 'option') {
-            throw new BadRequest($this->id . ' fetchLedgerEntry () can only be used for $type option');
+            throw new BadRequest($this->id . ' fetchLedgerEntry() can only be used for $type option');
         }
-        return $this->fetch_ledger($code, null, null, $this->extend($query, $params));
+        $this->check_required_argument('fetchLedgerEntry', $code, 'code');
+        $currency = $this->currency($code);
+        $request = array(
+            'recordId' => $id,
+            'currency' => $currency['id'],
+        );
+        $response = $this->eapiPrivateGetBill ($this->extend($request, $params));
+        //
+        //     array(
+        //         {
+        //             "id" => "1125899906845701870",
+        //             "asset" => "USDT",
+        //             "amount" => "-0.16518203",
+        //             "type" => "FEE",
+        //             "createDate" => 1676621042489
+        //         }
+        //     )
+        //
+        $first = $this->safe_dict($response, 0, $response);
+        return $this->parse_ledger_entry($first, $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
@@ -10930,9 +10953,9 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
-         * @param {string} $code unified $currency $code
+         * @param {string} [$code] unified $currency $code
          * @param {int} [$since] timestamp in ms of the earliest ledger entry
-         * @param {int} [$limit] max number of ledger entrys to return
+         * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -11019,7 +11042,7 @@ class binance extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // options (eapi)
         //
@@ -11053,16 +11076,19 @@ class binance extends Exchange {
             $direction = 'in';
         }
         $currencyId = $this->safe_string($item, 'asset');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer_2($item, 'createDate', 'time');
         $type = $this->safe_string_2($item, 'type', 'incomeType');
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string_2($item, 'id', 'tranId'),
             'direction' => $direction,
             'account' => null,
             'referenceAccount' => null,
             'referenceId' => $this->safe_string($item, 'tradeId'),
             'type' => $this->parse_ledger_entry_type($type),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $code,
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -11070,8 +11096,7 @@ class binance extends Exchange {
             'after' => null,
             'status' => null,
             'fee' => null,
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {

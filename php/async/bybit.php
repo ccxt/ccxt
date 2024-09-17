@@ -982,6 +982,7 @@ class bybit extends Exchange {
                     '3200300' => '\\ccxt\\InsufficientFunds', // array("retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":array())
                 ),
                 'broad' => array(
+                    'Not supported symbols' => '\\ccxt\\BadSymbol', // array("retCode":10001,"retMsg":"Not supported symbols","result":array(),"retExtInfo":array(),"time":1726147060461)
                     'Request timeout' => '\\ccxt\\RequestTimeout', // array("retCode":10016,"retMsg":"Request timeout, please try again later","result":array(),"retExtInfo":array(),"time":1675307914985)
                     'unknown orderInfo' => '\\ccxt\\OrderNotFound', // array("ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100)
                     'invalid api_key' => '\\ccxt\\AuthenticationError', // array("ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797")
@@ -5925,16 +5926,16 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
              * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
-             * @param {string} $code unified $currency $code, default is null
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {int} [$limit] max number of ledger entries to return, default is null
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->subType] if inverse will use v5/account/contract-transaction-log
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
@@ -6104,7 +6105,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "id" => 234467,
@@ -6143,6 +6144,7 @@ class bybit extends Exchange {
         //
         $currencyId = $this->safe_string_2($item, 'coin', 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_string_2($item, 'amount', 'change');
         $after = $this->safe_string_2($item, 'wallet_balance', 'cashBalance');
         $direction = Precise::string_lt($amount, '0') ? 'out' : 'in';
@@ -6155,26 +6157,26 @@ class bybit extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($item, 'transactionTime');
         }
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
-        $id = $this->safe_string($item, 'id');
-        $referenceId = $this->safe_string($item, 'tx_id');
-        return array(
-            'id' => $id,
-            'currency' => $code,
-            'account' => $this->safe_string($item, 'wallet_id'),
-            'referenceAccount' => null,
-            'referenceId' => $referenceId,
-            'status' => null,
-            'amount' => $this->parse_number(Precise::string_abs($amount)),
-            'before' => $this->parse_number($before),
-            'after' => $this->parse_number($after),
-            'fee' => $this->parse_number($this->safe_string($item, 'fee')),
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
+            'id' => $this->safe_string($item, 'id'),
             'direction' => $direction,
+            'account' => $this->safe_string($item, 'wallet_id'),
+            'referenceId' => $this->safe_string($item, 'tx_id'),
+            'referenceAccount' => null,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'currency' => $code,
+            'amount' => $this->parse_to_numeric(Precise::string_abs($amount)),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'type' => $type,
-            'info' => $item,
-        );
+            'before' => $this->parse_to_numeric($before),
+            'after' => $this->parse_to_numeric($after),
+            'status' => 'ok',
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $this->parse_to_numeric($this->safe_string($item, 'fee')),
+            ),
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {

@@ -5904,12 +5904,12 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
          * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] end time in ms
          * @param {string} [params.symbol] *contract only* unified market symbol
@@ -6049,6 +6049,7 @@ export default class bitget extends Exchange {
         //
         const currencyId = this.safeString(item, 'coin');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'cTime');
         const after = this.safeNumber(item, 'balance');
         const fee = this.safeNumber2(item, 'fees', 'fee');
@@ -6058,7 +6059,7 @@ export default class bitget extends Exchange {
         if (amountRaw.indexOf('-') >= 0) {
             direction = 'out';
         }
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': this.safeString(item, 'billId'),
             'timestamp': timestamp,
@@ -6073,8 +6074,11 @@ export default class bitget extends Exchange {
             'before': undefined,
             'after': after,
             'status': undefined,
-            'fee': fee,
-        };
+            'fee': {
+                'currency': code,
+                'cost': fee,
+            },
+        }, currency);
     }
     parseLedgerType(type) {
         const types = {

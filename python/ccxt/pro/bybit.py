@@ -33,6 +33,7 @@ class bybit(ccxt.async_support.bybit):
                 'fetchTradesWs': False,
                 'fetchBalanceWs': False,
                 'watchBalance': True,
+                'watchBidsAsks': True,
                 'watchLiquidations': True,
                 'watchLiquidationsForSymbols': False,
                 'watchMyLiquidations': False,
@@ -559,6 +560,48 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
 
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches best bid & ask for symbols
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        messageHashes = []
+        url = await self.get_url_by_market_type(symbols[0], False, 'watchBidsAsks', params)
+        params = self.clean_params(params)
+        marketIds = self.market_ids(symbols)
+        topics = []
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            topic = 'orderbook.1.' + marketId
+            topics.append(topic)
+            messageHashes.append('bidask:' + symbols[i])
+        ticker = await self.watch_topics(url, messageHashes, topics, params)
+        if self.newUpdates:
+            return ticker
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def parse_ws_bid_ask(self, orderbook, market=None):
+        timestamp = self.safe_integer(orderbook, 'timestamp')
+        bids = self.sort_by(self.aggregate(orderbook['bids']), 0)
+        asks = self.sort_by(self.aggregate(orderbook['asks']), 0)
+        bestBid = self.safe_list(bids, 0, [])
+        bestAsk = self.safe_list(asks, 0, [])
+        return self.safe_ticker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_number(bestAsk, 0),
+            'askVolume': self.safe_number(bestAsk, 1),
+            'bid': self.safe_number(bestBid, 0),
+            'bidVolume': self.safe_number(bestBid, 1),
+            'info': orderbook,
+        }, market)
+
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -852,6 +895,8 @@ class bybit(ccxt.async_support.bybit):
         #         }
         #     }
         #
+        topic = self.safe_string(message, 'topic')
+        limit = topic.split('.')[1]
         isSpot = client.url.find('spot') >= 0
         type = self.safe_string(message, 'type')
         isSnapshot = (type == 'snapshot')
@@ -877,6 +922,12 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'orderbook' + ':' + symbol
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
+        if limit == '1':
+            bidask = self.parse_ws_bid_ask(self.orderbooks[symbol], market)
+            newBidsAsks: dict = {}
+            newBidsAsks[symbol] = bidask
+            self.bidsasks[symbol] = bidask
+            client.resolve(newBidsAsks, 'bidask:' + symbol)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)

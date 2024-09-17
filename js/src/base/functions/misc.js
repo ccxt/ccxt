@@ -87,5 +87,15 @@ function aggregate(bidasks) {
     }
     return Object.keys(result).map((price) => [parseFloat(price), parseFloat(result[price])]); // TODO: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}',   No index signature with a parameter of type 'string' was found on type '{}'.ts(7053)
 }
-export { aggregate, parseTimeframe, roundTimeframe, implodeParams, extractParams, vwap, };
+function selfIsDefined() {
+    let selfIsDefined = false;
+    try {
+        selfIsDefined = self !== undefined;
+    }
+    catch (e) {
+        selfIsDefined = false;
+    }
+    return selfIsDefined;
+}
+export { aggregate, parseTimeframe, roundTimeframe, implodeParams, extractParams, vwap, selfIsDefined };
 /*  ------------------------------------------------------------------------ */

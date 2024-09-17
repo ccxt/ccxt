@@ -207,6 +207,7 @@ const {
     safeValue2,
     safeValueN,
     seconds,
+    selfIsDefined,
     SIGNIFICANT_DIGITS,
     sleep,
     sortBy,
@@ -1002,7 +1003,7 @@ export default class Exchange {
             } else {
                 this.AbortError = DOMException;
                 this.FetchError = TypeError;
-                this.fetchImplementation = self.fetch;
+                this.fetchImplementation = (selfIsDefined()) ? self.fetch : fetch;
             }
         }
         // fetchImplementation cannot be called on this. in browsers:
@@ -2555,7 +2556,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): object {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
@@ -4275,7 +4276,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): LedgerEntry[] {
         let result = [];
         const arrayData = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {

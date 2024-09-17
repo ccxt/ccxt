@@ -352,7 +352,7 @@ class testMainClass extends baseMainTestClass {
                         } else {
                             // wait and retry again
                             // (increase wait time on every retry)
-                            Async\await($exchange->sleep($i * 1000));
+                            Async\await($exchange->sleep(($i + 1) * 1000));
                             continue;
                         }
                     } else {

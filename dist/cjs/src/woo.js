@@ -2141,9 +2141,9 @@ class woo extends woo$1 {
          * @name woo#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.woo.org/#get-asset-history
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -2154,12 +2154,14 @@ class woo extends woo$1 {
         const networkizedCode = this.safeString(item, 'token');
         const currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         const code = currencyDefined['code'];
+        currency = this.safeCurrency(code, currency);
         const amount = this.safeNumber(item, 'amount');
         const side = this.safeString(item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
         const timestamp = this.safeTimestamp(item, 'created_time');
         const fee = this.parseTokenAndFeeTemp(item, 'fee_token', 'fee_amount');
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'id'),
             'currency': code,
             'account': this.safeString(item, 'account'),
@@ -2169,13 +2171,12 @@ class woo extends woo$1 {
             'amount': amount,
             'before': undefined,
             'after': undefined,
-            'fee': fee,
             'direction': direction,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
-            'info': item,
-        };
+            'fee': fee,
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const types = {

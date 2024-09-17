@@ -819,11 +819,11 @@ class zonda extends zonda$1 {
         /**
          * @method
          * @name zonda#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.zondacrypto.exchange/reference/operations-history
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -1117,6 +1117,7 @@ class zonda extends zonda$1 {
         const timestamp = this.safeInteger(item, 'time');
         const balance = this.safeValue(item, 'balance', {});
         const currencyId = this.safeString(balance, 'currency');
+        currency = this.safeCurrency(currencyId, currency);
         const change = this.safeValue(item, 'change', {});
         let amount = this.safeString(change, 'total');
         let direction = 'in';
@@ -1128,7 +1129,7 @@ class zonda extends zonda$1 {
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
         const fundsBefore = this.safeValue(item, 'fundsBefore', {});
         const fundsAfter = this.safeValue(item, 'fundsAfter', {});
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': this.safeString(item, 'historyId'),
             'direction': direction,
@@ -1144,7 +1145,7 @@ class zonda extends zonda$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fee': undefined,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const types = {
