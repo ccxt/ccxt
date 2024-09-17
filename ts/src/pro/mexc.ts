@@ -177,13 +177,20 @@ export default class mexc extends mexcRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
-        const markets = this.marketsForSymbols (symbols);
-        const isSpot = markets[0]['spot'];
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market (symbols[0]);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
+        const isSpot = marketType === 'spot';
         const messageHashes = [];
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
             if (isSpot) {
-                topics.push ('spot@public.bookTicker.v3.api@' + markets[i]['id']);
+                const market = this.market (symbols[i]);
+                topics.push ('spot@public.bookTicker.v3.api@' + market['id']);
             }
             messageHashes.push ('bidask:' + symbols[i]);
         }
