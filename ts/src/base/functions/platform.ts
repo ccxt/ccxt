@@ -22,7 +22,7 @@ const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && (self instanceof
 
 const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
-const isDeno = typeof Deno !== 'undefined' && !versionGt (Deno.version, '1.45.2')
+const isDeno = typeof Deno !== 'undefined' && !versionGt (Deno.version.deno, '1.45.2')
 
 const isNode = !(isBrowser || isWebWorker || isDeno)
 
