@@ -10,6 +10,7 @@
 // - make sure it works in Electron
 // - make sure it works with Angular.js
 // - make sure it does not break other possible usage scenarios
+import { versionGt } from './misc.js'
 
 const isBrowser = typeof window !== 'undefined'
 
@@ -21,7 +22,7 @@ const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && (self instanceof
 
 const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
-const isDeno = typeof Deno !== 'undefined'
+const isDeno = typeof Deno !== 'undefined' && !versionGt (Deno.version, '1.45.2')
 
 const isNode = !(isBrowser || isWebWorker || isDeno)
 

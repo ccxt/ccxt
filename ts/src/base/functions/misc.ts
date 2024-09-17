@@ -90,6 +90,46 @@ function aggregate (bidasks) {  // TODO: Parameter 'bidasks' implicitly has an '
     return Object.keys (result).map ((price) => [parseFloat (price), parseFloat (result[price])])  // TODO: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}',   No index signature with a parameter of type 'string' was found on type '{}'.ts(7053)
 }
 
+// The regular expression is re[t.FULL] in semver class.
+// source: https://github.com/npm/node-semver/blob/main/classes/semver.js
+// TODO: compare prerelease version
+function versionGt (versionA: string, versionB: string): boolean {
+    const re = /^v?(0|[1-9]\d{0,256})\.(0|[1-9]\d{0,256})\.(0|[1-9]\d{0,256})(?:-((?:0|[1-9]\d{0,256}|\d{0,256}[a-zA-Z-][a-zA-Z0-9-]{0,250})(?:\.(?:0|[1-9]\d{0,256}|\d{0,256}[a-zA-Z-][a-zA-Z0-9-]{0,250}))*))?(?:\+([a-zA-Z0-9-]{1,250}(?:\.[a-zA-Z0-9-]{1,250})*))?$/;
+    const mA = versionA.trim ().match (re);
+    const mB = versionB.trim ().match (re);
+    // major m[1] | minor m[2] | patch m[3]
+    const vA = [
+        parseInt(mA[1]),
+        parseInt(mA[2]),
+        parseInt(mA[3]),
+    ];
+    const vB = [
+        parseInt(mB[1]),
+        parseInt(mB[2]),
+        parseInt(mB[3]),
+    ];
+    const max = Number.MAX_SAFE_INTEGER;
+    const isVersionValid = (version: number) => {
+        return version < max && version >= 0;
+    }
+    if (!isVersionValid (vA[0]) ||!isVersionValid (vA[1]) || !isVersionValid (vA[2])) {
+        throw new Error('Invalid version');
+    }
+    if (!isVersionValid (vB[0]) ||!isVersionValid (vB[1]) || !isVersionValid (vB[2])) {
+        throw new Error('Invalid version');
+    }
+    const compareVersionNumber = (a: number, b: number) => {
+        return a === b ? 0
+            : a < b ? -1
+            : 1;
+    }
+    return (
+        compareVersionNumber (vA[0], vB[0]) ||
+        compareVersionNumber (vA[1], vB[1]) ||
+        compareVersionNumber (vA[2], vB[2])
+    ) > 0;
+}
+
 export {
     aggregate,
     parseTimeframe,
@@ -97,6 +137,7 @@ export {
     implodeParams,
     extractParams,
     vwap,
+    versionGt
 }
 
 /*  ------------------------------------------------------------------------ */
