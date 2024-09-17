@@ -1058,6 +1058,7 @@ class binance(Exchange):
                 'margin': margin,
                 'future': future,
                 'delivery': delivery,
+                'inverse': delivery,
                 'active': active,
                 'precision': precision,
                 'limits': {

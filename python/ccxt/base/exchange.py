@@ -854,6 +854,8 @@ class Exchange(object):
 
     @staticmethod
     def safe_value_n(dictionary, key_list, default_value=None):
+        if dictionary is None:
+            return default_value
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         return value if value is not None else default_value
 
