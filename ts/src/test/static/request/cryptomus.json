@@ -30,6 +30,70 @@
                     ]
                 ]
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.cryptomus.com/v1/exchange/market/trades/ETH_USDT",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades with since and limit arguments",
+                "method": "fetchTrades",
+                "url": "https://api.cryptomus.com/v1/exchange/market/trades/ETH_USDT",
+                "input": [
+                  "ETH/USDT",
+                  1726653796000,
+                  1
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.cryptomus.com/v2/user-api/balance",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create limit buy order",
+                "method": "createOrder",
+                "url": "https://api.cryptomus.com/v2/user-api/convert/limit",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.007,
+                    2200
+                ],
+                "output": "{\"from\":\"USDT\",\"to\":\"ETH\",\"amount\":\"15.4\",\"price\":\"2200\"}"
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch orders",
+                "method": "fetchOrders",
+                "url": "https://api.cryptomus.com/v2/user-api/convert/order-list",
+                "input": [
+                  "ETH/USDT"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.cryptomus.com/v2/user-api/convert/ef3f58bf-8dc3-477e-9f67-c36d5dd9a01f",
+                "input": [
+                  "ef3f58bf-8dc3-477e-9f67-c36d5dd9a01f"
+                ],
+                "output": "{}"
+            }
         ]
     }
 }
