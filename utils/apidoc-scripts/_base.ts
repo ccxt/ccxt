@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
-
+const EXCHANGES_DIR = DIR_NAME + '/../../ts/src/';
 import ccxt from '../../ts/ccxt';
 
 type Str = string | undefined;
@@ -65,8 +65,8 @@ class ParserBase {
     }
 
     cacheExists (filename: Str = undefined) {
-        // if fetched once and mtime is less than 12 hour, then cache it temporarily
-        const cacheHours = 12;
+        // if fetched once and mtime is less than 24 hour, then cache it temporarily
+        const cacheHours = 24;
         const path = this.cachePath(filename);
         return (fs.existsSync (path) && fs.statSync (path).mtimeMs > Date.now () - cacheHours * 60 * 60 * 1000);
     }
@@ -140,6 +140,22 @@ class ParserBase {
             }
         }
         return result;
+    }
+
+    replaceInFile (regex, apiContent) {
+        const indentedApiContent = apiContent.replace(/\n/g, '\n            ');
+        const path = EXCHANGES_DIR + this.exchangeId + '.ts';
+        const tsContent = fs.readFileSync (path, 'utf8');
+        const regexp = new RegExp(regex, 'g');
+        const matches = regexp.exec (tsContent);
+        const tsContentFinal = tsContent.replace (matches[1], indentedApiContent);
+        // const newContent = tsContent.replace(regexp, (match, group1, group2, group3, group4) => {
+        //     // Replace the third group (group3)
+        //     const res = group1 + apiContent + group4;
+        //     return res;
+        //   });
+        // debugger;
+        fs.writeFileSync (path, tsContentFinal, 'utf8');
     }
 
     exit(...args) {

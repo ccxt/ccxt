@@ -61,6 +61,7 @@ class binance extends ParserBase {
         // some endpoints are missing in generatedTree, so add them from binance.ts
         const completeApi = this.ccxt.deepExtend (generatedApiTree, apiDiffs.removed);
         final['completeApi'] = this.readableOutput (completeApi);
+        this.replaceInFile (/\n            'api'\: (\{(.|\n)*?)\,\n\s+'fees'/, final['completeApi']);
         return final;
     }
 
@@ -297,13 +298,15 @@ class binance extends ParserBase {
             }
         }
         return generatedApiTree;
-    }
+    } 
 }
 
-
-
+ 
 const output = await (new binance()).init ();
 console.log(output['completeApi']);
+
+
+
 debugger;
 
 
