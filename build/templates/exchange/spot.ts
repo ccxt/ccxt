@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import Exchange from './base/Exchange.js';
+import Exchange from './base/Exchange';
 // import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import type { Int, OrderSide, OrderType, OHLCV, Order, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, Dict, int, LedgerEntry, Bool } from './base/types.js';
@@ -465,8 +465,6 @@ export default class template_exchange_name extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see // TODO: api url
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -507,8 +505,6 @@ export default class template_exchange_name extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -565,8 +561,6 @@ export default class template_exchange_name extends Exchange {
          * @description the latest known information on the availability of the exchange API
          * @see // TODO: api url
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * 
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.implicitMethodName (params);
@@ -590,8 +584,6 @@ export default class template_exchange_name extends Exchange {
          * @see // TODO: api url
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -615,8 +607,6 @@ export default class template_exchange_name extends Exchange {
          * @see // TODO: api url
          * @param {[string[]]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -666,8 +656,6 @@ export default class template_exchange_name extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -728,8 +716,6 @@ export default class template_exchange_name extends Exchange {
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
@@ -766,8 +752,6 @@ export default class template_exchange_name extends Exchange {
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] stop loss trigger price  // TODO: remove if there are no trigger orders
-         * 
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -858,8 +842,6 @@ export default class template_exchange_name extends Exchange {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
          * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -906,8 +888,6 @@ export default class template_exchange_name extends Exchange {
          * @param {string} id Order id
          * @param {string} symbol unified market symbol
          * @param {object} [params] exchange specific parameters
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -934,8 +914,6 @@ export default class template_exchange_name extends Exchange {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -970,8 +948,6 @@ export default class template_exchange_name extends Exchange {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1006,8 +982,6 @@ export default class template_exchange_name extends Exchange {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1040,8 +1014,6 @@ export default class template_exchange_name extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1065,8 +1037,6 @@ export default class template_exchange_name extends Exchange {
          * @see // TODO: api url
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1094,8 +1064,6 @@ export default class template_exchange_name extends Exchange {
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
@@ -1152,8 +1120,6 @@ export default class template_exchange_name extends Exchange {
          * @param {int} [limit] max number of deposit/withdrawals to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
@@ -1233,8 +1199,6 @@ export default class template_exchange_name extends Exchange {
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.network] unified network code  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
@@ -1286,8 +1250,6 @@ export default class template_exchange_name extends Exchange {
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.network] unified network code  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
@@ -1326,8 +1288,6 @@ export default class template_exchange_name extends Exchange {
          * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for  // TODO: remove if not applicable
-         *
-         * EXCHANGE SPECIFIC PARAMETERS  // TODO: add any extra api parameters not already handled by unified parameters (e.g. params.after), or delete this line and the empty line above it
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
