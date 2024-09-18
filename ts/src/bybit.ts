@@ -1059,7 +1059,7 @@ export default class bybit extends Exchange {
                 },
             },
             'features': {
-                'custom1': {
+                'default': {
                     'sandbox': true,
                     'createOrder': {
                         'triggerPrice': true,
@@ -1123,9 +1123,13 @@ export default class bybit extends Exchange {
                         'trigger': true,
                         'trailing': false,
                     },
+                    'fetchOHLCV': {
+                        'paginate': true,
+                        'limit': 1000,
+                    },
                 },
                 'spot': {
-                    'extends': 'custom1',
+                    'extends': 'default',
                     'createOrder': {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
@@ -1154,18 +1158,18 @@ export default class bybit extends Exchange {
                 },
                 'swap': {
                     'linear': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                     'inverse': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                 },
                 'future': {
                     'linear': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                     'inverse': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                 },
             },

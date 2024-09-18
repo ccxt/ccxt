@@ -1155,7 +1155,7 @@ export default class okx extends Exchange {
             },
             'features': {
                 // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
-                'custom1': {
+                'default': {
                     'sandbox': true,
                     'createOrder': {
                         'triggerPrice': true,
@@ -1219,22 +1219,26 @@ export default class okx extends Exchange {
                         'trigger': true,
                         'trailing': true,
                     },
+                    'fetchOHLCV': {
+                        'paginate': true,
+                        'limit': 300,
+                    },
                 },
-                'spot': 'custom1',
+                'spot': 'default',
                 'swap': {
                     'linear': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                     'inverse': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                 },
                 'future': {
                     'linear': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                     'inverse': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                 },
             },

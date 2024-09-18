@@ -1558,8 +1558,12 @@ export default class binance extends Exchange {
                         'trigger': false,
                         'trailing': false,
                     },
+                    'fetchOHLCV': {
+                        'paginate': true,
+                        'limit': 1000,
+                    },
                 },
-                'custom1': {
+                'default': {
                     'sandbox': true,
                     'createOrder': {
                         'triggerPrice': true,
@@ -1624,21 +1628,25 @@ export default class binance extends Exchange {
                         'trigger': false,
                         'trailing': false,
                     },
+                    'fetchOHLCV': {
+                        'paginate': true,
+                        'limit': 1500,
+                    },
                 },
                 'swap': {
                     'linear': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                     'inverse': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                 },
                 'future': {
                     'linear': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                     'inverse': {
-                        'extends': 'custom1',
+                        'extends': 'default',
                     },
                 },
             },
