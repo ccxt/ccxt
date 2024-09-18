@@ -2,11 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/cryptomus.js';
-import { ArgumentsRequired, InvalidOrder } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -189,10 +189,12 @@ export default class cryptomus extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    // todo
-                    // {"message":"Insufficient funds. ETH wallet balance is 0.00039618.","state":1}
+                    '500': ExchangeError,
+                    'Insufficient funds': InsufficientFunds,
+                    'Minimum amount 15 USDT': InvalidOrder,
                     // {"code":500,"message":"Server error."}
                     // {"message":"Minimum amount 15 USDT","state":1}
+                    // {"message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1}
                 },
                 'broad': {},
             },
@@ -969,5 +971,27 @@ export default class cryptomus extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined;
+        }
+        if ('code' in response) {
+            const code = this.safeString (response, 'code');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, code, feedback);
+            throw new ExchangeError (feedback);
+        } else if ('message' in response) {
+            //
+            //      {"message":"Minimum amount 15 USDT","state":1}
+            //
+            const message = this.safeString (response, 'message');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 }
