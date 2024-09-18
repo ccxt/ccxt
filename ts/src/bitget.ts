@@ -1727,6 +1727,10 @@ export default class bitget extends Exchange {
             preciseAmount.reduce ();
             const amountString = preciseAmount.toString ();
             amountPrecision = this.parseNumber (amountString);
+            marginModes = {
+                'cross': true,
+                'isolated': true,
+            };
         }
         const status = this.safeString2 (market, 'status', 'symbolStatus');
         let active = undefined;
