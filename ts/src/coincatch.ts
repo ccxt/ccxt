@@ -364,6 +364,7 @@ export default class coincatch extends Exchange {
                     // {"code":"40913","msg":"orderId or clientOrderId must be passed one","requestTime":1726160988275,"data":null}
                     // {"code":"40019","msg":"Parameter spotCancelBatchOrderDTO cannot be empty","requestTime":1726490870921,"data":null}
                     // {"code":"400172","msg":"symbol cannot be empty","requestTime":1726491190749,"data":null}
+                    // {"code":"43117","msg":"Exceeds the maximum amount that can be transferred","requestTime":1726665370746,"data":null}
                 },
                 'broad': {},
             },
@@ -1553,7 +1554,7 @@ export default class coincatch extends Exchange {
          * @see https://coincatch.github.io/github.io/en/spot/#get-account-assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
-         * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl')
+         * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl')
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -1561,39 +1562,7 @@ export default class coincatch extends Exchange {
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, undefined, params, marketType);
         let response = undefined;
-        if (marketType === 'swap') {
-            let productType = 'umcbl';
-            [ productType, params ] = this.handleOptionAndParams (params, methodName, 'productType', productType);
-            const request: Dict = {
-                'productType': productType,
-            };
-            //
-            //     {
-            //         "code": "00000",
-            //         "msg": "success",
-            //         "requestTime": 1725656055089,
-            //         "data": [
-            //             {
-            //                 "marginCoin": "USDT",
-            //                 "locked": "0",
-            //                 "available": "0",
-            //                 "crossMaxAvailable": "0",
-            //                 "fixedMaxAvailable": "0",
-            //                 "maxTransferOut": "0",
-            //                 "equity": "0",
-            //                 "usdtEquity": "0",
-            //                 "btcEquity": "0",
-            //                 "crossRiskRate": "0",
-            //                 "unrealizedPL": "0",
-            //                 "bonus": "0",
-            //                 "crossedUnrealizedPL": null,
-            //                 "isolatedUnrealizedPL": null
-            //             }
-            //         ]
-            //     }
-            //
-            response = await this.privateGetApiMixV1AccountAccounts (this.extend (request, params));
-        } else if (marketType === 'spot') {
+        if (marketType === 'spot') {
             //
             //     {
             //         "code": "00000",
@@ -1612,6 +1581,38 @@ export default class coincatch extends Exchange {
             //     }
             //
             response = await this.privateGetApiSpotV1AccountAssets (params);
+        } else if (marketType === 'swap') {
+            let productType = 'umcbl';
+            [ productType, params ] = this.handleOptionAndParams (params, methodName, 'productType', productType);
+            const request: Dict = {
+                'productType': productType,
+            };
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1726666298135,
+            //         "data": [
+            //             {
+            //                 "marginCoin": "USDT",
+            //                 "locked": "0",
+            //                 "available": "60",
+            //                 "crossMaxAvailable": "60",
+            //                 "fixedMaxAvailable": "60",
+            //                 "maxTransferOut": "60",
+            //                 "equity": "60",
+            //                 "usdtEquity": "60",
+            //                 "btcEquity": "0.001002360626",
+            //                 "crossRiskRate": "0",
+            //                 "unrealizedPL": "0",
+            //                 "bonus": "0",
+            //                 "crossedUnrealizedPL": null,
+            //                 "isolatedUnrealizedPL": null
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.privateGetApiMixV1AccountAccounts (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
@@ -1638,13 +1639,13 @@ export default class coincatch extends Exchange {
         //         {
         //             "marginCoin": "USDT",
         //             "locked": "0",
-        //             "available": "0",
-        //             "crossMaxAvailable": "0",
-        //             "fixedMaxAvailable": "0",
-        //             "maxTransferOut": "0",
-        //             "equity": "0",
-        //             "usdtEquity": "0",
-        //             "btcEquity": "0",
+        //             "available": "60",
+        //             "crossMaxAvailable": "60",
+        //             "fixedMaxAvailable": "60",
+        //             "maxTransferOut": "60",
+        //             "equity": "60",
+        //             "usdtEquity": "60",
+        //             "btcEquity": "0.001002360626",
         //             "crossRiskRate": "0",
         //             "unrealizedPL": "0",
         //             "bonus": "0",
@@ -1665,6 +1666,7 @@ export default class coincatch extends Exchange {
             const locked = this.safeString2 (balanceEntry, 'lock', 'locked');
             const frozen = this.safeString (balanceEntry, 'frozen', '0');
             account['used'] = Precise.stringAdd (locked, frozen);
+            account['total'] = this.safeString (balanceEntry, 'equity');
             result[code] = account;
         }
         return this.safeBalance (result);
