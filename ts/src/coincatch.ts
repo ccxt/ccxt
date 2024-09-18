@@ -190,7 +190,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/account/assets': 2, // done
                         'api/spot/v1/account/transferRecords': 1,
                         'api/mix/v1/account/account': 1, // not used
-                        'api/mix/v1/account/accounts': 1, // done but should be checked
+                        'api/mix/v1/account/accounts': 2, // done but should be checked
                         'api/mix/v1/position/singlePosition-v2': 1,
                         'api/mix/v1/position/allPosition-v2': 1,
                         'api/mix/v1/account/accountBill': 1,
@@ -1553,21 +1553,20 @@ export default class coincatch extends Exchange {
          * @see https://coincatch.github.io/github.io/en/spot/#get-account-assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
-         * @param {string} [params.symbol] symbol Id (for swap)
-         * @param {string} [params.marginCoin] margin coin (for swap)
+         * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl')
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const methodName = 'fetchBalance';
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, undefined, params, marketType);
+        let response = undefined;
         if (marketType === 'swap') {
             let productType = 'umcbl';
             [ productType, params ] = this.handleOptionAndParams (params, methodName, 'productType', productType);
             const request: Dict = {
                 'productType': productType,
             };
-            const response = await this.privateGetApiMixV1AccountAccounts (this.extend (request, params));
             //
             //     {
             //         "code": "00000",
@@ -1593,11 +1592,8 @@ export default class coincatch extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeList (response, 'data', []);
-            const balance = this.safeDict (data, 0, {});
-            return this.parseSwapBalance (balance);
+            response = await this.privateGetApiMixV1AccountAccounts (this.extend (request, params));
         } else if (marketType === 'spot') {
-            const response = await this.privateGetApiSpotV1AccountAssets (params);
             //
             //     {
             //         "code": "00000",
@@ -1615,70 +1611,62 @@ export default class coincatch extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeList (response, 'data', []);
-            return this.parseBalance (data);
+            response = await this.privateGetApiSpotV1AccountAssets (params);
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
+        const data = this.safeList (response, 'data', []);
+        return this.parseBalance (data);
     }
 
     parseBalance (balances): Balances {
         //
-        //     {
-        //         "coinId": 2,
-        //         "coinName": "USDT",
-        //         "available": "99.20000000",
-        //         "frozen": "0.00000000",
-        //         "lock": "0.00000000",
-        //         "uTime": "1724938746000"
-        //     }
+        // spot
+        //     [
+        //         {
+        //             "coinId": 2,
+        //             "coinName": "USDT",
+        //             "available": "99.20000000",
+        //             "frozen": "0.00000000",
+        //             "lock": "0.00000000",
+        //             "uTime": "1724938746000"
+        //         }
+        //     ]
+        //
+        // swap
+        //     [
+        //         {
+        //             "marginCoin": "USDT",
+        //             "locked": "0",
+        //             "available": "0",
+        //             "crossMaxAvailable": "0",
+        //             "fixedMaxAvailable": "0",
+        //             "maxTransferOut": "0",
+        //             "equity": "0",
+        //             "usdtEquity": "0",
+        //             "btcEquity": "0",
+        //             "crossRiskRate": "0",
+        //             "unrealizedPL": "0",
+        //             "bonus": "0",
+        //             "crossedUnrealizedPL": null,
+        //             "isolatedUnrealizedPL": null
+        //         }
+        //     ]
         //
         const result: Dict = {
             'info': balances,
         };
         for (let i = 0; i < balances.length; i++) {
             const balanceEntry = this.safeDict (balances, i, {});
-            const currencyId = this.safeString (balanceEntry, 'coinName');
+            const currencyId = this.safeString2 (balanceEntry, 'coinName', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeString (balanceEntry, 'available');
-            account['used'] = this.safeString (balanceEntry, 'frozen');
-            if (account['total'] !== '0' || account['used'] !== '0') {
-                result[code] = account;
-            }
+            account['free'] = this.safeString (balanceEntry, 'available');
+            const locked = this.safeString2 (balanceEntry, 'lock', 'locked');
+            const frozen = this.safeString (balanceEntry, 'frozen', '0');
+            account['used'] = Precise.stringAdd (locked, frozen);
+            result[code] = account;
         }
-        return this.safeBalance (result);
-    }
-
-    parseSwapBalance (balance): Balances {
-        //
-        //     {
-        //         "marginCoin": "USDT",
-        //         "locked": "0",
-        //         "available": "0",
-        //         "crossMaxAvailable": "0",
-        //         "fixedMaxAvailable": "0",
-        //         "maxTransferOut": "0",
-        //         "equity": "0",
-        //         "usdtEquity": "0",
-        //         "btcEquity": "0",
-        //         "crossRiskRate": "0",
-        //         "unrealizedPL": "0",
-        //         "bonus": "0",
-        //         "crossedUnrealizedPL": null,
-        //         "isolatedUnrealizedPL": null
-        //     }
-        //
-        const currencyId = this.safeString (balance, 'marginCoin');
-        const code = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['total'] = this.safeString (balance, 'usdtEquity');
-        const positionMargin = this.safeString (balance, 'crossMaxAvailable');
-        account['used'] = Precise.stringAdd (positionMargin, positionMargin); // todo check after getting balance on swap
-        const result: Dict = {
-            'info': balance,
-        };
-        result[code] = account;
         return this.safeBalance (result);
     }
 
