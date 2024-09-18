@@ -191,6 +191,8 @@ export default class cryptomus extends Exchange {
                 'exact': {
                     // todo
                     // {"message":"Insufficient funds. ETH wallet balance is 0.00039618.","state":1}
+                    // {"code":500,"message":"Server error."}
+                    // {"message":"Minimum amount 15 USDT","state":1}
                 },
                 'broad': {},
             },
@@ -557,10 +559,20 @@ export default class cryptomus extends Exchange {
         };
         const response = await this.publicGetV1ExchangeMarketTradesCurrencyPair (this.extend (request, params));
         //
-        // todo check
+        //     {
+        //         "data": [
+        //             {
+        //                 "trade_id": "01J829C3RAXHXHR09HABGQ1YAT",
+        //                 "price": "2315.6320500000000000",
+        //                 "base_volume": "21.9839623057260000",
+        //                 "quote_volume": "0.0094937200000000",
+        //                 "timestamp": 1726653796,"type": "sell"
+        //             }
+        //         ]
+        //     }
         //
-        const result = this.safeList (response, 'result');
-        return this.parseTrades (result, market, since, limit);
+        const data = this.safeList (response, 'data');
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -683,7 +695,9 @@ export default class cryptomus extends Exchange {
             request['to'] = quote;
         }
         const amountToString = amount.toString ();
-        if (amount !== undefined) {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires an amount parameter');
+        } else {
             request['amount'] = amountToString;
         }
         const priceToString = price.toString ();
@@ -862,7 +876,7 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'uuid');
-        const dateTime = this.safeInteger (order, 'created_at');
+        const dateTime = this.safeString (order, 'created_at');
         const timestamp = this.parse8601 (dateTime);
         const fromId = this.safeString (order, 'convert_currency_from');
         const toId = this.safeString (order, 'convert_currency_to');
@@ -922,7 +936,7 @@ export default class cryptomus extends Exchange {
             'active': 'open',
             'completed': 'closed',
             'partially_completed': 'open',
-            'cancelled': 'canceled',
+            'cancelled': 'cancelled',
             'expired': 'expired',
             'failed': 'failed',
         };
