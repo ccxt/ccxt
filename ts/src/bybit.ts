@@ -4917,11 +4917,11 @@ export default class bybit extends Exchange {
         //         "time": 1672219526294
         //     }
         //
-        const data = this.addPaginationCursorToResult (response);
-        return this.parseOrders (data, market, since, limit);
-        
+        const result = this.safeDict (response, 'result', {});
+        const list = this.safeDict (result, 'list', {});
+        const order = this.safeDict (list, 0, {});
+        return this.parseOrder (order, market);
     }
-    
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const res = await this.isUnifiedEnabled ();
