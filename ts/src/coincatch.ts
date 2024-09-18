@@ -3260,6 +3260,31 @@ export default class coincatch extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#fetchPositionMode
+         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an object detailing whether the market is in hedged or one-way mode
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+        };
+        const response = await this.privateGetApiMixV1AccountAccount (this.extend (request, params)); // same endpoint as fetchMarginMode
+        const data = this.safeDict (response, 'data', {});
+        const holdMode = this.safeString (data, 'holdMode');
+        return {
+            'info': response,
+            'hedged': holdMode === 'double_hold',
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + path;
         if (method === 'GET') {
