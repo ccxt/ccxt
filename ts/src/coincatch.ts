@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './bas
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ export default class coincatch extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
@@ -189,8 +189,8 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/account/getInfo': 1,
                         'api/spot/v1/account/assets': 2, // done
                         'api/spot/v1/account/transferRecords': 1,
-                        'api/mix/v1/account/account': 1, // not used
-                        'api/mix/v1/account/accounts': 2, // done but should be checked
+                        'api/mix/v1/account/account': 2, // done
+                        'api/mix/v1/account/accounts': 2, // done
                         'api/mix/v1/position/singlePosition-v2': 1,
                         'api/mix/v1/position/allPosition-v2': 1,
                         'api/mix/v1/account/accountBill': 1,
@@ -206,7 +206,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/plan/historyPlan': 1,
                     },
                     'post': {
-                        'api/spot/v1/wallet/transfer-v2': 1,
+                        'api/spot/v1/wallet/transfer-v2': 4, // done
                         'api/spot/v1/wallet/withdrawal-v2': 4, // done but should be checked
                         'api/spot/v1/wallet/withdrawal-inner-v2': 1,
                         'api/spot/v1/account/bills': 1,
@@ -2028,39 +2028,6 @@ export default class coincatch extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name coincatch#setMarginMode
-         * @description set margin mode to 'cross' or 'isolated'
-         * @see https://coincatch.github.io/github.io/en/mix/#change-margin-mode
-         * @param {string} marginMode 'cross' or 'isolated'
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} response from the exchange
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
-        }
-        marginMode = marginMode.toUpperCase ();
-        if (marginMode === 'CROSS') {
-            marginMode = 'crossed';
-        } else if (marginMode === 'ISOLATED') {
-            marginMode = 'fixed';
-        } else {
-            throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'marginMode': marginMode,
-        };
-        const response = await this.privatePostApiMixV1AccountSetMarginMode (this.extend (request, params));
-        return response;
-    }
-
     async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
         /**
          * @method
@@ -3168,6 +3135,105 @@ export default class coincatch extends Exchange {
             'methodName': methodName,
         };
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        /**
+         * @method
+         * @name coincatch#fetchMarginMode
+         * @description fetches the margin mode of the trading pair
+         * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
+         * @param {string} symbol unified symbol of the market to fetch the margin mode for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+        };
+        const response = await this.privateGetApiMixV1AccountAccount (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1726669633799,
+        //         "data": {
+        //             "marginCoin": "ETH",
+        //             "locked": "0",
+        //             "available": "0.01",
+        //             "crossMaxAvailable": "0.01",
+        //             "fixedMaxAvailable": "0.01",
+        //             "maxTransferOut": "0.01",
+        //             "equity": "0.01",
+        //             "usdtEquity": "22.97657025",
+        //             "btcEquity": "0.000386195288",
+        //             "crossRiskRate": "0",
+        //             "crossMarginLeverage": 100,
+        //             "fixedLongLeverage": 100,
+        //             "fixedShortLeverage": 100,
+        //             "marginMode": "crossed",
+        //             "holdMode": "double_hold",
+        //             "unrealizedPL": "0",
+        //             "bonus": "0",
+        //             "crossedUnrealizedPL": "0",
+        //             "isolatedUnrealizedPL": ""
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        const marginType = this.safeStringLower (marginMode, 'marginMode');
+        return {
+            'info': marginMode,
+            'symbol': this.safeSymbol (undefined, market),
+            'marginMode': this.parseMarginModeType (marginType),
+        } as MarginMode;
+    }
+
+    parseMarginModeType (type: string): string {
+        const types: Dict = {
+            'crossed': 'cross',
+            'fixed': 'isolated',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://coincatch.github.io/github.io/en/mix/#change-margin-mode
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        marginMode = marginMode.toUpperCase ();
+        if (marginMode === 'CROSS') {
+            marginMode = 'crossed';
+        } else if (marginMode === 'ISOLATED') {
+            marginMode = 'fixed';
+        } else {
+            throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+            'marginMode': marginMode,
+        };
+        const response = await this.privatePostApiMixV1AccountSetMarginMode (this.extend (request, params));
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
