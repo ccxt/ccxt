@@ -1751,12 +1751,7 @@
             "fetchCurrencies": {
                 "precision": "not provided"
             },
-            "loadMarkets": {
-                "currencyIdAndCode": "skip, because some currencies are not provided by fethcCurrencies",
-                "active":"not provided",
-                "precision": "not provided",
-                "limits": "not provided"
-            }
+            "loadMarkets": "linear and inverse values are same"
         }
     }
 }
