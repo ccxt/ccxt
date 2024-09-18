@@ -1561,10 +1561,8 @@ export default class bitget extends Exchange {
                 }
             } else if (type === 'spot') {
                 promises.push (this.publicSpotGetV2SpotPublicSymbols (params));
-                if (this.checkRequiredCredentials (false) && !sandboxMode) {
-                    fetchMargins = true;
-                    promises.push (this.publicMarginGetV2MarginCurrencies (params));
-                }
+                fetchMargins = true;
+                promises.push (this.publicMarginGetV2MarginCurrencies (params));
             } else {
                 throw new NotSupported (this.id + ' does not support ' + type + ' market');
             }
