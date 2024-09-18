@@ -98,7 +98,7 @@ export default class coincatch extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
                 'fetchPositions': false,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
@@ -118,7 +118,7 @@ export default class coincatch extends Exchange {
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': true,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -231,7 +231,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/account/setLeverage': 1,
                         'api/mix/v1/account/setMargin': 1,
                         'api/mix/v1/account/setMarginMode': 4, // done
-                        'api/mix/v1/account/setPositionMode': 1,
+                        'api/mix/v1/account/setPositionMode': 4, // done
                         'api/mix/v1/order/placeOrder': 2, // done
                         'api/mix/v1/order/batch-orders': { 'cost': 4, 'step': 10 }, // done
                         'api/mix/v1/order/cancel-order': 2, // done
@@ -3266,7 +3266,7 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchPositionMode
          * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
-         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch entry for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an object detailing whether the market is in hedged or one-way mode
          */
@@ -3283,6 +3283,41 @@ export default class coincatch extends Exchange {
             'info': response,
             'hedged': holdMode === 'double_hold',
         };
+    }
+
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#setPositionMode
+         * @description set hedged to true or false for a market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string} symbol unified symbol of the market to fetch entry for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.productType] *if symbol is not provided* 'umcbl' or 'dmcbl' (default 'umcbl')
+         * @returns {object} response from the exchange
+         */
+        const methodName = 'setPositionMode';
+        const defaultProductType = 'umcbl';
+        await this.loadMarkets ();
+        let productType = this.safeString (params, 'productType');
+        if (productType === undefined) {
+            if (symbol !== undefined) {
+                const market = this.market (symbol);
+                const marketId = market['id'];
+                const parts = marketId.split ('_');
+                productType = this.safeString (parts, 1, productType);
+            } else {
+                productType = this.handleOption (methodName, 'productType', defaultProductType);
+            }
+        }
+        const request: Dict = {
+            'productType': productType,
+            'holdMode': hedged ? 'double_hold' : 'single_hold',
+        };
+        //
+        //
+        return await this.privatePostApiMixV1AccountSetPositionMode (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
