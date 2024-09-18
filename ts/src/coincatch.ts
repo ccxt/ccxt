@@ -727,6 +727,8 @@ export default class coincatch extends Exchange {
         let settle: Str = undefined;
         let type = 'spot';
         let isLinear: Bool = undefined;
+        let isInverse: Bool = undefined;
+        let subType: Str = undefined;
         const isSpot = baseId === undefined; // for now spot markets have no properties baseCoin and quoteCoin
         if (isSpot) {
             const parsedMarketId = this.parseSpotMarketId (marketId);
@@ -738,10 +740,16 @@ export default class coincatch extends Exchange {
             fees['taker'] = this.safeNumber (market, 'takerFeeRate');
             fees['maker'] = this.safeNumber (market, 'makerFeeRate');
             const supportMarginCoins = this.safeList (market, 'supportMarginCoins', []);
-            settleId = this.safeString (supportMarginCoins, 0); // todo check for _DMCBL
+            settleId = this.safeString (supportMarginCoins, 0);
             settle = this.safeCurrencyCode (settleId);
             suffix = ':' + settle;
-            isLinear = true; // todo check
+            isLinear = baseId === settleId; // todo check
+            isInverse = quoteId === settleId; // todo check
+            if (isLinear) {
+                subType = 'linear';
+            } else if (isInverse) {
+                subType = 'inverse';
+            }
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
@@ -762,9 +770,9 @@ export default class coincatch extends Exchange {
             'quoteId': quoteId,
             'active': active,
             'type': type,
-            'subType': isSpot ? undefined : 'linear', // todo check
+            'subType': subType,
             'spot': isSpot,
-            'margin': isSpot ? false : undefined, // todo check
+            'margin': isSpot ? false : undefined,
             'swap': !isSpot,
             'future': false,
             'option': false,
@@ -773,7 +781,7 @@ export default class coincatch extends Exchange {
             'settleId': settleId,
             'contractSize': this.safeNumber (market, 'sizeMultiplier'),
             'linear': isLinear,
-            'inverse': isSpot ? undefined : (!isLinear),
+            'inverse': isInverse,
             'taker': this.safeNumber (fees, 'taker'),
             'maker': this.safeNumber (fees, 'maker'),
             'percentage': this.safeBool (fees, 'percentage'),
@@ -3217,23 +3225,39 @@ export default class coincatch extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginMode = marginMode.toUpperCase ();
-        if (marginMode === 'CROSS') {
-            marginMode = 'crossed';
-        } else if (marginMode === 'ISOLATED') {
-            marginMode = 'fixed';
-        } else {
-            throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
-        }
+        marginMode = marginMode.toLowerCase ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'marginMode': marginMode,
+            'marginMode': this.encodeMarginModeType (marginMode),
         };
         const response = await this.privatePostApiMixV1AccountSetMarginMode (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1726670096099,
+        //         "data": {
+        //             "symbol": "ETHUSD_DMCBL",
+        //             "marginCoin": "ETH",
+        //             "longLeverage": 10,
+        //             "shortLeverage": 10,
+        //             "crossMarginLeverage": null,
+        //             "marginMode": "fixed"
+        //         }
+        //     }
+        //
         return response;
+    }
+
+    encodeMarginModeType (type: string): string {
+        const types: Dict = {
+            'cross': 'crossed',
+            'isolated': 'fixed',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
