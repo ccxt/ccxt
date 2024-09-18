@@ -1,5 +1,5 @@
 import gateRest from '../gate.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gate extends gateRest {
     describe(): any;
@@ -13,6 +13,7 @@ export default class gate extends gateRest {
     fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleOrderBook(client: Client, message: any): void;
     getCacheIndex(orderBook: any, cache: any): any;
@@ -27,6 +28,8 @@ export default class gate extends gateRest {
     handleTickerAndBidAsk(objectName: string, client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
@@ -47,6 +50,8 @@ export default class gate extends gateRest {
     handleErrorMessage(client: Client, message: any): boolean;
     handleBalanceSubscription(client: Client, message: any, subscription?: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
+    handleUnSubscribe(client: Client, message: any): void;
+    cleanCache(subscription: Dict): void;
     handleMessage(client: Client, message: any): void;
     getUrlByMarket(market: any): any;
     getTypeByMarket(market: Market): "spot" | "futures" | "options";
@@ -55,6 +60,7 @@ export default class gate extends gateRest {
     requestId(): any;
     subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: any): Promise<any>;
     subscribePublicMultiple(url: any, messageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
+    unSubscribePublicMultiple(url: any, topic: any, symbols: any, messageHashes: any, subMessageHashes: any, payload: any, channel: any, params?: {}): Promise<any>;
     authenticate(url: any, messageType: any): Promise<any>;
     handleAuthenticationMessage(client: Client, message: any): void;
     requestPrivate(url: any, reqParams: any, channel: any, requestId?: Str): Promise<any>;

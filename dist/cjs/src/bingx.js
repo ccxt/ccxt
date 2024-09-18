@@ -463,7 +463,9 @@ class bingx extends bingx$1 {
                 'broad': {},
             },
             'commonCurrencies': {
-                'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
+                'SNOW': 'Snowman',
+                'OMNI': 'OmniCat',
+                'NAP': '$NAP', // NAP on SOL = SNAP
             },
             'options': {
                 'defaultType': 'spot',

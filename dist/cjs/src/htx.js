@@ -7642,7 +7642,7 @@ class htx extends htx$1 {
             'entryPrice': entryPrice,
             'collateral': this.parseNumber(collateral),
             'side': side,
-            'unrealizedProfit': unrealizedProfit,
+            'unrealizedPnl': unrealizedProfit,
             'leverage': this.parseNumber(leverage),
             'percentage': this.parseNumber(percentage),
             'marginMode': marginMode,
@@ -8103,46 +8103,43 @@ class htx extends htx$1 {
         //         "transferee": 13496526
         //     }
         //
-        const id = this.safeString(item, 'transactId');
         const currencyId = this.safeString(item, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        const amount = this.safeNumber(item, 'transactAmt');
+        currency = this.safeCurrency(currencyId, currency);
+        const id = this.safeString(item, 'transactId');
         const transferType = this.safeString(item, 'transferType');
-        const type = this.parseLedgerEntryType(transferType);
-        const direction = this.safeString(item, 'direction');
         const timestamp = this.safeInteger(item, 'transactTime');
-        const datetime = this.iso8601(timestamp);
         const account = this.safeString(item, 'accountId');
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': id,
-            'direction': direction,
+            'direction': this.safeString(item, 'direction'),
             'account': account,
             'referenceId': id,
             'referenceAccount': account,
-            'type': type,
+            'type': this.parseLedgerEntryType(transferType),
             'currency': code,
-            'amount': amount,
+            'amount': this.safeNumber(item, 'transactAmt'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601(timestamp),
             'before': undefined,
             'after': undefined,
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name htx#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();

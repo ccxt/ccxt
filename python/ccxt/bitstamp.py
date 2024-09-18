@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -402,46 +402,34 @@ class bitstamp(Exchange, ImplicitAPI):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': self.parse_number('0.005'),
-                    'maker': self.parse_number('0.005'),
+                    'taker': self.parse_number('0.004'),
+                    'maker': self.parse_number('0.004'),
                     'tiers': {
                         'taker': [
-                            [self.parse_number('0'), self.parse_number('0.005')],
-                            [self.parse_number('20000'), self.parse_number('0.0025')],
-                            [self.parse_number('100000'), self.parse_number('0.0024')],
-                            [self.parse_number('200000'), self.parse_number('0.0022')],
-                            [self.parse_number('400000'), self.parse_number('0.0020')],
-                            [self.parse_number('600000'), self.parse_number('0.0015')],
-                            [self.parse_number('1000000'), self.parse_number('0.0014')],
-                            [self.parse_number('2000000'), self.parse_number('0.0013')],
-                            [self.parse_number('4000000'), self.parse_number('0.0012')],
-                            [self.parse_number('20000000'), self.parse_number('0.0011')],
-                            [self.parse_number('50000000'), self.parse_number('0.0010')],
-                            [self.parse_number('100000000'), self.parse_number('0.0007')],
-                            [self.parse_number('500000000'), self.parse_number('0.0005')],
-                            [self.parse_number('2000000000'), self.parse_number('0.0003')],
-                            [self.parse_number('6000000000'), self.parse_number('0.0001')],
-                            [self.parse_number('20000000000'), self.parse_number('0.00005')],
-                            [self.parse_number('20000000001'), self.parse_number('0')],
+                            [self.parse_number('0'), self.parse_number('0.004')],
+                            [self.parse_number('10000'), self.parse_number('0.003')],
+                            [self.parse_number('100000'), self.parse_number('0.002')],
+                            [self.parse_number('500000'), self.parse_number('0.0018')],
+                            [self.parse_number('1500000'), self.parse_number('0.0016')],
+                            [self.parse_number('5000000'), self.parse_number('0.0012')],
+                            [self.parse_number('20000000'), self.parse_number('0.001')],
+                            [self.parse_number('50000000'), self.parse_number('0.0008')],
+                            [self.parse_number('100000000'), self.parse_number('0.0006')],
+                            [self.parse_number('250000000'), self.parse_number('0.0005')],
+                            [self.parse_number('1000000000'), self.parse_number('0.0003')],
                         ],
                         'maker': [
-                            [self.parse_number('0'), self.parse_number('0.005')],
-                            [self.parse_number('20000'), self.parse_number('0.0025')],
-                            [self.parse_number('100000'), self.parse_number('0.0024')],
-                            [self.parse_number('200000'), self.parse_number('0.0022')],
-                            [self.parse_number('400000'), self.parse_number('0.0020')],
-                            [self.parse_number('600000'), self.parse_number('0.0015')],
-                            [self.parse_number('1000000'), self.parse_number('0.0014')],
-                            [self.parse_number('2000000'), self.parse_number('0.0013')],
-                            [self.parse_number('4000000'), self.parse_number('0.0012')],
-                            [self.parse_number('20000000'), self.parse_number('0.0011')],
-                            [self.parse_number('50000000'), self.parse_number('0.0010')],
-                            [self.parse_number('100000000'), self.parse_number('0.0007')],
-                            [self.parse_number('500000000'), self.parse_number('0.0005')],
-                            [self.parse_number('2000000000'), self.parse_number('0.0003')],
-                            [self.parse_number('6000000000'), self.parse_number('0.0001')],
-                            [self.parse_number('20000000000'), self.parse_number('0.00005')],
-                            [self.parse_number('20000000001'), self.parse_number('0')],
+                            [self.parse_number('0'), self.parse_number('0.003')],
+                            [self.parse_number('10000'), self.parse_number('0.002')],
+                            [self.parse_number('100000'), self.parse_number('0.001')],
+                            [self.parse_number('500000'), self.parse_number('0.0008')],
+                            [self.parse_number('1500000'), self.parse_number('0.0006')],
+                            [self.parse_number('5000000'), self.parse_number('0.0003')],
+                            [self.parse_number('20000000'), self.parse_number('0.002')],
+                            [self.parse_number('50000000'), self.parse_number('0.0001')],
+                            [self.parse_number('100000000'), self.parse_number('0')],
+                            [self.parse_number('250000000'), self.parse_number('0')],
+                            [self.parse_number('1000000000'), self.parse_number('0')],
                         ],
                     },
                 },
@@ -1843,7 +1831,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     [
         #         {
@@ -1884,9 +1872,9 @@ class bitstamp(Exchange, ImplicitAPI):
             if market is None:
                 market = self.get_market_from_trade(item)
             direction = 'in' if (parsedTrade['side'] == 'buy') else 'out'
-            return {
-                'id': parsedTrade['id'],
+            return self.safe_ledger_entry({
                 'info': item,
+                'id': parsedTrade['id'],
                 'timestamp': parsedTrade['timestamp'],
                 'datetime': parsedTrade['datetime'],
                 'direction': direction,
@@ -1900,7 +1888,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'after': None,
                 'status': 'ok',
                 'fee': parsedTrade['fee'],
-            }
+            }, currency)
         else:
             parsedTransaction = self.parse_transaction(item, currency)
             direction = None
@@ -1912,9 +1900,9 @@ class bitstamp(Exchange, ImplicitAPI):
                 currency = self.currency(currencyCode)
                 amount = self.safe_string(item, currency['id'])
                 direction = 'in' if Precise.string_gt(amount, '0') else 'out'
-            return {
-                'id': parsedTransaction['id'],
+            return self.safe_ledger_entry({
                 'info': item,
+                'id': parsedTransaction['id'],
                 'timestamp': parsedTransaction['timestamp'],
                 'datetime': parsedTransaction['datetime'],
                 'direction': direction,
@@ -1928,15 +1916,15 @@ class bitstamp(Exchange, ImplicitAPI):
                 'after': None,
                 'status': parsedTransaction['status'],
                 'fee': parsedTransaction['fee'],
-            }
+            }, currency)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """

@@ -976,6 +976,7 @@ class bybit extends bybit$1 {
                     '3200300': errors.InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
                 },
                 'broad': {
+                    'Not supported symbols': errors.BadSymbol,
                     'Request timeout': errors.RequestTimeout,
                     'unknown orderInfo': errors.OrderNotFound,
                     'invalid api_key': errors.AuthenticationError,
@@ -5922,17 +5923,23 @@ class bybit extends bybit$1 {
         /**
          * @method
          * @name bybit#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
          * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchLedger', code, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50);
+        }
         const request = {
         // 'coin': currency['id'],
         // 'currency': currency['id'], // alias
@@ -5985,7 +5992,7 @@ class bybit extends bybit$1 {
             }
         }
         else {
-            response = await this.privateGetV2PrivateWalletFundRecords(this.extend(request, params));
+            response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, params));
         }
         //
         //     {
@@ -6132,6 +6139,7 @@ class bybit extends bybit$1 {
         //
         const currencyId = this.safeString2(item, 'coin', 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const amount = this.safeString2(item, 'amount', 'change');
         const after = this.safeString2(item, 'wallet_balance', 'cashBalance');
         const direction = Precise["default"].stringLt(amount, '0') ? 'out' : 'in';
@@ -6144,26 +6152,26 @@ class bybit extends bybit$1 {
         if (timestamp === undefined) {
             timestamp = this.safeInteger(item, 'transactionTime');
         }
-        const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
-        const id = this.safeString(item, 'id');
-        const referenceId = this.safeString(item, 'tx_id');
-        return {
-            'id': id,
-            'currency': code,
-            'account': this.safeString(item, 'wallet_id'),
-            'referenceAccount': undefined,
-            'referenceId': referenceId,
-            'status': undefined,
-            'amount': this.parseNumber(Precise["default"].stringAbs(amount)),
-            'before': this.parseNumber(before),
-            'after': this.parseNumber(after),
-            'fee': this.parseNumber(this.safeString(item, 'fee')),
+        return this.safeLedgerEntry({
+            'info': item,
+            'id': this.safeString(item, 'id'),
             'direction': direction,
+            'account': this.safeString(item, 'wallet_id'),
+            'referenceId': this.safeString(item, 'tx_id'),
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
+            'currency': code,
+            'amount': this.parseToNumeric(Precise["default"].stringAbs(amount)),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'type': type,
-            'info': item,
-        };
+            'before': this.parseToNumeric(before),
+            'after': this.parseToNumeric(after),
+            'status': 'ok',
+            'fee': {
+                'currency': code,
+                'cost': this.parseToNumeric(this.safeString(item, 'fee')),
+            },
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const types = {

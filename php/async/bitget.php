@@ -1236,7 +1236,9 @@ class bitget extends Exchange {
                     '40713' => '\\ccxt\\ExchangeError', // Cannot exceed the maximum transferable margin amount
                     '40714' => '\\ccxt\\ExchangeError', // No direct margin call is allowed
                     '40762' => '\\ccxt\\InsufficientFunds', // array("code":"40762","msg":"The order amount exceeds the balance","requestTime":1716572156622,"data":null)
-                    '40768' => '\\ccxt\\OrderNotFound', // Order does not exist"
+                    '40768' => '\\ccxt\\OrderNotFound', // Order does not exist
+                    '40808' => '\\ccxt\\InvalidOrder', // array("code":"40808","msg":"Parameter verification exception size checkBDScale error value=2293.577 checkScale=2","requestTime":1725638500052,"data":null)
+                    '41103' => '\\ccxt\\InvalidOrder', // array("code":"41103","msg":"param price scale error error","requestTime":1725635883561,"data":null)
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
                     '43012' => '\\ccxt\\InsufficientFunds', // array("code":"43012","msg":"Insufficient balance","requestTime":1711648951774,"data":null)
@@ -1313,10 +1315,11 @@ class bitget extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
-                'JADE' => 'Jade Protocol',
+                'APX' => 'AstroPepeX',
                 'DEGEN' => 'DegenReborn',
-                'TONCOIN' => 'TON',
+                'JADE' => 'Jade Protocol',
                 'OMNI' => 'omni', // conflict with Omni Network
+                'TONCOIN' => 'TON',
             ),
             'options' => array(
                 'timeframes' => array(
@@ -5814,15 +5817,15 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
              * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             * @param {string} $code unified $currency $code, default is null
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] end time in ms
              * @param {string} [$params->symbol] *contract only* unified $market $symbol
@@ -5932,7 +5935,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // spot
         //
@@ -5962,6 +5965,7 @@ class bitget extends Exchange {
         //
         $currencyId = $this->safe_string($item, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'cTime');
         $after = $this->safe_number($item, 'balance');
         $fee = $this->safe_number_2($item, 'fees', 'fee');
@@ -5971,7 +5975,7 @@ class bitget extends Exchange {
         if (mb_strpos($amountRaw, '-') !== false) {
             $direction = 'out';
         }
-        return array(
+        return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => $this->safe_string($item, 'billId'),
             'timestamp' => $timestamp,
@@ -5986,8 +5990,11 @@ class bitget extends Exchange {
             'before' => null,
             'after' => $after,
             'status' => null,
-            'fee' => $fee,
-        );
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $fee,
+            ),
+        ), $currency);
     }
 
     public function parse_ledger_type($type) {

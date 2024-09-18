@@ -838,8 +838,9 @@ class gemini extends Exchange {
     }
 
     public function fetch_ticker_v1_and_v2(string $symbol, $params = array ()) {
-        $tickerA = $this->fetch_ticker_v1($symbol, $params);
-        $tickerB = $this->fetch_ticker_v2($symbol, $params);
+        $tickerPromiseA = $this->fetch_ticker_v1($symbol, $params);
+        $tickerPromiseB = $this->fetch_ticker_v2($symbol, $params);
+        list($tickerA, $tickerB) = array( $tickerPromiseA, $tickerPromiseB );
         return $this->deep_extend($tickerA, array(
             'open' => $tickerB['open'],
             'high' => $tickerB['high'],

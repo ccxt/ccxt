@@ -814,8 +814,9 @@ class gemini(Exchange, ImplicitAPI):
         return self.parse_ticker(response, market)
 
     async def fetch_ticker_v1_and_v2(self, symbol: str, params={}):
-        tickerA = await self.fetch_ticker_v1(symbol, params)
-        tickerB = await self.fetch_ticker_v2(symbol, params)
+        tickerPromiseA = self.fetch_ticker_v1(symbol, params)
+        tickerPromiseB = self.fetch_ticker_v2(symbol, params)
+        tickerA, tickerB = await asyncio.gather(*[tickerPromiseA, tickerPromiseB])
         return self.deep_extend(tickerA, {
             'open': tickerB['open'],
             'high': tickerB['high'],

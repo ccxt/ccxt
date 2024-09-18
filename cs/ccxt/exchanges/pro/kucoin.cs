@@ -156,6 +156,33 @@ public partial class kucoin : ccxt.kucoin
         return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
     }
 
+    public async virtual Task<object> unSubscribeMultiple(object url, object messageHashes, object topic, object subscriptionHashes, object parameters = null, object subscription = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object requestId = ((object)this.requestId()).ToString();
+        object request = new Dictionary<string, object>() {
+            { "id", requestId },
+            { "type", "unsubscribe" },
+            { "topic", topic },
+            { "response", true },
+        };
+        object message = this.extend(request, parameters);
+        if (isTrue(!isEqual(subscription, null)))
+        {
+            ((IDictionary<string,object>)subscription)[(string)requestId] = requestId;
+        }
+        var client = this.client(url);
+        for (object i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
+        {
+            object subscriptionHash = getValue(subscriptionHashes, i);
+            if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionHash))))
+            {
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)requestId] = subscriptionHash;
+            }
+        }
+        return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
+    }
+
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         /**
@@ -558,6 +585,56 @@ public partial class kucoin : ccxt.kucoin
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoin#unWatchTradesForSymbols
+        * @description unWatches trades stream
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+        * @param {string} symbol unified symbol of the market to fetch trades for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object marketIds = this.marketIds(symbols);
+        object url = await this.negotiate(false);
+        object messageHashes = new List<object>() {};
+        object subscriptionHashes = new List<object>() {};
+        object topic = add("/market/match:", String.Join(",", ((IList<object>)marketIds).ToArray()));
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
+            ((IList<object>)subscriptionHashes).Add(add("trades:", symbol));
+        }
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", messageHashes },
+            { "subMessageHashes", subscriptionHashes },
+            { "topic", "trades" },
+            { "unsubscribe", true },
+            { "symbols", symbols },
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, parameters, subscription);
+    }
+
+    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoin#unWatchTrades
+        * @description unWatches trades stream
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+        * @param {string} symbol unified symbol of the market to fetch trades for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+    }
+
     public virtual void handleTrade(WebSocketClient client, object message)
     {
         //
@@ -629,6 +706,25 @@ public partial class kucoin : ccxt.kucoin
         return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
+    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoin#unWatchOrderBook
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+        * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @param {string} symbol unified symbol of the market to fetch the order book for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
+    }
+
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         /**
@@ -691,6 +787,56 @@ public partial class kucoin : ccxt.kucoin
         }
         object orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters, subscription);
         return (orderbook as IOrderBook).limit();
+    }
+
+    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoin#unWatchOrderBookForSymbols
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+        * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @param {string[]} symbols unified array of symbols
+        * @param {int} [limit] the maximum amount of order book entries to return
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        object limit = this.safeInteger(parameters, "limit");
+        parameters = this.omit(parameters, "limit");
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object marketIds = this.marketIds(symbols);
+        object url = await this.negotiate(false);
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "method", "/market/level2");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        if (isTrue(isTrue((isEqual(limit, 5))) || isTrue((isEqual(limit, 50)))))
+        {
+            method = add("/spotMarket/level2Depth", ((object)limit).ToString());
+        }
+        object topic = add(add(method, ":"), String.Join(",", ((IList<object>)marketIds).ToArray()));
+        object messageHashes = new List<object>() {};
+        object subscriptionHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
+            ((IList<object>)subscriptionHashes).Add(add("orderbook:", symbol));
+        }
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", messageHashes },
+            { "symbols", symbols },
+            { "unsubscribe", true },
+            { "topic", "orderbook" },
+            { "subMessageHashes", subscriptionHashes },
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, parameters, subscription);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -880,6 +1026,19 @@ public partial class kucoin : ccxt.kucoin
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+        }
+        object isUnSub = this.safeBool(subscription, "unsubscribe", false);
+        if (isTrue(isUnSub))
+        {
+            object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+            object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+            {
+                object messageHash = getValue(messageHashes, i);
+                object subHash = getValue(subMessageHashes, i);
+                this.cleanUnsubscription(client as WebSocketClient, subHash, messageHash);
+            }
+            this.cleanCache(subscription);
         }
     }
 

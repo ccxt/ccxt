@@ -861,6 +861,10 @@ Each network is an associative array (aka dictionary) with the following keys:
         'cost':  { ... },     // same limits for order cost = price * amount
         'leverage': { ... },  // same min/max limits for the leverage of the order
     },
+    'marginModes': {
+        'cross': false,       // whether pair supports cross-margin trading
+        'isolated': false,    // whether pair supports isolated-margin trading
+    },
     'info':      { ... },     // the original unparsed market info from the exchange
 }
 ```
@@ -1861,11 +1865,13 @@ funding_rates = await binance.fetch_funding_rate_history("BTC/USDT:USDT", params
 
 ### Working With Datetimes And Timestamps
 
-The set of methods for working with UTC dates and timestamps and for converting between them:
+All unified timestamps throughout the CCXT library are integers **in milliseconds** unless explicitly stated otherwise.
 
-```javascript
-exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer, Z = UTC
-exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // iso8601 string
+Below is the set of methods for working with UTC dates and timestamps and for converting between them:
+
+```JavaScript
+exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer in milliseconds, Z = UTC
+exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // from milliseconds to iso8601 string
 exchange.seconds ()      // integer UTC timestamp in seconds
 exchange.milliseconds () // integer UTC timestamp in milliseconds
 ```
@@ -2588,13 +2594,9 @@ The latency (or how much time is needed by the exchange API for calculating the 
 
 If your strategy depends on the fresh last-minute most recent data you don't want to build it based on tickers or OHLCVs received from the exchange. Tickers and exchanges' OHLCVs are only suitable for display purposes, or for simple trading strategies for hour-timeframes or day-timeframes that are less susceptible to latency.
 
-Thankfully, the developers of time-critical trading strategies don't have to rely on secondary data from the exchanges and can calculate the OHLCVs and tickers in the userland. That may be faster and more efficient than waiting for the exchanges to update the info on their end. One can aggregate the public trade history by polling it frequently and calculate candles by walking over the list of trades. CCXT offers a `buildOHLCVC/build_ohlcvc` base method for that:
+Thankfully, the developers of time-critical trading strategies don't have to rely on secondary data from the exchanges and can calculate the OHLCVs and tickers in the userland. That may be faster and more efficient than waiting for the exchanges to update the info on their end. One can aggregate the public trade history by polling it frequently and calculate candles by walking over the list of trades - please take a look into "build-ohlcv-bars" file inside [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)
 
-- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/base/functions/misc.js#L43
-- Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/base/exchange.py#L1933
-- PHP: https://github.com/ccxt/ccxt/blob/master/php/Exchange.php#L631
-
-Due to the differences in their internal implementations the exchanges may be faster to update their primary and secondary market data over WebSockets (see https://ccxt.pro). The latency remains exchange-specific, cause the exchange engine still needs time to calculate the secondary data, regardless of whether you're polling it over the RESTful API with CCXT or getting updates via WebSockets with CCXT Pro. WebSockets can improve the networking latency, so a fast exchange will work even better, but adding the support for WS subscriptions will not make a slow exchange engine work much faster.
+Due to the differences in their internal implementations the exchanges may be faster to update their primary and secondary market data over WebSockets. The latency remains exchange-specific, cause the exchange engine still needs time to calculate the secondary data, regardless of whether you're polling it over the RESTful API with CCXT or getting updates via WebSockets with CCXT Pro. WebSockets can improve the networking latency, so a fast exchange will work even better, but adding the support for WS subscriptions will not make a slow exchange engine work much faster.
 
 If you want to stay on top of the second-order data latency, then you will have to calculate it on your side and beat the exchange engine in speed of doing so. Depending on the needs of your application, it may be tricky, since you will need to handle redundancy, "data holes" in the history, exchange downtimes, and other aspects of data aggregation which is a whole universe in itself that is impossible to fully cover in this Manual.
 
@@ -4329,17 +4331,19 @@ exchange.create_limit_buy_order (symbol, amount, price[, params])
 exchange.create_limit_sell_order (symbol, amount, price[, params])
 ```
 
-#### Stop Orders
+<a name="Stop Orders" id="Stop Orders"></a><a name="Trigger Orders" id="Trigger Orders"></a>
 
-Coming from traditional trading, the term "Stop" order has been a bit ambigious, so instead of it, in CCXT we use term "Trigger" order. When symbol's price reaches your "trigger"("stop") price, the order is activated - if you had chosen *market* order, then it will be executed immediately, if you have chosen limit order, it will be placed in the orderbook.
+#### Conditional Orders
+
+Coming from traditional trading, the term "Stop order" has been a bit ambigious, so instead of it, in CCXT we use term "Trigger" order. When symbol's price reaches your "trigger"("stop") price, the order is activated as `market` or `limit` order, depending which one you had chosen.
 
 We have different classification of trigger orders:
-* stand-alone [Trigger order](#trigger-orders) to buy/sell coin (open/close position)
-* stand-alone [Stop-Loss](#stop-loss-orders) or [Take-Profit](#take-profit-orders) order which are only designed to close an open position.
-* an attached Stop-Loss or Take-Profit order into a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
+1) stand-alone [Trigger order](#trigger-orders) to buy/sell coin (open/close position)
+2) stand-alone [Stop-Loss](#stop-loss-orders) or [Take-Profit](#take-profit-orders) order which are only designed to close an open position.
+3) an attached Stop-Loss or Take-Profit order into a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
 
 
-##### Trigger Orders
+##### Trigger order
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open or close a position.
 
@@ -4368,14 +4372,16 @@ $params = {
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
 ```
 <!-- tabs:end -->
-However, if some exchanges require that you provided `triggerDirection`, with either `above` or `below` values:
+Typically, it means to touch the price from **any direction**. However, if some exchanges require that you provided `triggerDirection`, with either `above` or `below` values:
 
 ```
 params = {
     'triggerPrice': 1700,
-    'triggerDirection': 'above', // order will be triggered when price is above 1700
+    'triggerDirection': 'above', // order will be triggered when price goes upward and touches 1700
 }
 ```
+
+Note, you can also add `reduceOnly: true` param to the trigger order (with a possible `triggerDirection: 'above/below'` param), so it would act as "stop-loss" or "take-profit" order. However, for some exchanges we support "stop-loss" and "take-profit" trigger order types, which automatically involve `reduceOnly` and `triggerDirection` handling (see them below).
 
 ##### Stop Loss Orders
 

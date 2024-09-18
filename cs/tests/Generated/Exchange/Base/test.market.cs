@@ -54,6 +54,10 @@ public partial class testMainClass : BaseTest
                     { "max", exchange.parseNumber("1000") },
                 } },
             } },
+            { "marginModes", new Dictionary<string, object>() {
+                { "cross", true },
+                { "isolated", false },
+            } },
             { "info", new Dictionary<string, object>() {} },
         };
         object emptyAllowedFor = new List<object>() {"linear", "inverse", "settle", "settleId", "expiry", "expiryDatetime", "optionType", "strike", "margin", "contractSize"};
@@ -233,6 +237,15 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "settleId"), getValue(market, "settle"));
         }
         testSharedMethods.assertTimestamp(exchange, skippedProperties, method, market, null, "created");
+        // margin modes
+        if (!isTrue((inOp(skippedProperties, "marginModes"))))
+        {
+            object marginModes = exchange.safeDict(market, "marginModes"); // in future, remove safeDict
+            assert(inOp(marginModes, "cross"), add("marginModes should have \"cross\" key", logText));
+            assert(inOp(marginModes, "isolated"), add("marginModes should have \"isolated\" key", logText));
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "cross", new List<object>() {true, false, null});
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "isolated", new List<object>() {true, false, null});
+        }
     }
 
 }

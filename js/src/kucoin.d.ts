@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, TradingFeeInterface, Currencies, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, TradingFeeInterface, Currencies, int, LedgerEntry } from './base/types.js';
 /**
  * @class kucoin
  * @augments Exchange
@@ -17,7 +17,7 @@ export default class kucoin extends Exchange {
     }>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     loadMigrationStatus(force?: boolean): Promise<void>;
-    handleHfAndParams(params?: {}): Promise<{}[]>;
+    handleHfAndParams(params?: {}): {}[];
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
@@ -89,24 +89,8 @@ export default class kucoin extends Exchange {
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: Dict, currency?: Currency): {
-        id: string;
-        direction: string;
-        account: string;
-        referenceId: any;
-        referenceAccount: string;
-        type: string;
-        currency: string;
-        amount: number;
-        timestamp: number;
-        datetime: string;
-        before: any;
-        after: any;
-        status: any;
-        fee: any;
-        info: Dict;
-    };
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: Currency): {

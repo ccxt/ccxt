@@ -625,6 +625,7 @@ class kucoin extends kucoin$1 {
                 'KALT': 'ALT', // ALTLAYER
             },
             'options': {
+                'hf': false,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -1218,9 +1219,8 @@ class kucoin extends kucoin$1 {
             this.options['hfMigrated'] = (status === 2);
         }
     }
-    async handleHfAndParams(params = {}) {
-        await this.loadMigrationStatus();
-        const migrated = this.safeBool(this.options, 'hfMigrated');
+    handleHfAndParams(params = {}) {
+        const migrated = this.safeBool2(this.options, 'hfMigrated', 'hf', false);
         let loadedHf = undefined;
         if (migrated !== undefined) {
             if (migrated) {
@@ -2119,7 +2119,7 @@ class kucoin extends kucoin$1 {
         const testOrder = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
         let hf = undefined;
-        [hf, params] = await this.handleHfAndParams(params);
+        [hf, params] = this.handleHfAndParams(params);
         let useSync = false;
         [useSync, params] = this.handleOptionAndParams(params, 'createOrder', 'sync', false);
         const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
@@ -2257,7 +2257,7 @@ class kucoin extends kucoin$1 {
             'orderList': ordersRequests,
         };
         let hf = undefined;
-        [hf, params] = await this.handleHfAndParams(params);
+        [hf, params] = this.handleHfAndParams(params);
         let useSync = false;
         [useSync, params] = this.handleOptionAndParams(params, 'createOrders', 'sync', false);
         let response = undefined;
@@ -2455,7 +2455,7 @@ class kucoin extends kucoin$1 {
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
         const stop = this.safeBool2(params, 'stop', 'trigger', false);
         let hf = undefined;
-        [hf, params] = await this.handleHfAndParams(params);
+        [hf, params] = this.handleHfAndParams(params);
         let useSync = false;
         [useSync, params] = this.handleOptionAndParams(params, 'cancelOrder', 'sync', false);
         if (hf || useSync) {
@@ -2577,7 +2577,7 @@ class kucoin extends kucoin$1 {
         const request = {};
         const stop = this.safeBool(params, 'stop', false);
         let hf = undefined;
-        [hf, params] = await this.handleHfAndParams(params);
+        [hf, params] = this.handleHfAndParams(params);
         params = this.omit(params, 'stop');
         const [marginMode, query] = this.handleMarginModeAndParams('cancelAllOrders', params);
         if (symbol !== undefined) {
@@ -2636,7 +2636,7 @@ class kucoin extends kucoin$1 {
         const until = this.safeInteger(params, 'until');
         const stop = this.safeBool2(params, 'stop', 'trigger', false);
         let hf = undefined;
-        [hf, params] = await this.handleHfAndParams(params);
+        [hf, params] = this.handleHfAndParams(params);
         if (hf && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrdersByStatus() requires a symbol parameter for hf orders');
         }
@@ -2819,7 +2819,7 @@ class kucoin extends kucoin$1 {
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
         const stop = this.safeBool2(params, 'stop', 'trigger', false);
         let hf = undefined;
-        [hf, params] = await this.handleHfAndParams(params);
+        [hf, params] = this.handleHfAndParams(params);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3097,7 +3097,7 @@ class kucoin extends kucoin$1 {
         }
         let request = {};
         let hf = undefined;
-        [hf, params] = await this.handleHfAndParams(params);
+        [hf, params] = this.handleHfAndParams(params);
         if (hf && symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol parameter for hf orders');
         }
@@ -3827,8 +3827,8 @@ class kucoin extends kucoin$1 {
         let type = this.safeString(accountsByType, requestedType, requestedType);
         params = this.omit(params, 'type');
         let hf = undefined;
-        [hf, params] = await this.handleHfAndParams(params);
-        if (hf) {
+        [hf, params] = this.handleHfAndParams(params);
+        if (hf && (type !== 'main')) {
             type = 'trade_hf';
         }
         const [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', params);
@@ -4199,6 +4199,7 @@ class kucoin extends kucoin$1 {
         const id = this.safeString(item, 'id');
         const currencyId = this.safeString(item, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const amount = this.safeNumber(item, 'amount');
         const balanceAfter = undefined;
         // const balanceAfter = this.safeNumber (item, 'balance'); only returns zero string
@@ -4247,7 +4248,8 @@ class kucoin extends kucoin$1 {
             feeCurrency = code;
             fee = { 'cost': this.parseNumber(feeCost), 'currency': feeCurrency };
         }
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': id,
             'direction': direction,
             'account': account,
@@ -4262,24 +4264,23 @@ class kucoin extends kucoin$1 {
             'after': balanceAfter,
             'status': undefined,
             'fee': fee,
-            'info': item,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -4287,7 +4288,7 @@ class kucoin extends kucoin$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         let hf = undefined;
-        [hf, params] = await this.handleHfAndParams(params);
+        [hf, params] = this.handleHfAndParams(params);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
         }
@@ -5061,7 +5062,7 @@ class kucoin extends kucoin$1 {
         //
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString2(response, 'msg', 'data', '');
-        const feedback = this.id + ' ' + message;
+        const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);

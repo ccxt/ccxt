@@ -26,7 +26,6 @@ export default class binance extends binanceRest {
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscription(client: Client, subscription: Dict): void;
-    cleanCache(subscription: Dict): void;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
@@ -35,6 +34,8 @@ export default class binance extends binanceRest {
     handleTrade(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

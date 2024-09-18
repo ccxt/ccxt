@@ -663,7 +663,7 @@ export default class paradex extends Exchange {
             'low': undefined,
             'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'sdk'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,

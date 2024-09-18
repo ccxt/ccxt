@@ -14,6 +14,7 @@ use ccxt\BadSymbol;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class ascendex extends Exchange {
@@ -391,7 +392,7 @@ class ascendex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $assets = Async\await($this->v1PublicGetAssets ($params));
+            $assetsPromise = $this->v1PublicGetAssets ($params);
             //
             //     {
             //         "code":0,
@@ -408,7 +409,7 @@ class ascendex extends Exchange {
             //         )
             //     }
             //
-            $margin = Async\await($this->v1PublicGetMarginAssets ($params));
+            $marginPromise = $this->v1PublicGetMarginAssets ($params);
             //
             //     {
             //         "code":0,
@@ -428,7 +429,7 @@ class ascendex extends Exchange {
             //         )
             //     }
             //
-            $cash = Async\await($this->v1PublicGetCashAssets ($params));
+            $cashPromise = $this->v1PublicGetCashAssets ($params);
             //
             //     {
             //         "code":0,
@@ -445,6 +446,7 @@ class ascendex extends Exchange {
             //         )
             //     }
             //
+            list($assets, $margin, $cash) = Async\await(Promise\all(array( $assetsPromise, $marginPromise, $cashPromise )));
             $assetsData = $this->safe_list($assets, 'data', array());
             $marginData = $this->safe_list($margin, 'data', array());
             $cashData = $this->safe_list($cash, 'data', array());
@@ -500,7 +502,7 @@ class ascendex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $products = Async\await($this->v1PublicGetProducts ($params));
+            $productsPromise = $this->v1PublicGetProducts ($params);
             //
             //     {
             //         "code" => 0,
@@ -521,7 +523,7 @@ class ascendex extends Exchange {
             //         )
             //     }
             //
-            $cash = Async\await($this->v1PublicGetCashProducts ($params));
+            $cashPromise = $this->v1PublicGetCashProducts ($params);
             //
             //     {
             //         "code" => 0,
@@ -551,7 +553,7 @@ class ascendex extends Exchange {
             //         )
             //     }
             //
-            $perpetuals = Async\await($this->v2PublicGetFuturesContract ($params));
+            $perpetualsPromise = $this->v2PublicGetFuturesContract ($params);
             //
             //    {
             //        "code" => 0,
@@ -589,6 +591,7 @@ class ascendex extends Exchange {
             //        )
             //    }
             //
+            list($products, $cash, $perpetuals) = Async\await(Promise\all(array( $productsPromise, $cashPromise, $perpetualsPromise )));
             $productsData = $this->safe_list($products, 'data', array());
             $productsById = $this->index_by($productsData, 'symbol');
             $cashData = $this->safe_list($cash, 'data', array());

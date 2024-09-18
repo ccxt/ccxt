@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported, UnsubscribeError } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
@@ -1026,58 +1026,9 @@ export default class binance extends binanceRest {
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];
-            if (unsubHash in client.subscriptions) {
-                delete client.subscriptions[unsubHash];
-            }
-            if (subHash in client.subscriptions) {
-                delete client.subscriptions[subHash];
-            }
-            const error = new UnsubscribeError(this.id + ' ' + subHash);
-            client.reject(error, subHash);
-            client.resolve(true, unsubHash);
-            this.cleanCache(subscription);
+            this.cleanUnsubscription(client, subHash, unsubHash);
         }
-    }
-    cleanCache(subscription) {
-        const topic = this.safeString(subscription, 'topic');
-        const symbols = this.safeList(subscription, 'symbols', []);
-        const symbolsLength = symbols.length;
-        if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                if (topic === 'trade') {
-                    delete this.trades[symbol];
-                }
-                else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
-                }
-                else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
-                }
-            }
-        }
-        else {
-            if (topic === 'myTrades') {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                const keys = Object.keys(this.myTrades);
-                for (let i = 0; i < keys.length; i++) {
-                    delete this.myTrades[keys[i]];
-                }
-            }
-            else if (topic === 'orders') {
-                const orderSymbols = Object.keys(this.orders);
-                for (let i = 0; i < orderSymbols.length; i++) {
-                    delete this.orders[orderSymbols[i]];
-                }
-            }
-            else if (topic === 'ticker') {
-                const tickerSymbols = Object.keys(this.tickers);
-                for (let i = 0; i < tickerSymbols.length; i++) {
-                    delete this.tickers[tickerSymbols[i]];
-                }
-            }
-        }
+        this.cleanCache(subscription);
     }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1200,7 +1151,7 @@ export default class binance extends binanceRest {
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
             'symbols': symbols,
-            'topic': 'trade',
+            'topic': 'trades',
         };
         return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscription);
     }
@@ -1509,6 +1460,93 @@ export default class binance extends binanceRest {
         }
         const filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
+    }
+    async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
+        /**
+         * @method
+         * @name binance#unWatchOHLCVForSymbols
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        let klineType = undefined;
+        [klineType, params] = this.handleParamString2(params, 'channel', 'name', 'kline');
+        const symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        const marketSymbols = this.marketSymbols(symbols, undefined, false, false, true);
+        const firstMarket = this.market(marketSymbols[0]);
+        let type = firstMarket['type'];
+        if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
+        }
+        const isSpot = (type === 'spot');
+        let timezone = undefined;
+        [timezone, params] = this.handleParamString(params, 'timezone', undefined);
+        const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq(timezone, '8'));
+        const rawHashes = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symAndTf = symbolsAndTimeframes[i];
+            const symbolString = symAndTf[0];
+            const timeframeString = symAndTf[1];
+            const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            const market = this.market(symbolString);
+            let marketId = market['lowercaseId'];
+            if (klineType === 'indexPriceKline') {
+                // weird behavior for index price kline we can't use the perp suffix
+                marketId = marketId.replace('_perp', '');
+            }
+            const shouldUseUTC8 = (isUtc8 && isSpot);
+            const suffix = '@+08:00';
+            const utcSuffix = shouldUseUTC8 ? suffix : '';
+            rawHashes.push(marketId + '@' + klineType + '_' + interval + utcSuffix);
+            subMessageHashes.push('ohlcv::' + market['symbol'] + '::' + timeframeString);
+            messageHashes.push('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
+        }
+        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, 'multipleOHLCV');
+        const requestId = this.requestId(url);
+        const request = {
+            'method': 'UNSUBSCRIBE',
+            'params': rawHashes,
+            'id': requestId,
+        };
+        const subscribe = {
+            'unsubscribe': true,
+            'id': requestId.toString(),
+            'symbols': symbols,
+            'symbolsAndTimeframes': symbolsAndTimeframes,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+            'topic': 'ohlcv',
+        };
+        params = this.omit(params, 'callerMethodName');
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscribe);
+    }
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        /**
+         * @method
+         * @name binance#unWatchOHLCV
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        params['callerMethodName'] = 'watchOHLCV';
+        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
     }
     handleOHLCV(client, message) {
         //
@@ -1881,7 +1919,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
     async watchMultiTickerHelper(methodName, channelName, symbols = undefined, params = {}) {
         await this.loadMarkets();

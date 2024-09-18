@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -627,6 +627,7 @@ export default class kucoin extends Exchange {
                 'KALT': 'ALT', // ALTLAYER
             },
             'options': {
+                'hf': false,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -1226,9 +1227,8 @@ export default class kucoin extends Exchange {
         }
     }
 
-    async handleHfAndParams (params = {}) {
-        await this.loadMigrationStatus ();
-        const migrated: Bool = this.safeBool (this.options, 'hfMigrated');
+    handleHfAndParams (params = {}) {
+        const migrated: Bool = this.safeBool2 (this.options, 'hfMigrated', 'hf', false);
         let loadedHf: Bool = undefined;
         if (migrated !== undefined) {
             if (migrated) {
@@ -2139,7 +2139,7 @@ export default class kucoin extends Exchange {
         const testOrder = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
         let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
+        [ hf, params ] = this.handleHfAndParams (params);
         let useSync = false;
         [ useSync, params ] = this.handleOptionAndParams (params, 'createOrder', 'sync', false);
         const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
@@ -2273,7 +2273,7 @@ export default class kucoin extends Exchange {
             'orderList': ordersRequests,
         };
         let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
+        [ hf, params ] = this.handleHfAndParams (params);
         let useSync = false;
         [ useSync, params ] = this.handleOptionAndParams (params, 'createOrders', 'sync', false);
         let response = undefined;
@@ -2466,7 +2466,7 @@ export default class kucoin extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
+        [ hf, params ] = this.handleHfAndParams (params);
         let useSync = false;
         [ useSync, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'sync', false);
         if (hf || useSync) {
@@ -2582,7 +2582,7 @@ export default class kucoin extends Exchange {
         const request: Dict = {};
         const stop = this.safeBool (params, 'stop', false);
         let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
+        [ hf, params ] = this.handleHfAndParams (params);
         params = this.omit (params, 'stop');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         if (symbol !== undefined) {
@@ -2639,7 +2639,7 @@ export default class kucoin extends Exchange {
         const until = this.safeInteger (params, 'until');
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
+        [ hf, params ] = this.handleHfAndParams (params);
         if (hf && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol parameter for hf orders');
         }
@@ -2821,7 +2821,7 @@ export default class kucoin extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
+        [ hf, params ] = this.handleHfAndParams (params);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3095,7 +3095,7 @@ export default class kucoin extends Exchange {
         }
         let request: Dict = {};
         let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
+        [ hf, params ] = this.handleHfAndParams (params);
         if (hf && symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol parameter for hf orders');
         }
@@ -3829,8 +3829,8 @@ export default class kucoin extends Exchange {
         let type = this.safeString (accountsByType, requestedType, requestedType);
         params = this.omit (params, 'type');
         let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
-        if (hf) {
+        [ hf, params ] = this.handleHfAndParams (params);
+        if (hf && (type !== 'main')) {
             type = 'trade_hf';
         }
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
@@ -4183,7 +4183,7 @@ export default class kucoin extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
@@ -4201,6 +4201,7 @@ export default class kucoin extends Exchange {
         const id = this.safeString (item, 'id');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeNumber (item, 'amount');
         const balanceAfter = undefined;
         // const balanceAfter = this.safeNumber (item, 'balance'); only returns zero string
@@ -4247,7 +4248,8 @@ export default class kucoin extends Exchange {
             feeCurrency = code;
             fee = { 'cost': this.parseNumber (feeCost), 'currency': feeCurrency };
         }
-        return {
+        return this.safeLedgerEntry ({
+            'info': item,
             'id': id,
             'direction': direction,
             'account': account,
@@ -4262,25 +4264,24 @@ export default class kucoin extends Exchange {
             'after': balanceAfter, // undefined
             'status': undefined,
             'fee': fee,
-            'info': item,
-        };
+        }, currency) as LedgerEntry;
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name kucoin#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
          * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
@@ -4288,9 +4289,9 @@ export default class kucoin extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
+        [ hf, params ] = this.handleHfAndParams (params);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params) as LedgerEntry[];
         }
         let request: Dict = {
             // 'currency': currency['id'], // can choose up to 10, if not provided returns for all currencies by default
@@ -5071,7 +5072,7 @@ export default class kucoin extends Exchange {
         //
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString2 (response, 'msg', 'data', '');
-        const feedback = this.id + ' ' + message;
+        const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);

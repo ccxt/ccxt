@@ -2239,15 +2239,15 @@ class coinbase extends Exchange {
         return $this->parse_custom_balance($response, $params);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-         * @param {string} $code unified $currency $code, default is null
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
-         * @param {int} [$limit] max number of $ledger entrys to return, default is null
+         * @param {int} [$limit] max number of $ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
          */
         $this->load_markets();
@@ -2276,8 +2276,28 @@ class coinbase extends Exchange {
         $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'next_starting_after');
         if (($cursor !== null) && ($cursor !== '')) {
+            $lastFee = $this->safe_dict($last, 'fee');
             $last['next_starting_after'] = $cursor;
-            $ledger[$lastIndex] = $last;
+            $ledger[$lastIndex] = array(
+                'info' => $this->safe_dict($last, 'info'),
+                'id' => $this->safe_string($last, 'id'),
+                'timestamp' => $this->safe_integer($last, 'timestamp'),
+                'datetime' => $this->safe_string($last, 'datetime'),
+                'direction' => $this->safe_string($last, 'direction'),
+                'account' => $this->safe_string($last, 'account'),
+                'referenceId' => null,
+                'referenceAccount' => null,
+                'type' => $this->safe_string($last, 'type'),
+                'currency' => $this->safe_string($last, 'currency'),
+                'amount' => $this->safe_number($last, 'amount'),
+                'before' => null,
+                'after' => null,
+                'status' => $this->safe_string($last, 'status'),
+                'fee' => array(
+                    'cost' => $this->safe_number($lastFee, 'cost'),
+                    'currency' => $this->safe_string($lastFee, 'currency'),
+                ),
+            );
         }
         return $ledger;
     }
@@ -2304,7 +2324,7 @@ class coinbase extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // crypto deposit transaction
         //
@@ -2559,6 +2579,7 @@ class coinbase extends Exchange {
         }
         $currencyId = $this->safe_string($amountInfo, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         //
         // the $address and $txid do not belong to the unified ledger structure
         //
@@ -2594,7 +2615,7 @@ class coinbase extends Exchange {
                 $accountId = $parts[3];
             }
         }
-        return array(
+        return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -2610,7 +2631,7 @@ class coinbase extends Exchange {
             'after' => null,
             'status' => $status,
             'fee' => $fee,
-        );
+        ), $currency);
     }
 
     public function find_account_id($code, $params = array ()) {

@@ -470,6 +470,8 @@ class bingx extends Exchange {
             ),
             'commonCurrencies' => array(
                 'SNOW' => 'Snowman', // Snowman vs SnowSwap conflict
+                'OMNI' => 'OmniCat',
+                'NAP' => '$NAP', // NAP on SOL = SNAP
             ),
             'options' => array(
                 'defaultType' => 'spot',
