@@ -348,6 +348,9 @@ func ToFloat64(v interface{}) float64 {
 	case reflect.Float64:
 		result = val.Float()
 	case reflect.String:
+		if result, err := strconv.ParseFloat(val.String(), 64); err != nil {
+			return result
+		}
 		result = 0 // Convert string to float64, example implementation
 	}
 	return result
