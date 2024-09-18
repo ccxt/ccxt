@@ -31,12 +31,14 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		return defVal
 	}
 
+	objType := reflect.TypeOf(obj).Kind()
+
 	// Convert array to slice if needed
-	if reflect.TypeOf(obj).Kind() == reflect.Array {
+	if objType == reflect.Array {
 		obj = reflect.ValueOf(obj).Slice(0, reflect.ValueOf(obj).Len()).Interface()
 	}
 
-	switch reflect.TypeOf(obj).Kind() {
+	switch objType {
 	case reflect.Map:
 		if dict, err := ConvertToDictionaryOfStringObject(obj); err == nil {
 			for _, key := range keys {
@@ -53,6 +55,46 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		}
 	case reflect.Slice:
 		if list, ok := obj.([]interface{}); ok {
+			for _, key := range keys {
+				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+					if keyInt >= 0 && keyInt < len(list) {
+						return list[keyInt]
+					}
+				}
+			}
+		}
+
+		if list, ok := obj.([]string); ok {
+			for _, key := range keys {
+				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+					if keyInt >= 0 && keyInt < len(list) {
+						return list[keyInt]
+					}
+				}
+			}
+		}
+
+		if list, ok := obj.([]int64); ok {
+			for _, key := range keys {
+				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+					if keyInt >= 0 && keyInt < len(list) {
+						return list[keyInt]
+					}
+				}
+			}
+		}
+
+		if list, ok := obj.([]int32); ok {
+			for _, key := range keys {
+				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
+					if keyInt >= 0 && keyInt < len(list) {
+						return list[keyInt]
+					}
+				}
+			}
+		}
+
+		if list, ok := obj.([]float64); ok {
 			for _, key := range keys {
 				if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 					if keyInt >= 0 && keyInt < len(list) {
