@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './bas
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1668,6 +1668,83 @@ export default class coincatch extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        /**
+         * @method
+         * @name coincatch#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://coincatch.github.io/github.io/en/spot/#transfer
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer from
+         * @param {string} toAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer to
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the transfer
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (fromAccount === 'swap') {
+            if (code === 'USDT') {
+                fromAccount = 'mix_usdt';
+            } else {
+                fromAccount = 'mix_usd';
+            }
+        }
+        if (toAccount === 'swap') {
+            if (code === 'USDT') {
+                toAccount = 'mix_usdt';
+            } else {
+                toAccount = 'mix_usd';
+            }
+        }
+        const request: Dict = {
+            'coin': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'fromType': fromAccount,
+            'toType': toAccount,
+        };
+        let clientOrderId: Str = undefined;
+        [ clientOrderId, params ] = this.handleOptionAndParams (params, 'transfer', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
+        }
+        const response = await this.privatePostApiSpotV1WalletTransferV2 (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1726664727436,
+        //         "data": {
+        //             "transferId": "1220285801129066496",
+        //             "clientOrderId": null
+        //         }
+        //     }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency: Currency = undefined) {
+        const timestamp = this.safeInteger (transfer, 'requestTime'); // todo check
+        const msg = this.safeString (transfer, 'msg');
+        let status: Str = undefined;
+        if (msg === 'success') {
+            status = 'ok';
+        }
+        const data = this.safeDict (transfer, 'data', {});
+        return {
+            'id': this.safeString (data, 'transferId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': status,
+            'info': transfer,
+        };
     }
 
     async fetchDepositAddress (code: string, params = {}) {
