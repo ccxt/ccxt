@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './bas
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3264,12 +3264,15 @@ export default class coincatch extends Exchange {
         /**
          * @method
          * @name coincatch#fetchPositionMode
-         * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+         * @description fetchs the position mode, hedged or one way
          * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
          * @param {string} symbol unified symbol of the market to fetch entry for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an object detailing whether the market is in hedged or one-way mode
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositionMode() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -3294,7 +3297,7 @@ export default class coincatch extends Exchange {
          * @param {bool} hedged set to true to use dualSidePosition
          * @param {string} symbol unified symbol of the market to fetch entry for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.productType] *if symbol is not provided* 'umcbl' or 'dmcbl' (default 'umcbl')
+         * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl' if symbol is not provided)
          * @returns {object} response from the exchange
          */
         const methodName = 'setPositionMode';
@@ -3316,8 +3319,79 @@ export default class coincatch extends Exchange {
             'holdMode': hedged ? 'double_hold' : 'single_hold',
         };
         //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1726677135005,
+        //         "data": {
+        //             "marginCoin": "ETH",
+        //             "dualSidePosition": false
+        //         }
+        //     }
         //
         return await this.privatePostApiMixV1AccountSetPositionMode (this.extend (request, params));
+    }
+
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name coincatch#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+        };
+        const response = await this.privateGetApiMixV1AccountAccount (this.extend (request, params)); // same endpoint as fetchMarginMode
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        //     {
+        //         "marginCoin": "ETH",
+        //         "locked": "0",
+        //         "available": "0.01",
+        //         "crossMaxAvailable": "0.01",
+        //         "fixedMaxAvailable": "0.01",
+        //         "maxTransferOut": "0.01",
+        //         "equity": "0.01",
+        //         "usdtEquity": "22.97657025",
+        //         "btcEquity": "0.000386195288",
+        //         "crossRiskRate": "0",
+        //         "crossMarginLeverage": 100,
+        //         "fixedLongLeverage": 100,
+        //         "fixedShortLeverage": 100,
+        //         "marginMode": "crossed",
+        //         "holdMode": "double_hold",
+        //         "unrealizedPL": "0",
+        //         "bonus": "0",
+        //         "crossedUnrealizedPL": "0",
+        //         "isolatedUnrealizedPL": ""
+        //     }
+        //
+        const marginMode = this.parseMarginModeType (this.safeStringLower (leverage, 'marginMode'));
+        let longLeverage = this.safeInteger (leverage, 'fixedLongLeverage');
+        let shortLeverage = this.safeInteger (leverage, 'fixedShortLeverage');
+        const crossMarginLeverage = this.safeInteger (leverage, 'crossMarginLeverage');
+        if (marginMode === 'cross') {
+            longLeverage = crossMarginLeverage;
+            shortLeverage = crossMarginLeverage;
+        }
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
