@@ -115,7 +115,7 @@ export default class coincatch extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -228,7 +228,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/plan/historyPlan': 1,
                         'api/spot/v1/plan/batchCancelPlan': 1,
                         'api/mix/v1/account/open-count': 1,
-                        'api/mix/v1/account/setLeverage': 1,
+                        'api/mix/v1/account/setLeverage': 4, // done
                         'api/mix/v1/account/setMargin': 1,
                         'api/mix/v1/account/setMarginMode': 4, // done
                         'api/mix/v1/account/setPositionMode': 4, // done
@@ -3353,8 +3353,57 @@ export default class coincatch extends Exchange {
         return this.parseLeverage (data, market);
     }
 
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hashkey#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.side] *for isolated hedged margin mode only* 'long' or 'short'
+         * @returns {object} response from the exchange
+         */
+        const methodName = 'setLeverage';
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + methodName + '() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+            'leverage': leverage,
+        };
+        let side: Str = undefined;
+        [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
+        if (side !== undefined) {
+            request['holdSide'] = side;
+        }
+        const response = await this.privatePostApiMixV1AccountSetLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1726680486657,
+        //         "data": {
+        //             "symbol": "ETHUSD_DMCBL",
+        //             "marginCoin": "ETH",
+        //             "longLeverage": 2,
+        //             "shortLeverage": 2,
+        //             "crossMarginLeverage": 2,
+        //             "marginMode": "crossed"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         //
+        // fetchLeverage
         //     {
         //         "marginCoin": "ETH",
         //         "locked": "0",
@@ -3377,9 +3426,21 @@ export default class coincatch extends Exchange {
         //         "isolatedUnrealizedPL": ""
         //     }
         //
+        // setLeverage
+        //     {
+        //         "symbol": "ETHUSD_DMCBL",
+        //         "marginCoin": "ETH",
+        //         "longLeverage": 2,
+        //         "shortLeverage": 2,
+        //         "crossMarginLeverage": 2,
+        //         "marginMode": "crossed"
+        //     }
+        //
+        const marketId = this.safeString (leverage, 'symbol');
+        market = this.safeMarket (marketId, market);
         const marginMode = this.parseMarginModeType (this.safeStringLower (leverage, 'marginMode'));
-        let longLeverage = this.safeInteger (leverage, 'fixedLongLeverage');
-        let shortLeverage = this.safeInteger (leverage, 'fixedShortLeverage');
+        let longLeverage = this.safeInteger2 (leverage, 'fixedLongLeverage', 'longLeverage');
+        let shortLeverage = this.safeInteger2 (leverage, 'fixedShortLeverage', 'shortLeverage');
         const crossMarginLeverage = this.safeInteger (leverage, 'crossMarginLeverage');
         if (marginMode === 'cross') {
             longLeverage = crossMarginLeverage;
