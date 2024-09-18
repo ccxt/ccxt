@@ -1,63 +1,41 @@
 from ccxt.base.types import Entry
 
-class ImplicitAPI:
-    # Define private endpoints related to user actions
-    private_post_v2_order_order = Entry('v2/order/order', 'private', 'POST', {})
-    private_post_v2_order_cancel = Entry('v2/order/cancel', 'private', 'POST', {})
-    private_post_v2_order_getorderlist = Entry('v2/order/getOrderList', 'private', 'POST', {})
-    private_post_v2_order_showorderstatus = Entry('v2/order/showOrderStatus', 'private', 'POST', {})
-    private_post_v2_order_showorderhistory = Entry('v2/order/showOrderHistory', 'private', 'POST', {})
-    private_post_v2_order_gettradelist = Entry('v2/order/getTradeList', 'private', 'POST', {})
-    private_post_v2_coin_customeraccount = Entry('v2/coin/customerAccount', 'private', 'POST', {})
-    private_post_v2_kline_getkline = Entry('v2/kline/getKline', 'private', 'POST', {})
+class Entry:
+    def __init__(self, endpoint, api, method, params):
+        self.endpoint = endpoint
+        self.api = api
+        self.method = method
+        self.params = params
 
-def cube_api_definitions():
-    return {
-        'id': 'cube',
-        'name': 'Cube Exchange',
-        'countries': ['US'],
-        'rateLimit': 1000,
-        'has': {
-            'fetchMarkets': True,
-            'fetchTicker': True,
-            'fetchOrderBook': True,
-            'fetchBalance': True,
-            'createOrder': True,
-            'cancelOrder': True,
-        },
-        'urls': {
-            'api': {
-                'public': 'https://api.cube.exchange/md/v0',
-                'private': 'https://api.cube.exchange/v0',
-            },
-            'www': 'https://www.cube.exchange',
-            'doc': 'https://docs.cube.exchange',
-        },
-        'api': {
-            'public': {
-                'get': [
-                    'tickers/snapshot',
-                    'parsed/tickers',
-                    'parsed/book/{market_symbol}/snapshot',
-                    'parsed/book/{market_symbol}/recent-trades',
-                ],
-            },
-            'private': {
-                'get': [
-                    'users/check',
-                    'users/subaccounts',
-                    'users/subaccount/{subaccount_id}',
-                    'users/subaccount/{subaccount_id}/positions',
-                    'users/subaccount/{subaccount_id}/orders',
-                ],
-                'post': [
-                    'users/apikeys',
-                    'users/subaccounts',
-                    'users/withdraw',
-                ],
-                'delete': [
-                    'users/apikeys/{api_key}',
-                ],
-            },
-        },
-    }
+
+class ImplicitAPI:
+    # Public endpoints
+    public_get_markets = Entry('markets', 'private', 'GET', {})
+    public_get_history_klines = Entry('history/klines', 'public', 'GET', {})
+    public_get_tickers_snapshot = Entry('tickers/snapshot', 'public', 'GET', {})
+    public_get_parsed_tickers = Entry('parsed/tickers', 'public', 'GET', {})
+    public_get_parsed_book_snapshot = Entry('parsed/book/{market_symbol}/snapshot', 'public', 'GET', {})
+    public_get_parsed_book_recent_trades = Entry('parsed/book/{market_symbol}/recent-trades', 'public', 'GET', {})
+    public_get_book_snapshot = Entry('book/{market_id}/snapshot', 'public', 'GET', {})
+    public_get_book_recent_trades = Entry('book/{market_id}/recent-trades', 'public', 'GET', {})
+    # Authenticated endpoints
+    auth_get_markets = Entry('markets', 'private', 'GET', {})
+    auth_get_users_check = Entry('users/check', 'private', 'GET', {})
+    auth_post_users_apikeys = Entry('users/apikeys', 'private', 'POST', {})
+    auth_delete_users_apikeys = Entry('users/apikeys/{api_key}', 'private', 'DELETE', {})
+    auth_get_users_subaccounts = Entry('users/subaccounts', 'private', 'GET', {})
+    auth_post_users_subaccounts = Entry('users/subaccounts', 'private', 'POST', {})
+    auth_get_users_subaccount = Entry('users/subaccount/{subaccount_id}', 'private', 'GET', {})
+    auth_patch_users_subaccount = Entry('users/subaccount/{subaccount_id}', 'private', 'PATCH', {})
+    auth_get_users_subaccount_positions = Entry('users/subaccount/{subaccount_id}/positions', 'private', 'GET', {})
+    auth_get_users_subaccount_transfers = Entry('users/subaccount/{subaccount_id}/transfers', 'private', 'GET', {})
+    auth_get_users_subaccount_deposits = Entry('users/subaccount/{subaccount_id}/deposits', 'private', 'GET', {})
+    auth_get_users_subaccount_withdrawals = Entry('users/subaccount/{subaccount_id}/withdrawals', 'private', 'GET', {})
+    auth_get_users_subaccount_orders = Entry('users/subaccount/{subaccount_id}/orders', 'private', 'GET', {})
+    auth_get_users_subaccount_fills = Entry('users/subaccount/{subaccount_id}/fills', 'private', 'GET', {})
+    auth_post_users_fee_estimates = Entry('users/fee-estimates', 'private', 'POST', {})
+    auth_get_users_address = Entry('users/address', 'private', 'GET', {})
+    auth_get_users_address_settings = Entry('users/address/settings', 'private', 'GET', {})
+    auth_post_users_withdraw = Entry('users/withdraw', 'private', 'POST', {})
+
+
