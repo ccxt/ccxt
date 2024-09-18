@@ -463,7 +463,7 @@ public partial class p2b : Exchange
     {
         /**
         * @method
-        * @name p2bfutures#fetchOrderBook
+        * @name p2b#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
         * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -644,7 +644,7 @@ public partial class p2b : Exchange
     {
         /**
         * @method
-        * @name poloniexfutures#fetchOHLCV
+        * @name p2b#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
