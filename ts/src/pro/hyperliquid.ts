@@ -258,8 +258,8 @@ export default class hyperliquid extends hyperliquidRest {
          */
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const ticker = await this.watchTickers ([ symbol ], params);
-        return this.safeValue (ticker, symbol);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
