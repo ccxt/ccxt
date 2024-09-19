@@ -966,7 +966,7 @@ class testMainClass extends baseMainTestClass {
     }
 
     assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
-      try {
+        try {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
             // c# requirement
@@ -1053,14 +1053,14 @@ class testMainClass extends baseMainTestClass {
                 }
             }
         }
-      } catch (e) {
-        if (this.info) {
-            const errorMessage = this.varToString (newOutput) + '(calculated)' + ' != ' + this.varToString (storedOutput) + '(stored)';
-            dump ('[TEST_FAILURE_DETAIL]' + errorMessage);
+        } catch (e) {
+            if (this.info) {
+                const errorMessage = this.varToString (newOutput) + '(calculated)' + ' != ' + this.varToString (storedOutput) + '(stored)';
+                dump ('[TEST_FAILURE_DETAIL]' + errorMessage);
+            }
+            throw e;
         }
-        throw e;
-      }
-      return true; // c# requirement
+        return true; // c# requ
     }
 
     varToString (obj:any = undefined) {
