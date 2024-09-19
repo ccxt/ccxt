@@ -809,7 +809,7 @@
                 ]
             },
             {
-                "description": "Fill this with a description of the method call",
+                "description": "linear swap",
                 "method": "fetchOrder",
                 "url": "https://api.bybit.com/v5/order/realtime?symbol=LTCUSDT&orderId=b04e654c-22fe-4fad-b9f9-d116eabd68b3&category=linear",
                 "input": [
@@ -821,7 +821,7 @@
                 ]
             },
             {
-                "description": "inverse",
+                "description": "inverse swap",
                 "method": "fetchOrder",
                 "url": "https://api.bybit.com/v5/order/realtime?symbol=LTCUSD&orderId=117d831c-2e8c-4bcf-b362-3e9c95addc4e&category=inverse",
                 "input": [
