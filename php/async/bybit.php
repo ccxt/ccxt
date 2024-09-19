@@ -104,7 +104,7 @@ class bybit extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOption' => true,
                 'fetchOptionChain' => true,
-                'fetchOrder' => false,
+                'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
@@ -4852,19 +4852,92 @@ class bybit extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-             *  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
+             *  *classic accounts only/ spot not supported*  fetches information on an $order made by the user *classic accounts only*
              * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-             * @param {string} $id the order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {string} $id the $order $id
+             * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @param {array} [$params->acknowledged] to suppress the warning, set to true
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
-            $res = Async\await($this->is_unified_enabled());
-            $enableUnifiedAccount = $this->safe_bool($res, 1);
-            if ($enableUnifiedAccount) {
-                throw new NotSupported($this->id . ' fetchOrder() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrder or fetchClosedOrder');
+            Async\await($this->load_markets());
+            list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
+            $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
+            if (!$isUnifiedAccount) {
+                return Async\await($this->fetch_order_classic($id, $symbol, $params));
             }
-            return Async\await($this->fetch_order_classic($id, $symbol, $params));
+            $acknowledge = false;
+            list($acknowledge, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'acknowledged');
+            if (!$acknowledge) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() can only access an $order if it is in last 500 orders (of any status) for your account. Set $params["acknowledged"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder');
+            }
+            $market = $this->market($symbol);
+            $marketType = null;
+            list($marketType, $params) = $this->get_bybit_type('fetchOrder', $market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+                'orderId' => $id,
+                'category' => $marketType,
+            );
+            $isTrigger = null;
+            list($isTrigger, $params) = $this->handle_param_bool_2($params, 'trigger', 'stop', false);
+            if ($isTrigger) {
+                $request['orderFilter'] = 'StopOrder';
+            }
+            $response = Async\await($this->privateGetV5OrderRealtime ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "nextPageCursor" => "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
+            //             "category" => "spot",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "ETHUSDT",
+            //                     "orderType" => "Limit",
+            //                     "orderLinkId" => "1672217748277652",
+            //                     "orderId" => "1321052653536515584",
+            //                     "cancelType" => "UNKNOWN",
+            //                     "avgPrice" => "",
+            //                     "stopOrderType" => "tpslOrder",
+            //                     "lastPriceOnCreated" => "",
+            //                     "orderStatus" => "Cancelled",
+            //                     "takeProfit" => "",
+            //                     "cumExecValue" => "0",
+            //                     "triggerDirection" => 0,
+            //                     "isLeverage" => "0",
+            //                     "rejectReason" => "",
+            //                     "price" => "1000",
+            //                     "orderIv" => "",
+            //                     "createdTime" => "1672217748287",
+            //                     "tpTriggerBy" => "",
+            //                     "positionIdx" => 0,
+            //                     "timeInForce" => "GTC",
+            //                     "leavesValue" => "500",
+            //                     "updatedTime" => "1672217748287",
+            //                     "side" => "Buy",
+            //                     "triggerPrice" => "1500",
+            //                     "cumExecFee" => "0",
+            //                     "leavesQty" => "0",
+            //                     "slTriggerBy" => "",
+            //                     "closeOnTrigger" => false,
+            //                     "cumExecQty" => "0",
+            //                     "reduceOnly" => false,
+            //                     "qty" => "0.5",
+            //                     "stopLoss" => "",
+            //                     "triggerBy" => "1192.5"
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1672219526294
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $innerList = $this->safe_list($result, 'list', array());
+            $order = $this->safe_dict($innerList, 0, array());
+            return $this->parse_order($order, $market);
         }) ();
     }
 
