@@ -756,8 +756,10 @@ class testMainClass extends baseMainTestClass {
             // 'fetchWithdrawal': [ ],
             // 'transfer': [ ],
             // 'withdraw': [ ],
-            'createOrder': [ symbol ],
         };
+        if (getCliArgValue ('--fundedTests')) {
+            tests['createOrder'] = [ symbol ];
+        }
         if (this.wsTests) {
             tests = {
                 // @ts-ignore

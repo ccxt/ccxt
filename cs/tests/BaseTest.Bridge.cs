@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Reflection;
 
 namespace Tests;
 using ccxt;
@@ -110,7 +109,6 @@ public partial class BaseTest
     public static string rsa(object request, object secret, Delegate alg = null) => Exchange.Rsa(request, secret, alg);
     public static object ecdsa(object request, object secret, Delegate alg = null, Delegate stub = null) => Exchange.Ecdsa(request, secret, alg, stub);
     public string jwt(object data, object secret, Delegate alg = null, bool isRsa = false) => Exchange.Jwt(data, secret, alg, isRsa);
-
     public static object crc32(object str, object signed2 = null) => Exchange.Crc32(str, signed2);
     public static string sha1() => "sha1";
     public static string sha256() => "sha256";
@@ -121,6 +119,8 @@ public partial class BaseTest
     public static string keccak() => "keccak";
     public static string secp256k1() => "secp256k1";
     public static object parseFloat(object a) => Exchange.parseFloat(a);
+    public static object callDynamically(object obj, object methodName, object[] args = null) => Exchange.callDynamically(obj, methodName, args);
+    public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null) => await Exchange.callDynamicallyAsync(obj, methodName, args);
 
     public bool equals(object a, object b)
     {
@@ -165,22 +165,6 @@ public partial class BaseTest
         }
         return isEqual(a, b);
 
-    }
-    public static object callDynamically(object obj, object methodName, object[] args = null)
-    {
-        args ??= new object[] { };
-        if (args.Length == 0)
-        {
-            args = new object[] { null };
-        }
-        return obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
-    }
-
-    public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
-    {
-        args ??= new object[] { };
-        var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
-        return await ((Task<object>)res);
     }
 }
 
