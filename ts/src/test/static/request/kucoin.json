@@ -9,6 +9,9 @@
     "options": {
         "hfMigrated": false  
     },
+    "resetOptionsBeforeRequest": [
+        "hfMigrated"
+    ],
     "methods": {
         "createOrder": [
             {
@@ -430,9 +433,27 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
+                "description": "Fetch spot Balance (no-migration info)",
                 "method": "fetchBalance",
-                "url": "https://api.kucoin.com/api/v1/accounts?type=trade",
+                "url": [
+                    "https://api.kucoin.com/api/v3/migrate/user/account/status",
+                    "https://api.kucoin.com/api/v1/accounts?type=trade"
+                ],
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch spot Balance (with migration info)",
+                "method": "fetchBalance",
+                "options": {
+                    "hfMigrated": true
+                },
+                "url": [
+                    "https://api.kucoin.com/api/v1/accounts?type=trade_hf"
+                ],
                 "input": [
                     {
                         "type": "spot"

@@ -145,7 +145,7 @@ function createRequestTemplate(exchange, methodName, args, result) {
     const final = {
         'description': 'Fill this with a description of the method call',
         'method': methodName,
-        'url': exchange.last_request_url ?? '',
+        'url': exchange.options['collectedUrls'] ?? [],
         'input': args,
         'output': exchange.last_request_body ?? undefined
     }
@@ -169,6 +169,20 @@ function createResponseTemplate(exchange, methodName, args, result) {
     log.green('-------------------------------------------')
     log (jsonStringify (final, 2))
     log.green('-------------------------------------------')
+}
+		
+//-----------------------------------------------------------------------------
+
+function fetchResetHook (exchange) {
+    exchange.options['collectedUrls'] = [];
+    if (!('fetchOverriden' in exchange.options)) {
+        exchange.options['fetchOverriden'] = true;
+        const originalFetch = exchange.fetch.bind (exchange);
+        exchange.fetch = async function (url, method = 'GET', headers = undefined, body = undefined) {
+            exchange.options['collectedUrls'].push (url);
+            return await originalFetch (url, method, headers, body);
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -347,6 +361,7 @@ async function run () {
 
                 while (true) {
                     try {
+                        fetchResetHook (exchange);
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
                         if (!isWsMethod && !raw) {

@@ -342,3 +342,8 @@ function set_fetch_response($exchange, $data) {
     $exchange->fetch_result = $data;
     return $exchange;
 }
+
+function fetch_invalidation_hook($exchange, $data) {
+    // stub
+    return;
+}

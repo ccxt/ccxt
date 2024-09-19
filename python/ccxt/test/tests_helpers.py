@@ -288,6 +288,11 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
     return exchange
 
 
+def fetch_invalidation_hook(exchange: ccxt.Exchange):
+    # stub
+    pass
+
+
 argvExchange = argv.exchange
 argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
 # in python, we check it through "symbol" arg (as opposed to JS/PHP) because argvs were already built above

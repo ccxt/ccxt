@@ -222,6 +222,18 @@ function setFetchResponse (exchange: Exchange, mockResponse) {
     return exchange;
 }
 
+function fetchInvalidationHook (exchange) {
+    if (!('fetchOverriden' in exchange.options)) {
+        exchange.httpProxy = undefined; // in JS we can have better tests compared to other langs
+        const originalFetch = exchange.fetch.bind (exchange);
+        exchange.options['fetchOverriden'] = originalFetch;
+        exchange.fetch = async function (url, method = 'GET', headers = undefined, body = undefined) {
+            exchange.options['collectedUrls'].push (url);
+            return {};
+        };
+    }
+}
+
 function isNullValue (value) {
     return value === null;
 }
@@ -229,7 +241,6 @@ function isNullValue (value) {
 async function close (exchange: Exchange) {
     await exchange.close ();
 }
-
 
 export {
     // errors
@@ -265,6 +276,7 @@ export {
     getTestFiles,
     getTestFilesSync,
     setFetchResponse,
+    fetchInvalidationHook,
     isNullValue,
     close,
     argvExchange,

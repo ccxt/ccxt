@@ -506,7 +506,11 @@
                 "disabled": "until multi-requests methods are supported",
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
-                "url": "https://ascendex.com/api/pro/v1/assets",
+                "url": [
+                    "https://ascendex.com/api/pro/v1/assets",
+                    "https://ascendex.com/api/pro/v1/margin/assets",
+                    "https://ascendex.com/api/pro/v1/cash/assets"
+                ],
                 "input": []
             }
         ],
@@ -515,7 +519,11 @@
                 "disabled": "until multi-requests methods are supported",
                 "description": "fetchMarkets",
                 "method": "fetchMarkets",
-                "url": "https://ascendex.com/api/pro/v1/products",
+                "url": [
+                    "https://ascendex.com/api/pro/v1/products",
+                    "https://ascendex.com/api/pro/v1/cash/products",
+                    "https://ascendex.com/api/pro/v2/futures/contract"
+                ],
                 "input": []
             }
         ],

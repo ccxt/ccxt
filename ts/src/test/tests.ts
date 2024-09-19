@@ -36,6 +36,7 @@ import {
     getTestFilesSync,
     getTestFiles,
     setFetchResponse,
+    fetchInvalidationHook,
     isNullValue,
     close,
 } from './tests.helpers.js';
@@ -1034,7 +1035,7 @@ class testMainClass extends baseMainTestClass {
         return true; // c# requ
     }
 
-    assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
+    assertStaticRequestOutputInner (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
             const firstPath = this.removeHostnamefromUrl (storedUrl);
@@ -1084,6 +1085,37 @@ class testMainClass extends baseMainTestClass {
         this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
     }
 
+    assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrls: any, computedUrls: any, storedOutput, newOutput) {
+        // else if old structure, then do whatever we did before
+        if (!Array.isArray (storedUrls) && !Array.isArray (computedUrls)) {
+            const storedUrl = storedUrls.toString ();
+            const computedUrl = computedUrls.toString ();
+            this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrl, computedUrl, storedOutput, newOutput);
+        } else if (!Array.isArray (storedUrls) && Array.isArray (computedUrls)) {
+            // if one url was stored in static tests (at this stage, most requests are stored with single url)
+            // in such case we only compare the stored url to the last computed url
+            const length = computedUrls.length;
+            const lastComputedUrl = computedUrls[length - 1];
+            const storedUrl = storedUrls.toString ();
+            this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrl, lastComputedUrl, storedOutput, newOutput);
+        } else if (Array.isArray (storedUrls) && !Array.isArray (computedUrls)) {
+            const length = storedUrls.length;
+            const lastStoredUrl = storedUrls[length - 1];
+            const computedUrl = computedUrls.toString ();
+            this.assertStaticRequestOutputInner (exchange, type, skipKeys, lastStoredUrl, computedUrl, storedOutput, newOutput);
+        } else {
+            // if both are arrays (which should be the new standard from now)
+            if (computedUrls.length === 1) {
+                // in only one stored, then compare it to the last stored url
+                this.assertStaticRequestOutput (exchange, type, skipKeys, storedUrls, computedUrls[0], storedOutput, newOutput);
+            } else {
+                for (let i = 0; i < computedUrls.length; i++) {
+                    this.assertStaticRequestOutput (exchange, type, skipKeys, storedUrls[i], computedUrls[i], storedOutput, newOutput);
+                }
+            }
+        }
+    }
+
     assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], computedResult, storedResult) {
         this.assertNewAndStoredOutput (exchange, skipKeys, computedResult, storedResult, false);
     }
@@ -1108,20 +1140,38 @@ class testMainClass extends baseMainTestClass {
     async testRequestStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
         let output = undefined;
         let requestUrl = undefined;
-        try {
-            if (!this.isSynchronous) {
+        if (this.lang !== 'JS') {
+            // in all langs except JS we only test first url (with fake proxy approach)
+            try {
+                if (!this.isSynchronous) {
+                    await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
+                } else {
+                    callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
+                }
+            } catch (e) {
+                if (!(e instanceof InvalidProxySettings)) {
+                    // if it's not a InvalidProxySettings, it means our request was not created succesfully
+                    // so we might have an error in the request creation
+                    throw e;
+                }
+                output = exchange.last_request_body;
+                requestUrl = exchange.last_request_url;
+            }
+        } else {
+            // in JS, we do extra things, not only first request, but all requested urls
+            // (other langs will follow gradually, but for this stage even JS is enough)
+            fetchInvalidationHook (exchange); // this runs only once
+            exchange.options['collectedUrls'] = [];
+            try {
                 await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
-            } else {
-                callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
+            } catch (e) {
+                // we do not need to process exceptions here, they are mostly TypeErrors because of imperfect parsing across lib
+                if (this.info) {
+                    dump ('[INFO] fetch failure info: ', exceptionMessage (e));
+                }
             }
-        } catch (e) {
-            if (!(e instanceof InvalidProxySettings)) {
-                // if it's not a BadRequest, it means our request was not created succesfully
-                // so we might have an error in the request creation
-                throw e;
-            }
+            requestUrl  = exchange.options['collectedUrls'];
             output = exchange.last_request_body;
-            requestUrl = exchange.last_request_url;
         }
         try {
             const callOutput = exchange.safeValue (data, 'output');
