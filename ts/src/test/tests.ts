@@ -966,101 +966,101 @@ class testMainClass extends baseMainTestClass {
     }
 
     assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
-        try {
-            if (isNullValue (newOutput) && isNullValue (storedOutput)) {
-                return true;
-                // c# requirement
-            }
-            if (!newOutput && !storedOutput) {
-                return true;
-                // c# requirement
-            }
-            if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
-                const storedOutputKeys = Object.keys (storedOutput);
-                const newOutputKeys = Object.keys (newOutput);
-                const storedKeysLength = storedOutputKeys.length;
-                const newKeysLength = newOutputKeys.length;
-                this.assertStaticError (storedKeysLength === newKeysLength, 'output length mismatch', storedOutput, newOutput);
-                // iterate over the keys
-                for (let i = 0; i < storedOutputKeys.length; i++) {
-                    const key = storedOutputKeys[i];
-                    if (exchange.inArray (key, skipKeys)) {
-                        continue;
-                    }
-                    if (!(exchange.inArray (key, newOutputKeys))) {
-                        this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
-                    }
-                    const storedValue = storedOutput[key];
-                    const newValue = newOutput[key];
-                    this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
+      try {
+        if (isNullValue (newOutput) && isNullValue (storedOutput)) {
+            return true;
+            // c# requirement
+        }
+        if (!newOutput && !storedOutput) {
+            return true;
+            // c# requirement
+        }
+        if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
+            const storedOutputKeys = Object.keys (storedOutput);
+            const newOutputKeys = Object.keys (newOutput);
+            const storedKeysLength = storedOutputKeys.length;
+            const newKeysLength = newOutputKeys.length;
+            this.assertStaticError (storedKeysLength === newKeysLength, 'output length mismatch', storedOutput, newOutput);
+            // iterate over the keys
+            for (let i = 0; i < storedOutputKeys.length; i++) {
+                const key = storedOutputKeys[i];
+                if (exchange.inArray (key, skipKeys)) {
+                    continue;
                 }
-            } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
-                const storedArrayLength = storedOutput.length;
-                const newArrayLength = newOutput.length;
-                this.assertStaticError (storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
-                for (let i = 0; i < storedOutput.length; i++) {
-                    const storedItem = storedOutput[i];
-                    const newItem = newOutput[i];
-                    this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem, strictTypeCheck);
+                if (!(exchange.inArray (key, newOutputKeys))) {
+                    this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
                 }
+                const storedValue = storedOutput[key];
+                const newValue = newOutput[key];
+                this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
+            }
+        } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
+            const storedArrayLength = storedOutput.length;
+            const newArrayLength = newOutput.length;
+            this.assertStaticError (storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
+            for (let i = 0; i < storedOutput.length; i++) {
+                const storedItem = storedOutput[i];
+                const newItem = newOutput[i];
+                this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem, strictTypeCheck);
+            }
+        } else {
+            // built-in types like strings, numbers, booleans
+            const sanitizedNewOutput = (!newOutput) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
+            const sanitizedStoredOutput = (!storedOutput) ? undefined : storedOutput;
+            const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString () : "undefined";
+            const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString () : "undefined";
+            const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
+            if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
+                // upon building the request we want strict type check to make sure all the types are correct
+                // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
+                this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput, assertingKey);
             } else {
-                // built-in types like strings, numbers, booleans
-                const sanitizedNewOutput = (!newOutput) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
-                const sanitizedStoredOutput = (!storedOutput) ? undefined : storedOutput;
-                const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString () : "undefined";
-                const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString () : "undefined";
-                const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
-                if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
-                    // upon building the request we want strict type check to make sure all the types are correct
-                    // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
-                    this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput, assertingKey);
-                } else {
-                    const isBoolean = (typeof sanitizedNewOutput === 'boolean') || (typeof sanitizedStoredOutput === 'boolean');
-                    const isString = (typeof sanitizedNewOutput === 'string') || (typeof sanitizedStoredOutput === 'string');
-                    const isUndefined = (sanitizedNewOutput === undefined) || (sanitizedStoredOutput === undefined); // undefined is a perfetly valid value
-                    if (isBoolean || isString || isUndefined)  {
-                        if (this.lang === 'C#') {
-                            // tmp c# number comparsion
-                            let isNumber = false;
-                            try {
-                                exchange.parseToNumeric (sanitizedNewOutput);
-                                isNumber = true;
-                            } catch (e) {
-                                // if we can't parse it to number, then it's not a number
-                                isNumber = false;
-                            }
-                            if (isNumber) {
-                                this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput, assertingKey);
-                                return true;
-                            } else {
-                                this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput, assertingKey);
-                                return true;
-                            }
+                const isBoolean = (typeof sanitizedNewOutput === 'boolean') || (typeof sanitizedStoredOutput === 'boolean');
+                const isString = (typeof sanitizedNewOutput === 'string') || (typeof sanitizedStoredOutput === 'string');
+                const isUndefined = (sanitizedNewOutput === undefined) || (sanitizedStoredOutput === undefined); // undefined is a perfetly valid value
+                if (isBoolean || isString || isUndefined)  {
+                    if (this.lang === 'C#') {
+                        // tmp c# number comparsion
+                        let isNumber = false;
+                        try {
+                            exchange.parseToNumeric (sanitizedNewOutput);
+                            isNumber = true;
+                        } catch (e) {
+                            // if we can't parse it to number, then it's not a number
+                            isNumber = false;
+                        }
+                        if (isNumber) {
+                            this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput, assertingKey);
+                            return true;
                         } else {
                             this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput, assertingKey);
                             return true;
                         }
                     } else {
-                        if (this.lang === "C#") { // tmp fix, stil failing with the "1.0" != "1" error
-                            const stringifiedNewOutput = exchange.numberToString (sanitizedNewOutput);
-                            const stringifiedStoredOutput = exchange.numberToString (sanitizedStoredOutput);
-                            this.assertStaticError (stringifiedNewOutput.toString () === stringifiedStoredOutput.toString (), messageError, storedOutput, newOutput, assertingKey);
-                        } else {
-                            const numericNewOutput =  exchange.parseToNumeric (newOutputString);
-                            const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
-                            this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput, assertingKey);
-                        }
+                        this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput, assertingKey);
+                        return true;
+                    }
+                } else {
+                    if (this.lang === "C#") { // tmp fix, stil failing with the "1.0" != "1" error
+                        const stringifiedNewOutput = exchange.numberToString (sanitizedNewOutput);
+                        const stringifiedStoredOutput = exchange.numberToString (sanitizedStoredOutput);
+                        this.assertStaticError (stringifiedNewOutput.toString () === stringifiedStoredOutput.toString (), messageError, storedOutput, newOutput, assertingKey);
+                    } else {
+                        const numericNewOutput =  exchange.parseToNumeric (newOutputString);
+                        const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
+                        this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput, assertingKey);
                     }
                 }
             }
-        } catch (e) {
-            if (this.info) {
-                const errorMessage = this.varToString (newOutput) + '(calculated)' + ' != ' + this.varToString (storedOutput) + '(stored)';
-                dump ('[TEST_FAILURE_DETAIL]' + errorMessage);
-            }
-            throw e;
         }
-        return true; // c# requ
+      } catch (e) {
+        if (this.info) {
+            const errorMessage = this.varToString (newOutput) + '(calculated)' + ' != ' + this.varToString (storedOutput) + '(stored)';
+            dump ('[TEST_FAILURE_DETAIL]' + errorMessage);
+        }
+        throw e;
+      }
+      return true; // c# requirement
     }
 
     varToString (obj:any = undefined) {
