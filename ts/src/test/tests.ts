@@ -965,8 +965,7 @@ class testMainClass extends baseMainTestClass {
         return result;
     }
 
-    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
-        try {
+    assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
             // c# requirement
@@ -1053,6 +1052,12 @@ class testMainClass extends baseMainTestClass {
                 }
             }
         }
+        return true; // c# requ
+    }
+
+    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
+        try {
+            return this.assertNewAndStoredOutputInner (exchange, skipKeys, newOutput, storedOutput, strictTypeCheck, assertingKey);
         } catch (e) {
             if (this.info) {
                 const errorMessage = this.varToString (newOutput) + '(calculated)' + ' != ' + this.varToString (storedOutput) + '(stored)';
@@ -1060,7 +1065,6 @@ class testMainClass extends baseMainTestClass {
             }
             throw e;
         }
-        return true; // c# requ
     }
 
     varToString (obj:any = undefined) {
