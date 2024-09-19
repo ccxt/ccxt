@@ -509,5 +509,89 @@
         "percentage": true,
         "tierBased": false,
         "feeSide": "get"
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETHUSDT_UMCBL",
+        "lowercaseId": null,
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 0.01,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+            "min": 0.01,
+            "max": null
+            },
+            "price": {
+            "min": null,
+            "max": null
+            },
+            "leverage": {
+            "min": null,
+            "max": null
+            },
+            "cost": {
+            "min": null,
+            "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "ETHUSDT_UMCBL",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0006",
+            "feeRateUpRatio": "0.005",
+            "openCostUpRatio": "0.01",
+            "quoteCoin": "USDT",
+            "baseCoin": "ETH",
+            "buyLimitPriceRatio": "0.01",
+            "sellLimitPriceRatio": "0.01",
+            "supportMarginCoins": [
+            "USDT"
+            ],
+            "minTradeNum": "0.01",
+            "priceEndStep": "1",
+            "volumePlace": "2",
+            "pricePlace": "2",
+            "sizeMultiplier": "0.01",
+            "symbolType": "perpetual",
+            "symbolStatus": "normal",
+            "offTime": "-1",
+            "limitOpenTime": "-1",
+            "maintainTime": "",
+            "symbolName": "ETHUSDT",
+            "minTradeUSDT": null,
+            "maxPositionNum": null,
+            "maxOrderNum": null
+        },
+        "percentage": true,
+        "tierBased": false,
+        "feeSide": "get"
     }
 }
