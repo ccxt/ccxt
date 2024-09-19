@@ -1,7 +1,7 @@
 {
     "exchange": "coincatch",
-    "skipKeys": [],
-    "outputType": "urlencoded",
+    "skipKeys": [ "startTime", "endTime" ],
+    "outputType": "both",
     "methods": {
         "fetchCurrencies": [
             {
@@ -9,6 +9,91 @@
                 "method": "fetchCurrencies",
                 "url": "https://api.coincatch.com/api/spot/v1/public/currencies",
                 "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.coincatch.com/api/spot/v1/market/ticker?symbol=ETHUSDT_SPBL",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch ticker for swap",
+                "method": "fetchTicker",
+                "url": "https://api.coincatch.com/api/mix/v1/market/ticker?symbol=ETHUSDT_UMCBL",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coincatch.com/api/spot/v1/market/tickers",
+                "input": [
+                    [
+                        "ETH/USDT",
+                        "BTC/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.coincatch.com/api/spot/v1/market/merge-depth?symbol=ETHUSDT_SPBL&limit=1",
+                "input": [
+                    "ETH/USDT",
+                    1
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.coincatch.com/api/spot/v1/market/candles?symbol=ETHUSDT_SPBL&period=1min",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV for swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.coincatch.com/api/mix/v1/market/candles?symbol=ETHUSDT_UMCBL&granularity=1m&startTime=1726775465139&endTime=1726781465139",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV for swap with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.coincatch.com/api/mix/v1/market/candles?symbol=ETHUSDT_UMCBL&limit=1&granularity=1m&startTime=1721909580000&endTime=1726781538342",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    1726775465139,
+                    1
+                ]
+            },
+            {
+                "description": "Fetch OHLCV for swap with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.coincatch.com/api/mix/v1/market/candles?symbol=ETHUSDT_UMCBL&limit=1&granularity=1m&startTime=1721909580000&endTime=1721919580000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    1721909580000,
+                    1,
+                    {
+                        "until": 1721919580000
+                    }
+                ]
             }
         ]
     }
