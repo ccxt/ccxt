@@ -12,7 +12,6 @@ export default class bitget extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    fetchMarketsByType(type: any, params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];

@@ -1534,11 +1534,12 @@ class bitget extends Exchange {
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * retrieves data on all markets for bitget
+             * retrieves $data on all $markets for bitget
              * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
              * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+             * @see https://www.bitget.com/api-doc/margin/common/support-currencies
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
+             * @return {array[]} an array of objects representing market $data
              */
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
@@ -1546,29 +1547,50 @@ class bitget extends Exchange {
                 $types = array( 'swap' );
             }
             $promises = array();
+            $fetchMargins = false;
             for ($i = 0; $i < count($types); $i++) {
                 $type = $types[$i];
-                if ($type === 'swap') {
+                if (($type === 'swap') || ($type === 'future')) {
                     $subTypes = null;
                     if ($sandboxMode) {
-                        // the following are simulated trading markets array( 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES' );
+                        // the following are simulated trading $markets array( 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES' );
                         $subTypes = array( 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES' );
                     } else {
                         $subTypes = array( 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES' );
                     }
                     for ($j = 0; $j < count($subTypes); $j++) {
-                        $promises[] = $this->fetch_markets_by_type($type, $this->extend($params, array(
+                        $promises[] = $this->publicMixGetV2MixMarketContracts ($this->extend($params, array(
                             'productType' => $subTypes[$j],
                         )));
                     }
+                } elseif ($type === 'spot') {
+                    $promises[] = $this->publicSpotGetV2SpotPublicSymbols ($params);
+                    $fetchMargins = true;
+                    $promises[] = $this->publicMarginGetV2MarginCurrencies ($params);
                 } else {
-                    $promises[] = $this->fetch_markets_by_type($types[$i], $params);
+                    throw new NotSupported($this->id . ' does not support ' . $type . ' market');
                 }
             }
-            $promises = Async\await(Promise\all($promises));
-            $result = $promises[0];
-            for ($i = 1; $i < count($promises); $i++) {
-                $result = $this->array_concat($result, $promises[$i]);
+            $results = Async\await(Promise\all($promises));
+            $markets = array();
+            $this->options['crossMarginPairsData'] = array();
+            $this->options['isolatedMarginPairsData'] = array();
+            for ($i = 0; $i < count($results); $i++) {
+                $res = $this->safe_dict($results, $i);
+                $data = $this->safe_list($res, 'data', array());
+                $firstData = $this->safe_dict($data, 0, array());
+                $isBorrowable = $this->safe_string($firstData, 'isBorrowable');
+                if ($fetchMargins && $isBorrowable !== null) {
+                    $keysList = is_array($this->index_by($data, 'symbol')) ? array_keys($this->index_by($data, 'symbol')) : array();
+                    $this->options['crossMarginPairsData'] = $keysList;
+                    $this->options['isolatedMarginPairsData'] = $keysList;
+                } else {
+                    $markets = $this->array_concat($markets, $data);
+                }
+            }
+            $result = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $result[] = $this->parse_market($markets[$i]);
             }
             return $result;
         }) ();
@@ -1660,11 +1682,20 @@ class bitget extends Exchange {
         $expiry = null;
         $expiryDatetime = null;
         $symbolType = $this->safe_string($market, 'symbolType');
+        $marginModes = null;
+        $isMarginTradingAllowed = false;
         if ($symbolType === null) {
             $type = 'spot';
             $spot = true;
             $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision')));
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision')));
+            $hasCrossMargin = $this->in_array($marketId, $this->options['crossMarginPairsData']);
+            $hasIsolatedMargin = $this->in_array($marketId, $this->options['isolatedMarginPairsData']);
+            $marginModes = array(
+                'cross' => $hasCrossMargin,
+                'isolated' => $hasIsolatedMargin,
+            );
+            $isMarginTradingAllowed = $hasCrossMargin || $hasCrossMargin;
         } else {
             if ($symbolType === 'perpetual') {
                 $type = 'swap';
@@ -1701,6 +1732,10 @@ class bitget extends Exchange {
             $preciseAmount->reduce ();
             $amountString = (string) $preciseAmount;
             $amountPrecision = $this->parse_number($amountString);
+            $marginModes = array(
+                'cross' => true,
+                'isolated' => true,
+            );
         }
         $status = $this->safe_string_2($market, 'status', 'symbolStatus');
         $active = null;
@@ -1723,7 +1758,8 @@ class bitget extends Exchange {
             'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
-            'margin' => null,
+            'margin' => $spot && $isMarginTradingAllowed,
+            'marginModes' => $marginModes,
             'swap' => $swap,
             'future' => $future,
             'option' => false,
@@ -1763,92 +1799,6 @@ class bitget extends Exchange {
             'created' => $this->safe_integer($market, 'launchTime'),
             'info' => $market,
         );
-    }
-
-    public function fetch_markets_by_type($type, $params = array ()) {
-        return Async\async(function () use ($type, $params) {
-            $response = null;
-            if ($type === 'spot') {
-                $response = Async\await($this->publicSpotGetV2SpotPublicSymbols ($params));
-            } elseif (($type === 'swap') || ($type === 'future')) {
-                $response = Async\await($this->publicMixGetV2MixMarketContracts ($params));
-            } else {
-                throw new NotSupported($this->id . ' does not support ' . $type . ' market');
-            }
-            //
-            // spot
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => 1700102364653,
-            //         "data" => array(
-            //             array(
-            //                 "symbol" => "TRXUSDT",
-            //                 "baseCoin" => "TRX",
-            //                 "quoteCoin" => "USDT",
-            //                 "minTradeAmount" => "0",
-            //                 "maxTradeAmount" => "10000000000",
-            //                 "takerFeeRate" => "0.002",
-            //                 "makerFeeRate" => "0.002",
-            //                 "pricePrecision" => "6",
-            //                 "quantityPrecision" => "4",
-            //                 "quotePrecision" => "6",
-            //                 "status" => "online",
-            //                 "minTradeUSDT" => "5",
-            //                 "buyLimitPriceRatio" => "0.05",
-            //                 "sellLimitPriceRatio" => "0.05"
-            //             ),
-            //         )
-            //     }
-            //
-            // swap and future
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => 1700102364709,
-            //         "data" => [
-            //             array(
-            //                 "symbol" => "BTCUSDT",
-            //                 "baseCoin" => "BTC",
-            //                 "quoteCoin" => "USDT",
-            //                 "buyLimitPriceRatio" => "0.01",
-            //                 "sellLimitPriceRatio" => "0.01",
-            //                 "feeRateUpRatio" => "0.005",
-            //                 "makerFeeRate" => "0.0002",
-            //                 "takerFeeRate" => "0.0006",
-            //                 "openCostUpRatio" => "0.01",
-            //                 "supportMarginCoins" => ["USDT"],
-            //                 "minTradeNum" => "0.001",
-            //                 "priceEndStep" => "1",
-            //                 "volumePlace" => "3",
-            //                 "pricePlace" => "1",
-            //                 "sizeMultiplier" => "0.001",
-            //                 "symbolType" => "perpetual",
-            //                 "minTradeUSDT" => "5",
-            //                 "maxSymbolOrderNum" => "200",
-            //                 "maxProductOrderNum" => "400",
-            //                 "maxPositionNum" => "150",
-            //                 "symbolStatus" => "normal",
-            //                 "offTime" => "-1",
-            //                 "limitOpenTime" => "-1",
-            //                 "deliveryTime" => "",
-            //                 "deliveryStartTime" => "",
-            //                 "deliveryPeriod" => "",
-            //                 "launchTime" => "",
-            //                 "fundInterval" => "8",
-            //                 "minLever" => "1",
-            //                 "maxLever" => "125",
-            //                 "posLimit" => "0.05",
-            //                 "maintainTime" => ""
-            //             ),
-            //         ]
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_markets($data);
-        }) ();
     }
 
     public function fetch_currencies($params = array ()): PromiseInterface {
