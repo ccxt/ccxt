@@ -49,7 +49,7 @@ const BASE_METHODS_FILE = './go/ccxt/exchange_generated.go';
 const EXCHANGES_FOLDER = './go/ccxt/';
 // const EXCHANGES_WS_FOLDER = './go/ccxt/exchanges/pro/';
 // const GENERATED_TESTS_FOLDER = './go/tests/Generated/Exchange/';
-// const BASE_TESTS_FOLDER = './go/tests/Generated/Base';
+const BASE_TESTS_FOLDER = './go/tests/base';
 // const BASE_TESTS_FILE =  './go/tests/Generated/TestMethods.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base/';
 // const EXCHANGE_GENERATED_FOLDER = './go/tests/Generated/Exchange/';
@@ -923,7 +923,7 @@ class NewTranspiler {
         }
 
 
-        // this.transpileTests()
+        this.transpileTests()
 
         this.transpileErrorHierarchy ()
 
@@ -1241,12 +1241,12 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.go', file[1])))
     }
 
-    transpileBaseTestsToCSharp () {
+    transpileBaseTestsToGo () {
         const outDir = BASE_TESTS_FOLDER;
         this.transpileBaseTests(outDir);
-        this.transpileCryptoTestsToCSharp(outDir);
-        this.transpileWsCacheTestsToCSharp(outDir);
-        this.transpileWsOrderbookTestsToCSharp(outDir);
+        // this.transpileCryptoTestsToCSharp(outDir);
+        // this.transpileWsCacheTestsToCSharp(outDir);
+        // this.transpileWsOrderbookTestsToCSharp(outDir);
     }
 
     transpileBaseTests (outDir) {
@@ -1263,39 +1263,32 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
                 continue;
             }
-                
-            const csFileName = this.capitalize(testName.replace ('test.', ''));
-            const csharpFile = `${outDir}/${csFileName}.go`;
+
+            // const goFileName = this.capitalize(testName.replace ('test.', ''));
+            const goFile = `${outDir}/${testName}.go`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 
-            const csharp = this.transpiler.transpileCSharpByPath(tsFile);
-            let content = csharp.content;
+            const go = this.transpiler.transpileGoByPath(tsFile);
+            let content = go.content;
             content = this.regexAll (content, [
-                [/object  = functions;/g, '' ], // tmp fix
-                [/assert/g, 'Assert'],
-                [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-
+                [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
+                [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
+                [/Precise\.String/gm, 'ccxt.Precise.String']
             ]).trim ()
 
-            const contentLines = content.split ('\n');
-            const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
-
             const file = [
-                'using ccxt;',
-                'namespace Tests;',
+                'package base',
+                'import "ccxt"',
                 '',
                 this.createGeneratedHeader().join('\n'),
-                'public partial class BaseTest',
-                '{',
-                contentIdented,
-                '}',
+                content,
             ].join('\n')
 
-            log.magenta ('→', (csharpFile as any).yellow)
+            log.magenta ('→', (goFile as any).yellow)
 
-            overwriteFileAndFolder (csharpFile, file);
-        } 
+            overwriteFileAndFolder (goFile, file);
+        }
     }
 
     capitalize(s: string) {
@@ -1459,9 +1452,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileTests(){
-        this.transpileBaseTestsToCSharp();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
+        this.transpileBaseTestsToGo();
+        // this.transpileExchangeTests();
+        // this.transpileWsExchangeTests();
     }
 }
 

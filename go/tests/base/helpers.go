@@ -1,8 +1,9 @@
-package tests
+package base
 
 import (
 	"ccxt"
 	"fmt"
+	"reflect"
 )
 
 const (
@@ -73,4 +74,57 @@ func IsTrue(a interface{}) bool {
 
 func OpNeg(a interface{}) interface{} {
 	return ccxt.OpNeg(a)
+}
+
+func ParseFloat(num interface{}) interface{} {
+	return ccxt.ParseFloat(num)
+}
+
+func Equals(a interface{}, b interface{}) bool {
+	// Check if 'a' is a slice
+	if reflect.TypeOf(a).Kind() == reflect.Slice {
+		list1 := reflect.ValueOf(a)
+		list2 := reflect.ValueOf(b)
+
+		if list1.Len() != list2.Len() {
+			return false
+		}
+
+		for i := 0; i < list1.Len(); i++ {
+			item1 := list1.Index(i).Interface()
+			item2 := list2.Index(i).Interface()
+			// Recursive comparison
+			if !Equals(item1, item2) {
+				return false
+			}
+		}
+		return true
+	}
+
+	// Check if 'a' is a map
+	if reflect.TypeOf(a).Kind() == reflect.Map {
+		map1 := reflect.ValueOf(a)
+		map2 := reflect.ValueOf(b)
+
+		if map1.Len() != map2.Len() {
+			return false
+		}
+
+		for _, key := range map1.MapKeys() {
+			value1 := map1.MapIndex(key).Interface()
+			value2 := map2.MapIndex(key).Interface()
+			// Check if the key exists in map2
+			if !map2.MapIndex(key).IsValid() {
+				return false
+			}
+			// Recursive comparison
+			if !Equals(value1, value2) {
+				return false
+			}
+		}
+		return true
+	}
+
+	// Fallback comparison using reflect.DeepEqual for other types
+	return reflect.DeepEqual(a, b)
 }

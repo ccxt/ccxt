@@ -136,6 +136,14 @@ func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) 
 	}
 }
 
+func SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
+	value := SafeValueN(obj, keys, defaultValue)
+	if value == nil {
+		return defaultValue
+	}
+	return strings.ToUpper(value.(string))
+}
+
 // SafeFloatN retrieves a float64 value from a nested structure
 func SafeFloatN(obj interface{}, keys []interface{}, defaultValue interface{}) float64 {
 	value := SafeValueN(obj, keys, defaultValue)

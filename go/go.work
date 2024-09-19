@@ -3,4 +3,6 @@ go 1.22
 use (
 	./ccxt
 	./cli
+	// ./tests
+	./tests
 )
