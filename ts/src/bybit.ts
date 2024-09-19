@@ -4918,8 +4918,8 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const list = this.safeList (result, 'list', []);
-        const order = this.safeDict (list, 0, {});
+        const innerList = this.safeList (result, 'list', []);
+        const order = this.safeDict (innerList, 0, {});
         return this.parseOrder (order, market);
     }
 
