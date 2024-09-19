@@ -565,7 +565,7 @@ Thank you!
 
 ## Social
 
-- <sub>[![X](https://img.shields.io/x/follow/ccxt_official?style=social)](https://x.com/ccxt_official)</sub> Follow us on X (Twitter)
+- <sub>[![X](https://img.shields.io/x/follow/ccxt_official?style=social)](https://x.com/ccxt_official)</sub> Follow us on X (formerly Twitter)
 - <sub>[![Medium](https://img.shields.io/badge/read-our%20blog-black?logo=medium)](https://medium.com/@ccxt)</sub> Read our blog on Medium
 - <sub>[![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU)</sub> Join our Discord
 - <sub>[![Telegram Announcements](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://t.me/ccxt_announcements)</sub> CCXT Channel on Telegram (important announcements)
