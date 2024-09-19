@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './bas
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ export default class coincatch extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
@@ -113,7 +113,7 @@ export default class coincatch extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'sandbox': false,
                 'setLeverage': true,
                 'setMargin': false,
@@ -229,7 +229,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/plan/batchCancelPlan': 1,
                         'api/mix/v1/account/open-count': 1,
                         'api/mix/v1/account/setLeverage': 4, // done
-                        'api/mix/v1/account/setMargin': 1,
+                        'api/mix/v1/account/setMargin': 4, // done
                         'api/mix/v1/account/setMarginMode': 4, // done
                         'api/mix/v1/account/setPositionMode': 4, // done
                         'api/mix/v1/order/placeOrder': 2, // done
@@ -365,6 +365,7 @@ export default class coincatch extends Exchange {
                     // {"code":"40019","msg":"Parameter spotCancelBatchOrderDTO cannot be empty","requestTime":1726490870921,"data":null}
                     // {"code":"400172","msg":"symbol cannot be empty","requestTime":1726491190749,"data":null}
                     // {"code":"43117","msg":"Exceeds the maximum amount that can be transferred","requestTime":1726665370746,"data":null}
+                    // {"code":"45006","msg":"Insufficient position","requestTime":1726750130410,"data":null}
                 },
                 'broad': {},
             },
@@ -3362,7 +3363,7 @@ export default class coincatch extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.side] *for isolated hedged margin mode only* 'long' or 'short'
+         * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
          * @returns {object} response from the exchange
          */
         const methodName = 'setLeverage';
@@ -3453,6 +3454,85 @@ export default class coincatch extends Exchange {
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
         } as Leverage;
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+        let methodName = 'modifyMarginHelper';
+        [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+            'amount': amount, // positive value for adding margin, negative for reducing
+        };
+        let side: Str = undefined;
+        [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
+        if (side !== undefined) {
+            request['holdSide'] = side;
+        }
+        const response = await this.privatePostApiMixV1AccountSetMargin (this.extend (request, params));
+        // todo check response
+        //
+        if (type === 'reduce') {
+            amount = Precise.stringAbs (amount);
+        }
+        return this.extend (this.parseMarginModification (response, market), {
+            'amount': this.parseNumber (amount),
+            'type': type,
+        });
+    }
+
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+        //
+        //
+        const msg = this.safeString (data, 'msg');
+        const status = (msg === 'success') ? 'ok' : 'failed';
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': undefined,
+            'amount': undefined,
+            'total': undefined,
+            'code': market['quote'],
+            'status': status,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+    }
+
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        /**
+         * @method
+         * @name coincatch#reduceMargin
+         * @description remove margin from a position
+         * @see https://coincatch.github.io/github.io/en/mix/#change-margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         */
+        params['methodName'] = 'reduceMargin';
+        return await this.modifyMarginHelper (symbol, -amount, 'reduce', params);
+    }
+
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        /**
+         * @method
+         * @name coincatch#addMargin
+         * @description add margin
+         * @see https://coincatch.github.io/github.io/en/mix/#change-margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         */
+        params['methodName'] = 'addMargin';
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
