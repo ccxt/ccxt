@@ -1,0 +1,15 @@
+{
+    "exchange": "coincatch",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.coincatch.com/api/mix/v1/market/contracts?productType=dmcbl",
+                "input": []
+            }
+        ]
+    }
+}
