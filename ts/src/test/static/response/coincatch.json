@@ -15,6 +15,331 @@
                 },
                 "parsedResponse": 1726742203660
               }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726779466298",
+                    "data": {
+                        "symbol": "ETHUSDT",
+                        "high24h": "2494.76",
+                        "low24h": "2324.95",
+                        "close": "2467.8",
+                        "quoteVol": "22549501.952",
+                        "baseVol": "9339.7108",
+                        "usdtVol": "22549501.952",
+                        "ts": "1726779464746",
+                        "buyOne": "2467.79",
+                        "sellOne": "2467.8",
+                        "bidSz": "2.6297",
+                        "askSz": "3.9412",
+                        "openUtc0": "2374.55",
+                        "changeUtc": "0.03927",
+                        "change": "0.01142"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "timestamp": 1726779464746,
+                    "datetime": "2024-09-19T20:57:44.746Z",
+                    "high": 2494.76,
+                    "low": 2324.95,
+                    "bid": 2467.79,
+                    "bidVolume": 2.6297,
+                    "ask": 2467.8,
+                    "askVolume": 3.9412,
+                    "vwap": 2414.368328406914,
+                    "open": null,
+                    "close": 2467.8,
+                    "last": 2467.8,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 0.01142,
+                    "average": null,
+                    "baseVolume": 9339.7108,
+                    "quoteVolume": 22549501.952,
+                    "info": {
+                        "symbol": "ETHUSDT",
+                        "high24h": "2494.76",
+                        "low24h": "2324.95",
+                        "close": "2467.8",
+                        "quoteVol": "22549501.952",
+                        "baseVol": "9339.7108",
+                        "usdtVol": "22549501.952",
+                        "ts": "1726779464746",
+                        "buyOne": "2467.79",
+                        "sellOne": "2467.8",
+                        "bidSz": "2.6297",
+                        "askSz": "3.9412",
+                        "openUtc0": "2374.55",
+                        "changeUtc": "0.03927",
+                        "change": "0.01142"
+                    }
+                }
+            },
+            {
+                "description": "Fetch tidker for swap",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726779749042",
+                    "data": {
+                        "symbol": "ETHUSDT_UMCBL",
+                        "last": "2461.55",
+                        "bestAsk": "2461.65",
+                        "bestBid": "2461.24",
+                        "bidSz": "46.7",
+                        "askSz": "41.57",
+                        "high24h": "2493.53",
+                        "low24h": "2323.32",
+                        "timestamp": "1726779749043",
+                        "priceChangePercent": "0.00937",
+                        "baseVolume": "804787.57",
+                        "quoteVolume": "1947563608.055",
+                        "usdtVolume": "1947563608.055",
+                        "openUtc": "2373.77",
+                        "chgUtc": "0.03698",
+                        "indexPrice": "2462.725844",
+                        "fundingRate": "0.00006",
+                        "holdingAmount": "264710.57",
+                        "deliveryStartTime": null,
+                        "deliveryTime": null,
+                        "deliveryStatus": "normal"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "timestamp": 1726779749043,
+                    "datetime": "2024-09-19T21:02:29.043Z",
+                    "high": 2493.53,
+                    "low": 2323.32,
+                    "bid": 2461.24,
+                    "bidVolume": 46.7,
+                    "ask": 2461.65,
+                    "askVolume": 41.57,
+                    "vwap": 2419.972276727634,
+                    "open": null,
+                    "close": 2461.55,
+                    "last": 2461.55,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": 0.00937,
+                    "average": null,
+                    "baseVolume": 804787.57,
+                    "quoteVolume": 1947563608.055,
+                    "info": {
+                        "symbol": "ETHUSDT_UMCBL",
+                        "last": "2461.55",
+                        "bestAsk": "2461.65",
+                        "bestBid": "2461.24",
+                        "bidSz": "46.7",
+                        "askSz": "41.57",
+                        "high24h": "2493.53",
+                        "low24h": "2323.32",
+                        "timestamp": "1726779749043",
+                        "priceChangePercent": "0.00937",
+                        "baseVolume": "804787.57",
+                        "quoteVolume": "1947563608.055",
+                        "usdtVolume": "1947563608.055",
+                        "openUtc": "2373.77",
+                        "chgUtc": "0.03698",
+                        "indexPrice": "2462.725844",
+                        "fundingRate": "0.00006",
+                        "holdingAmount": "264710.57",
+                        "deliveryStartTime": null,
+                        "deliveryTime": null,
+                        "deliveryStatus": "normal"
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "test",
+                "input": [],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1726780718102",
+                  "data":  [
+                        {
+                            "symbol": "BTCUSDT",
+                            "high24h": "63851.14",
+                            "low24h": "60182.36",
+                            "close": "63062.97",
+                            "quoteVol": "19495390.16793",
+                            "baseVol": "313.5804",
+                            "usdtVol": "19495390.1679287",
+                            "ts": "1726780716560",
+                            "buyOne": "63062.7",
+                            "sellOne": "63063.82",
+                            "bidSz": "0.0618",
+                            "askSz": "0.0287",
+                            "openUtc0": "61759.59",
+                            "changeUtc": "0.0211",
+                            "change": "-0.00145"
+                        },
+                        {
+                            "symbol": "ETHUSDT",
+                            "high24h": "2494.76",
+                            "low24h": "2324.95",
+                            "close": "2468.97",
+                            "quoteVol": "22602856.2415",
+                            "baseVol": "9352.5318",
+                            "usdtVol": "22602856.241451",
+                            "ts": "1726780717164",
+                            "buyOne": "2468.97",
+                            "sellOne": "2468.98",
+                            "bidSz": "0.1216",
+                            "askSz": "3.6286",
+                            "openUtc0": "2374.55",
+                            "changeUtc": "0.03976",
+                            "change": "0.0119"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1726780716560,
+                        "datetime": "2024-09-19T21:18:36.560Z",
+                        "high": 63851.14,
+                        "low": 60182.36,
+                        "bid": 63062.7,
+                        "bidVolume": 0.0618,
+                        "ask": 63063.82,
+                        "askVolume": 0.0287,
+                        "vwap": 62170.30837364197,
+                        "open": null,
+                        "close": 63062.97,
+                        "last": 63062.97,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": -0.00145,
+                        "average": null,
+                        "baseVolume": 313.5804,
+                        "quoteVolume": 19495390.16793,
+                        "info": {
+                        "symbol": "BTCUSDT",
+                        "high24h": "63851.14",
+                        "low24h": "60182.36",
+                        "close": "63062.97",
+                        "quoteVol": "19495390.16793",
+                        "baseVol": "313.5804",
+                        "usdtVol": "19495390.1679287",
+                        "ts": "1726780716560",
+                        "buyOne": "63062.7",
+                        "sellOne": "63063.82",
+                        "bidSz": "0.0618",
+                        "askSz": "0.0287",
+                        "openUtc0": "61759.59",
+                        "changeUtc": "0.0211",
+                        "change": "-0.00145"
+                        }
+                    },
+                    "ETH/USDT": {
+                        "symbol": "ETH/USDT",
+                        "timestamp": 1726780717164,
+                        "datetime": "2024-09-19T21:18:37.164Z",
+                        "high": 2494.76,
+                        "low": 2324.95,
+                        "bid": 2468.97,
+                        "bidVolume": 0.1216,
+                        "ask": 2468.98,
+                        "askVolume": 3.6286,
+                        "vwap": 2416.763366845756,
+                        "open": null,
+                        "close": 2468.97,
+                        "last": 2468.97,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": 0.0119,
+                        "average": null,
+                        "baseVolume": 9352.5318,
+                        "quoteVolume": 22602856.2415,
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "high24h": "2494.76",
+                            "low24h": "2324.95",
+                            "close": "2468.97",
+                            "quoteVol": "22602856.2415",
+                            "baseVol": "9352.5318",
+                            "usdtVol": "22602856.241451",
+                            "ts": "1726780717164",
+                            "buyOne": "2468.97",
+                            "sellOne": "2468.98",
+                            "bidSz": "0.1216",
+                            "askSz": "3.6286",
+                            "openUtc0": "2374.55",
+                            "changeUtc": "0.03976",
+                            "change": "0.0119"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726780941338",
+                    "data": {
+                        "asks": [
+                            [
+                                2467.72,
+                                0.8847
+                            ]
+                        ],
+                        "bids": [
+                            [
+                                2467.71,
+                                0.1217
+                            ]
+                        ],
+                        "ts": "1726780941359",
+                        "scale": "0.01",
+                        "precision": "scale0",
+                        "isMaxPrecision": "NO"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "bids": [
+                        [
+                            2467.71,
+                            0.1217
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2467.72,
+                            0.8847
+                        ]
+                    ],
+                    "timestamp": 1726780941359,
+                    "datetime": "2024-09-19T21:22:21.359Z",
+                    "nonce": null
+                }
+            }
         ]
     }
 }
