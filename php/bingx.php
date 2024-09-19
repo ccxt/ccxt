@@ -455,11 +455,14 @@ class bingx extends Exchange {
                     '100419' => '\\ccxt\\PermissionDenied', // array("code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347)
                     '100437' => '\\ccxt\\BadRequest', // array("code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845)
                     '101204' => '\\ccxt\\InsufficientFunds', // array("code":101204,"msg":"","data":array())
+                    '110425' => '\\ccxt\\InvalidOrder', // array("code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":array())
                 ),
                 'broad' => array(),
             ),
             'commonCurrencies' => array(
                 'SNOW' => 'Snowman', // Snowman vs SnowSwap conflict
+                'OMNI' => 'OmniCat',
+                'NAP' => '$NAP', // NAP on SOL = SNAP
             ),
             'options' => array(
                 'defaultType' => 'spot',
@@ -746,7 +749,12 @@ class bingx extends Exchange {
         }
         $fees = $this->safe_dict($this->fees, $type, array());
         $contractSize = ($swap) ? $this->parse_number('1') : null;
-        $isActive = $this->safe_string($market, 'status') === '1';
+        $isActive = false;
+        if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
+            $isActive = true; // $swap active
+        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy')) {
+            $isActive = true; // $spot active
+        }
         $isInverse = ($spot) ? null : $checkIsInverse;
         $isLinear = ($spot) ? null : $checkIsLinear;
         $timeOnline = $this->safe_integer($market, 'timeOnline');
@@ -1047,8 +1055,7 @@ class bingx extends Exchange {
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
-        // spot
-        // fetchTrades
+        // spot fetchTrades
         //
         //    {
         //        "id" => 43148253,
@@ -1058,8 +1065,8 @@ class bingx extends Exchange {
         //        "buyerMaker" => false
         //    }
         //
-        // spot
-        // fetchMyTrades
+        // spot fetchMyTrades
+        //
         //     {
         //         "symbol" => "LTC-USDT",
         //         "id" => 36237072,
@@ -1074,8 +1081,7 @@ class bingx extends Exchange {
         //         "isMaker" => false
         //     }
         //
-        // swap
-        // fetchTrades
+        // swap fetchTrades
         //
         //    {
         //        "time" => 1672025549368,
@@ -1085,8 +1091,7 @@ class bingx extends Exchange {
         //        "quoteQty" => "55723.87"
         //    }
         //
-        // swap
-        // fetchMyTrades
+        // swap fetchMyTrades
         //
         //    {
         //        "volume" => "0.1",
@@ -1100,10 +1105,7 @@ class bingx extends Exchange {
         //        "filledTime" => "2023-07-04T20:56:01.000+0800"
         //    }
         //
-        //
-        // ws
-        //
-        // spot
+        // ws spot
         //
         //    {
         //        "E" => 1690214529432,
@@ -1116,7 +1118,7 @@ class bingx extends Exchange {
         //        "t" => "57903921"
         //    }
         //
-        // swap
+        // ws linear swap
         //
         //    {
         //        "q" => "0.0421",
@@ -1125,6 +1127,19 @@ class bingx extends Exchange {
         //        "m" => false,
         //        "s" => "BTC-USDT"
         //    }
+        //
+        // ws inverse swap
+        //
+        //     {
+        //         "e" => "trade",
+        //         "E" => 1722920589665,
+        //         "s" => "BTC-USD",
+        //         "t" => "39125001",
+        //         "p" => "55360.0",
+        //         "q" => "1",
+        //         "T" => 1722920589582,
+        //         "m" => false
+        //     }
         //
         // inverse swap fetchMyTrades
         //
@@ -1203,7 +1218,6 @@ class bingx extends Exchange {
             'fee' => array(
                 'cost' => $this->parse_number(Precise::string_abs($this->safe_string_2($trade, 'commission', 'n'))),
                 'currency' => $currencyCode,
-                'rate' => null,
             ),
         ), $market);
     }
@@ -2495,15 +2509,21 @@ class bingx extends Exchange {
                 }
             }
             $positionSide = null;
-            if ($reduceOnly) {
-                $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
+            $hedged = $this->safe_bool($params, 'hedged', false);
+            if ($hedged) {
+                $params = $this->omit($params, 'reduceOnly');
+                if ($reduceOnly) {
+                    $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
+                } else {
+                    $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
+                }
             } else {
-                $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
+                $positionSide = 'BOTH';
             }
             $request['positionSide'] = $positionSide;
             $request['quantity'] = ($market['inverse']) ? $amount : $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)); // precision not available for inverse contracts
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return $this->extend($request, $params);
     }
 
@@ -2534,6 +2554,7 @@ class bingx extends Exchange {
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
+         * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -3571,6 +3592,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
          * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+         * @param {string} $id the $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~

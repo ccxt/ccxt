@@ -13,6 +13,7 @@ class luno extends luno$1 {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': undefined,
                 'watchOrderBook': true,

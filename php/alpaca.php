@@ -552,8 +552,8 @@ class alpaca extends Exchange {
         //       }
         //   }
         //
-        $orderbooks = $this->safe_value($response, 'orderbooks', array());
-        $rawOrderbook = $this->safe_value($orderbooks, $id, array());
+        $orderbooks = $this->safe_dict($response, 'orderbooks', array());
+        $rawOrderbook = $this->safe_dict($orderbooks, $id, array());
         $timestamp = $this->parse8601($this->safe_string($rawOrderbook, 't'));
         return $this->parse_order_book($rawOrderbook, $market['symbol'], $timestamp, 'b', 'a', 'p', 's');
     }
@@ -809,6 +809,7 @@ class alpaca extends Exchange {
         /**
          * fetches information on an $order made by the user
          * @see https://docs.alpaca.markets/reference/getorderbyorderid
+         * @param {string} $id the $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~

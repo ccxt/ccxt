@@ -456,16 +456,7 @@ public partial class bitrue : ccxt.bitrue
         object listenKey = this.safeValue(this.options, "listenKey");
         if (isTrue(isEqual(listenKey, null)))
         {
-            object response = null;
-            try
-            {
-                response = await this.openPrivatePostPoseidonApiV1ListenKey(parameters);
-            } catch(Exception error)
-            {
-                ((IDictionary<string,object>)this.options)["listenKey"] = null;
-                ((IDictionary<string,object>)this.options)["listenKeyUrl"] = null;
-                return null;
-            }
+            object response = await this.openPrivatePostPoseidonApiV1ListenKey(parameters);
             //
             //     {
             //         "msg": "succ",

@@ -10,13 +10,18 @@ public partial class bitmart
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#private-balance-change"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#private-assets-channel"/>  <br/>
+    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
     /// </description>
     /// </item>
     /// </list>
@@ -32,7 +37,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#public-trade-channel"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#public-trade-channel"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -101,6 +106,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#public-ticker-channel"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -120,7 +126,7 @@ public partial class bitmart
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#overview"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -141,7 +147,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#private-order-progress"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#private-order-channel"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -192,7 +198,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#public-kline-channel"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#public-klinebin-channel"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -228,7 +234,7 @@ public partial class bitmart
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel"/>  <br/>
-    /// See <see href="https://developer-pro.bitmart.com/en/futures/#public-depth-channel"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>

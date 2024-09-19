@@ -53,6 +53,7 @@ class ImplicitAPI:
     public_get_v5_spot_cross_margin_trade_borrow_token = publicGetV5SpotCrossMarginTradeBorrowToken = Entry('v5/spot-cross-margin-trade/borrow-token', 'public', 'GET', {'cost': 5})
     public_get_v5_ins_loan_product_infos = publicGetV5InsLoanProductInfos = Entry('v5/ins-loan/product-infos', 'public', 'GET', {'cost': 5})
     public_get_v5_ins_loan_ensure_tokens_convert = publicGetV5InsLoanEnsureTokensConvert = Entry('v5/ins-loan/ensure-tokens-convert', 'public', 'GET', {'cost': 5})
+    private_get_v5_market_instruments_info = privateGetV5MarketInstrumentsInfo = Entry('v5/market/instruments-info', 'private', 'GET', {'cost': 5})
     private_get_v2_private_wallet_fund_records = privateGetV2PrivateWalletFundRecords = Entry('v2/private/wallet/fund/records', 'private', 'GET', {'cost': 25})
     private_get_spot_v3_private_order = privateGetSpotV3PrivateOrder = Entry('spot/v3/private/order', 'private', 'GET', {'cost': 2.5})
     private_get_spot_v3_private_open_orders = privateGetSpotV3PrivateOpenOrders = Entry('spot/v3/private/open-orders', 'private', 'GET', {'cost': 2.5})

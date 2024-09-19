@@ -135,14 +135,14 @@ public class Tests
     {
         tests.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
-        // run auto-transpiled tests (all of them start by 'testBaseFunction')
+        // run auto-transpiled tests (all of them start by 'testFunction')
         RunAutoTranspiledBaseTests (tests);
     }
 
     static void RunAutoTranspiledBaseTests(object testsInstance) {
         MethodInfo[] methods = testsInstance.GetType()
                         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                        .Where(m => m.Name.StartsWith("testBase") && m.ReturnType == typeof(void))
+                        .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
                         .ToArray();
         // 2. Invoke Each Method
         foreach (MethodInfo method in methods)

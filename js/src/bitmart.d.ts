@@ -81,7 +81,6 @@ export default class bitmart extends Exchange {
         tag: string;
         network: any;
     };
-    safeNetworkCode(networkId: any, currency?: any): string;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
     fetchTransactionsByType(type: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;

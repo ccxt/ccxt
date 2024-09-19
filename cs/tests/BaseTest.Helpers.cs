@@ -302,6 +302,19 @@ public partial class testMainClass : BaseTest
         return e.Message;
     }
 
+    public System.Exception getRootException(Exception exc)
+    {
+        if (exc is System.AggregateException)
+        {
+            var inner = exc.InnerException;
+            if (inner != null)
+            {
+                return inner;
+            }
+        }
+        return exc;
+    }
+
     public Exchange setFetchResponse(object exchange2, object response)
     {
         var exchange = exchange2 as Exchange;

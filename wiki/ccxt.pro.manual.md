@@ -50,7 +50,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 
 ## Exchanges
 
-The CCXT Pro library currently supports the following 62 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 63 cryptocurrency exchange markets and WebSocket trading APIs:
 
 | logo                                                                                                                                                                                                          | id                    | name                                                                                                  | ver                                                                                                                                              | type | certified                                                                                                                   | pro                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -85,6 +85,7 @@ The CCXT Pro library currently supports the following 62 cryptocurrency exchange
 | [![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                                      | deribit               | [Deribit](https://www.deribit.com/reg-1189.4038)                                                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.deribit.com/v2)                                                        | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![gate](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/signup/2436035)                                                            | gate                  | [Gate.io](https://www.gate.io/signup/2436035)                                                         | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://www.gate.io/docs/developers/apiv4/en/)                                      | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)](https://gemini.com/)                                                                         | gemini                | [Gemini](https://gemini.com/)                                                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.gemini.com/rest-api)                                                   | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![hashkey](https://github.com/user-attachments/assets/6dd6127b-cc19-4a13-9b29-a98d81f80e98)](https://global.hashkey.com/en-US/register/invite?invite_code=82FQUN)                                            | hashkey               | [HashKey Global](https://global.hashkey.com/en-US/register/invite?invite_code=82FQUN)                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://hashkeyglobal-apidoc.readme.io/)                                            | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                                     | hollaex               | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                        | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![htx](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223) | htx                   | [HTX](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223) | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/en/)                                        | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobijp](https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg)](https://www.huobi.co.jp/register/?invite_code=znnq3)                                        | huobijp               | [Huobi Japan](https://www.huobi.co.jp/register/?invite_code=znnq3)                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api-doc.huobi.co.jp)                                                        | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -113,7 +114,7 @@ The CCXT Pro library currently supports the following 62 cryptocurrency exchange
 | [![vertex](https://github.com/ccxt/ccxt/assets/43336371/bd04a0fa-3b48-47b6-9d8b-124954d520a8)](https://app.vertexprotocol.com?referrer=0xCfC9BaB96a2eA3d3c3F031c005e82E1D9F295aC1)                            | vertex                | [Vertex](https://app.vertexprotocol.com?referrer=0xCfC9BaB96a2eA3d3c3F031c005e82E1D9F295aC1)          | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.vertexprotocol.com/)                                                   | dex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![wazirx](https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg)](https://wazirx.com/invite/k7rrnks5)                                                        | wazirx                | [WazirX](https://wazirx.com/invite/k7rrnks5)                                                          | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.wazirx.com/#public-rest-api-for-wazirx)                                | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://x.woo.org/register?ref=YWOWC96B)                                                       | woo                   | [WOO X](https://x.woo.org/register?ref=YWOWC96B)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                              | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://x.woo.org/register?ref=DIJT0CNL)                                                       | woo                   | [WOO X](https://x.woo.org/register?ref=DIJT0CNL)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                              | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![woofipro](https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69)](https://dex.woo.org/en/trade?ref=CCXT)                                                                       | woofipro              | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-evm/building-on-evm)                          | dex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![xt](https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg)](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                           | xt                    | [XT](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                             | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://doc.xt.com/)                                                                | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 
@@ -643,7 +644,7 @@ if ($exchange->has['watchOrderBook']) {
 ```
 <!-- tabs:end -->
 
-##### watchOrderBookForSymbols
+#### watchOrderBookForSymbols
 
 Similar to `watchOrderBook` but accepts an array of symbols so you can subscribe to multiple orderbooks in a single message.
 
@@ -1197,6 +1198,98 @@ cancel_all_orders_ws(string $symbol, $params = array ())
 ```diff
 - this method is a work in progress now (may be unavailable)
 ```
+
+### Custom handler
+
+If you want to have an access to raw incoming messages and use your custom handlers, you can override exchange's `handleMessage/handle_message` method, like:
+
+A) By inheritance:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+class myExchange extends ccxt.pro.coinbase {
+    handleMessage (wsClient, data) {
+        console.log("Raw incoming message:", message) // this is the raw update
+        super.handleMessage(wsClient, data);
+        // your extra logic here
+    }
+}
+const ex = new myExchange();
+ex.watchTicker('BTC/USDT');
+```
+#### **Python**
+```python
+
+class my_exchange(ccxt.pro.coinbase):
+    def handle_message(self, client, message):
+        print("Raw incoming message:", message)  # this is the raw update
+        super().handle_message(client, message)
+        # your extra logic here
+
+async def example():
+    ex = my_exchange()
+    await ex.watch_ticker('BTC/USDT')
+
+asyncio.run(example())
+```
+#### **PHP**
+```php
+class myBinance extends \ccxt\pro\binance {
+    public function __construct($options = array()) {
+        parent::__construct($options);
+    }
+
+    // your custom handler
+    public function handle_message($ws, $message) {
+        parent::handle_message($ws, $message); // trigger original `handleMessage`
+        if ($your_condition) {
+            // execute your additional code
+        }
+    }
+}
+
+$ex = new myBinance();
+$ex->watch_ticker('BTC/USDT');
+
+```
+<!-- tabs:end -->
+
+B) by overriding the method:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+function myHandler(ws, data, orignal_handler){
+    orignal_handler(ws, data); // trigger original `handleMessage`
+    if (your_condition) {
+        // execute your additional code
+    }
+}
+
+const ex = new ccxt.pro.binance();
+const original_handler = ex.handleMessage.bind(ex);
+ex.handleMessage = (ws, data) => myHandler(ws, data, original_handler);
+ex.watchTicker('BTC/USDT');
+```
+#### **Python**
+```python
+
+def myHandler(instance, ws, data, original_handle_message):
+    original_handle_message(ws, data)  # trigger original `handleMessage`
+    if your_condition:
+        # execute your additional code
+
+async def example():
+    e = ccxt.pro.binance()
+    original_handle_message = e.handle_message
+    e.handle_message = lambda ws, data: myHandler(e, ws, data, original_handle_message)
+    await e.watch_ticker('BTC/USDT')
+
+asyncio.run(example())
+```
+<!-- tabs:end -->
+
 
 ### Error Handling
 

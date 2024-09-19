@@ -29,6 +29,7 @@ export default class htx extends htxRest {
                 'watchTickers': false,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,

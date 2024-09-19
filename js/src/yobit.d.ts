@@ -12,6 +12,7 @@ export default class yobit extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
+    fetchTickersHelper(idsString: string, params?: {}): Promise<Tickers>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: Dict, market?: Market): Trade;

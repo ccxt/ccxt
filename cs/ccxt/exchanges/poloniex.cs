@@ -1140,9 +1140,12 @@ public partial class poloniex : Exchange
         market = this.safeMarket(marketId, market, "_");
         object symbol = getValue(market, "symbol");
         object resultingTrades = this.safeValue(order, "resultingTrades");
-        if (!isTrue(((resultingTrades is IList<object>) || (resultingTrades.GetType().IsGenericType && resultingTrades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (isTrue(!isEqual(resultingTrades, null)))
         {
-            resultingTrades = this.safeValue(resultingTrades, this.safeString(market, "id", marketId));
+            if (!isTrue(((resultingTrades is IList<object>) || (resultingTrades.GetType().IsGenericType && resultingTrades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                resultingTrades = this.safeValue(resultingTrades, this.safeString(market, "id", marketId));
+            }
         }
         object price = this.safeString2(order, "price", "rate");
         object amount = this.safeString(order, "quantity");

@@ -870,7 +870,6 @@ class kuna(Exchange, ImplicitAPI):
             'fee': {
                 'cost': self.safe_string(trade, 'fee'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
-                'rate': None,
             },
         }, market)
 

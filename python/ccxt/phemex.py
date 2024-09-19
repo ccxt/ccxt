@@ -2800,6 +2800,7 @@ class phemex(Exchange, ImplicitAPI):
         """
         :see: https://phemex-docs.github.io/#query-orders-by-ids
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2821,7 +2822,7 @@ class phemex(Exchange, ImplicitAPI):
         if market['settle'] == 'USDT':
             response = self.privateGetApiDataGFuturesOrdersByOrderId(self.extend(request, params))
         elif market['spot']:
-            response = self.privateGetSpotOrdersActive(self.extend(request, params))
+            response = self.privateGetApiDataSpotsOrdersByOrderId(self.extend(request, params))
         else:
             response = self.privateGetExchangeOrder(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
@@ -2833,7 +2834,10 @@ class phemex(Exchange, ImplicitAPI):
                     raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found')
                 else:
                     raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found')
-            order = self.safe_value(data, 0, {})
+            order = self.safe_dict(data, 0, {})
+        elif market['spot']:
+            rows = self.safe_list(data, 'rows', [])
+            order = self.safe_dict(rows, 0, {})
         return self.parse_order(order, market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2864,7 +2868,7 @@ class phemex(Exchange, ImplicitAPI):
         elif market['swap']:
             response = self.privateGetExchangeOrderList(self.extend(request, params))
         else:
-            response = self.privateGetSpotOrders(self.extend(request, params))
+            response = self.privateGetApiDataSpotsOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         rows = self.safe_list(data, 'rows', data)
         return self.parse_orders(rows, market, since, limit)

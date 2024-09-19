@@ -26,6 +26,7 @@ public partial class htx : ccxt.htx
                 { "watchTickers", false },
                 { "watchTicker", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchBalance", true },
                 { "watchOHLCV", true },

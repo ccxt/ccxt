@@ -572,6 +572,12 @@ public partial class bingx
     /// boolean : *swap only* whether to use the test endpoint or not, default is false
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// boolean : *swap only* whether the order is in hedged mode or one way mode
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>

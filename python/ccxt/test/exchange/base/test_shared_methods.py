@@ -269,6 +269,9 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key):
     # todo: remove undefined check to make stricter
     if fee_object is not None:
         assert 'cost' in fee_object, key_string + ' fee object should contain \"cost\" key' + log_text
+        if fee_object['cost'] is None:
+            return   # todo: remove undefined check to make stricter
+        assert isinstance(fee_object['cost'], numbers.Real), key_string + ' \"cost\" must be numeric type' + log_text
         # assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); # fee might be negative in the case of a rebate or reward
         assert 'currency' in fee_object, '\"' + key_string + '\" fee object should contain \"currency\" key' + log_text
         assert_currency_code(exchange, skipped_properties, method, entry, fee_object['currency'])

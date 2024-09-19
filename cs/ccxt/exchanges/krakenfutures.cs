@@ -1838,19 +1838,22 @@ public partial class krakenfutures : Exchange
                 }
                 // Final order (after placement / editing / execution / canceling)
                 object orderTrigger = this.safeValue(item, "orderTrigger");
-                details = this.safeValue2(item, "new", "order", orderTrigger);
-                if (isTrue(!isEqual(details, null)))
+                if (isTrue(isEqual(details, null)))
                 {
-                    isPrior = false;
-                    fixedVar = true;
-                } else if (!isTrue(fixedVar))
-                {
-                    object orderPriorExecution = this.safeValue(item, "orderPriorExecution");
-                    details = this.safeValue2(item, "orderPriorExecution", "orderPriorEdit");
-                    price = this.safeString(orderPriorExecution, "limitPrice");
+                    details = this.safeValue2(item, "new", "order", orderTrigger);
                     if (isTrue(!isEqual(details, null)))
                     {
-                        isPrior = true;
+                        isPrior = false;
+                        fixedVar = true;
+                    } else if (!isTrue(fixedVar))
+                    {
+                        object orderPriorExecution = this.safeValue(item, "orderPriorExecution");
+                        details = this.safeValue2(item, "orderPriorExecution", "orderPriorEdit");
+                        price = this.safeString(orderPriorExecution, "limitPrice");
+                        if (isTrue(!isEqual(details, null)))
+                        {
+                            isPrior = true;
+                        }
                     }
                 }
             }

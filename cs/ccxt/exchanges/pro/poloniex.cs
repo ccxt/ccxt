@@ -17,6 +17,7 @@ public partial class poloniex : ccxt.poloniex
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", true },
                 { "watchBalance", true },
                 { "watchStatus", false },
                 { "watchOrders", true },
@@ -443,13 +444,48 @@ public partial class poloniex : ccxt.poloniex
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name poloniex#watchTradesForSymbols
+        * @description get the list of most recent trades for a list of symbols
+        * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbol = this.symbol(symbol);
+        symbols = this.marketSymbols(symbols, null, false, true, true);
         object name = "trades";
-        object trades = await this.subscribe(name, name, false, new List<object>() {symbol}, parameters);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object marketIds = this.marketIds(symbols);
+        object subscribe = new Dictionary<string, object>() {
+            { "event", "subscribe" },
+            { "channel", new List<object>() {name} },
+            { "symbols", marketIds },
+        };
+        object request = this.extend(subscribe, parameters);
+        object messageHashes = new List<object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(symbols, i)));
+            }
+        }
+        object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            object first = this.safeValue(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }

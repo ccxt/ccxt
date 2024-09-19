@@ -1347,7 +1347,7 @@
             "loadMarkets": {
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
             },
-            "orderBook": { 
+            "orderBook": {
                 "spread": "bid ask crossing, https://app.travis-ci.com/github/ccxt/ccxt/builds/270991459#L5901"
             }
         }
@@ -1606,6 +1606,14 @@
                 "side": "undefined",
                 "timestamp": "sometimes not being sorted"
             },
+            "watchTicker": {
+                "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/272143769#L4243",
+                "datetime": "same"
+            },
+            "watchTickers": {
+                "timestamp": "same",
+                "datetime": "same"
+            },
             "watchOrderBook": {
                 "timestamp": "undefined"
             },
@@ -1730,6 +1738,19 @@
             "loadMarkets" : {
                 "active":"not provided",
                 "currencyIdAndCode": "broken currencies"
+	          }
+	      }
+    },
+    "hashkey": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "fetchTrades": {
+                "side": "not provided"
+            },
+            "watchTrades": {
+                "side": "not provided"
             }
         }
     }

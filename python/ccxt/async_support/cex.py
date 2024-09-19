@@ -1149,6 +1149,7 @@ class cex(Exchange, ImplicitAPI):
         """
         :see: https://docs.cex.io/?python#get-order-details
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: not used by cex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

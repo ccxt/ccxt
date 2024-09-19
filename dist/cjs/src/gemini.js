@@ -185,6 +185,7 @@ class gemini extends gemini$1 {
                         'v1/account/create': 1,
                         'v1/account/list': 1,
                         'v1/heartbeat': 1,
+                        'v1/roles': 1,
                     },
                 },
             },
@@ -841,8 +842,9 @@ class gemini extends gemini$1 {
         return this.parseTicker(response, market);
     }
     async fetchTickerV1AndV2(symbol, params = {}) {
-        const tickerA = await this.fetchTickerV1(symbol, params);
-        const tickerB = await this.fetchTickerV2(symbol, params);
+        const tickerPromiseA = this.fetchTickerV1(symbol, params);
+        const tickerPromiseB = this.fetchTickerV2(symbol, params);
+        const [tickerA, tickerB] = await Promise.all([tickerPromiseA, tickerPromiseB]);
         return this.deepExtend(tickerA, {
             'open': tickerB['open'],
             'high': tickerB['high'],

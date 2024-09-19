@@ -18,6 +18,7 @@ public partial class ascendex : ccxt.ascendex
                 { "watchOrders", true },
                 { "watchTicker", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -59,6 +60,19 @@ public partial class ascendex : ccxt.ascendex
         return await this.watch(url, messageHash, message, messageHash);
     }
 
+    public async virtual Task<object> watchPublicMultiple(object messageHashes, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object id = this.nonce();
+        object request = new Dictionary<string, object>() {
+            { "id", ((object)id).ToString() },
+            { "op", "sub" },
+        };
+        object message = this.extend(request, parameters);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+    }
+
     public async virtual Task<object> watchPrivate(object channel, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -85,6 +99,7 @@ public partial class ascendex : ccxt.ascendex
         * @method
         * @name ascendex#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-bar-data
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -159,6 +174,7 @@ public partial class ascendex : ccxt.ascendex
         * @method
         * @name ascendex#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -166,17 +182,47 @@ public partial class ascendex : ccxt.ascendex
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name ascendex#watchTradesForSymbols
+        * @description get the list of most recent trades for a list of symbols
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object channel = add(add("trades", ":"), getValue(market, "id"));
+        symbols = this.marketSymbols(symbols, null, false, true, true);
+        object marketIds = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object market = this.market(getValue(symbols, i));
+                ((IList<object>)marketIds).Add(getValue(market, "id"));
+                ((IList<object>)messageHashes).Add(add("trades:", getValue(market, "id")));
+            }
+        }
+        object channel = add("trades:", String.Join(",", ((IList<object>)marketIds).ToArray()));
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "ch", channel },
         });
-        object trades = await this.watchPublic(channel, parameters);
+        object trades = await this.watchPublicMultiple(messageHashes, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            object first = this.safeValue(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
@@ -229,6 +275,7 @@ public partial class ascendex : ccxt.ascendex
         * @method
         * @name ascendex#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-level-2-order-book-updates
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -410,6 +457,7 @@ public partial class ascendex : ccxt.ascendex
         * @method
         * @name ascendex#watchBalance
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */

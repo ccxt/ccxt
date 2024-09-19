@@ -311,7 +311,6 @@ export default class Exchange {
     constructor(userConfig?: {});
     encodeURIComponent(...args: any[]): string;
     checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
-    checkAddress(address: any): any;
     initRestRateLimiter(): void;
     throttle(cost?: any): any;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -539,7 +538,6 @@ export default class Exchange {
             fetchOrdersWs: any;
             fetchOrderTrades: any;
             fetchOrderWs: any;
-            fetchPermissions: any;
             fetchPosition: any;
             fetchPositionHistory: any;
             fetchPositionsHistory: any;
@@ -722,6 +720,7 @@ export default class Exchange {
     checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): any[];
     checkWsProxySettings(): any[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
+    checkAddress(address?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType, fromStart?: boolean): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
@@ -757,7 +756,7 @@ export default class Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseAccount(account: Dict): Account;
-    parseLedgerEntry(item: Dict, currency?: Currency): object;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseOrder(order: Dict, market?: Market): Order;
     fetchCrossBorrowRates(params?: {}): Promise<CrossBorrowRates>;
     fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
@@ -844,6 +843,8 @@ export default class Exchange {
     };
     safeLiquidation(liquidation: Dict, market?: Market): Liquidation;
     safeTrade(trade: Dict, market?: Market): Trade;
+    parsedFeeAndFees(container: any): Dictionary<any>[];
+    parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
@@ -878,7 +879,7 @@ export default class Exchange {
     selectNetworkKeyFromNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): any;
     safeNumber2(dictionary: object, key1: IndexType, key2: IndexType, d?: any): number;
     parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
-    parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
+    parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     safePosition(position: Dict): Position;
@@ -887,7 +888,7 @@ export default class Exchange {
     parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
     parseTransactions(transactions: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];
     parseTransfers(transfers: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): TransferEntry[];
-    parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): any;
+    parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): LedgerEntry[];
     nonce(): number;
     setHeaders(headers: any): any;
     marketId(symbol: string): string;
@@ -912,7 +913,6 @@ export default class Exchange {
     editLimitOrder(id: string, symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    fetchPermissions(params?: {}): Promise<{}>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     fetchPositionWs(symbol: string, params?: {}): Promise<Position[]>;
     watchPosition(symbol?: Str, params?: {}): Promise<Position>;
@@ -1141,11 +1141,13 @@ export default class Exchange {
     convertExpireDate(date: string): string;
     convertExpireDateToMarketIdDate(date: string): string;
     convertMarketIdExpireDate(date: string): string;
-    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position>;
+    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    parseMarginModifications(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModification[];
+    parseMarginModifications(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    cleanUnsubscription(client: any, subHash: string, unsubHash: string): void;
+    cleanCache(subscription: Dict): void;
 }
 export { Exchange, };

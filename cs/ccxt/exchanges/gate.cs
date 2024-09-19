@@ -597,6 +597,7 @@ public partial class gate : Exchange
                 { "MPH", "MORPHER" },
                 { "POINT", "GATEPOINT" },
                 { "RAI", "RAIREFLEXINDEX" },
+                { "RED", "RedLang" },
                 { "SBTC", "SUPERBITCOIN" },
                 { "TNC", "TRINITYNETWORKCREDIT" },
                 { "VAI", "VAIOT" },
@@ -909,8 +910,11 @@ public partial class gate : Exchange
     public async virtual Task<object> fetchSpotMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object marginResponse = await this.publicMarginGetCurrencyPairs(parameters);
-        object spotMarketsResponse = await this.publicSpotGetCurrencyPairs(parameters);
+        object marginPromise = this.publicMarginGetCurrencyPairs(parameters);
+        object spotMarketsPromise = this.publicSpotGetCurrencyPairs(parameters);
+        var marginResponsespotMarketsResponseVariable = await promiseAll(new List<object>() {marginPromise, spotMarketsPromise});
+        var marginResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[0];
+        var spotMarketsResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[1];
         object marginMarkets = this.indexBy(marginResponse, "id");
         //
         //  Spot
@@ -3634,8 +3638,8 @@ public partial class gate : Exchange
         object side = this.safeString2(trade, "side", "type", contractSide);
         object orderId = this.safeString(trade, "order_id");
         object feeAmount = this.safeString(trade, "fee");
-        object gtFee = this.safeString(trade, "gt_fee");
-        object pointFee = this.safeString(trade, "point_fee");
+        object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
+        object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
         object fees = new List<object>() {};
         if (isTrue(!isEqual(feeAmount, null)))
         {
@@ -4256,7 +4260,7 @@ public partial class gate : Exchange
                 }
                 if (isTrue(isMarketOrder))
                 {
-                    ((IDictionary<string,object>)request)["price"] = price; // set to 0 for market orders
+                    ((IDictionary<string,object>)request)["price"] = "0"; // set to 0 for market orders
                 } else
                 {
                     ((IDictionary<string,object>)request)["price"] = ((bool) isTrue((isEqual(price, 0)))) ? "0" : this.priceToPrecision(symbol, price);
@@ -4512,10 +4516,10 @@ public partial class gate : Exchange
             {
                 if (isTrue(isEqual(side, "sell")))
                 {
-                    ((IDictionary<string,object>)request)["size"] = Precise.stringNeg(this.amountToPrecision(symbol, amount));
+                    ((IDictionary<string,object>)request)["size"] = this.parseToNumeric(Precise.stringNeg(this.amountToPrecision(symbol, amount)));
                 } else
                 {
-                    ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
+                    ((IDictionary<string,object>)request)["size"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
                 }
             }
         }
@@ -7162,12 +7166,12 @@ public partial class gate : Exchange
         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
-        * @param {string} code unified currency code
+        * @param {string} [code] unified currency code
         * @param {int} [since] timestamp in ms of the earliest ledger entry
         * @param {int} [limit] max number of ledger entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] end time in ms
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -7341,6 +7345,7 @@ public partial class gate : Exchange
             direction = "in";
         }
         object currencyId = this.safeString(item, "currency");
+        currency = this.safeCurrency(currencyId, currency);
         object type = this.safeString(item, "type");
         object rawTimestamp = this.safeString(item, "time");
         object timestamp = null;
@@ -7354,7 +7359,8 @@ public partial class gate : Exchange
         object balanceString = this.safeString(item, "balance");
         object changeString = this.safeString(item, "change");
         object before = this.parseNumber(Precise.stringSub(balanceString, changeString));
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "id") },
             { "direction", direction },
             { "account", null },
@@ -7369,8 +7375,7 @@ public partial class gate : Exchange
             { "after", this.safeNumber(item, "balance") },
             { "status", null },
             { "fee", null },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

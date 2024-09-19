@@ -14,7 +14,8 @@ public partial class cryptocom : ccxt.cryptocom
                 { "ws", true },
                 { "watchBalance", true },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchMyTrades", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
@@ -85,6 +86,23 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
+    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#unWatchOrderBook
+        * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
+        * @param {string} symbol unified symbol of the market to fetch the order book for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+        * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
+    }
+
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         /**
@@ -145,6 +163,66 @@ public partial class cryptocom : ccxt.cryptocom
         }
         object orderbook = await this.watchPublicMultiple(messageHashes, topics, parameters);
         return (orderbook as IOrderBook).limit();
+    }
+
+    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#unWatchOrderBookForSymbols
+        * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
+        * @param {string[]} symbols unified array of symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.limit] orderbook limit, default is 50
+        * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+        * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object topics = new List<object>() {};
+        object subMessageHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        object limit = this.safeInteger(parameters, "limit", 50);
+        object topicParams = this.safeValue(parameters, "params");
+        if (isTrue(isEqual(topicParams, null)))
+        {
+            ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
+        }
+        object bookSubscriptionType = null;
+        object bookSubscriptionType2 = null;
+        var bookSubscriptionTypeparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        bookSubscriptionType = ((IList<object>)bookSubscriptionTypeparametersVariable)[0];
+        parameters = ((IList<object>)bookSubscriptionTypeparametersVariable)[1];
+        var bookSubscriptionType2parametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        bookSubscriptionType2 = ((IList<object>)bookSubscriptionType2parametersVariable)[0];
+        parameters = ((IList<object>)bookSubscriptionType2parametersVariable)[1];
+        ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookSubscriptionType2;
+        object bookUpdateFrequency = null;
+        object bookUpdateFrequency2 = null;
+        var bookUpdateFrequencyparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "bookUpdateFrequency");
+        bookUpdateFrequency = ((IList<object>)bookUpdateFrequencyparametersVariable)[0];
+        parameters = ((IList<object>)bookUpdateFrequencyparametersVariable)[1];
+        var bookUpdateFrequency2parametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        bookUpdateFrequency2 = ((IList<object>)bookUpdateFrequency2parametersVariable)[0];
+        parameters = ((IList<object>)bookUpdateFrequency2parametersVariable)[1];
+        if (isTrue(!isEqual(bookUpdateFrequency2, null)))
+        {
+            ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookUpdateFrequency2;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            object currentTopic = add(add(add(add("book", "."), getValue(market, "id")), "."), ((object)limit).ToString());
+            object messageHash = add("orderbook:", getValue(market, "symbol"));
+            ((IList<object>)subMessageHashes).Add(messageHash);
+            ((IList<object>)messageHashes).Add(add("unsubscribe:", messageHash));
+            ((IList<object>)topics).Add(currentTopic);
+        }
+        return await this.unWatchPublicMultiple("orderbook", symbols, messageHashes, subMessageHashes, topics, parameters);
     }
 
     public override void handleDelta(object bookside, object delta)
@@ -281,6 +359,23 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
+    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#unWatchTrades
+        * @description get the list of most recent trades for a particular symbol
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+        * @param {string} symbol unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+    }
+
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -313,6 +408,33 @@ public partial class cryptocom : ccxt.cryptocom
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
+    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#unWatchTradesForSymbols
+        * @description get the list of most recent trades for a particular symbol
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+        * @param {string} symbol unified symbol of the market to fetch trades for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object topics = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            object currentTopic = add(add("trade", "."), getValue(market, "id"));
+            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", getValue(market, "symbol")));
+            ((IList<object>)topics).Add(currentTopic);
+        }
+        return await this.unWatchPublicMultiple("trades", symbols, messageHashes, topics, topics, parameters);
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -416,30 +538,119 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchPublic(messageHash, parameters);
     }
 
+    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#unWatchTicker
+        * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object subMessageHash = add(add("ticker", "."), getValue(market, "id"));
+        object messageHash = add("unsubscribe:ticker:", getValue(market, "symbol"));
+        return await this.unWatchPublicMultiple("ticker", new List<object>() {getValue(market, "symbol")}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, new List<object>() {subMessageHash}, parameters);
+    }
+
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object marketIds = this.marketIds(symbols);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            ((IList<object>)messageHashes).Add(add("ticker.", marketId));
+        }
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object id = this.nonce();
+        object request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", messageHashes },
+            } },
+            { "nonce", id },
+        };
+        object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#unWatchTickers
+        * @description unWatches a price ticker
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object subMessageHashes = new List<object>() {};
+        object marketIds = this.marketIds(symbols);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object symbol = getValue(symbols, i);
+            ((IList<object>)subMessageHashes).Add(add("ticker.", marketId));
+            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+        }
+        return await this.unWatchPublicMultiple("ticker", symbols, messageHashes, subMessageHashes, subMessageHashes, parameters);
+    }
+
     public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
-        // {
-        //     "info":{
-        //        "instrument_name":"BTC_USDT",
-        //        "subscription":"ticker.BTC_USDT",
-        //        "channel":"ticker",
-        //        "data":[
-        //           {
-        //              "i":"BTC_USDT",
-        //              "b":43063.19,
-        //              "k":43063.2,
-        //              "a":43063.19,
-        //              "t":1648121165658,
-        //              "v":43573.912409,
-        //              "h":43498.51,
-        //              "l":41876.58,
-        //              "c":1087.43
-        //           }
-        //        ]
+        //     {
+        //       "instrument_name": "ETHUSD-PERP",
+        //       "subscription": "ticker.ETHUSD-PERP",
+        //       "channel": "ticker",
+        //       "data": [
+        //         {
+        //           "h": "2400.20",
+        //           "l": "2277.10",
+        //           "a": "2335.25",
+        //           "c": "-0.0022",
+        //           "b": "2335.10",
+        //           "bs": "5.4000",
+        //           "k": "2335.16",
+        //           "ks": "1.9970",
+        //           "i": "ETHUSD-PERP",
+        //           "v": "1305697.6462",
+        //           "vv": "3058704939.17",
+        //           "oi": "161646.3614",
+        //           "t": 1726069647560
+        //         }
+        //       ]
         //     }
-        //  }
         //
+        this.handleBidAsk(client as WebSocketClient, message);
         object messageHash = this.safeString(message, "subscription");
         object marketId = this.safeString(message, "instrument_name");
         object market = this.safeMarket(marketId);
@@ -447,11 +658,130 @@ public partial class cryptocom : ccxt.cryptocom
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = getValue(data, i);
-            object parsed = this.parseTicker(ticker, market);
+            object parsed = this.parseWsTicker(ticker, market);
             object symbol = getValue(parsed, "symbol");
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
             callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, messageHash});
         }
+    }
+
+    public virtual object parseWsTicker(object ticker, object market = null)
+    {
+        //
+        //     {
+        //       "h": "2400.20",
+        //       "l": "2277.10",
+        //       "a": "2335.25",
+        //       "c": "-0.0022",
+        //       "b": "2335.10",
+        //       "bs": "5.4000",
+        //       "k": "2335.16",
+        //       "ks": "1.9970",
+        //       "i": "ETHUSD-PERP",
+        //       "v": "1305697.6462",
+        //       "vv": "3058704939.17",
+        //       "oi": "161646.3614",
+        //       "t": 1726069647560
+        //     }
+        //
+        object timestamp = this.safeInteger(ticker, "t");
+        object marketId = this.safeString(ticker, "i");
+        market = this.safeMarket(marketId, market, "_");
+        object quote = this.safeString(market, "quote");
+        object last = this.safeString(ticker, "a");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "high", this.safeNumber(ticker, "h") },
+            { "low", this.safeNumber(ticker, "l") },
+            { "bid", this.safeNumber(ticker, "b") },
+            { "bidVolume", this.safeNumber(ticker, "bs") },
+            { "ask", this.safeNumber(ticker, "k") },
+            { "askVolume", this.safeNumber(ticker, "ks") },
+            { "vwap", null },
+            { "open", null },
+            { "close", last },
+            { "last", last },
+            { "previousClose", null },
+            { "change", null },
+            { "percentage", this.safeString(ticker, "c") },
+            { "average", null },
+            { "baseVolume", this.safeString(ticker, "v") },
+            { "quoteVolume", ((bool) isTrue((isEqual(quote, "USD")))) ? this.safeString(ticker, "vv") : null },
+            { "info", ticker },
+        }, market);
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#watchBidsAsks
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object topics = new List<object>() {};
+        object marketIds = this.marketIds(symbols);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            ((IList<object>)messageHashes).Add(add("bidask.", getValue(symbols, i)));
+            ((IList<object>)topics).Add(add("ticker.", marketId));
+        }
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object id = this.nonce();
+        object request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", topics },
+            } },
+            { "nonce", id },
+        };
+        object newTickers = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        object data = this.safeList(message, "data", new List<object>() {});
+        object ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object parsedTicker = this.parseWsBidAsk(ticker);
+        object symbol = getValue(parsedTicker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        object messageHash = add("bidask.", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "i");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "t");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "k") },
+            { "askVolume", this.safeString(ticker, "ks") },
+            { "bid", this.safeString(ticker, "b") },
+            { "bidVolume", this.safeString(ticker, "bs") },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -481,6 +811,32 @@ public partial class cryptocom : ccxt.cryptocom
             limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+    }
+
+    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#unWatchOHLCV
+        * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name
+        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+        * @param {string} timeframe the length of time each candle represents
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object interval = this.safeString(this.timeframes, timeframe, timeframe);
+        object subMessageHash = add(add(add(add("candlestick", "."), interval), "."), getValue(market, "id"));
+        object messageHash = add(add(add("unsubscribe:ohlcv:", getValue(market, "symbol")), ":"), timeframe);
+        object subExtend = new Dictionary<string, object>() {
+            { "symbolsAndTimeframes", new List<object>() {new List<object>() {getValue(market, "symbol"), timeframe}} },
+        };
+        return await this.unWatchPublicMultiple("ohlcv", new List<object>() {getValue(market, "symbol")}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, new List<object>() {subMessageHash}, parameters, subExtend);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -638,7 +994,7 @@ public partial class cryptocom : ccxt.cryptocom
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -973,6 +1329,31 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
+    public async virtual Task<object> unWatchPublicMultiple(object topic, object symbols, object messageHashes, object subMessageHashes, object topics, object parameters = null, object subExtend = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        subExtend ??= new Dictionary<string, object>();
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object id = this.nonce();
+        object request = new Dictionary<string, object>() {
+            { "method", "unsubscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", topics },
+            } },
+            { "nonce", id },
+            { "id", ((object)id).ToString() },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "id", ((object)id).ToString() },
+            { "topic", topic },
+            { "symbols", symbols },
+            { "subMessageHashes", subMessageHashes },
+            { "messageHashes", messageHashes },
+        };
+        object message = this.deepExtend(request, parameters);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend));
+    }
+
     public async virtual Task<object> watchPrivateRequest(object nonce, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1111,6 +1492,9 @@ public partial class cryptocom : ccxt.cryptocom
         //           "channel":"ticker",
         //           "data":[ { } ]
         //
+        // handle unsubscribe
+        // {"id":1725448572836,"method":"unsubscribe","code":0}
+        //
         if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
         {
             return;
@@ -1125,6 +1509,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "private/cancel-all-orders", this.handleCancelAllOrders },
             { "private/close-position", this.handleOrder },
             { "subscribe", this.handleSubscribe },
+            { "unsubscribe", this.handleUnsubscribe },
         };
         object callMethod = this.safeValue(methods, method);
         if (isTrue(!isEqual(callMethod, null)))
@@ -1173,5 +1558,37 @@ public partial class cryptocom : ccxt.cryptocom
         //
         var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
         (future as Future).resolve(true);
+    }
+
+    public virtual void handleUnsubscribe(WebSocketClient client, object message)
+    {
+        object id = this.safeString(message, "id");
+        object keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object messageHash = getValue(keys, i);
+            if (!isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash))))
+            {
+                continue;
+            }
+            if (isTrue(((string)messageHash).StartsWith(((string)"unsubscribe"))))
+            {
+                object subscription = getValue(((WebSocketClient)client).subscriptions, messageHash);
+                object subId = this.safeString(subscription, "id");
+                if (isTrue(!isEqual(id, subId)))
+                {
+                    continue;
+                }
+                object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+                object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+                for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
+                {
+                    object unsubHash = getValue(messageHashes, j);
+                    object subHash = getValue(subMessageHashes, j);
+                    this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
+                }
+                this.cleanCache(subscription);
+            }
+        }
     }
 }

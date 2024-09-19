@@ -247,8 +247,8 @@ public partial class coinbase : Exchange
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
-                    { "taker", this.parseNumber("0.006") },
-                    { "maker", this.parseNumber("0.004") },
+                    { "taker", this.parseNumber("0.012") },
+                    { "maker", this.parseNumber("0.006") },
                     { "tierBased", true },
                     { "percentage", true },
                     { "tiers", new Dictionary<string, object>() {
@@ -1417,6 +1417,10 @@ public partial class coinbase : Exchange
         object marketType = this.safeStringLower(market, "product_type");
         object tradingDisabled = this.safeBool(market, "trading_disabled");
         object stablePairs = this.safeList(this.options, "stablePairs", new List<object>() {});
+        object defaultTakerFee = this.safeNumber(getValue(this.fees, "trading"), "taker");
+        object defaultMakerFee = this.safeNumber(getValue(this.fees, "trading"), "maker");
+        object takerFee = ((bool) isTrue(this.inArray(id, stablePairs))) ? 0.00001 : this.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee);
+        object makerFee = ((bool) isTrue(this.inArray(id, stablePairs))) ? 0 : this.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
@@ -1436,8 +1440,8 @@ public partial class coinbase : Exchange
             { "contract", false },
             { "linear", null },
             { "inverse", null },
-            { "taker", ((bool) isTrue(this.inArray(id, stablePairs))) ? 0.00001 : this.safeNumber(feeTier, "taker_fee_rate") },
-            { "maker", ((bool) isTrue(this.inArray(id, stablePairs))) ? 0 : this.safeNumber(feeTier, "maker_fee_rate") },
+            { "taker", takerFee },
+            { "maker", makerFee },
             { "contractSize", null },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -2358,13 +2362,13 @@ public partial class coinbase : Exchange
         /**
         * @method
         * @name coinbase#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2402,8 +2406,28 @@ public partial class coinbase : Exchange
         object cursor = this.safeString(pagination, "next_starting_after");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
+            object lastFee = this.safeDict(last, "fee");
             ((IDictionary<string,object>)last)["next_starting_after"] = cursor;
-            ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = last;
+            ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = new Dictionary<string, object>() {
+                { "info", this.safeDict(last, "info") },
+                { "id", this.safeString(last, "id") },
+                { "timestamp", this.safeInteger(last, "timestamp") },
+                { "datetime", this.safeString(last, "datetime") },
+                { "direction", this.safeString(last, "direction") },
+                { "account", this.safeString(last, "account") },
+                { "referenceId", null },
+                { "referenceAccount", null },
+                { "type", this.safeString(last, "type") },
+                { "currency", this.safeString(last, "currency") },
+                { "amount", this.safeNumber(last, "amount") },
+                { "before", null },
+                { "after", null },
+                { "status", this.safeString(last, "status") },
+                { "fee", new Dictionary<string, object>() {
+                    { "cost", this.safeNumber(lastFee, "cost") },
+                    { "currency", this.safeString(lastFee, "currency") },
+                } },
+            };
         }
         return ledger;
     }
@@ -2690,6 +2714,7 @@ public partial class coinbase : Exchange
         }
         object currencyId = this.safeString(amountInfo, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         //
         // the address and txid do not belong to the unified ledger structure
         //
@@ -2728,7 +2753,7 @@ public partial class coinbase : Exchange
                 accountId = getValue(parts, 3);
             }
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
             { "timestamp", timestamp },
@@ -2744,7 +2769,7 @@ public partial class coinbase : Exchange
             { "after", null },
             { "status", status },
             { "fee", fee },
-        };
+        }, currency);
     }
 
     public async virtual Task<object> findAccountId(object code, object parameters = null)

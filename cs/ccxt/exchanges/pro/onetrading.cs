@@ -16,6 +16,7 @@ public partial class onetrading : ccxt.onetrading
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", false },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },

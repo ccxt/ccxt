@@ -50,7 +50,7 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
+const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -398,16 +398,6 @@ class Exchange {
         }
         return result;
     }
-    checkAddress(address) {
-        if (address === undefined) {
-            throw new errors.InvalidAddress(this.id + ' address is undefined');
-        }
-        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        if ((this.unique(address).length === 1) || address.length < this.minFundingAddressLength || address.includes(' ')) {
-            throw new errors.InvalidAddress(this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString() + ' characters: "' + this.json(address) + '"');
-        }
-        return address;
-    }
     initRestRateLimiter() {
         if (this.rateLimit === undefined) {
             throw new Error(this.id + '.rateLimit property is not configured');
@@ -650,7 +640,7 @@ class Exchange {
                 }
             }
             else {
-                this.fetchImplementation = self.fetch;
+                this.fetchImplementation = (selfIsDefined()) ? self.fetch : fetch;
                 this.AbortError = DOMException;
                 this.FetchError = TypeError;
             }
@@ -1447,7 +1437,6 @@ class Exchange {
                 'fetchOrdersWs': undefined,
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
-                'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
@@ -1775,55 +1764,43 @@ class Exchange {
         let httpsProxy = undefined;
         let socksProxy = undefined;
         // httpProxy
-        if (this.valueIsDefined(this.httpProxy)) {
+        const isHttpProxyDefined = this.valueIsDefined(this.httpProxy);
+        const isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
+        if (isHttpProxyDefined || isHttp_proxy_defined) {
             usedProxies.push('httpProxy');
-            httpProxy = this.httpProxy;
+            httpProxy = isHttpProxyDefined ? this.httpProxy : this.http_proxy;
         }
-        if (this.valueIsDefined(this.http_proxy)) {
-            usedProxies.push('http_proxy');
-            httpProxy = this.http_proxy;
-        }
-        if (this.httpProxyCallback !== undefined) {
+        const ishttpProxyCallbackDefined = this.valueIsDefined(this.httpProxyCallback);
+        const ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
+        if (ishttpProxyCallbackDefined || ishttp_proxy_callback_defined) {
             usedProxies.push('httpProxyCallback');
-            httpProxy = this.httpProxyCallback(url, method, headers, body);
-        }
-        if (this.http_proxy_callback !== undefined) {
-            usedProxies.push('http_proxy_callback');
-            httpProxy = this.http_proxy_callback(url, method, headers, body);
+            httpProxy = ishttpProxyCallbackDefined ? this.httpProxyCallback(url, method, headers, body) : this.http_proxy_callback(url, method, headers, body);
         }
         // httpsProxy
-        if (this.valueIsDefined(this.httpsProxy)) {
+        const isHttpsProxyDefined = this.valueIsDefined(this.httpsProxy);
+        const isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
+        if (isHttpsProxyDefined || isHttps_proxy_defined) {
             usedProxies.push('httpsProxy');
-            httpsProxy = this.httpsProxy;
+            httpsProxy = isHttpsProxyDefined ? this.httpsProxy : this.https_proxy;
         }
-        if (this.valueIsDefined(this.https_proxy)) {
-            usedProxies.push('https_proxy');
-            httpsProxy = this.https_proxy;
-        }
-        if (this.httpsProxyCallback !== undefined) {
+        const ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
+        const ishttps_proxy_callback_defined = this.valueIsDefined(this.https_proxy_callback);
+        if (ishttpsProxyCallbackDefined || ishttps_proxy_callback_defined) {
             usedProxies.push('httpsProxyCallback');
-            httpsProxy = this.httpsProxyCallback(url, method, headers, body);
-        }
-        if (this.https_proxy_callback !== undefined) {
-            usedProxies.push('https_proxy_callback');
-            httpsProxy = this.https_proxy_callback(url, method, headers, body);
+            httpsProxy = ishttpsProxyCallbackDefined ? this.httpsProxyCallback(url, method, headers, body) : this.https_proxy_callback(url, method, headers, body);
         }
         // socksProxy
-        if (this.valueIsDefined(this.socksProxy)) {
+        const isSocksProxyDefined = this.valueIsDefined(this.socksProxy);
+        const isSocks_proxy_defined = this.valueIsDefined(this.socks_proxy);
+        if (isSocksProxyDefined || isSocks_proxy_defined) {
             usedProxies.push('socksProxy');
-            socksProxy = this.socksProxy;
+            socksProxy = isSocksProxyDefined ? this.socksProxy : this.socks_proxy;
         }
-        if (this.valueIsDefined(this.socks_proxy)) {
-            usedProxies.push('socks_proxy');
-            socksProxy = this.socks_proxy;
-        }
-        if (this.socksProxyCallback !== undefined) {
+        const issocksProxyCallbackDefined = this.valueIsDefined(this.socksProxyCallback);
+        const issocks_proxy_callback_defined = this.valueIsDefined(this.socks_proxy_callback);
+        if (issocksProxyCallbackDefined || issocks_proxy_callback_defined) {
             usedProxies.push('socksProxyCallback');
-            socksProxy = this.socksProxyCallback(url, method, headers, body);
-        }
-        if (this.socks_proxy_callback !== undefined) {
-            usedProxies.push('socks_proxy_callback');
-            socksProxy = this.socks_proxy_callback(url, method, headers, body);
+            socksProxy = issocksProxyCallbackDefined ? this.socksProxyCallback(url, method, headers, body) : this.socks_proxy_callback(url, method, headers, body);
         }
         // check
         const length = usedProxies.length;
@@ -1877,6 +1854,18 @@ class Exchange {
         if (proxyAgentSet && proxyUrlSet) {
             throw new errors.InvalidProxySettings(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
+    }
+    checkAddress(address = undefined) {
+        if (address === undefined) {
+            throw new errors.InvalidAddress(this.id + ' address is undefined');
+        }
+        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        const uniqChars = (this.unique(this.stringToCharsArray(address)));
+        const length = uniqChars.length; // py transpiler trick
+        if (length === 1 || address.length < this.minFundingAddressLength || address.indexOf(' ') > -1) {
+            throw new errors.InvalidAddress(this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString() + ' characters: "' + address.toString() + '"');
+        }
+        return address;
     }
     findMessageHashes(client, element) {
         const result = [];
@@ -2002,7 +1991,7 @@ class Exchange {
     }
     async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.has['watchLiquidationsForSymbols']) {
-            return this.watchLiquidationsForSymbols([symbol], since, limit, params);
+            return await this.watchLiquidationsForSymbols([symbol], since, limit, params);
         }
         throw new errors.NotSupported(this.id + ' watchLiquidations() is not supported yet');
     }
@@ -2408,6 +2397,10 @@ class Exchange {
                     'min': undefined,
                     'max': undefined,
                 },
+            },
+            'marginModes': {
+                'cross': undefined,
+                'isolated': undefined,
             },
             'created': undefined,
             'info': undefined,
@@ -2987,48 +2980,61 @@ class Exchange {
             }
             cost = Precise["default"].stringMul(multiplyPrice, amount);
         }
-        const parseFee = this.safeValue(trade, 'fee') === undefined;
-        const parseFees = this.safeValue(trade, 'fees') === undefined;
-        const shouldParseFees = parseFee || parseFees;
-        const fees = [];
-        const fee = this.safeValue(trade, 'fee');
-        if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency(fees) : fees;
-            const reducedLength = reducedFees.length;
-            for (let i = 0; i < reducedLength; i++) {
-                reducedFees[i]['cost'] = this.safeNumber(reducedFees[i], 'cost');
-                if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.safeNumber(reducedFees[i], 'rate');
-                }
-            }
-            if (!parseFee && (reducedLength === 0)) {
-                // copy fee to avoid modification by reference
-                const feeCopy = this.deepExtend(fee);
-                feeCopy['cost'] = this.safeNumber(feeCopy, 'cost');
-                if ('rate' in feeCopy) {
-                    feeCopy['rate'] = this.safeNumber(feeCopy, 'rate');
-                }
-                reducedFees.push(feeCopy);
-            }
-            if (parseFees) {
-                trade['fees'] = reducedFees;
-            }
-            if (parseFee && (reducedLength === 1)) {
-                trade['fee'] = reducedFees[0];
-            }
-            const tradeFee = this.safeValue(trade, 'fee');
-            if (tradeFee !== undefined) {
-                tradeFee['cost'] = this.safeNumber(tradeFee, 'cost');
-                if ('rate' in tradeFee) {
-                    tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
-                }
-                trade['fee'] = tradeFee;
-            }
-        }
+        const [resultFee, resultFees] = this.parsedFeeAndFees(trade);
+        trade['fee'] = resultFee;
+        trade['fees'] = resultFees;
         trade['amount'] = this.parseNumber(amount);
         trade['price'] = this.parseNumber(price);
         trade['cost'] = this.parseNumber(cost);
         return trade;
+    }
+    parsedFeeAndFees(container) {
+        let fee = this.safeDict(container, 'fee');
+        let fees = this.safeList(container, 'fees');
+        const feeDefined = fee !== undefined;
+        const feesDefined = fees !== undefined;
+        // parsing only if at least one of them is defined
+        const shouldParseFees = (feeDefined || feesDefined);
+        if (shouldParseFees) {
+            if (feeDefined) {
+                fee = this.parseFeeNumeric(fee);
+            }
+            if (!feesDefined) {
+                // just set it directly, no further processing needed
+                fees = [fee];
+            }
+            // 'fees' were set, so reparse them
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency(fees) : fees;
+            const reducedLength = reducedFees.length;
+            for (let i = 0; i < reducedLength; i++) {
+                reducedFees[i] = this.parseFeeNumeric(reducedFees[i]);
+            }
+            fees = reducedFees;
+            if (reducedLength === 1) {
+                fee = reducedFees[0];
+            }
+            else if (reducedLength === 0) {
+                fee = undefined;
+            }
+        }
+        // in case `fee & fees` are undefined, set `fees` as empty array
+        if (fee === undefined) {
+            fee = {
+                'cost': undefined,
+                'currency': undefined,
+            };
+        }
+        if (fees === undefined) {
+            fees = [];
+        }
+        return [fee, fees];
+    }
+    parseFeeNumeric(fee) {
+        fee['cost'] = this.safeNumber(fee, 'cost'); // ensure numeric
+        if ('rate' in fee) {
+            fee['rate'] = this.safeNumber(fee, 'rate');
+        }
+        return fee;
     }
     findNearestCeiling(arr, providedValue) {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
@@ -3102,12 +3108,13 @@ class Exchange {
         const reduced = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
-            const feeCurrencyCode = this.safeString(fee, 'currency');
+            const code = this.safeString(fee, 'currency');
+            const feeCurrencyCode = code !== undefined ? code : i.toString();
             if (feeCurrencyCode !== undefined) {
                 const rate = this.safeString(fee, 'rate');
-                const cost = this.safeValue(fee, 'cost');
-                if (Precise["default"].stringEq(cost, '0')) {
-                    // omit zero cost fees
+                const cost = this.safeString(fee, 'cost');
+                if (cost === undefined) {
+                    // omit undefined cost, as it does not make sense, however, don't omit '0' costs, as they still make sense
                     continue;
                 }
                 if (!(feeCurrencyCode in reduced)) {
@@ -3119,7 +3126,7 @@ class Exchange {
                 }
                 else {
                     reduced[feeCurrencyCode][rateKey] = {
-                        'currency': feeCurrencyCode,
+                        'currency': code,
                         'cost': cost,
                     };
                     if (rate !== undefined) {
@@ -3160,7 +3167,15 @@ class Exchange {
                 change = Precise["default"].stringSub(last, open);
             }
             if (average === undefined) {
-                average = Precise["default"].stringDiv(Precise["default"].stringAdd(last, open), '2');
+                let precision = 18;
+                if (market !== undefined && this.isTickPrecision()) {
+                    const marketPrecision = this.safeDict(market, 'precision');
+                    const precisionPrice = this.safeString(marketPrecision, 'price');
+                    if (precisionPrice !== undefined) {
+                        precision = this.precisionFromString(precisionPrice);
+                    }
+                }
+                average = Precise["default"].stringDiv(Precise["default"].stringAdd(last, open), '2', precision);
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise["default"].stringGt(open, '0')) {
@@ -3458,7 +3473,7 @@ class Exchange {
             if (currencyCode === undefined) {
                 const currencies = Object.values(this.currencies);
                 for (let i = 0; i < currencies.length; i++) {
-                    const currency = [i];
+                    const currency = currencies[i];
                     const networks = this.safeDict(currency, 'networks');
                     const network = this.safeDict(networks, networkCode);
                     networkId = this.safeString(network, 'id');
@@ -3603,13 +3618,13 @@ class Exchange {
             'nonce': undefined,
         };
     }
-    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push(this.parseOHLCV(ohlcvs[i], market));
         }
         const sorted = this.sortBy(results, 0);
-        return this.filterBySinceLimit(sorted, since, limit, 0);
+        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
     parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary
@@ -3822,7 +3837,10 @@ class Exchange {
         ];
     }
     getListFromObjectValues(objects, key) {
-        const newArray = this.toArray(objects);
+        let newArray = objects;
+        if (!Array.isArray(objects)) {
+            newArray = this.toArray(objects);
+        }
         const results = [];
         for (let i = 0; i < newArray.length; i++) {
             results.push(newArray[i][key]);
@@ -3984,9 +4002,6 @@ class Exchange {
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrderWs(id, symbol);
         return await this.createOrderWs(symbol, type, side, amount, price, params);
-    }
-    async fetchPermissions(params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchPermissions() is not supported yet');
     }
     async fetchPosition(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPosition() is not supported yet');
@@ -5984,7 +5999,7 @@ class Exchange {
                     errors$1 = 0;
                     result = this.arrayConcat(result, response);
                     const last = this.safeValue(response, responseLength - 1);
-                    paginationTimestamp = this.safeInteger(last, 'timestamp') - 1;
+                    paginationTimestamp = this.safeInteger(last, 'timestamp') + 1;
                     if ((until !== undefined) && (paginationTimestamp >= until)) {
                         break;
                     }
@@ -6089,7 +6104,7 @@ class Exchange {
                 if (method === 'fetchAccounts') {
                     response = await this[method](params);
                 }
-                else if (method === 'getLeverageTiersPaginated') {
+                else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method](symbol, params);
                 }
                 else {
@@ -6434,7 +6449,7 @@ class Exchange {
          */
         if (this.has['fetchPositionsHistory']) {
             const positions = await this.fetchPositionsHistory([symbol], since, limit, params);
-            return this.safeDict(positions, 0);
+            return positions;
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
@@ -6492,6 +6507,71 @@ class Exchange {
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         throw new errors.NotSupported(this.id + ' fetchTransfers () is not supported yet');
+    }
+    cleanUnsubscription(client, subHash, unsubHash) {
+        if (unsubHash in client.subscriptions) {
+            delete client.subscriptions[unsubHash];
+        }
+        if (subHash in client.subscriptions) {
+            delete client.subscriptions[subHash];
+        }
+        if (subHash in client.futures) {
+            const error = new errors.UnsubscribeError(this.id + ' ' + subHash);
+            client.reject(error, subHash);
+        }
+        client.resolve(true, unsubHash);
+    }
+    cleanCache(subscription) {
+        const topic = this.safeString(subscription, 'topic');
+        const symbols = this.safeList(subscription, 'symbols', []);
+        const symbolsLength = symbols.length;
+        if (topic === 'ohlcv') {
+            const symbolsAndTimeFrames = this.safeList(subscription, 'symbolsAndTimeframes', []);
+            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
+                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
+                const symbol = this.safeString(symbolAndTimeFrame, 0);
+                const timeframe = this.safeString(symbolAndTimeFrame, 1);
+                if (timeframe in this.ohlcvs[symbol]) {
+                    delete this.ohlcvs[symbol][timeframe];
+                }
+            }
+        }
+        else if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                if (topic === 'trades') {
+                    delete this.trades[symbol];
+                }
+                else if (topic === 'orderbook') {
+                    delete this.orderbooks[symbol];
+                }
+                else if (topic === 'ticker') {
+                    delete this.tickers[symbol];
+                }
+            }
+        }
+        else {
+            if (topic === 'myTrades') {
+                // don't reset this.myTrades directly here
+                // because in c# we need to use a different object
+                const keys = Object.keys(this.myTrades);
+                for (let i = 0; i < keys.length; i++) {
+                    delete this.myTrades[keys[i]];
+                }
+            }
+            else if (topic === 'orders') {
+                const orderSymbols = Object.keys(this.orders);
+                for (let i = 0; i < orderSymbols.length; i++) {
+                    delete this.orders[orderSymbols[i]];
+                }
+            }
+            else if (topic === 'ticker') {
+                const tickerSymbols = Object.keys(this.tickers);
+                for (let i = 0; i < tickerSymbols.length; i++) {
+                    delete this.tickers[tickerSymbols[i]];
+                }
+            }
+        }
     }
 }
 

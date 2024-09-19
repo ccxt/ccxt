@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers } from './src/base/types.js'
-import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending}  from './src/base/errors.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers } from './src/base/types.js'
+import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.73';
+const version = '4.4.4';
 
 (Exchange as any).ccxtVersion = version
 
@@ -58,7 +58,6 @@ import binanceusdm from  './src/binanceusdm.js'
 import bingx from  './src/bingx.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
-import bitbay from  './src/bitbay.js'
 import bitbns from  './src/bitbns.js'
 import bitcoincom from  './src/bitcoincom.js'
 import bitfinex from  './src/bitfinex.js'
@@ -106,8 +105,8 @@ import fmfwio from  './src/fmfwio.js'
 import gate from  './src/gate.js'
 import gateio from  './src/gateio.js'
 import gemini from  './src/gemini.js'
+import hashkey from  './src/hashkey.js'
 import hitbtc from  './src/hitbtc.js'
-import hitbtc3 from  './src/hitbtc3.js'
 import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
@@ -195,6 +194,7 @@ import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
 import gateioPro from  './src/pro/gateio.js'
 import geminiPro from  './src/pro/gemini.js'
+import hashkeyPro from  './src/pro/hashkey.js'
 import hitbtcPro from  './src/pro/hitbtc.js'
 import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
@@ -242,7 +242,6 @@ const exchanges = {
     'bingx':                  bingx,
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
-    'bitbay':                 bitbay,
     'bitbns':                 bitbns,
     'bitcoincom':             bitcoincom,
     'bitfinex':               bitfinex,
@@ -290,8 +289,8 @@ const exchanges = {
     'gate':                   gate,
     'gateio':                 gateio,
     'gemini':                 gemini,
+    'hashkey':                hashkey,
     'hitbtc':                 hitbtc,
-    'hitbtc3':                hitbtc3,
     'hollaex':                hollaex,
     'htx':                    htx,
     'huobi':                  huobi,
@@ -379,6 +378,7 @@ const pro = {
     'gate':                   gatePro,
     'gateio':                 gateioPro,
     'gemini':                 geminiPro,
+    'hashkey':                hashkeyPro,
     'hitbtc':                 hitbtcPro,
     'hollaex':                hollaexPro,
     'htx':                    htxPro,
@@ -450,6 +450,7 @@ export {
     NoChange,
     MarginModeAlreadySet,
     MarketClosed,
+    ManualInteractionNeeded,
     InsufficientFunds,
     InvalidAddress,
     AddressPending,
@@ -475,6 +476,7 @@ export {
     BadResponse,
     NullResponse,
     CancelPending,
+    UnsubscribeError,
     Int,
     int,
     Str,
@@ -500,6 +502,7 @@ export {
     MinMax,
     FeeInterface,
     TradingFeeInterface,
+    MarketMarginModes,
     MarketInterface,
     Trade,
     Order,
@@ -561,7 +564,6 @@ export {
     bingx,
     bit2c,
     bitbank,
-    bitbay,
     bitbns,
     bitcoincom,
     bitfinex,
@@ -609,8 +611,8 @@ export {
     gate,
     gateio,
     gemini,
+    hashkey,
     hitbtc,
-    hitbtc3,
     hollaex,
     htx,
     huobi,

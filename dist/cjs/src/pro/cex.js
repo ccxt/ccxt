@@ -17,6 +17,7 @@ class cex extends cex$1 {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -1191,6 +1192,7 @@ class cex extends cex$1 {
          * @name cex#fetchOrderWs
          * @description fetches information on an order made by the user
          * @see https://docs.cex.io/#ws-api-get-order
+         * @param {string} id the order id
          * @param {string} symbol not used by cex fetchOrder
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

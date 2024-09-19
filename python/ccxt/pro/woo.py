@@ -28,6 +28,7 @@ class woo(ccxt.async_support.woo):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPositions': True,
             },
             'urls': {
@@ -611,7 +612,7 @@ class woo(ccxt.async_support.woo):
                 },
             }
             message = self.extend(request, params)
-            self.watch(url, messageHash, message, messageHash)
+            self.watch(url, messageHash, message, messageHash, message)
         return await future
 
     async def watch_private(self, messageHash, message, params={}):
@@ -909,7 +910,7 @@ class woo(ccxt.async_support.woo):
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)

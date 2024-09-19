@@ -47,6 +47,8 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -225,14 +227,20 @@ public partial class binance
     /// fetches the last price for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>
@@ -1685,6 +1693,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/wallet/asset/trade-fee"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1904,6 +1913,12 @@ public partial class binance
     /// string : method name to call, "positionRisk", "account" or "option", default is "positionRisk"
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.useV2</term>
+    /// <description>
+    /// bool : set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
@@ -1920,6 +1935,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1945,6 +1961,12 @@ public partial class binance
     /// boolean : set to true if you would like to filter out closed positions, default is false
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.useV2</term>
+    /// <description>
+    /// boolean : set to true if you want to use obsolete endpoint, where some more additional fields were provided
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> data on account positions.</returns>
@@ -1961,6 +1983,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1978,6 +2001,12 @@ public partial class binance
     /// <term>params.subType</term>
     /// <description>
     /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.useV2</term>
+    /// <description>
+    /// bool : set to true if you want to use the obsolete endpoint, where some more additional fields were provided
     /// </description>
     /// </item>
     /// </list>
@@ -2136,6 +2165,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2225,10 +2255,25 @@ public partial class binance
         var res = await this.fetchMySettlementHistory(symbol, since, limit, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    public async Task<LedgerEntry> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLedgerEntry(id, code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LedgerEntry(res);
     }
     /// <summary>
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -2241,6 +2286,12 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : timestamp in ms of the earliest ledger entry
@@ -2249,7 +2300,7 @@ public partial class binance
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return
+    /// int : max number of ledger entries to return
     /// </description>
     /// </item>
     /// <item>
@@ -2285,12 +2336,12 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// fetch the rate of interest to borrow a currency for margin trading
@@ -2678,6 +2729,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

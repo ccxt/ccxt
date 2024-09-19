@@ -15,6 +15,7 @@ class paradex extends paradex$1 {
                 'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': false,
                 'watchOHLCV': false,
             },
@@ -114,6 +115,7 @@ class paradex extends paradex$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
+        await this.loadMarkets();
         const market = this.market(symbol);
         const messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms';
         const url = this.urls['api']['ws'];
@@ -219,10 +221,12 @@ class paradex extends paradex$1 {
          * @method
          * @name paradex#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];

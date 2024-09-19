@@ -666,6 +666,7 @@ export default class bitvavo extends bitvavoRest {
          * @name bitvavo#fetchOrderWs
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

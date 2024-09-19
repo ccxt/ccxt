@@ -150,6 +150,12 @@ public partial class binance
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -176,6 +182,12 @@ public partial class binance
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -230,6 +242,10 @@ public partial class binance
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -247,6 +263,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
     /// </description>
     /// </item>
     /// </list>
@@ -263,6 +285,10 @@ public partial class binance
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -280,6 +306,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
     /// </description>
     /// </item>
     /// </list>
@@ -369,12 +401,12 @@ public partial class binance
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<Dictionary<string, Dictionary<string, OHLCV[]>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return ((Dictionary<string, Dictionary<string, OHLCV[]>>)res);
+        return Helper.ConvertToDictionaryOHLCVList(res);
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -427,6 +459,12 @@ public partial class binance
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -452,6 +490,12 @@ public partial class binance
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

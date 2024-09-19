@@ -11,6 +11,10 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class xt
+ * @augments Exchange
+ */
 export default class xt extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -1134,12 +1138,14 @@ export default class xt extends Exchange {
         let maxCost = undefined;
         let minPrice = undefined;
         let maxPrice = undefined;
+        let amountPrecision = undefined;
         for (let i = 0; i < filters.length; i++) {
             const entry = filters[i];
             const filter = this.safeString(entry, 'filter');
             if (filter === 'QUANTITY') {
                 minAmount = this.safeNumber(entry, 'min');
                 maxAmount = this.safeNumber(entry, 'max');
+                amountPrecision = this.safeNumber(entry, 'tickSize');
             }
             if (filter === 'QUOTE_QTY') {
                 minCost = this.safeNumber(entry, 'min');
@@ -1148,6 +1154,9 @@ export default class xt extends Exchange {
                 minPrice = this.safeNumber(entry, 'min');
                 maxPrice = this.safeNumber(entry, 'max');
             }
+        }
+        if (amountPrecision === undefined) {
+            amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision')));
         }
         const underlyingType = this.safeString(market, 'underlyingType');
         let linear = undefined;
@@ -1231,7 +1240,7 @@ export default class xt extends Exchange {
             'optionType': undefined,
             'precision': {
                 'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
-                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
+                'amount': amountPrecision,
                 'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseCoinPrecision'))),
                 'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quoteCoinPrecision'))),
             },
@@ -1371,7 +1380,7 @@ export default class xt extends Exchange {
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
             this.safeNumber(ohlcv, 'c'),
-            this.safeNumber2(ohlcv, volumeIndex, 'v'),
+            this.safeNumber2(ohlcv, 'q', volumeIndex),
         ];
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -2105,7 +2114,6 @@ export default class xt extends Exchange {
             'fee': {
                 'currency': this.safeCurrencyCode(this.safeString2(trade, 'feeCurrency', 'feeCoin')),
                 'cost': this.safeString(trade, 'fee'),
-                'rate': undefined,
             },
         }, market);
     }
@@ -3592,8 +3600,10 @@ export default class xt extends Exchange {
         const side = this.safeString(item, 'side');
         const direction = (side === 'ADD') ? 'in' : 'out';
         const currencyId = this.safeString(item, 'coin');
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'createdTime');
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'id'),
             'direction': direction,
             'account': undefined,
@@ -3611,8 +3621,7 @@ export default class xt extends Exchange {
                 'currency': undefined,
                 'cost': undefined,
             },
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {

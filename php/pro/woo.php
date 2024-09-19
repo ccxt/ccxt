@@ -26,6 +26,7 @@ class woo extends \ccxt\async\woo {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPositions' => true,
             ),
             'urls' => array(
@@ -668,7 +669,7 @@ class woo extends \ccxt\async\woo {
                     ),
                 );
                 $message = $this->extend($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
+                $this->watch($url, $messageHash, $message, $messageHash, $message);
             }
             return Async\await($future);
         }) ();
@@ -1004,7 +1005,7 @@ class woo extends \ccxt\async\woo {
             $client = $this->client($url);
             $this->set_positions_cache($client, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);

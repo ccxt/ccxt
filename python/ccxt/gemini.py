@@ -199,6 +199,7 @@ class gemini(Exchange, ImplicitAPI):
                         'v1/account/create': 1,
                         'v1/account/list': 1,
                         'v1/heartbeat': 1,
+                        'v1/roles': 1,
                     },
                 },
             },
@@ -812,8 +813,9 @@ class gemini(Exchange, ImplicitAPI):
         return self.parse_ticker(response, market)
 
     def fetch_ticker_v1_and_v2(self, symbol: str, params={}):
-        tickerA = self.fetch_ticker_v1(symbol, params)
-        tickerB = self.fetch_ticker_v2(symbol, params)
+        tickerPromiseA = self.fetch_ticker_v1(symbol, params)
+        tickerPromiseB = self.fetch_ticker_v2(symbol, params)
+        tickerA, tickerB = [tickerPromiseA, tickerPromiseB]
         return self.deep_extend(tickerA, {
             'open': tickerB['open'],
             'high': tickerB['high'],

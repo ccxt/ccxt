@@ -16,7 +16,6 @@ export default class bitrue extends Exchange {
         info: any;
     }>;
     fetchTime(params?: {}): Promise<number>;
-    safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;

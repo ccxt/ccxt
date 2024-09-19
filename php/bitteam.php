@@ -1920,7 +1920,6 @@ class bitteam extends Exchange {
         $fee = array(
             'currency' => $this->safe_currency_code($feeCurrencyId),
             'cost' => $feeCost,
-            'rate' => null,
         );
         $intTs = $this->parse_to_int($timestamp);
         return $this->safe_trade(array(

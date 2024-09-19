@@ -794,8 +794,23 @@ class whitebit(Exchange, ImplicitAPI):
         #        "change": "2.12"  # in percent
         #    }
         #
+        # WS market_update
+        #
+        #     {
+        #         "open": "52853.04",
+        #         "close": "55913.88",
+        #         "high": "56272",
+        #         "low": "49549.67",
+        #         "volume": "57331.067185",
+        #         "deal": "3063860382.42985338",
+        #         "last": "55913.88",
+        #         "period": 86400
+        #     }
         market = self.safe_market(None, market)
-        last = self.safe_string(ticker, 'last_price')
+        # last price is provided as "last" or "last_price"
+        last = self.safe_string_2(ticker, 'last', 'last_price')
+        # if "close" is provided, use it, otherwise use <last>
+        close = self.safe_string(ticker, 'close', last)
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': None,
@@ -808,7 +823,7 @@ class whitebit(Exchange, ImplicitAPI):
             'askVolume': None,
             'vwap': None,
             'open': self.safe_string(ticker, 'open'),
-            'close': last,
+            'close': close,
             'last': last,
             'previousClose': None,
             'change': None,
@@ -1506,19 +1521,18 @@ class whitebit(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
         :see: https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'market': market['id'],
-        }
+        market = None
+        request: dict = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
         if limit is not None:
             request['limit'] = min(limit, 100)
         response = await self.v4PrivatePostOrders(self.extend(request, params))
@@ -2457,9 +2471,11 @@ class whitebit(Exchange, ImplicitAPI):
                 if hasErrorStatus:
                     errorInfo = status
                 else:
-                    errorObject = self.safe_value(response, 'errors')
-                    if errorObject is not None:
-                        errorKey = list(errorObject.keys())[0]
+                    errorObject = self.safe_dict(response, 'errors', {})
+                    errorKeys = list(errorObject.keys())
+                    errorsLength = len(errorKeys)
+                    if errorsLength > 0:
+                        errorKey = errorKeys[0]
                         errorMessageArray = self.safe_value(errorObject, errorKey, [])
                         errorMessageLength = len(errorMessageArray)
                         errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body

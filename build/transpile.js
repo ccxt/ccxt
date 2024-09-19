@@ -787,6 +787,7 @@ class Transpiler {
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
+            'LedgerEntry': /-> LedgerEntry:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
             'LeverageTier': /-> (?:List\[)?LeverageTier/,
@@ -797,6 +798,7 @@ class Transpiler {
             'MarginModification': /-> MarginModification:/,
             'Market': /(-> Market:|: Market)/,
             'MarketInterface': /-> MarketInterface:/,
+            'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
             'Num': /: (?:List\[)?Num =/,
             'Option': /-> Option:/,
@@ -1472,7 +1474,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -2699,7 +2701,7 @@ if (isMainEntry(import.meta.url)) {
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
-        transpiler.transpileErrorHierarchy ({ tsFilename })
+        transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds, undefined, force)
     } else {

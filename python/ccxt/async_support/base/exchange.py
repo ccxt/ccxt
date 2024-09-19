@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.73'
+__version__ = '4.4.4'
 
 # -----------------------------------------------------------------------------
 
@@ -65,6 +65,7 @@ class Exchange(BaseExchange):
     ping = None
     newUpdates = True
     clients = {}
+    timeout_on_exit = 250  # needed for: https://github.com/ccxt/ccxt/pull/23470
 
     def __init__(self, config={}):
         if 'asyncio_loop' in config:
@@ -114,8 +115,8 @@ class Exchange(BaseExchange):
 
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
-            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+            self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
+            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
         await self.ws_close()
@@ -123,7 +124,17 @@ class Exchange(BaseExchange):
             if self.own_session:
                 await self.session.close()
             self.session = None
+        await self.close_connector()
         await self.close_proxy_sessions()
+        await self.sleep(self.timeout_on_exit)
+
+    async def close_connector(self):
+        if self.tcp_connector is not None:
+            await self.tcp_connector.close()
+            self.tcp_connector = None
+        if self.aiohttp_socks_connector is not None:
+            await self.aiohttp_socks_connector.close()
+            self.aiohttp_socks_connector = None
 
     async def close_proxy_sessions(self):
         if self.socks_proxy_sessions is not None:
@@ -153,20 +164,20 @@ class Exchange(BaseExchange):
         elif socksProxy:
             if ProxyConnector is None:
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
-            # Create our SSL context object with our CA cert file
-            self.open()  # ensure `asyncio_loop` is set
-            connector = ProxyConnector.from_url(
-                socksProxy,
-                # extra args copied from self.open()
-                ssl=self.ssl_context,
-                loop=self.asyncio_loop,
-                enable_cleanup_closed=True
-            )
             # override session
             if (self.socks_proxy_sessions is None):
                 self.socks_proxy_sessions = {}
             if (socksProxy not in self.socks_proxy_sessions):
-                self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+                # Create our SSL context object with our CA cert file
+                self.open()  # ensure `asyncio_loop` is set
+                self.aiohttp_socks_connector = ProxyConnector.from_url(
+                    socksProxy,
+                    # extra args copied from self.open()
+                    ssl=self.ssl_context,
+                    loop=self.asyncio_loop,
+                    enable_cleanup_closed=True
+                )
+                self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
             proxy_session = self.socks_proxy_sessions[socksProxy]
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
@@ -570,7 +581,7 @@ class Exchange(BaseExchange):
 
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         if self.has['watchLiquidationsForSymbols']:
-            return self.watch_liquidations_for_symbols([symbol], since, limit, params)
+            return await self.watch_liquidations_for_symbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchLiquidations() is not supported yet')
 
     async def watch_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
@@ -874,9 +885,6 @@ class Exchange(BaseExchange):
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         await self.cancel_order_ws(id, symbol)
         return await self.create_order_ws(symbol, type, side, amount, price, params)
-
-    async def fetch_permissions(self, params={}):
-        raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
@@ -1792,7 +1800,7 @@ class Exchange(BaseExchange):
                     errors = 0
                     result = self.array_concat(result, response)
                     last = self.safe_value(response, responseLength - 1)
-                    paginationTimestamp = self.safe_integer(last, 'timestamp') - 1
+                    paginationTimestamp = self.safe_integer(last, 'timestamp') + 1
                     if (until is not None) and (paginationTimestamp >= until):
                         break
             except Exception as e:
@@ -1873,7 +1881,7 @@ class Exchange(BaseExchange):
                 response = None
                 if method == 'fetchAccounts':
                     response = await getattr(self, method)(params)
-                elif method == 'getLeverageTiersPaginated':
+                elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = await getattr(self, method)(symbol, params)
                 else:
                     response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
@@ -1945,7 +1953,7 @@ class Exchange(BaseExchange):
         """
         if self.has['fetchPositionsHistory']:
             positions = await self.fetch_positions_history([symbol], since, limit, params)
-            return self.safe_dict(positions, 0)
+            return positions
         else:
             raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
 

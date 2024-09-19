@@ -1770,17 +1770,19 @@ export default class krakenfutures extends Exchange {
                 }
                 // Final order (after placement / editing / execution / canceling)
                 const orderTrigger = this.safeValue(item, 'orderTrigger');
-                details = this.safeValue2(item, 'new', 'order', orderTrigger);
-                if (details !== undefined) {
-                    isPrior = false;
-                    fixed = true;
-                }
-                else if (!fixed) {
-                    const orderPriorExecution = this.safeValue(item, 'orderPriorExecution');
-                    details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
-                    price = this.safeString(orderPriorExecution, 'limitPrice');
+                if (details === undefined) {
+                    details = this.safeValue2(item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {
-                        isPrior = true;
+                        isPrior = false;
+                        fixed = true;
+                    }
+                    else if (!fixed) {
+                        const orderPriorExecution = this.safeValue(item, 'orderPriorExecution');
+                        details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
+                        price = this.safeString(orderPriorExecution, 'limitPrice');
+                        if (details !== undefined) {
+                            isPrior = true;
+                        }
                     }
                 }
             }

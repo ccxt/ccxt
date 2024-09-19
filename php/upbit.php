@@ -1973,7 +1973,7 @@ class upbit extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
             if ($hasQuery) {
-                $auth = $this->urlencode($query);
+                $auth = $this->rawencode($query);
             }
             if ($auth !== null) {
                 $hash = $this->hash($this->encode($auth), 'sha512');

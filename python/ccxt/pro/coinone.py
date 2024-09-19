@@ -20,6 +20,7 @@ class coinone(ccxt.async_support.coinone):
                 'watchOrderBook': True,
                 'watchOrders': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOHLCV': False,
                 'watchTicker': True,
                 'watchTickers': False,

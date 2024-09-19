@@ -224,6 +224,11 @@ function exception_message($exc) {
     return substr($final_message, 0, LOG_CHARS_LENGTH);
 }
 
+// stub for c#
+function get_root_exception($exc) {
+    return $exc;
+}
+
 function exit_script($code = 0) {
     exit($code);
 }

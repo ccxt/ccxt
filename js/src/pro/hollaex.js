@@ -23,6 +23,7 @@ export default class hollaex extends hollaexRest {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {

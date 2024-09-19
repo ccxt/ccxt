@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1454,7 +1454,7 @@ export default class htx extends Exchange {
     async fetchTime (params = {}) {
         /**
          * @method
-         * @name huobi#fetchTime
+         * @name htx#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
@@ -1505,7 +1505,7 @@ export default class htx extends Exchange {
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
-         * @name huobi#fetchTradingFee
+         * @name htx#fetchTradingFee
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1611,7 +1611,7 @@ export default class htx extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
-         * @name huobi#fetchMarkets
+         * @name htx#fetchMarkets
          * @description retrieves data on all markets for huobi
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
@@ -2070,7 +2070,7 @@ export default class htx extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name huobi#fetchTicker
+         * @name htx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2149,7 +2149,7 @@ export default class htx extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name huobi#fetchTickers
+         * @name htx#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
@@ -2261,7 +2261,7 @@ export default class htx extends Exchange {
     async fetchLastPrices (symbols: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name binance#fetchLastPrices
+         * @name htx#fetchLastPrices
          * @description fetches the last price for multiple markets
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
@@ -2381,7 +2381,7 @@ export default class htx extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name huobi#fetchOrderBook
+         * @name htx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -2609,7 +2609,7 @@ export default class htx extends Exchange {
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchOrderTrades
+         * @name htx#fetchOrderTrades
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
@@ -2642,7 +2642,7 @@ export default class htx extends Exchange {
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchMyTrades
+         * @name htx#fetchMyTrades
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
          * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
@@ -2811,7 +2811,7 @@ export default class htx extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = 1000, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name huobi#fetchTrades
+         * @name htx#fetchTrades
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
          * @see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
@@ -2915,7 +2915,7 @@ export default class htx extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
-         * @name huobi#fetchOHLCV
+         * @name htx#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
          * @see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
@@ -3062,7 +3062,7 @@ export default class htx extends Exchange {
     async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
-         * @name huobi#fetchAccounts
+         * @name htx#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
@@ -3136,7 +3136,7 @@ export default class htx extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
-         * @name huobi#fetchCurrencies
+         * @name htx#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
@@ -3303,7 +3303,7 @@ export default class htx extends Exchange {
     async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name huobi#fetchBalance
+         * @name htx#fetchBalance
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
@@ -3627,7 +3627,7 @@ export default class htx extends Exchange {
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchOrder
+         * @name htx#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4171,7 +4171,7 @@ export default class htx extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name huobi#fetchOrders
+         * @name htx#fetchOrders
          * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
          * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
@@ -4210,7 +4210,7 @@ export default class htx extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name huobi#fetchClosedOrders
+         * @name htx#fetchClosedOrders
          * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
          * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
@@ -4248,7 +4248,7 @@ export default class htx extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name huobi#fetchOpenOrders
+         * @name htx#fetchOpenOrders
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
@@ -5276,7 +5276,7 @@ export default class htx extends Exchange {
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#createOrder
+         * @name htx#createOrder
          * @description create a trade order
          * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
@@ -5576,7 +5576,7 @@ export default class htx extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#cancelOrder
+         * @name htx#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -5715,7 +5715,7 @@ export default class htx extends Exchange {
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#cancelOrders
+         * @name htx#cancelOrders
          * @description cancel multiple orders
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
@@ -5939,7 +5939,7 @@ export default class htx extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#cancelAllOrders
+         * @name htx#cancelAllOrders
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6071,7 +6071,7 @@ export default class htx extends Exchange {
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
         /**
          * @method
-         * @name huobi#cancelAllOrdersAfter
+         * @name htx#cancelAllOrdersAfter
          * @description dead man's switch, cancel all orders after the given timeout
          * @see https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
          * @param {number} timeout time in milliseconds, 0 represents cancel the timer
@@ -6126,7 +6126,8 @@ export default class htx extends Exchange {
     async fetchDepositAddressesByNetwork (code: string, params = {}) {
         /**
          * @method
-         * @name huobi#fetchDepositAddressesByNetwork
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+         * @name htx#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6159,7 +6160,8 @@ export default class htx extends Exchange {
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
-         * @name huobi#fetchDepositAddress
+         * @name htx#fetchDepositAddress
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6211,7 +6213,8 @@ export default class htx extends Exchange {
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name huobi#fetchDeposits
+         * @name htx#fetchDeposits
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
          * @description fetch all deposits made to an account
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -6271,7 +6274,7 @@ export default class htx extends Exchange {
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name huobi#fetchWithdrawals
+         * @name htx#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -6449,7 +6452,8 @@ export default class htx extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#withdraw
+         * @name htx#withdraw
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
@@ -6534,7 +6538,7 @@ export default class htx extends Exchange {
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         /**
          * @method
-         * @name huobi#transfer
+         * @name htx#transfer
          * @description transfer currency internally between wallets on the same account
          * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
          * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
@@ -6711,7 +6715,7 @@ export default class htx extends Exchange {
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchFundingRateHistory
+         * @name htx#fetchFundingRateHistory
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
          * @description fetches historical funding rate prices
@@ -6832,7 +6836,7 @@ export default class htx extends Exchange {
     async fetchFundingRate (symbol: string, params = {}) {
         /**
          * @method
-         * @name huobi#fetchFundingRate
+         * @name htx#fetchFundingRate
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6873,7 +6877,7 @@ export default class htx extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchFundingRates
+         * @name htx#fetchFundingRates
          * @description fetch the funding rate for multiple markets
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6923,7 +6927,7 @@ export default class htx extends Exchange {
     async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchBorrowInterest
+         * @name htx#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
          * @param {string} code unified currency code
          * @param {string} symbol unified market symbol when fetch interest in isolated markets
@@ -7203,7 +7207,7 @@ export default class htx extends Exchange {
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchFundingHistory
+         * @name htx#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
          * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
@@ -7292,7 +7296,7 @@ export default class htx extends Exchange {
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#setLeverage
+         * @name htx#setLeverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
@@ -7463,7 +7467,7 @@ export default class htx extends Exchange {
             'entryPrice': entryPrice,
             'collateral': this.parseNumber (collateral),
             'side': side,
-            'unrealizedProfit': unrealizedProfit,
+            'unrealizedPnl': unrealizedProfit,
             'leverage': this.parseNumber (leverage),
             'percentage': this.parseNumber (percentage),
             'marginMode': marginMode,
@@ -7488,7 +7492,7 @@ export default class htx extends Exchange {
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchPositions
+         * @name htx#fetchPositions
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7628,7 +7632,7 @@ export default class htx extends Exchange {
     async fetchPosition (symbol: string, params = {}) {
         /**
          * @method
-         * @name huobi#fetchPosition
+         * @name htx#fetchPosition
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7901,7 +7905,7 @@ export default class htx extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "accountId": 10000001,
@@ -7915,54 +7919,51 @@ export default class htx extends Exchange {
         //         "transferee": 13496526
         //     }
         //
-        const id = this.safeString (item, 'transactId');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeNumber (item, 'transactAmt');
+        currency = this.safeCurrency (currencyId, currency);
+        const id = this.safeString (item, 'transactId');
         const transferType = this.safeString (item, 'transferType');
-        const type = this.parseLedgerEntryType (transferType);
-        const direction = this.safeString (item, 'direction');
         const timestamp = this.safeInteger (item, 'transactTime');
-        const datetime = this.iso8601 (timestamp);
         const account = this.safeString (item, 'accountId');
-        return {
+        return this.safeLedgerEntry ({
+            'info': item,
             'id': id,
-            'direction': direction,
+            'direction': this.safeString (item, 'direction'),
             'account': account,
             'referenceId': id,
             'referenceAccount': account,
-            'type': type,
+            'type': this.parseLedgerEntryType (transferType),
             'currency': code,
-            'amount': amount,
+            'amount': this.safeNumber (item, 'transactAmt'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'before': undefined,
             'after': undefined,
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency) as LedgerEntry;
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
-         * @name huobi#fetchLedger
+         * @name htx#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 500);
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 500) as LedgerEntry[];
         }
         const accountId = await this.fetchAccountIdByType ('spot', undefined, undefined, params);
         let request: Dict = {
@@ -8027,7 +8028,7 @@ export default class htx extends Exchange {
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         /**
          * @method
-         * @name huobi#fetchLeverageTiers
+         * @name htx#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8071,7 +8072,7 @@ export default class htx extends Exchange {
     async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         /**
          * @method
-         * @name huobi#fetchMarketLeverageTiers
+         * @name htx#fetchMarketLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8158,7 +8159,7 @@ export default class htx extends Exchange {
     async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchOpenInterestHistory
+         * @name htx#fetchOpenInterestHistory
          * @description Retrieves the open interest history of a currency
          * @see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
@@ -8276,7 +8277,7 @@ export default class htx extends Exchange {
     async fetchOpenInterest (symbol: string, params = {}) {
         /**
          * @method
-         * @name huobi#fetchOpenInterest
+         * @name htx#fetchOpenInterest
          * @description Retrieves the open interest of a currency
          * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
@@ -8450,7 +8451,7 @@ export default class htx extends Exchange {
     async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         /**
          * @method
-         * @name huobi#borrowIsolatedMargin
+         * @name htx#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
@@ -8486,7 +8487,7 @@ export default class htx extends Exchange {
     async borrowCrossMargin (code: string, amount: number, params = {}) {
         /**
          * @method
-         * @name huobi#borrowCrossMargin
+         * @name htx#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
@@ -8519,7 +8520,7 @@ export default class htx extends Exchange {
     async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name huobi#repayIsolatedMargin
+         * @name htx#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
          * @param {string} code unified currency code of the currency to repay
@@ -8560,7 +8561,7 @@ export default class htx extends Exchange {
     async repayCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name huobi#repayCrossMargin
+         * @name htx#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
          * @param {string} code unified currency code of the currency to repay
@@ -8633,7 +8634,7 @@ export default class htx extends Exchange {
     async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchSettlementHistory
+         * @name htx#fetchSettlementHistory
          * @description Fetches historical settlement records
          * @param {string} symbol unified symbol of the market to fetch the settlement history for
          * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
@@ -8736,7 +8737,7 @@ export default class htx extends Exchange {
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchDepositWithdrawFees
+         * @name htx#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
          * @param {string[]|undefined} codes list of unified currency codes
@@ -8948,7 +8949,7 @@ export default class htx extends Exchange {
     async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#fetchLiquidations
+         * @name htx#fetchLiquidations
          * @description retrieves the public liquidations of a trading pair
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new

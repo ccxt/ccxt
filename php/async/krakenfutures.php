@@ -1779,16 +1779,18 @@ class krakenfutures extends Exchange {
                 }
                 // Final $order (after placement / editing / execution / canceling)
                 $orderTrigger = $this->safe_value($item, 'orderTrigger');
-                $details = $this->safe_value_2($item, 'new', 'order', $orderTrigger);
-                if ($details !== null) {
-                    $isPrior = false;
-                    $fixed = true;
-                } elseif (!$fixed) {
-                    $orderPriorExecution = $this->safe_value($item, 'orderPriorExecution');
-                    $details = $this->safe_value_2($item, 'orderPriorExecution', 'orderPriorEdit');
-                    $price = $this->safe_string($orderPriorExecution, 'limitPrice');
+                if ($details === null) {
+                    $details = $this->safe_value_2($item, 'new', 'order', $orderTrigger);
                     if ($details !== null) {
-                        $isPrior = true;
+                        $isPrior = false;
+                        $fixed = true;
+                    } elseif (!$fixed) {
+                        $orderPriorExecution = $this->safe_value($item, 'orderPriorExecution');
+                        $details = $this->safe_value_2($item, 'orderPriorExecution', 'orderPriorEdit');
+                        $price = $this->safe_string($orderPriorExecution, 'limitPrice');
+                        if ($details !== null) {
+                            $isPrior = true;
+                        }
                     }
                 }
             }

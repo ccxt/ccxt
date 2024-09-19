@@ -20,6 +20,7 @@ class paradex extends \ccxt\async\paradex {
                 'watchOrderBook' => true,
                 'watchOrders' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => false,
                 'watchOHLCV' => false,
             ),
@@ -120,6 +121,7 @@ class paradex extends \ccxt\async\paradex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
+            Async\await($this->load_markets());
             $market = $this->market($symbol);
             $messageHash = 'order_book.' . $market['id'] . '.snapshot@15@100ms';
             $url = $this->urls['api']['ws'];
@@ -227,10 +229,12 @@ class paradex extends \ccxt\async\paradex {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $channel = 'markets_summary';
             $url = $this->urls['api']['ws'];

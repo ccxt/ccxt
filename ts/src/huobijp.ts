@@ -1677,16 +1677,6 @@ export default class huobijp extends Exchange {
         return this.decimalToPrecision (fee, 0, this.currencies[code]['precision'], this.precisionMode);
     }
 
-    safeNetwork (networkId) {
-        const lastCharacterIndex = networkId.length - 1;
-        const lastCharacter = networkId[lastCharacterIndex];
-        if (lastCharacter === '1') {
-            networkId = networkId.slice (0, lastCharacterIndex);
-        }
-        const networksById: Dict = {};
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {

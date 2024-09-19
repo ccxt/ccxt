@@ -471,8 +471,8 @@ public partial class alpaca : Exchange
         //       }
         //   }
         //
-        object orderbooks = this.safeValue(response, "orderbooks", new Dictionary<string, object>() {});
-        object rawOrderbook = this.safeValue(orderbooks, id, new Dictionary<string, object>() {});
+        object orderbooks = this.safeDict(response, "orderbooks", new Dictionary<string, object>() {});
+        object rawOrderbook = this.safeDict(orderbooks, id, new Dictionary<string, object>() {});
         object timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
         return this.parseOrderBook(rawOrderbook, getValue(market, "symbol"), timestamp, "b", "a", "p", "s");
     }
@@ -753,6 +753,7 @@ public partial class alpaca : Exchange
         * @name alpaca#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.alpaca.markets/reference/getorderbyorderid
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

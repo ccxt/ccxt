@@ -266,6 +266,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("publicGetV5InsLoanEnsureTokensConvert",parameters);
     }
 
+    public async Task<object> privateGetV5MarketInstrumentsInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5MarketInstrumentsInfo",parameters);
+    }
+
     public async Task<object> privateGetV2PrivateWalletFundRecords (object parameters = null)
     {
         return await this.callAsync ("privateGetV2PrivateWalletFundRecords",parameters);

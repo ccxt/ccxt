@@ -21,6 +21,7 @@ class paradex(ccxt.async_support.paradex):
                 'watchOrderBook': True,
                 'watchOrders': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': False,
                 'watchOHLCV': False,
             },
@@ -112,6 +113,7 @@ class paradex(ccxt.async_support.paradex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
+        await self.load_markets()
         market = self.market(symbol)
         messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms'
         url = self.urls['api']['ws']
@@ -209,10 +211,12 @@ class paradex(ccxt.async_support.paradex):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :see: https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'markets_summary'
         url = self.urls['api']['ws']

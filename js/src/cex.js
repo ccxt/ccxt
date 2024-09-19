@@ -1219,6 +1219,7 @@ export default class cex extends Exchange {
          * @name cex#fetchOrder
          * @see https://docs.cex.io/?python#get-order-details
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol not used by cex fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

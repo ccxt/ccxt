@@ -876,7 +876,6 @@ class kuna extends Exchange {
             'fee' => array(
                 'cost' => $this->safe_string($trade, 'fee'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
-                'rate' => null,
             ),
         ), $market);
     }

@@ -1564,14 +1564,6 @@ class huobijp(Exchange, ImplicitAPI):
     def currency_to_precision(self, code, fee, networkCode=None):
         return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], self.precisionMode)
 
-    def safe_network(self, networkId):
-        lastCharacterIndex = len(networkId) - 1
-        lastCharacter = networkId[lastCharacterIndex]
-        if lastCharacter == '1':
-            networkId = networkId[0:lastCharacterIndex]
-        networksById: dict = {}
-        return self.safe_string(networksById, networkId, networkId)
-
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {

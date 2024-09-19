@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -626,6 +626,7 @@ class gate(Exchange, ImplicitAPI):
                 'MPH': 'MORPHER',  # conflict with 88MPH
                 'POINT': 'GATEPOINT',
                 'RAI': 'RAIREFLEXINDEX',  # conflict with RAI Finance
+                'RED': 'RedLang',
                 'SBTC': 'SUPERBITCOIN',
                 'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',
@@ -994,8 +995,9 @@ class gate(Exchange, ImplicitAPI):
         return self.array_concat(markets, optionMarkets)
 
     async def fetch_spot_markets(self, params={}):
-        marginResponse = await self.publicMarginGetCurrencyPairs(params)
-        spotMarketsResponse = await self.publicSpotGetCurrencyPairs(params)
+        marginPromise = self.publicMarginGetCurrencyPairs(params)
+        spotMarketsPromise = self.publicSpotGetCurrencyPairs(params)
+        marginResponse, spotMarketsResponse = await asyncio.gather(*[marginPromise, spotMarketsPromise])
         marginMarkets = self.index_by(marginResponse, 'id')
         #
         #  Spot
@@ -3294,8 +3296,8 @@ class gate(Exchange, ImplicitAPI):
         side = self.safe_string_2(trade, 'side', 'type', contractSide)
         orderId = self.safe_string(trade, 'order_id')
         feeAmount = self.safe_string(trade, 'fee')
-        gtFee = self.safe_string(trade, 'gt_fee')
-        pointFee = self.safe_string(trade, 'point_fee')
+        gtFee = self.omit_zero(self.safe_string(trade, 'gt_fee'))
+        pointFee = self.omit_zero(self.safe_string(trade, 'point_fee'))
         fees = []
         if feeAmount is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
@@ -3785,7 +3787,7 @@ class gate(Exchange, ImplicitAPI):
                 if not market['option']:
                     request['settle'] = market['settleId']  # filled in prepareRequest above
                 if isMarketOrder:
-                    request['price'] = price  # set to 0 for market orders
+                    request['price'] = '0'  # set to 0 for market orders
                 else:
                     request['price'] = '0' if (price == 0) else self.price_to_precision(symbol, price)
                 if reduceOnly is not None:
@@ -3969,9 +3971,9 @@ class gate(Exchange, ImplicitAPI):
                 request['amount'] = self.amount_to_precision(symbol, amount)
             else:
                 if side == 'sell':
-                    request['size'] = Precise.string_neg(self.amount_to_precision(symbol, amount))
+                    request['size'] = self.parse_to_numeric(Precise.string_neg(self.amount_to_precision(symbol, amount)))
                 else:
-                    request['size'] = self.amount_to_precision(symbol, amount)
+                    request['size'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         if not market['spot']:
@@ -6137,7 +6139,7 @@ class gate(Exchange, ImplicitAPI):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://www.gate.io/docs/developers/apiv4/en/#query-account-book
@@ -6145,12 +6147,12 @@ class gate(Exchange, ImplicitAPI):
         :see: https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
         :see: https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
-        :param str code: unified currency code
+        :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in ms
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
@@ -6241,7 +6243,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         # spot
         #
@@ -6294,6 +6296,7 @@ class gate(Exchange, ImplicitAPI):
         else:
             direction = 'in'
         currencyId = self.safe_string(item, 'currency')
+        currency = self.safe_currency(currencyId, currency)
         type = self.safe_string(item, 'type')
         rawTimestamp = self.safe_string(item, 'time')
         timestamp = None
@@ -6304,7 +6307,8 @@ class gate(Exchange, ImplicitAPI):
         balanceString = self.safe_string(item, 'balance')
         changeString = self.safe_string(item, 'change')
         before = self.parse_number(Precise.string_sub(balanceString, changeString))
-        return {
+        return self.safe_ledger_entry({
+            'info': item,
             'id': self.safe_string(item, 'id'),
             'direction': direction,
             'account': None,
@@ -6319,8 +6323,7 @@ class gate(Exchange, ImplicitAPI):
             'after': self.safe_number(item, 'balance'),
             'status': None,
             'fee': None,
-            'info': item,
-        }
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         ledgerType: dict = {

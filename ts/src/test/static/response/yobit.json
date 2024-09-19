@@ -158,7 +158,7 @@
                         "price": 85.75,
                         "amount": 0.00005714,
                         "cost": 0.004899755,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "type": "bid",
                             "price": "85.75",

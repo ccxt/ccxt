@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, Int, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -155,7 +155,7 @@ class woo(Exchange, ImplicitAPI):
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
                 'referral': {
-                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'url': 'https://x.woo.org/register?ref=DIJT0CNL',
                     'discount': 0.35,
                 },
             },
@@ -481,7 +481,7 @@ class woo(Exchange, ImplicitAPI):
             'swap': swap,
             'future': False,
             'option': False,
-            'active': None,
+            'active': self.safe_string(market, 'is_trading') == '1',
             'contract': contract,
             'linear': linear,
             'inverse': None,
@@ -603,6 +603,9 @@ class woo(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'executed_quantity')
         order_id = self.safe_string(trade, 'order_id')
         fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
+        feeCost = self.safe_string(fee, 'cost')
+        if feeCost is not None:
+            fee['cost'] = feeCost
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')
@@ -1273,6 +1276,7 @@ class woo(Exchange, ImplicitAPI):
         :see: https://docs.woo.org/#get-algo-order
         :see: https://docs.woo.org/#get-order
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.stop]: whether the order is a stop/algo order
@@ -1987,29 +1991,31 @@ class woo(Exchange, ImplicitAPI):
         # }
         return [currency, self.safe_list(response, 'rows', [])]
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://docs.woo.org/#get-asset-history
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         currency, rows = self.get_asset_history_rows(code, since, limit, params)
         return self.parse_ledger(rows, currency, since, limit, params)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         networkizedCode = self.safe_string(item, 'token')
         currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
         code = currencyDefined['code']
+        currency = self.safe_currency(code, currency)
         amount = self.safe_number(item, 'amount')
         side = self.safe_string(item, 'token_side')
         direction = 'in' if (side == 'DEPOSIT') else 'out'
         timestamp = self.safe_timestamp(item, 'created_time')
         fee = self.parse_token_and_fee_temp(item, 'fee_token', 'fee_amount')
-        return {
+        return self.safe_ledger_entry({
+            'info': item,
             'id': self.safe_string(item, 'id'),
             'currency': code,
             'account': self.safe_string(item, 'account'),
@@ -2019,13 +2025,12 @@ class woo(Exchange, ImplicitAPI):
             'amount': amount,
             'before': None,
             'after': None,
-            'fee': fee,
             'direction': direction,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
-            'info': item,
-        }
+            'fee': fee,
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         types: dict = {

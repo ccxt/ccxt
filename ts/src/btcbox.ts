@@ -585,6 +585,7 @@ export default class btcbox extends Exchange {
          * @name btcbox#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://blog.btcbox.jp/en/archives/8762#toc16
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
