@@ -149,6 +149,10 @@ func (e *Exchange) Encode(data interface{}) string {
 	return data.(string) // stub
 }
 
+func Encode(data interface{}) string {
+	return data.(string) // stub
+}
+
 func (e *Exchange) Decode(data interface{}) string {
 	return data.(string) // stub
 }

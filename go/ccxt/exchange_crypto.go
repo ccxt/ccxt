@@ -315,9 +315,13 @@ func Rsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) 
 }
 
 func Eddsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
-	return ""
+	return "" // to do
 }
 
 func Ecdsa(request interface{}, secret interface{}, alg interface{}, hash interface{}) string {
-	return ""
+	return "" // to do
+}
+
+func Crc32(request2 interface{}, encode bool) interface{} {
+	return "" // to do
 }

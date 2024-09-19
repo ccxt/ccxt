@@ -128,3 +128,53 @@ func Equals(a interface{}, b interface{}) bool {
 	// Fallback comparison using reflect.DeepEqual for other types
 	return reflect.DeepEqual(a, b)
 }
+
+// CRYPTO HELPERS
+
+func Encode(data interface{}) string {
+	return ccxt.Encode(data)
+}
+
+func Hash(request2 interface{}, hash func() string, digest2 interface{}) interface{} {
+	return ccxt.Hash(request2, hash, digest2)
+}
+
+func Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, digest string) interface{} {
+	return ccxt.Hmac(request2, secret2, algorithm2, digest)
+}
+
+func sha256() string {
+	return "sha256"
+}
+
+func md5() string {
+	return "md5"
+}
+
+func sha1() string {
+	return "sha1"
+}
+
+func secp256k1() string {
+	return "secp256k1"
+}
+
+func Ecdsa(request2 interface{}, secret2 interface{}, algorithm2 func() string, digest interface{}) interface{} {
+	return ccxt.Ecdsa(request2, secret2, algorithm2, digest)
+}
+
+func Rsa(request2 interface{}, secret2 interface{}, algorithm2 func() string) interface{} {
+	return ccxt.Rsa(request2, secret2, algorithm2)
+}
+
+func Jwt(request2 interface{}, secret2 interface{}, algorithm2 func() string, encode bool) interface{} {
+	return ccxt.Jwt(request2, secret2, algorithm2, encode)
+}
+
+func Crc32(request2 interface{}, encode bool) interface{} {
+	return ccxt.Crc32(request2, encode)
+}
+
+func Join(interfaceArray interface{}, separator string) string {
+	return ccxt.Join(interfaceArray, separator)
+}

@@ -975,7 +975,7 @@ class NewTranspiler {
         // transpile using webworker
         const allFilesPath = exchanges.map (file => jsFolder + file );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
-        log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
+        log.blue('[go] Transpiling [', exchanges.join(', '), ']');
         const transpiledFiles =  allFilesPath.map(file => this.transpiler.transpileGoByPath(file));
 
         if (!ws) {
@@ -1158,39 +1158,32 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpileCryptoTestsToCSharp (outDir: string) {
+    transpileCryptoTestsToGo (outDir: string) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
-        const csharpFile = `${outDir}/Cryptography.go`;
+        const goFile = `${outDir}/test.cryptography.go`;
 
-        log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
+        log.magenta ('[go] Transpiling from', (jsFile as any).yellow)
 
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
+        const csharp = this.transpiler.transpileGoByPath(jsFile);
         let content = csharp.content;
         content = this.regexAll (content, [
-            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-            [/assert/g, 'Assert'],
+            [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
+            [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
             // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim ()
 
-        const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
 
 
         const file = [
-            'using ccxt;',
-            'namespace Tests;',
-            '',
+            'package base',
             this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
-            contentIdented,
-            '}',
+            content
         ].join('\n')
 
-        log.magenta ('→', (csharpFile as any).yellow)
+        log.magenta ('→', (goFile as any).yellow)
 
-        overwriteFileAndFolder (csharpFile, file);
+        overwriteFileAndFolder (goFile, file);
     }
 
     transpileExchangeTest(name: string, path: string): [string, string] {
@@ -1244,7 +1237,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     transpileBaseTestsToGo () {
         const outDir = BASE_TESTS_FOLDER;
         this.transpileBaseTests(outDir);
-        // this.transpileCryptoTestsToCSharp(outDir);
+        this.transpileCryptoTestsToGo(outDir);
         // this.transpileWsCacheTestsToCSharp(outDir);
         // this.transpileWsOrderbookTestsToCSharp(outDir);
     }
@@ -1279,7 +1272,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             const file = [
                 'package base',
-                'import "ccxt"',
+                testName.indexOf('tests.init') === -1 ? 'import "ccxt"' : '',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 content,
@@ -1296,7 +1289,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileMainTest(files) {
-        log.magenta ('[csharp] Transpiling from', files.tsFile.yellow)
+        log.magenta ('[go] Transpiling from', files.tsFile.yellow)
         let ts = fs.readFileSync (files.tsFile).toString ();
 
         ts = this.regexAll (ts, [

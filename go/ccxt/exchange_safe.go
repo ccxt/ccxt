@@ -136,6 +136,14 @@ func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) 
 	}
 }
 
+func (this *Exchange) SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
+	var defVal interface{} = nil
+	if len(defaultValue) > 0 {
+		defVal = defaultValue[0]
+	}
+	return SafeStringUpperN(obj, keys, defVal)
+}
+
 func SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
 	value := SafeValueN(obj, keys, defaultValue)
 	if value == nil {
