@@ -2871,8 +2871,19 @@ export default class Exchange {
         return cleanStructure;
     }
 
-    isSpotMargin (marketType: Str = undefined, marginMode: Str = undefined): boolean {
-        return (marketType === 'margin') || ((marketType === 'spot') && (marginMode !== undefined));
+    isSpotMargin (params, methodName, market): boolean {
+        // this method should be used in the first lines of any method, before other "this.handleX" methods are applied to `params`
+        // and we shuoldnt make any "omit" here
+        const margin = this.safeBool (params, 'margin'); // support unified param
+        if (margin !== undefined) {
+            return margin;
+        }
+        // now, by priority check types
+        const marketTypeByOptions = this.handleOption (methodName, 'type');
+        const marketTypeByMarket = this.safeString (market, 'type', marketTypeByOptions);
+        const marketTypeByParams = this.safeString (params, 'type', marketTypeByMarket);
+        const marginMode = this.safeString (params, 'marginMode');
+        return (marketTypeByParams === 'margin') || ((marketTypeByParams === 'spot') && (marginMode !== undefined));
     }
 
     setMarkets (markets, currencies = undefined) {
