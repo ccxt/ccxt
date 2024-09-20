@@ -15,6 +15,7 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class mexc extends Exchange {
@@ -36,6 +37,9 @@ class mexc extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
@@ -49,12 +53,21 @@ class mexc extends Exchange {
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'deposit' => null,
                 'editOrder' => null,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
-                'fetchBorrowRateHistory' => null,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
@@ -75,6 +88,7 @@ class mexc extends Exchange {
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => true,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
@@ -83,11 +97,13 @@ class mexc extends Exchange {
                 'fetchLeverageTiers' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
-                'fetchMarketLeverageTiers' => null,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -95,7 +111,7 @@ class mexc extends Exchange {
                 'fetchOrderBooks' => null,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
-                'fetchPosition' => true,
+                'fetchPosition' => 'emulated',
                 'fetchPositionHistory' => 'emulated',
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
@@ -1021,14 +1037,22 @@ class mexc extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $spotMarket = Async\await($this->fetch_spot_markets($params));
-            $swapMarket = Async\await($this->fetch_swap_markets($params));
+            $spotMarketPromise = $this->fetch_spot_markets($params);
+            $swapMarketPromise = $this->fetch_swap_markets($params);
+            list($spotMarket, $swapMarket) = Async\await(Promise\all(array( $spotMarketPromise, $swapMarketPromise )));
             return $this->array_concat($spotMarket, $swapMarket);
         }) ();
     }
 
     public function fetch_spot_markets($params = array ()) {
         return Async\async(function () use ($params) {
+            /**
+             * @ignore
+             * retrieves $data on all spot markets for mexc
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing $market $data
+             */
             $response = Async\await($this->spotPublicGetExchangeInfo ($params));
             //
             //     {
@@ -1149,7 +1173,17 @@ class mexc extends Exchange {
 
     public function fetch_swap_markets($params = array ()) {
         return Async\async(function () use ($params) {
+            /**
+             * @ignore
+             * retrieves $data on all swap markets for mexc
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing $market $data
+             */
+            $currentRl = $this->rateLimit;
+            $this->set_property($this, 'rateLimit', 10); // see comment => https://github.com/ccxt/ccxt/pull/23698
             $response = Async\await($this->contractPublicGetDetail ($params));
+            $this->set_property($this, 'rateLimit', $currentRl);
             //
             //     {
             //         "success":true,
@@ -1737,6 +1771,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1825,6 +1861,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-$ticker-price-change-statistics
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -2015,6 +2053,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2161,6 +2200,21 @@ class mexc extends Exchange {
 
     public function create_spot_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
+            /**
+             * @ignore
+             * create a trade $order
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-$order
+             * @param {string} symbol unified symbol of the $market to create an $order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
+             * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+             * @param {bool} [$params->postOnly] if true, the $order will only be posted if it will be a maker $order
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             */
             Async\await($this->load_markets());
             $request = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $params);
             $response = Async\await($this->spotPrivatePostOrder ($this->extend($request, $params)));
@@ -2194,6 +2248,30 @@ class mexc extends Exchange {
 
     public function create_swap_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
+            /**
+             * @ignore
+             * create a trade order
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
+             * @param {bool} [$params->reduceOnly] indicates if this order is to reduce the size of a position
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->leverage] $leverage is necessary on isolated margin
+             * @param {long} [$params->positionId] it is recommended to property_exists($this, fill) parameter when closing a position
+             * @param {string} [$params->externalOid] external order ID
+             * @param {int} [$params->positionMode] 1:hedge, 2:one-way, default => the user's current config
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
             Async\await($this->load_markets());
             $symbol = $market['symbol'];
             $unavailableContracts = $this->safe_value($this->options, 'unavailableContracts', array());
@@ -2363,6 +2441,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#$query-order
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#$query-the-order-based-on-the-order-number
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
@@ -2851,6 +2931,9 @@ class mexc extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-$order
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-$order-under-maintenance
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-$order-under-maintenance
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2964,6 +3047,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2999,6 +3083,9 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-$symbol
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
@@ -3406,6 +3493,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#$account-information
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account type
              */
@@ -3434,6 +3523,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
@@ -3715,6 +3806,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -3805,6 +3898,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#$query-the-order-based-on-the-order-number
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -3906,6 +4001,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3919,6 +4015,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3932,6 +4029,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-$leverage
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3964,6 +4062,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -4081,6 +4180,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4115,6 +4215,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] not used by mexc, but filtered internally by ccxt
              * @param {int} [$limit] mexc $limit is page_size default 20, maximum is 100
@@ -4697,6 +4798,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade position
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -4715,6 +4817,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -4838,7 +4941,7 @@ class mexc extends Exchange {
             'entryPrice' => $entryPrice,
             'collateral' => null,
             'side' => $side,
-            'unrealizedProfit' => null,
+            'unrealizedPnl' => null,
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginType,
@@ -4862,6 +4965,14 @@ class mexc extends Exchange {
 
     public function fetch_transfer(string $id, ?string $code = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetches a transfer
+             * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+             * @param {string} $id transfer $id
+             * @param {string} [$code] not used by mexc fetchTransfer
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transfer-structure transfer structure~
+             */
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
             Async\await($this->load_markets());
             if ($marketType === 'spot') {
@@ -4895,6 +5006,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
+             * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of  transfers structures to retrieve
@@ -5158,6 +5271,14 @@ class mexc extends Exchange {
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
+            /**
+             * set $hedged to true or false for a market
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+             * @param {bool} $hedged set to true to use dualSidePosition
+             * @param {string} $symbol not used by mexc setPositionMode ()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} $response from the exchange
+             */
             $request = array(
                 'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
             );
@@ -5174,6 +5295,13 @@ class mexc extends Exchange {
 
     public function fetch_position_mode(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+             * @param {string} $symbol not used by mexc fetchPositionMode
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an object detailing whether the market is in hedged or one-way mode
+             */
             $response = Async\await($this->contractPrivateGetPositionPositionMode ($params));
             //
             //     {

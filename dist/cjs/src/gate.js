@@ -607,6 +607,7 @@ class gate extends gate$1 {
                 'MPH': 'MORPHER',
                 'POINT': 'GATEPOINT',
                 'RAI': 'RAIREFLEXINDEX',
+                'RED': 'RedLang',
                 'SBTC': 'SUPERBITCOIN',
                 'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',
@@ -4017,7 +4018,7 @@ class gate extends gate$1 {
                     request['settle'] = market['settleId']; // filled in prepareRequest above
                 }
                 if (isMarketOrder) {
-                    request['price'] = price; // set to 0 for market orders
+                    request['price'] = '0'; // set to 0 for market orders
                 }
                 else {
                     request['price'] = (price === 0) ? '0' : this.priceToPrecision(symbol, price);
@@ -6626,12 +6627,12 @@ class gate extends gate$1 {
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] end time in ms
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -6788,6 +6789,7 @@ class gate extends gate$1 {
             direction = 'in';
         }
         const currencyId = this.safeString(item, 'currency');
+        currency = this.safeCurrency(currencyId, currency);
         const type = this.safeString(item, 'type');
         const rawTimestamp = this.safeString(item, 'time');
         let timestamp = undefined;
@@ -6800,7 +6802,8 @@ class gate extends gate$1 {
         const balanceString = this.safeString(item, 'balance');
         const changeString = this.safeString(item, 'change');
         const before = this.parseNumber(Precise["default"].stringSub(balanceString, changeString));
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'id'),
             'direction': direction,
             'account': undefined,
@@ -6815,8 +6818,7 @@ class gate extends gate$1 {
             'after': this.safeNumber(item, 'balance'),
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {

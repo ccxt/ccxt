@@ -1210,7 +1210,10 @@ class coinex extends coinex$1 {
         //         "side": "buy",
         //         "order_id": 136915589622,
         //         "price": "64376",
-        //         "amount": "0.0001"
+        //         "amount": "0.0001",
+        //         "role": "taker",
+        //         "fee": "0.0299",
+        //         "fee_ccy": "USDT"
         //     }
         //
         const timestamp = this.safeInteger(trade, 'created_at');
@@ -1220,6 +1223,16 @@ class coinex extends coinex$1 {
         }
         const marketId = this.safeString(trade, 'market');
         market = this.safeMarket(marketId, market, undefined, defaultType);
+        const feeCostString = this.safeString(trade, 'fee');
+        let fee = undefined;
+        if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString(trade, 'fee_ccy');
+            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
+            };
+        }
         return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
@@ -1229,11 +1242,11 @@ class coinex extends coinex$1 {
             'order': this.safeString(trade, 'order_id'),
             'type': undefined,
             'side': this.safeString(trade, 'side'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': this.safeString(trade, 'role'),
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString(trade, 'amount'),
             'cost': this.safeString(trade, 'deal_money'),
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {

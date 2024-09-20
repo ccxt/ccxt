@@ -26,6 +26,7 @@ class woofipro(ccxt.async_support.woofipro):
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
                 'watchPositions': True,
@@ -283,6 +284,68 @@ class woofipro(ccxt.async_support.woofipro):
             self.tickers[market['symbol']] = ticker
             result.append(ticker)
         client.resolve(result, topic)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        name = 'bbos'
+        topic = name
+        request: dict = {
+            'event': 'subscribe',
+            'topic': topic,
+        }
+        message = self.extend(request, params)
+        tickers = await self.watch_public(topic, message)
+        return self.filter_by_array(tickers, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        #     {
+        #       "topic": "bbos",
+        #       "ts": 1726212495000,
+        #       "data": [
+        #         {
+        #           "symbol": "PERP_WOO_USDC",
+        #           "ask": 0.16570,
+        #           "askSize": 4224,
+        #           "bid": 0.16553,
+        #           "bidSize": 6645
+        #         }
+        #       ]
+        #     }
+        #
+        topic = self.safe_string(message, 'topic')
+        data = self.safe_list(message, 'data', [])
+        timestamp = self.safe_integer(message, 'ts')
+        result = []
+        for i in range(0, len(data)):
+            ticker = self.parse_ws_bid_ask(self.extend(data[i], {'ts': timestamp}))
+            self.tickers[ticker['symbol']] = ticker
+            result.append(ticker)
+        client.resolve(result, topic)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 'ts')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'askSize'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'info': ticker,
+        }, market)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -1133,6 +1196,7 @@ class woofipro(ccxt.async_support.woofipro):
             'algoexecutionreport': self.handle_order_update,
             'position': self.handle_positions,
             'balance': self.handle_balance,
+            'bbos': self.handle_bid_ask,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)

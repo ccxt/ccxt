@@ -7,11 +7,11 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 import * as functions from './functions.js';
-const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
+const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
 import { keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, ExchangeClosedByUser } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, ExchangeClosedByUser, UnsubscribeError } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -621,7 +621,7 @@ export default class Exchange {
                 }
             }
             else {
-                this.fetchImplementation = self.fetch;
+                this.fetchImplementation = (selfIsDefined()) ? self.fetch : fetch;
                 this.AbortError = DOMException;
                 this.FetchError = TypeError;
             }
@@ -1420,7 +1420,6 @@ export default class Exchange {
                 'fetchOrdersWs': undefined,
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
-                'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
@@ -2381,6 +2380,10 @@ export default class Exchange {
                     'min': undefined,
                     'max': undefined,
                 },
+            },
+            'marginModes': {
+                'cross': undefined,
+                'isolated': undefined,
             },
             'created': undefined,
             'info': undefined,
@@ -3982,9 +3985,6 @@ export default class Exchange {
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrderWs(id, symbol);
         return await this.createOrderWs(symbol, type, side, amount, price, params);
-    }
-    async fetchPermissions(params = {}) {
-        throw new NotSupported(this.id + ' fetchPermissions() is not supported yet');
     }
     async fetchPosition(symbol, params = {}) {
         throw new NotSupported(this.id + ' fetchPosition() is not supported yet');
@@ -6490,6 +6490,71 @@ export default class Exchange {
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         throw new NotSupported(this.id + ' fetchTransfers () is not supported yet');
+    }
+    cleanUnsubscription(client, subHash, unsubHash) {
+        if (unsubHash in client.subscriptions) {
+            delete client.subscriptions[unsubHash];
+        }
+        if (subHash in client.subscriptions) {
+            delete client.subscriptions[subHash];
+        }
+        if (subHash in client.futures) {
+            const error = new UnsubscribeError(this.id + ' ' + subHash);
+            client.reject(error, subHash);
+        }
+        client.resolve(true, unsubHash);
+    }
+    cleanCache(subscription) {
+        const topic = this.safeString(subscription, 'topic');
+        const symbols = this.safeList(subscription, 'symbols', []);
+        const symbolsLength = symbols.length;
+        if (topic === 'ohlcv') {
+            const symbolsAndTimeFrames = this.safeList(subscription, 'symbolsAndTimeframes', []);
+            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
+                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
+                const symbol = this.safeString(symbolAndTimeFrame, 0);
+                const timeframe = this.safeString(symbolAndTimeFrame, 1);
+                if (timeframe in this.ohlcvs[symbol]) {
+                    delete this.ohlcvs[symbol][timeframe];
+                }
+            }
+        }
+        else if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                if (topic === 'trades') {
+                    delete this.trades[symbol];
+                }
+                else if (topic === 'orderbook') {
+                    delete this.orderbooks[symbol];
+                }
+                else if (topic === 'ticker') {
+                    delete this.tickers[symbol];
+                }
+            }
+        }
+        else {
+            if (topic === 'myTrades') {
+                // don't reset this.myTrades directly here
+                // because in c# we need to use a different object
+                const keys = Object.keys(this.myTrades);
+                for (let i = 0; i < keys.length; i++) {
+                    delete this.myTrades[keys[i]];
+                }
+            }
+            else if (topic === 'orders') {
+                const orderSymbols = Object.keys(this.orders);
+                for (let i = 0; i < orderSymbols.length; i++) {
+                    delete this.orders[orderSymbols[i]];
+                }
+            }
+            else if (topic === 'ticker') {
+                const tickerSymbols = Object.keys(this.tickers);
+                for (let i = 0; i < tickerSymbols.length; i++) {
+                    delete this.tickers[tickerSymbols[i]];
+                }
+            }
+        }
     }
 }
 export { Exchange, };

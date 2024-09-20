@@ -14,6 +14,7 @@ public partial class okx : ccxt.okx
                 { "ws", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchOrderBook", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
@@ -106,9 +107,8 @@ public partial class okx : ccxt.okx
         }
         symbols = this.marketSymbols(symbols);
         object url = this.getUrl(channel, access);
-        object messageHash = channel;
+        object messageHashes = new List<object>() {};
         object args = new List<object>() {};
-        messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object marketId = this.marketId(getValue(symbols, i));
@@ -117,12 +117,13 @@ public partial class okx : ccxt.okx
                 { "instId", marketId },
             };
             ((IList<object>)args).Add(this.extend(arg, parameters));
+            ((IList<object>)messageHashes).Add(add(add(channel, "::"), getValue(symbols, i)));
         }
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", args },
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
     public async virtual Task<object> subscribe(object access, object messageHash, object channel, object symbol, object parameters = null)
@@ -415,6 +416,22 @@ public partial class okx : ccxt.okx
         return this.safeValue(ticker, symbol);
     }
 
+    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#unWatchTicker
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+        * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
+    }
+
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         /**
@@ -442,7 +459,47 @@ public partial class okx : ccxt.okx
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#unWatchTickers
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+        * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object channel = null;
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "tickers");
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
+        object topics = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+            object marketId = this.marketId(symbol);
+            object topic = new Dictionary<string, object>() {
+                { "channel", channel },
+                { "instId", marketId },
+            };
+            ((IList<object>)topics).Add(topic);
+        }
+        object request = new Dictionary<string, object>() {
+            { "op", "unsubscribe" },
+            { "args", topics },
+        };
+        object url = this.getUrl(channel, "public");
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
+    }
+
+    public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
         //     {
@@ -469,33 +526,121 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
+        this.handleBidAsk(client as WebSocketClient, message);
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        object marketId = this.safeString(arg, "instId");
+        object market = this.safeMarket(marketId, null, "-");
+        object symbol = getValue(market, "symbol");
         object channel = this.safeString(arg, "channel");
         object data = this.safeValue(message, "data", new List<object>() {});
-        object newTickers = new List<object>() {};
+        object newTickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.parseTicker(getValue(data, i));
-            object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            ((IList<object>)newTickers).Add(ticker);
+            ((IDictionary<string,object>)newTickers)[(string)symbol] = ticker;
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, add(channel, "::"));
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        object messageHash = add(add(channel, "::"), symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newTickers, messageHash});
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#watchBidsAsks
+        * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object channel = null;
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "tickers");
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
+        object url = this.getUrl(channel, "public");
+        object messageHashes = new List<object>() {};
+        object args = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            object tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            object numTickers = getArrayLength(tickersSymbols);
-            if (isTrue(isGreaterThan(numTickers, 0)))
-            {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
-            }
+            object marketId = this.marketId(getValue(symbols, i));
+            object arg = new Dictionary<string, object>() {
+                { "channel", channel },
+                { "instId", marketId },
+            };
+            ((IList<object>)args).Add(this.extend(arg, parameters));
+            ((IList<object>)messageHashes).Add(add("bidask::", getValue(symbols, i)));
         }
-        return message;
+        object request = new Dictionary<string, object>() {
+            { "op", "subscribe" },
+            { "args", args },
+        };
+        object newTickers = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "arg": { channel: "tickers", instId: "BTC-USDT" },
+        //         "data": [
+        //             {
+        //                 "instType": "SPOT",
+        //                 "instId": "BTC-USDT",
+        //                 "last": "31500.1",
+        //                 "lastSz": "0.00001754",
+        //                 "askPx": "31500.1",
+        //                 "askSz": "0.00998144",
+        //                 "bidPx": "31500",
+        //                 "bidSz": "3.05652439",
+        //                 "open24h": "31697",
+        //                 "high24h": "32248",
+        //                 "low24h": "31165.6",
+        //                 "sodUtc0": "31385.5",
+        //                 "sodUtc8": "32134.9",
+        //                 "volCcy24h": "503403597.38138519",
+        //                 "vol24h": "15937.10781721",
+        //                 "ts": "1626526618762"
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(message, "data", new List<object>() {});
+        object ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object parsedTicker = this.parseWsBidAsk(ticker);
+        object symbol = getValue(parsedTicker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        object messageHash = add("bidask::", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "instId");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "ts");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "askPx") },
+            { "askVolume", this.safeString(ticker, "askSz") },
+            { "bid", this.safeString(ticker, "bidPx") },
+            { "bidVolume", this.safeString(ticker, "bidSz") },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
@@ -627,12 +772,27 @@ public partial class okx : ccxt.okx
         });
         symbols = this.marketSymbols(symbols, null, true, true);
         object messageHash = "myLiquidations";
+        object messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add(messageHash);
         }
         object channel = "balance_and_position";
-        object newLiquidations = await this.subscribe("private", messageHash, channel, null, parameters);
+        object request = new Dictionary<string, object>() {
+            { "op", "subscribe" },
+            { "args", new List<object>() {new Dictionary<string, object>() {
+    { "channel", channel },
+}} },
+        };
+        object url = this.getUrl(channel, "private");
+        object newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             return newLiquidations;
@@ -1434,8 +1594,12 @@ public partial class okx : ccxt.okx
     { "sign", signature },
 }} },
             };
-            object message = this.extend(request, parameters);
-            this.watch(url, messageHash, message, messageHash);
+            // Only add params['access'] to prevent sending custom parameters, such as extraParams.
+            if (isTrue(inOp(parameters, "access")))
+            {
+                ((IDictionary<string,object>)request)["access"] = getValue(parameters, "access");
+            }
+            this.watch(url, messageHash, request, messageHash);
         }
         return await (future as Exchange.Future);
     }
@@ -1632,7 +1796,7 @@ public partial class okx : ccxt.okx
                 { "channel", "positions" },
                 { "instType", "ANY" },
             };
-            object args = new List<object>() {arg};
+            object args = new List<object> {this.extend(arg, parameters)};
             object nonSymbolRequest = new Dictionary<string, object>() {
                 { "op", "subscribe" },
                 { "args", args },
@@ -1719,6 +1883,9 @@ public partial class okx : ccxt.okx
         //    }
         //
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        object marketId = this.safeString(arg, "instId");
+        object market = this.safeMarket(marketId, null, "-");
+        object symbol = getValue(market, "symbol");
         object channel = this.safeString(arg, "channel", "");
         object data = this.safeValue(message, "data", new List<object>() {});
         if (isTrue(isEqual(this.positions, null)))
@@ -1742,20 +1909,12 @@ public partial class okx : ccxt.okx
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, add(channel, "::"));
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        object messageHash = channel;
+        if (isTrue(!isEqual(symbol, null)))
         {
-            object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(positions)))
-            {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
-            }
+            messageHash = add(add(channel, "::"), symbol);
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, channel});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, messageHash});
     }
 
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2446,36 +2605,22 @@ public partial class okx : ccxt.okx
     {
         object subMessageHash = add("trades:", symbol);
         object messageHash = add("unsubscribe:trades:", symbol);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
+        if (isTrue(inOp(this.trades, symbol)))
         {
 
         }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
-
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
     public virtual void handleUnsubscriptionOrderBook(WebSocketClient client, object symbol, object channel)
     {
         object subMessageHash = add(add(channel, ":"), symbol);
         object messageHash = add("unsubscribe:orderbook:", symbol);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
+        if (isTrue(inOp(this.orderbooks, symbol)))
         {
 
         }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
-
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
     public virtual void handleUnsubscriptionOHLCV(WebSocketClient client, object symbol, object channel)
@@ -2484,21 +2629,22 @@ public partial class okx : ccxt.okx
         object timeframe = this.findTimeframe(tf);
         object subMessageHash = add(add(add("multi:", channel), ":"), symbol);
         object messageHash = add("unsubscribe:", subMessageHash);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
-        {
-
-        }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
         {
 
         }
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+    }
+
+    public virtual void handleUnsubscriptionTicker(WebSocketClient client, object symbol, object channel)
+    {
+        object subMessageHash = add(add(channel, "::"), symbol);
+        object messageHash = add("unsubscribe:ticker:", symbol);
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
+        if (isTrue(inOp(this.tickers, symbol)))
+        {
+
+        }
     }
 
     public virtual void handleUnsubscription(WebSocketClient client, object message)
@@ -2514,7 +2660,7 @@ public partial class okx : ccxt.okx
         // }
         // arg might be an array or list
         object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        object channel = this.safeString(arg, "channel");
+        object channel = this.safeString(arg, "channel", "");
         object marketId = this.safeString(arg, "instId");
         object symbol = this.safeSymbol(marketId);
         if (isTrue(isEqual(channel, "trades")))
@@ -2523,6 +2669,9 @@ public partial class okx : ccxt.okx
         } else if (isTrue(isTrue(((string)channel).StartsWith(((string)"bbo"))) || isTrue(((string)channel).StartsWith(((string)"book")))))
         {
             this.handleUnsubscriptionOrderBook(client as WebSocketClient, symbol, channel);
+        } else if (isTrue(isGreaterThan(getIndexOf(channel, "tickers"), -1)))
+        {
+            this.handleUnsubscriptionTicker(client as WebSocketClient, symbol, channel);
         } else if (isTrue(((string)channel).StartsWith(((string)"candle"))))
         {
             this.handleUnsubscriptionOHLCV(client as WebSocketClient, symbol, channel);

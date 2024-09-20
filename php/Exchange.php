@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.95';
+$version = '4.4.5';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.95';
+    const VERSION = '4.4.5';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -346,7 +346,6 @@ class Exchange {
         'bingx',
         'bit2c',
         'bitbank',
-        'bitbay',
         'bitbns',
         'bitcoincom',
         'bitfinex',
@@ -396,7 +395,6 @@ class Exchange {
         'gemini',
         'hashkey',
         'hitbtc',
-        'hitbtc3',
         'hollaex',
         'htx',
         'huobi',
@@ -2405,7 +2403,6 @@ class Exchange {
                 'fetchOrdersWs' => null,
                 'fetchOrderTrades' => null,
                 'fetchOrderWs' => null,
-                'fetchPermissions' => null,
                 'fetchPosition' => null,
                 'fetchPositionHistory' => null,
                 'fetchPositionsHistory' => null,
@@ -3445,6 +3442,10 @@ class Exchange {
                     'min' => null,
                     'max' => null,
                 ),
+            ),
+            'marginModes' => array(
+                'cross' => null,
+                'isolated' => null,
             ),
             'created' => null,
             'info' => null,
@@ -5079,10 +5080,6 @@ class Exchange {
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $this->cancel_order_ws($id, $symbol);
         return $this->create_order_ws($symbol, $type, $side, $amount, $price, $params);
-    }
-
-    public function fetch_permissions($params = array ()) {
-        throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -7687,5 +7684,66 @@ class Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
+    }
+
+    public function clean_unsubscription($client, string $subHash, string $unsubHash) {
+        if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
+            unset($client->subscriptions[$unsubHash]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
+            unset($client->subscriptions[$subHash]);
+        }
+        if (is_array($client->futures) && array_key_exists($subHash, $client->futures)) {
+            $error = new UnsubscribeError ($this->id . ' ' . $subHash);
+            $client->reject ($error, $subHash);
+        }
+        $client->resolve (true, $unsubHash);
+    }
+
+    public function clean_cache(array $subscription) {
+        $topic = $this->safe_string($subscription, 'topic');
+        $symbols = $this->safe_list($subscription, 'symbols', array());
+        $symbolsLength = count($symbols);
+        if ($topic === 'ohlcv') {
+            $symbolsAndTimeFrames = $this->safe_list($subscription, 'symbolsAndTimeframes', array());
+            for ($i = 0; $i < count($symbolsAndTimeFrames); $i++) {
+                $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
+                $symbol = $this->safe_string($symbolAndTimeFrame, 0);
+                $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
+                if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                    unset($this->ohlcvs[$symbol][$timeframe]);
+                }
+            }
+        } elseif ($symbolsLength > 0) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                if ($topic === 'trades') {
+                    unset($this->trades[$symbol]);
+                } elseif ($topic === 'orderbook') {
+                    unset($this->orderbooks[$symbol]);
+                } elseif ($topic === 'ticker') {
+                    unset($this->tickers[$symbol]);
+                }
+            }
+        } else {
+            if ($topic === 'myTrades') {
+                // don't reset $this->myTrades directly here
+                // because in c# we need to use a different object
+                $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
+                for ($i = 0; $i < count($keys); $i++) {
+                    unset($this->myTrades[$keys[$i]]);
+                }
+            } elseif ($topic === 'orders') {
+                $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
+                for ($i = 0; $i < count($orderSymbols); $i++) {
+                    unset($this->orders[$orderSymbols[$i]]);
+                }
+            } elseif ($topic === 'ticker') {
+                $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
+                for ($i = 0; $i < count($tickerSymbols); $i++) {
+                    unset($this->tickers[$tickerSymbols[$i]]);
+                }
+            }
+        }
     }
 }

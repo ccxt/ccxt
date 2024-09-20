@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1063,7 +1063,7 @@ export default class kraken extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         'LTFK7F-N2CUX-PNY4SX': {
@@ -1085,7 +1085,9 @@ export default class kraken extends Exchange {
         const referenceId = this.safeString (item, 'refid');
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
+        const currencyId = this.safeString (item, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         let amount = this.safeString (item, 'amount');
         if (Precise.stringLt (amount, '0')) {
             direction = 'out';
@@ -1094,7 +1096,7 @@ export default class kraken extends Exchange {
             direction = 'in';
         }
         const timestamp = this.safeIntegerProduct (item, 'time', 1000);
-        return {
+        return this.safeLedgerEntry ({
             'info': item,
             'id': id,
             'direction': direction,
@@ -1113,18 +1115,18 @@ export default class kraken extends Exchange {
                 'cost': this.safeNumber (item, 'fee'),
                 'currency': code,
             },
-        };
+        }, currency) as LedgerEntry;
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name kraken#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @param {int} [params.end] timestamp in seconds of the latest ledger entry
@@ -1199,7 +1201,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items);
     }
 
-    async fetchLedgerEntry (id: string, code: Str = undefined, params = {}) {
+    async fetchLedgerEntry (id: string, code: Str = undefined, params = {}): Promise<LedgerEntry> {
         const items = await this.fetchLedgerEntriesByIds ([ id ], code, params);
         return items[0];
     }

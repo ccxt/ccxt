@@ -1633,20 +1633,19 @@ class whitebit extends Exchange {
             /**
              * fetch all unfilled currently open orders
              * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
-             * @param {string} $symbol unified $market $symbol
+             * @param {string} [$symbol] unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['market'] = $market['id'];
+            }
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 100);
             }

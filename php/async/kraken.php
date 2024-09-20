@@ -1071,7 +1071,7 @@ class kraken extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         'LTFK7F-N2CUX-PNY4SX' => array(
@@ -1093,7 +1093,9 @@ class kraken extends Exchange {
         $referenceId = $this->safe_string($item, 'refid');
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
-        $code = $this->safe_currency_code($this->safe_string($item, 'asset'), $currency);
+        $currencyId = $this->safe_string($item, 'asset');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_string($item, 'amount');
         if (Precise::string_lt($amount, '0')) {
             $direction = 'out';
@@ -1102,7 +1104,7 @@ class kraken extends Exchange {
             $direction = 'in';
         }
         $timestamp = $this->safe_integer_product($item, 'time', 1000);
-        return array(
+        return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => $id,
             'direction' => $direction,
@@ -1121,17 +1123,17 @@ class kraken extends Exchange {
                 'cost' => $this->safe_number($item, 'fee'),
                 'currency' => $code,
             ),
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
-             * @param {string} $code unified $currency $code, default is null
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
-             * @param {int} [$limit] max number of $ledger entrys to return, default is null
+             * @param {int} [$limit] max number of $ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest $ledger entry
              * @param {int} [$params->end] timestamp in seconds of the latest $ledger entry
@@ -1209,7 +1211,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $code, $params) {
             $items = Async\await($this->fetch_ledger_entries_by_ids(array( $id ), $code, $params));
             return $items[0];

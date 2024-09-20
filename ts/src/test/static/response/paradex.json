@@ -148,6 +148,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "symbol": "BTC-USD-PERP",
@@ -251,7 +255,7 @@
                         "low": null,
                         "bid": 66821.1,
                         "bidVolume": null,
-                        "ask": null,
+                        "ask": 67643.2,
                         "askVolume": null,
                         "vwap": null,
                         "open": null,
@@ -316,7 +320,7 @@
                     "low": null,
                     "bid": 66821.1,
                     "bidVolume": null,
-                    "ask": null,
+                    "ask": 67643.2,
                     "askVolume": null,
                     "vwap": null,
                     "open": null,
