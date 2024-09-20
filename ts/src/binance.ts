@@ -1516,6 +1516,7 @@ export default class binance extends Exchange {
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
+                            'GTD': false,
                         },
                         'hedged': true,
                         // exchange-supported features
@@ -1583,7 +1584,7 @@ export default class binance extends Exchange {
                             'FOK': true,
                             'PO': true,
                             'GTD': true,
-                            'GTX': true,
+                            // 'GTX': true,
                         },
                         'hedged': true,
                         // exchange-supported features
