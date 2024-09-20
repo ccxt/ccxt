@@ -249,7 +249,7 @@ def init_exchange(exchangeId, args, is_ws=False):
 
 def get_test_files_sync(properties, ws=False):
     tests = {}
-    finalPropList = properties + [proxyTestFileName]
+    finalPropList = properties + [proxyTestFileName, 'features']
     for i in range(0, len(finalPropList)):
         methodName = finalPropList[i]
         name_snake_case = convert_to_snake_case(methodName)
