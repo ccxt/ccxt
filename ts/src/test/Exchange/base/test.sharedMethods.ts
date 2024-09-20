@@ -40,7 +40,7 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     return result;
 }
 
-function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor = []) {
+function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor = [], deep = false) {
     const logText = logTemplate (exchange, method, entry);
     assert (entry, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -50,7 +50,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
         const expectedLength = format.length;
         assert (realLength === expectedLength, 'entry length is not equal to expected length of ' + expectedLength.toString () + logText);
         for (let i = 0; i < format.length; i++) {
-            const emptyAllowedForThisKey = exchange.inArray (i, emptyAllowedFor);
+            const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (i, emptyAllowedFor);
             const value = entry[i];
             if (i in skippedProperties) {
                 continue;
@@ -78,7 +78,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             if (key in skippedProperties) {
                 continue;
             }
-            const emptyAllowedForThisKey = exchange.inArray (key, emptyAllowedFor);
+            const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (key, emptyAllowedFor);
             const value = entry[key];
             // check when:
             // - it's not inside "allowe empty values" list
@@ -92,10 +92,16 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             if (key !== 'info') {
                 const typeAssertion = assertType (exchange, skippedProperties, entry, key, format);
                 assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
+                if (deep) {
+                    if (typeof value === 'object') {
+                        assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor);
+                    }
+                }
             }
         }
     }
 }
+ 
 
 function assertTimestamp (exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck: any = undefined, keyNameOrIndex : string | number = 'timestamp') {
     const logText = logTemplate (exchange, method, entry);

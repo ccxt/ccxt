@@ -411,6 +411,7 @@ class testMainClass extends baseMainTestClass {
 
     async runPublicTests (exchange, symbol) {
         let tests = {
+            'features': [],
             'fetchCurrencies': [],
             'fetchTicker': [ symbol ],
             'fetchTickers': [ symbol ],
