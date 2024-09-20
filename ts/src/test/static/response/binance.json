@@ -1548,12 +1548,6 @@
                         "USDT": 136.03451668,
                         "LTC": 0.000636,
                         "ADA": 10.0325
-                    },
-                    "unrealizedPnl": {
-                        "ETH": 0,
-                        "USDT": 0,
-                        "LTC": 0,
-                        "ADA": 0
                     }
                 }
             },
@@ -1695,25 +1689,25 @@
                         "free": 0,
                         "used": 0,
                         "total": 0,
-                        "unrealizedPnl": null
+                        "unrealizedPnl": 0
                     },
                     "USDT": {
                         "free": 105.43419058,
                         "used": 0,
                         "total": 105.43419058,
-                        "unrealizedPnl": null
+                        "unrealizedPnl": 0
                     },
                     "LTC": {
                         "free": 0,
                         "used": 0,
                         "total": 0,
-                        "unrealizedPnl": null
+                        "unrealizedPnl": 0
                     },
                     "ADA": {
                         "free": 0,
                         "used": 0,
                         "total": 0,
-                        "unrealizedPnl": null
+                        "unrealizedPnl": 0
                     },
                     "timestamp": null,
                     "datetime": null,
@@ -1732,6 +1726,12 @@
                     "total": {
                         "ETH": 0,
                         "USDT": 105.43419058,
+                        "LTC": 0,
+                        "ADA": 0
+                    },
+                    "unrealizedPnl": {
+                        "ETH": 0,
+                        "USDT": 0,
                         "LTC": 0,
                         "ADA": 0
                     }
