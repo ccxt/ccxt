@@ -1650,7 +1650,7 @@ export default class mexc extends Exchange {
                 if (until === undefined) {
                     // we have to calculate it assuming we can get at most 2000 entries per request
                     const end = this.sum (since, maxLimit * duration);
-                    const now = this.nonce ();
+                    const now = this.milliseconds ();
                     request['endTime'] = Math.min (end, now);
                 }
             }
