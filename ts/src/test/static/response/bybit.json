@@ -2793,9 +2793,9 @@
                     "timestamp": 1726793566243,
                     "datetime": "2024-09-20T00:52:46.243Z",
                     "BTC": {
-                        "free": 15873.88416075,
+                        "free": 0.00555542,
                         "used": 0,
-                        "total": 15873.88416075,
+                        "total": 0.00555542,
                         "unrealizedPnl": 0,
                         "debt": 0
                     },
@@ -2806,9 +2806,9 @@
                         "unrealizedPnl": 0,
                         "debt": 0
                     },
-                    "free": { "BTC": 15873.88416075, "USDT": 15873.88416075 },
+                    "free": { "BTC": 0.00555542, "USDT": 15873.88416075 },
                     "used": { "BTC": 0, "USDT": 0 },
-                    "total": { "BTC": 15873.88416075, "USDT": 15873.88416075 },
+                    "total": { "BTC": 0.00555542, "USDT": 15873.88416075 },
                     "debt": { "BTC": 0, "USDT": 0 },
                     "unrealizedPnl": { "BTC": 0, "USDT": 0 }
                 }
