@@ -1224,7 +1224,9 @@ export default class okx extends Exchange {
                         'limit': 300,
                     },
                 },
-                'spot': 'default',
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
                         'extends': 'default',

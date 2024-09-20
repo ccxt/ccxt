@@ -2724,6 +2724,7 @@ export default class Exchange {
         let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
         const extendsStr: Str = this.safeString (featuresObj, 'extends');
         if (extendsStr !== undefined) {
+            featuresObj = this.omit (featuresObj, 'extends');
             const extendObj =  initialFeatures[extendsStr];
             featuresObj = this.extend (extendObj, featuresObj); // Warning, do not use deepExtend here, because we override only one level
         }
