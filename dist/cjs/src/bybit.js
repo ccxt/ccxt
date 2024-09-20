@@ -1642,13 +1642,20 @@ class bybit extends bybit$1 {
     async fetchFutureMarkets(params) {
         params = this.extend(params);
         params['limit'] = 1000; // minimize number of requests
+        let preLaunchMarkets = [];
         const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
         let response = undefined;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(params);
         }
         else {
-            response = await this.publicGetV5MarketInstrumentsInfo(params);
+            const linearPromises = [
+                this.publicGetV5MarketInstrumentsInfo(params),
+                this.publicGetV5MarketInstrumentsInfo(this.extend(params, { 'status': 'PreLaunch' })),
+            ];
+            const promises = await Promise.all(linearPromises);
+            response = this.safeDict(promises, 0, {});
+            preLaunchMarkets = this.safeDict(promises, 1, {});
         }
         const data = this.safeDict(response, 'result', {});
         let markets = this.safeList(data, 'list', []);
@@ -1717,6 +1724,9 @@ class bybit extends bybit$1 {
         //         "time": 1672712495660
         //     }
         //
+        const preLaunchData = this.safeDict(preLaunchMarkets, 'result', {});
+        const preLaunchMarketsList = this.safeList(preLaunchData, 'list', []);
+        markets = this.arrayConcat(markets, preLaunchMarketsList);
         const result = [];
         let category = this.safeString(data, 'category');
         for (let i = 0; i < markets.length; i++) {

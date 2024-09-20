@@ -1613,12 +1613,19 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_future_markets(self, params):
         params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
+        preLaunchMarkets = []
         usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
         response: dict = None
         if usePrivateInstrumentsInfo:
             response = self.privateGetV5MarketInstrumentsInfo(params)
         else:
-            response = self.publicGetV5MarketInstrumentsInfo(params)
+            linearPromises = [
+                self.publicGetV5MarketInstrumentsInfo(params),
+                self.publicGetV5MarketInstrumentsInfo(self.extend(params, {'status': 'PreLaunch'})),
+            ]
+            promises = linearPromises
+            response = self.safe_dict(promises, 0, {})
+            preLaunchMarkets = self.safe_dict(promises, 1, {})
         data = self.safe_dict(response, 'result', {})
         markets = self.safe_list(data, 'list', [])
         paginationCursor = self.safe_string(data, 'nextPageCursor')
@@ -1681,6 +1688,9 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672712495660
         #     }
         #
+        preLaunchData = self.safe_dict(preLaunchMarkets, 'result', {})
+        preLaunchMarketsList = self.safe_list(preLaunchData, 'list', [])
+        markets = self.array_concat(markets, preLaunchMarketsList)
         result = []
         category = self.safe_string(data, 'category')
         for i in range(0, len(markets)):
