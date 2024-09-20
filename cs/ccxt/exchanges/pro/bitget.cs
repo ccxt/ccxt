@@ -2242,17 +2242,7 @@ public partial class bitget : ccxt.bitget
 
             }
         }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
-        {
-
-        }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
-        var error = new UnsubscribeError(add(add(add(add(this.id, " ohlcv "), timeframe), " "), symbol));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
     }
 
     public virtual object handleUnSubscriptionStatus(WebSocketClient client, object message)

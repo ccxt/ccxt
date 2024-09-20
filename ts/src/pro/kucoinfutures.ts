@@ -180,6 +180,28 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscriptionArgs);
     }
 
+    async unSubscribeMultiple (url, messageHashes, topic, subscriptionHashes, params = {}, subscription: Dict = undefined) {
+        const requestId = this.requestId ().toString ();
+        const request: Dict = {
+            'id': requestId,
+            'type': 'unsubscribe',
+            'topic': topic,
+            'response': true,
+        };
+        const message = this.extend (request, params);
+        if (subscription !== undefined) {
+            subscription[requestId] = requestId;
+        }
+        const client = this.client (url);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            if (!(subscriptionHash in client.subscriptions)) {
+                client.subscriptions[requestId] = subscriptionHash;
+            }
+        }
+        return await this.watchMultiple (url, messageHashes, message, subscriptionHashes, subscription);
+    }
+
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -536,7 +558,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name kucoinfutures#watchTrades
+         * @name kucoinfutures#watchTradesForSymbols
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -569,6 +591,51 @@ export default class kucoinfutures extends kucoinfuturesRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name kucoinfutures#unWatchTrades
+         * @description unWatches trades stream
+         * @see https://docs.kucoin.com/futures/#execution-data
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name kucoinfutures#unWatchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const url = await this.negotiate (false);
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const topic = '/contractMarket/execution:' + marketIds.join (',');
+        const subscriptionHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push ('unsubscribe:trades:' + symbol);
+            subscriptionHashes.push ('trades:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'subMessageHashes': subscriptionHashes,
+            'topic': 'trades',
+            'unsubscribe': true,
+            'symbols': symbols,
+        };
+        return await this.unSubscribeMultiple (url, messageHashes, topic, messageHashes, params, subscription);
     }
 
     handleTrade (client: Client, message) {
@@ -709,6 +776,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @method
          * @name kucoinfutures#watchOrderBookForSymbols
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kucoin.com/futures/#level-2-market-data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -741,6 +809,50 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }
         const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params);
         return orderbook.limit ();
+    }
+
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name kucoinfutures#unWatchOrderBook
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kucoin.com/futures/#level-2-market-data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name kucoinfutures#unWatchOrderBookForSymbols
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const url = await this.negotiate (false);
+        const topic = '/contractMarket/level2:' + marketIds.join (',');
+        const subscriptionHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push ('unsubscribe:orderbook:' + symbol);
+            subscriptionHashes.push ('orderbook:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'unsubscribe': true,
+            'topic': 'orderbook',
+            'subMessageHashes': subscriptionHashes,
+        };
+        return await this.unSubscribeMultiple (url, messageHashes, topic, messageHashes, params, subscription);
     }
 
     handleDelta (orderbook, delta) {
@@ -1175,6 +1287,37 @@ export default class kucoinfutures extends kucoinfuturesRest {
         this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
     }
 
+    handleSubscriptionStatus (client: Client, message) {
+        //
+        //     {
+        //         "id": "1578090438322",
+        //         "type": "ack"
+        //     }
+        //
+        const id = this.safeString (message, 'id');
+        if (!(id in client.subscriptions)) {
+            return;
+        }
+        const subscriptionHash = this.safeString (client.subscriptions, id);
+        const subscription = this.safeValue (client.subscriptions, subscriptionHash);
+        delete client.subscriptions[id];
+        const method = this.safeValue (subscription, 'method');
+        if (method !== undefined) {
+            method.call (this, client, message, subscription);
+        }
+        const isUnSub = this.safeBool (subscription, 'unsubscribe', false);
+        if (isUnSub) {
+            const messageHashes = this.safeList (subscription, 'messageHashes', []);
+            const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription (client, subHash, messageHash);
+            }
+            this.cleanCache (subscription);
+        }
+    }
+
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
         const methods: Dict = {
@@ -1183,6 +1326,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'message': this.handleSubject,
             'pong': this.handlePong,
             'error': this.handleErrorMessage,
+            'ack': this.handleSubscriptionStatus,
         };
         const method = this.safeValue (methods, type);
         if (method !== undefined) {

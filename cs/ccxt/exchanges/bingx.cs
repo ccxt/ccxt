@@ -458,6 +458,7 @@ public partial class bingx : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "SNOW", "Snowman" },
                 { "OMNI", "OmniCat" },
+                { "NAP", "$NAP" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },

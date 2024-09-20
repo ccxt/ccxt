@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Int, LedgerEntry, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2170,15 +2170,15 @@ class coinbase(Exchange, ImplicitAPI):
         params['type'] = marketType
         return self.parse_custom_balance(response, params)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
@@ -2204,8 +2204,28 @@ class coinbase(Exchange, ImplicitAPI):
         pagination = self.safe_dict(response, 'pagination', {})
         cursor = self.safe_string(pagination, 'next_starting_after')
         if (cursor is not None) and (cursor != ''):
+            lastFee = self.safe_dict(last, 'fee')
             last['next_starting_after'] = cursor
-            ledger[lastIndex] = last
+            ledger[lastIndex] = {
+                'info': self.safe_dict(last, 'info'),
+                'id': self.safe_string(last, 'id'),
+                'timestamp': self.safe_integer(last, 'timestamp'),
+                'datetime': self.safe_string(last, 'datetime'),
+                'direction': self.safe_string(last, 'direction'),
+                'account': self.safe_string(last, 'account'),
+                'referenceId': None,
+                'referenceAccount': None,
+                'type': self.safe_string(last, 'type'),
+                'currency': self.safe_string(last, 'currency'),
+                'amount': self.safe_number(last, 'amount'),
+                'before': None,
+                'after': None,
+                'status': self.safe_string(last, 'status'),
+                'fee': {
+                    'cost': self.safe_number(lastFee, 'cost'),
+                    'currency': self.safe_string(lastFee, 'currency'),
+                },
+            }
         return ledger
 
     def parse_ledger_entry_status(self, status):
@@ -2228,7 +2248,7 @@ class coinbase(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         # crypto deposit transaction
         #
@@ -2482,6 +2502,7 @@ class coinbase(Exchange, ImplicitAPI):
             direction = 'in'
         currencyId = self.safe_string(amountInfo, 'currency')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         #
         # the address and txid do not belong to the unified ledger structure
         #
@@ -2514,7 +2535,7 @@ class coinbase(Exchange, ImplicitAPI):
             numParts = len(parts)
             if numParts > 3:
                 accountId = parts[3]
-        return {
+        return self.safe_ledger_entry({
             'info': item,
             'id': id,
             'timestamp': timestamp,
@@ -2530,7 +2551,7 @@ class coinbase(Exchange, ImplicitAPI):
             'after': None,
             'status': status,
             'fee': fee,
-        }
+        }, currency)
 
     def find_account_id(self, code, params={}):
         self.load_markets()

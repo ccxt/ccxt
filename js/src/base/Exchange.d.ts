@@ -756,7 +756,7 @@ export default class Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseAccount(account: Dict): Account;
-    parseLedgerEntry(item: Dict, currency?: Currency): object;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseOrder(order: Dict, market?: Market): Order;
     fetchCrossBorrowRates(params?: {}): Promise<CrossBorrowRates>;
     fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
@@ -888,7 +888,7 @@ export default class Exchange {
     parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
     parseTransactions(transactions: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];
     parseTransfers(transfers: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): TransferEntry[];
-    parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): any;
+    parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): LedgerEntry[];
     nonce(): number;
     setHeaders(headers: any): any;
     marketId(symbol: string): string;
@@ -1147,5 +1147,7 @@ export default class Exchange {
     parseMarginModifications(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    cleanUnsubscription(client: any, subHash: string, unsubHash: string): void;
+    cleanCache(subscription: Dict): void;
 }
 export { Exchange, };
