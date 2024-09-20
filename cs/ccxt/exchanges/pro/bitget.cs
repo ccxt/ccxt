@@ -140,6 +140,22 @@ public partial class bitget : ccxt.bitget
         return await this.watchPublic(messageHash, args, parameters);
     }
 
+    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#unWatchTicker
+        * @description unsubscribe from the ticker channel
+        * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+        * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+        * @param {string} symbol unified symbol of the market to unwatch the ticker for
+        * @returns {any} status of the unwatch request
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        return await this.unWatchChannel(symbol, "ticker", "ticker", parameters);
+    }
+
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         /**
@@ -370,6 +386,26 @@ public partial class bitget : ccxt.bitget
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
+    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#unWatchOHLCV
+        * @description unsubscribe from the ohlcv channel
+        * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+        * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+        * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object timeframes = this.safeDict(this.options, "timeframes");
+        object interval = this.safeString(timeframes, timeframe);
+        object channel = add("candle", interval);
+        return await this.unWatchChannel(symbol, channel, add("candles:", timeframe), parameters);
+    }
+
     public virtual void handleOHLCV(WebSocketClient client, object message)
     {
         //
@@ -482,8 +518,6 @@ public partial class bitget : ccxt.bitget
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object messageHash = add("unsubscribe:orderbook:", getValue(market, "symbol"));
         object channel = "books";
         object limit = this.safeInteger(parameters, "limit");
         if (isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))))
@@ -491,6 +525,15 @@ public partial class bitget : ccxt.bitget
             parameters = this.omit(parameters, "limit");
             channel = add(channel, ((object)limit).ToString());
         }
+        return await this.unWatchChannel(symbol, channel, "orderbook", parameters);
+    }
+
+    public async virtual Task<object> unWatchChannel(object symbol, object channel, object messageHashTopic, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object messageHash = add(add(add("unsubscribe:", messageHashTopic), ":"), getValue(market, "symbol"));
         object instType = null;
         var instTypeparametersVariable = this.getInstType(market, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
@@ -750,6 +793,22 @@ public partial class bitget : ccxt.bitget
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
+    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#unWatchTrades
+        * @description unsubscribe from the trades channel
+        * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+        * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+        * @param {string} symbol unified symbol of the market to unwatch the trades for
+        * @returns {any} status of the unwatch request
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        return await this.unWatchChannel(symbol, "trade", "trade", parameters);
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -2069,6 +2128,123 @@ public partial class bitget : ccxt.bitget
         return message;
     }
 
+    public virtual void handleOrderBookUnSubscription(WebSocketClient client, object message)
+    {
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
+        //
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        object instType = this.safeStringLower(arg, "instType");
+        object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object instId = this.safeString(arg, "instId");
+        object market = this.safeMarket(instId, null, null, type);
+        object symbol = getValue(market, "symbol");
+        object messageHash = add("unsubscribe:orderbook:", getValue(market, "symbol"));
+        object subMessageHash = add("orderbook:", symbol);
+        if (isTrue(inOp(this.orderbooks, symbol)))
+        {
+
+        }
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
+        {
+
+        }
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+        {
+
+        }
+        var error = new UnsubscribeError(add(add(this.id, "orderbook "), symbol));
+        ((WebSocketClient)client).reject(error, subMessageHash);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+    }
+
+    public virtual void handleTradesUnSubscription(WebSocketClient client, object message)
+    {
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
+        //
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        object instType = this.safeStringLower(arg, "instType");
+        object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object instId = this.safeString(arg, "instId");
+        object market = this.safeMarket(instId, null, null, type);
+        object symbol = getValue(market, "symbol");
+        object messageHash = add("unsubscribe:trade:", getValue(market, "symbol"));
+        object subMessageHash = add("trade:", symbol);
+        if (isTrue(inOp(this.trades, symbol)))
+        {
+
+        }
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
+        {
+
+        }
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+        {
+
+        }
+        var error = new UnsubscribeError(add(add(this.id, "trades "), symbol));
+        ((WebSocketClient)client).reject(error, subMessageHash);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+    }
+
+    public virtual void handleTickerUnSubscription(WebSocketClient client, object message)
+    {
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
+        //
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        object instType = this.safeStringLower(arg, "instType");
+        object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object instId = this.safeString(arg, "instId");
+        object market = this.safeMarket(instId, null, null, type);
+        object symbol = getValue(market, "symbol");
+        object messageHash = add("unsubscribe:ticker:", getValue(market, "symbol"));
+        object subMessageHash = add("ticker:", symbol);
+        if (isTrue(inOp(this.tickers, symbol)))
+        {
+
+        }
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
+        {
+
+        }
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+        {
+
+        }
+        var error = new UnsubscribeError(add(add(this.id, "ticker "), symbol));
+        ((WebSocketClient)client).reject(error, subMessageHash);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+    }
+
+    public virtual void handleOHLCVUnSubscription(WebSocketClient client, object message)
+    {
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
+        //
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        object instType = this.safeStringLower(arg, "instType");
+        object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object instId = this.safeString(arg, "instId");
+        object channel = this.safeString(arg, "channel");
+        object interval = ((string)channel).Replace((string)"candle", (string)"");
+        object timeframes = this.safeValue(this.options, "timeframes");
+        object timeframe = this.findTimeframe(interval, timeframes);
+        object market = this.safeMarket(instId, null, null, type);
+        object symbol = getValue(market, "symbol");
+        object messageHash = add(add(add("unsubscribe:candles:", timeframe), ":"), getValue(market, "symbol"));
+        object subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        if (isTrue(inOp(this.ohlcvs, symbol)))
+        {
+            if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+            {
+
+            }
+        }
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
+    }
+
     public virtual object handleUnSubscriptionStatus(WebSocketClient client, object message)
     {
         //
@@ -2102,26 +2278,16 @@ public partial class bitget : ccxt.bitget
             if (isTrue(isEqual(channel, "books")))
             {
                 // for now only unWatchOrderBook is supporteod
-                object instType = this.safeStringLower(arg, "instType");
-                object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
-                object instId = this.safeString(arg, "instId");
-                object market = this.safeMarket(instId, null, null, type);
-                object symbol = getValue(market, "symbol");
-                object messageHash = add("unsubscribe:orderbook:", getValue(market, "symbol"));
-                object subMessageHash = add("orderbook:", symbol);
-                if (isTrue(inOp(this.orderbooks, symbol)))
-                {
-
-                }
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
-                {
-
-                }
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-                {
-
-                }
-                callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+                this.handleOrderBookUnSubscription(client as WebSocketClient, message);
+            } else if (isTrue(isEqual(channel, "trade")))
+            {
+                this.handleTradesUnSubscription(client as WebSocketClient, message);
+            } else if (isTrue(isEqual(channel, "ticker")))
+            {
+                this.handleTickerUnSubscription(client as WebSocketClient, message);
+            } else if (isTrue(((string)channel).StartsWith(((string)"candle"))))
+            {
+                this.handleOHLCVUnSubscription(client as WebSocketClient, message);
             }
         }
         return message;

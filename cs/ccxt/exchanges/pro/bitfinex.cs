@@ -16,6 +16,7 @@ public partial class bitfinex : ccxt.bitfinex
                 { "watchTickers", false },
                 { "watchOrderBook", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchBalance", false },
                 { "watchOHLCV", false },
             } },

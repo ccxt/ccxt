@@ -41,7 +41,6 @@ export default class ascendex extends Exchange {
         network: string;
         info: any;
     };
-    safeNetwork(networkId: any): string;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;

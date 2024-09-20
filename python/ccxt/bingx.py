@@ -17,6 +17,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OperationFailed
@@ -472,11 +473,14 @@ class bingx(Exchange, ImplicitAPI):
                     '100419': PermissionDenied,  # {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437': BadRequest,  # {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204': InsufficientFunds,  # {"code":101204,"msg":"","data":{}}
+                    '110425': InvalidOrder,  # {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
                 },
                 'broad': {},
             },
             'commonCurrencies': {
                 'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
+                'OMNI': 'OmniCat',
+                'NAP': '$NAP',  # NAP on SOL = SNAP
             },
             'options': {
                 'defaultType': 'spot',
@@ -748,7 +752,11 @@ class bingx(Exchange, ImplicitAPI):
             symbol += ':' + settle
         fees = self.safe_dict(self.fees, type, {})
         contractSize = self.parse_number('1') if (swap) else None
-        isActive = self.safe_string(market, 'status') == '1'
+        isActive = False
+        if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
+            isActive = True  # swap active
+        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy'):
+            isActive = True  # spot active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
         timeOnline = self.safe_integer(market, 'timeOnline')
@@ -1031,8 +1039,7 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # spot
-        # fetchTrades
+        # spot fetchTrades
         #
         #    {
         #        "id": 43148253,
@@ -1042,8 +1049,8 @@ class bingx(Exchange, ImplicitAPI):
         #        "buyerMaker": False
         #    }
         #
-        # spot
-        # fetchMyTrades
+        # spot fetchMyTrades
+        #
         #     {
         #         "symbol": "LTC-USDT",
         #         "id": 36237072,
@@ -1058,8 +1065,7 @@ class bingx(Exchange, ImplicitAPI):
         #         "isMaker": False
         #     }
         #
-        # swap
-        # fetchTrades
+        # swap fetchTrades
         #
         #    {
         #        "time": 1672025549368,
@@ -1069,8 +1075,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "quoteQty": "55723.87"
         #    }
         #
-        # swap
-        # fetchMyTrades
+        # swap fetchMyTrades
         #
         #    {
         #        "volume": "0.1",
@@ -1084,10 +1089,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "filledTime": "2023-07-04T20:56:01.000+0800"
         #    }
         #
-        #
-        # ws
-        #
-        # spot
+        # ws spot
         #
         #    {
         #        "E": 1690214529432,
@@ -1100,7 +1102,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "t": "57903921"
         #    }
         #
-        # swap
+        # ws linear swap
         #
         #    {
         #        "q": "0.0421",
@@ -1109,6 +1111,19 @@ class bingx(Exchange, ImplicitAPI):
         #        "m": False,
         #        "s": "BTC-USDT"
         #    }
+        #
+        # ws inverse swap
+        #
+        #     {
+        #         "e": "trade",
+        #         "E": 1722920589665,
+        #         "s": "BTC-USD",
+        #         "t": "39125001",
+        #         "p": "55360.0",
+        #         "q": "1",
+        #         "T": 1722920589582,
+        #         "m": False
+        #     }
         #
         # inverse swap fetchMyTrades
         #
@@ -2394,13 +2409,18 @@ class bingx(Exchange, ImplicitAPI):
                     tpRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
                     request['takeProfit'] = self.json(tpRequest)
             positionSide = None
-            if reduceOnly:
-                positionSide = 'SHORT' if (side == 'buy') else 'LONG'
+            hedged = self.safe_bool(params, 'hedged', False)
+            if hedged:
+                params = self.omit(params, 'reduceOnly')
+                if reduceOnly:
+                    positionSide = 'SHORT' if (side == 'buy') else 'LONG'
+                else:
+                    positionSide = 'LONG' if (side == 'buy') else 'SHORT'
             else:
-                positionSide = 'LONG' if (side == 'buy') else 'SHORT'
+                positionSide = 'BOTH'
             request['positionSide'] = positionSide
             request['quantity'] = amount if (market['inverse']) else self.parse_to_numeric(self.amount_to_precision(symbol, amount))  # precision not available for inverse contracts
-        params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
+        params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -2430,6 +2450,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
+        :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -3421,6 +3442,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
         :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`

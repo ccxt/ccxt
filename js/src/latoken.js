@@ -1544,6 +1544,7 @@ export default class latoken extends Exchange {
         const statuses = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
+            'TRANSACTION_STATUS_CHECKING': 'pending',
             'TRANSACTION_STATUS_CANCELLED': 'canceled',
         };
         return this.safeString(statuses, status, status);

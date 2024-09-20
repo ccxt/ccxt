@@ -19,6 +19,7 @@ public partial class hashkey : ccxt.hashkey
                 { "watchOrders", true },
                 { "watchTicker", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchPositions", false },
             } },
             { "urls", new Dictionary<string, object>() {

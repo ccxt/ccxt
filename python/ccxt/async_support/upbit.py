@@ -1891,7 +1891,7 @@ class upbit(Exchange, ImplicitAPI):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
             if hasQuery:
-                auth = self.urlencode(query)
+                auth = self.rawencode(query)
             if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')
                 request['query_hash'] = hash

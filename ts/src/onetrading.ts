@@ -1673,6 +1673,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchOrder
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol not used by onetrading fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

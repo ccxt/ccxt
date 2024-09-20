@@ -619,17 +619,17 @@
             {
                 "description": "withdraw",
                 "method": "withdraw",
-                "url": "https://contract.mexc.com/api/v3/capital/withdraw?coin=XRP&address=r3rhWeE31Jt5sWmi4QiGLMZnY3ENgqw95W&amount=1000&netWork=XRP&timestamp=1722871949596&recvWindow=5000&signature=sig",
+                "url": "https://api.mexc.com/api/v3/capital/withdraw?coin=USDT&address=THb2SXyLLBn81JWPNhTbGBEoXHtDX62eU7&amount=5&netWork=TRX&timestamp=1725196608420&recvWindow=5000&signature=090d7e388c8392ca12ca72c0041cc4b1ba44ee59053c74f55592dc48bc5c50a4",
                 "input": [
-                    "XRP",
-                    1000,
-                    "r3rhWeE31Jt5sWmi4QiGLMZnY3ENgqw95W",
-                    null,
-                    {
-                        "network": "XRP"
-                    }
+                  "USDT",
+                  5,
+                  "THb2SXyLLBn81JWPNhTbGBEoXHtDX62eU7",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
                 ]
-            }
+              }
         ]
     }
 }

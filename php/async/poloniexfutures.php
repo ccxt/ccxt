@@ -1427,6 +1427,7 @@ class poloniexfutures extends Exchange {
              * fetches information on an order made by the user
              * @see https://api-docs.poloniex.com/futures/api/orders#get-details-of-a-single-order
              * @see https://api-docs.poloniex.com/futures/api/orders#get-single-order-by-clientoid
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

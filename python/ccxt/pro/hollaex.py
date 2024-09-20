@@ -28,6 +28,7 @@ class hollaex(ccxt.async_support.hollaex):
                 'watchTicker': False,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
             },
             'urls': {
                 'api': {

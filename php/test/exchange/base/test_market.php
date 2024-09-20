@@ -56,6 +56,10 @@ function test_market($exchange, $skipped_properties, $method, $market) {
                 'max' => $exchange->parse_number('1000'),
             ),
         ),
+        'marginModes' => array(
+            'cross' => true,
+            'isolated' => false,
+        ),
         'info' => array(),
     );
     $empty_allowed_for = ['linear', 'inverse', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize'];
@@ -205,4 +209,12 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
     }
     assert_timestamp($exchange, $skipped_properties, $method, $market, null, 'created');
+    // margin modes
+    if (!(is_array($skipped_properties) && array_key_exists('marginModes', $skipped_properties))) {
+        $margin_modes = $exchange->safe_dict($market, 'marginModes'); // in future, remove safeDict
+        assert(is_array($margin_modes) && array_key_exists('cross', $margin_modes), 'marginModes should have \"cross\" key' . $log_text);
+        assert(is_array($margin_modes) && array_key_exists('isolated', $margin_modes), 'marginModes should have \"isolated\" key' . $log_text);
+        assert_in_array($exchange, $skipped_properties, $method, $margin_modes, 'cross', [true, false, null]);
+        assert_in_array($exchange, $skipped_properties, $method, $margin_modes, 'isolated', [true, false, null]);
+    }
 }

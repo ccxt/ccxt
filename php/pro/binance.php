@@ -17,7 +17,12 @@ use React\Promise\PromiseInterface;
 class binance extends \ccxt\async\binance {
 
     public function describe() {
-        return $this->deep_extend(parent::describe(), array(
+        $superDescribe = parent::describe();
+        return $this->deep_extend($superDescribe, $this->describe_data());
+    }
+
+    public function describe_data() {
+        return array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -159,7 +164,7 @@ class binance extends \ccxt\async\binance {
                     'bookTicker' => 'bookTicker',
                 ),
             ),
-        ));
+        );
     }
 
     public function request_id($url) {
@@ -660,6 +665,83 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+             * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
+             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
+            $firstMarket = $this->market($symbols[0]);
+            $type = $firstMarket['type'];
+            if ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
+            }
+            $name = 'depth';
+            $streamHash = 'multipleOrderbook';
+            if ($symbols !== null) {
+                $streamHash .= '::' . implode(',', $symbols);
+            }
+            $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
+            $subParams = array();
+            $subMessageHashes = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $subMessageHashes[] = 'orderbook::' . $symbol;
+                $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
+                $subscriptionHash = $market['lowercaseId'] . '@' . $name;
+                $symbolHash = $subscriptionHash . '@' . $watchOrderBookRate . 'ms';
+                $subParams[] = $symbolHash;
+            }
+            $messageHashesLength = count($subMessageHashes);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $streamHash, $messageHashesLength);
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'UNSUBSCRIBE',
+                'params' => $subParams,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'unsubscribe' => true,
+                'id' => (string) $requestId,
+                'symbols' => $symbols,
+                'subMessageHashes' => $subMessageHashes,
+                'messageHashes' => $messageHashes,
+                'topic' => 'orderbook',
+            );
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
+        }) ();
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+             * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
+             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified array of symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             */
+            return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
+        }) ();
+    }
+
     public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
@@ -949,7 +1031,22 @@ class binance extends \ccxt\async\binance {
         if ($method !== null) {
             $method($client, $message, $subscription);
         }
+        $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
+        if ($isUnSubMessage) {
+            $this->handle_un_subscription($client, $subscription);
+        }
         return $message;
+    }
+
+    public function handle_un_subscription(Client $client, array $subscription) {
+        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+        $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
+        for ($j = 0; $j < count($messageHashes); $j++) {
+            $unsubHash = $messageHashes[$j];
+            $subHash = $subMessageHashes[$j];
+            $this->clean_unsubscription($client, $subHash, $unsubHash);
+        }
+        $this->clean_cache($subscription);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -1013,6 +1110,87 @@ class binance extends \ccxt\async\binance {
                 $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * unsubscribes from the trades channel
+             * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+             * @param {string[]} $symbols unified $symbol of the $market to fetch trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->name] the $name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
+            $streamHash = 'multipleTrades';
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 200) {
+                    throw new BadRequest($this->id . ' watchTradesForSymbols() accepts 200 $symbols at most. To watch more $symbols call watchTradesForSymbols() multiple times');
+                }
+                $streamHash .= '::' . implode(',', $symbols);
+            }
+            $name = null;
+            list($name, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'name', 'trade');
+            $params = $this->omit($params, 'callerMethodName');
+            $firstMarket = $this->market($symbols[0]);
+            $type = $firstMarket['type'];
+            if ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
+            }
+            $subMessageHashes = array();
+            $subParams = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $subMessageHashes[] = 'trade::' . $symbol;
+                $messageHashes[] = 'unsubscribe:trade:' . $symbol;
+                $rawHash = $market['lowercaseId'] . '@' . $name;
+                $subParams[] = $rawHash;
+            }
+            $query = $this->omit($params, 'type');
+            $subParamsLength = count($subParams);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $streamHash, $subParamsLength);
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'UNSUBSCRIBE',
+                'params' => $subParams,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'unsubscribe' => true,
+                'id' => (string) $requestId,
+                'subMessageHashes' => $subMessageHashes,
+                'messageHashes' => $messageHashes,
+                'symbols' => $symbols,
+                'topic' => 'trades',
+            );
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $query), $messageHashes, $subscription));
+        }) ();
+    }
+
+    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unsubscribes from the trades channel
+             * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
         }) ();
     }
 
@@ -1310,6 +1488,95 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $params) {
+            /**
+             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $klineType = null;
+            list($klineType, $params) = $this->handle_param_string_2($params, 'channel', 'name', 'kline');
+            $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
+            $marketSymbols = $this->market_symbols($symbols, null, false, false, true);
+            $firstMarket = $this->market($marketSymbols[0]);
+            $type = $firstMarket['type'];
+            if ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
+            }
+            $isSpot = ($type === 'spot');
+            $timezone = null;
+            list($timezone, $params) = $this->handle_param_string($params, 'timezone', null);
+            $isUtc8 = ($timezone !== null) && (($timezone === '+08:00') || Precise::string_eq($timezone, '8'));
+            $rawHashes = array();
+            $subMessageHashes = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $symAndTf = $symbolsAndTimeframes[$i];
+                $symbolString = $symAndTf[0];
+                $timeframeString = $symAndTf[1];
+                $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+                $market = $this->market($symbolString);
+                $marketId = $market['lowercaseId'];
+                if ($klineType === 'indexPriceKline') {
+                    // weird behavior for index price kline we can't use the perp $suffix
+                    $marketId = str_replace('_perp', '', $marketId);
+                }
+                $shouldUseUTC8 = ($isUtc8 && $isSpot);
+                $suffix = '@+08:00';
+                $utcSuffix = $shouldUseUTC8 ? $suffix : '';
+                $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
+                $subMessageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
+                $messageHashes[] = 'unsubscribe::ohlcv::' . $market['symbol'] . '::' . $timeframeString;
+            }
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'UNSUBSCRIBE',
+                'params' => $rawHashes,
+                'id' => $requestId,
+            );
+            $subscribe = array(
+                'unsubscribe' => true,
+                'id' => (string) $requestId,
+                'symbols' => $symbols,
+                'symbolsAndTimeframes' => $symbolsAndTimeframes,
+                'subMessageHashes' => $subMessageHashes,
+                'messageHashes' => $messageHashes,
+                'topic' => 'ohlcv',
+            );
+            $params = $this->omit($params, 'callerMethodName');
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscribe));
+        }) ();
+    }
+
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $params['callerMethodName'] = 'watchOHLCV';
+            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
+        }) ();
+    }
+
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
@@ -1560,6 +1827,112 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-mini-ticker-stream
+             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-ticker-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#all-$market-mini-tickers-stream
+             * @see https://binance-docs.github.io/apidocs/futures/en/#individual-$symbol-ticker-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-$market-mini-tickers-stream
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-$symbol-ticker-streams
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $channelName = null;
+            list($channelName, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', 'ticker');
+            if ($channelName === 'bookTicker') {
+                throw new BadRequest($this->id . ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
+            }
+            Async\await($this->load_markets());
+            $methodName = 'watchTickers';
+            $symbols = $this->market_symbols($symbols, null, true, false, true);
+            $firstMarket = null;
+            $marketType = null;
+            $symbolsDefined = ($symbols !== null);
+            if ($symbolsDefined) {
+                $firstMarket = $this->market($symbols[0]);
+            }
+            list($marketType, $params) = $this->handle_market_type_and_params($methodName, $firstMarket, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params($methodName, $firstMarket, $params);
+            $rawMarketType = null;
+            if ($this->isLinear ($marketType, $subType)) {
+                $rawMarketType = 'future';
+            } elseif ($this->isInverse ($marketType, $subType)) {
+                $rawMarketType = 'delivery';
+            } elseif ($marketType === 'spot') {
+                $rawMarketType = $marketType;
+            } else {
+                throw new NotSupported($this->id . ' ' . $methodName . '() does not support options markets');
+            }
+            $isBidAsk = ($channelName === 'bookTicker');
+            $subscriptionArgs = array();
+            $subMessageHashes = array();
+            $messageHashes = array();
+            if ($symbolsDefined) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $subscriptionArgs[] = $market['lowercaseId'] . '@' . $channelName;
+                    $subMessageHashes[] = $this->get_message_hash($channelName, $market['symbol'], $isBidAsk);
+                    $messageHashes[] = 'unsubscribe:ticker:' . $symbol;
+                }
+            } else {
+                if ($isBidAsk) {
+                    if ($marketType === 'spot') {
+                        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $symbols for this channel for spot markets');
+                    }
+                    $subscriptionArgs[] = '!' . $channelName;
+                } else {
+                    $subscriptionArgs[] = '!' . $channelName . '@arr';
+                }
+                $subMessageHashes[] = $this->get_message_hash($channelName, null, $isBidAsk);
+                $messageHashes[] = 'unsubscribe:ticker';
+            }
+            $streamHash = $channelName;
+            if ($symbolsDefined) {
+                $streamHash = $channelName . '::' . implode(',', $symbols);
+            }
+            $url = $this->urls['api']['ws'][$rawMarketType] . '/' . $this->stream($rawMarketType, $streamHash);
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'UNSUBSCRIBE',
+                'params' => $subscriptionArgs,
+                'id' => $requestId,
+            );
+            $subscription = array(
+                'unsubscribe' => true,
+                'id' => (string) $requestId,
+                'subMessageHashes' => $subMessageHashes,
+                'messageHashes' => $subMessageHashes,
+                'symbols' => $symbols,
+                'topic' => 'ticker',
+            );
+            return Async\await($this->watch_multiple($url, $subMessageHashes, $this->extend($request, $params), $subMessageHashes, $subscription));
+        }) ();
+    }
+
+    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-mini-ticker-stream
+             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-ticker-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+             * @see https://binance-docs.github.io/apidocs/futures/en/#individual-$symbol-ticker-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-$symbol-ticker-streams
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            return Async\await($this->un_watch_tickers(array( $symbol ), $params));
+        }) ();
+    }
+
     public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
@@ -1577,7 +1950,7 @@ class binance extends \ccxt\async\binance {
             if ($this->newUpdates) {
                 return $result;
             }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
         }) ();
     }
 

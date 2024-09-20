@@ -372,7 +372,7 @@ class testMainClass extends baseMainTestClass {
                     else {
                         // wait and retry again
                         // (increase wait time on every retry)
-                        await exchange.sleep (i * 1000);
+                        await exchange.sleep ((i + 1) * 1000);
                         continue;
                     }
                 }
@@ -1209,6 +1209,14 @@ class testMainClass extends baseMainTestClass {
                 if (isDisabled) {
                     continue;
                 }
+                const disabledString = exchange.safeString (result, 'disabled', '');
+                if (disabledString !== '') {
+                    continue;
+                }
+                const isDisabledCSharp = exchange.safeBool (result, 'disabledCS', false);
+                if (isDisabledCSharp && (this.lang === 'C#')) {
+                    continue;
+                }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testRequestStatically (exchange, method, result, type, skipKeys);
@@ -1380,7 +1388,8 @@ class testMainClass extends baseMainTestClass {
             this.testOxfun (),
             this.testXT (),
             this.testVertex (),
-            this.testParadex ()
+            this.testParadex (),
+            this.testHashkey ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1872,6 +1881,23 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testHashkey () {
+        const exchange = this.initOfflineExchange ('hashkey');
+        let reqHeaders = undefined;
+        const id = "10000700011";
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
         if (!this.isSynchronous) {
             await close (exchange);
         }

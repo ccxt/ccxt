@@ -25,7 +25,6 @@ export default class hashkey extends Exchange {
             'version': 'v1',
             'certified': true,
             'pro': true,
-            'hostname': '/api-glb',
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -146,7 +145,7 @@ export default class hashkey extends Exchange {
                 'www': 'https://global.hashkey.com/',
                 'doc': 'https://hashkeyglobal-apidoc.readme.io/',
                 'fees': 'https://support.global.hashkey.com/hc/en-us/articles/13199900083612-HashKey-Global-Fee-Structure',
-                'referral': '',
+                'referral': 'https://global.hashkey.com/en-US/register/invite?invite_code=82FQUN',
             },
             'api': {
                 'public': {
@@ -2231,11 +2230,11 @@ export default class hashkey extends Exchange {
         /**
          * @method
          * @name hashkey#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
-         * @param {string} code unified currency code, default is undefined (not used)
+         * @param {string} [code] unified currency code, default is undefined (not used)
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
@@ -2320,7 +2319,9 @@ export default class hashkey extends Exchange {
         const account = this.safeString(item, 'accountId');
         const timestamp = this.safeInteger(item, 'created');
         const type = this.parseLedgerEntryType(this.safeString(item, 'flowTypeValue'));
-        const code = this.safeCurrencyCode(this.safeString(item, 'coin'), currency);
+        const currencyId = this.safeString(item, 'coin');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const amountString = this.safeString(item, 'change');
         const amount = this.parseNumber(amountString);
         let direction = 'in';
@@ -2330,9 +2331,9 @@ export default class hashkey extends Exchange {
         const afterString = this.safeString(item, 'total');
         const after = this.parseNumber(afterString);
         const status = 'ok';
-        return {
-            'id': id,
+        return this.safeLedgerEntry({
             'info': item,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'account': account,
@@ -2347,7 +2348,7 @@ export default class hashkey extends Exchange {
             'after': after,
             'status': status,
             'fee': undefined,
-        };
+        }, currency);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -2386,7 +2387,7 @@ export default class hashkey extends Exchange {
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         /**
          * @method
-         * @name createMarketBuyOrderWithCost
+         * @name hashkey#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
@@ -4175,7 +4176,7 @@ export default class hashkey extends Exchange {
     async fetchTradingFees(params = {}) {
         /**
          * @method
-         * @name binance#fetchTradingFees
+         * @name hashkey#fetchTradingFees
          * @description *for spot markets only* fetch the trading fees for multiple markets
          * @see https://developers.binance.com/docs/wallet/asset/trade-fee
          * @param {object} [params] extra parameters specific to the exchange API endpoint

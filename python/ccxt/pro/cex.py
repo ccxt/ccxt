@@ -25,6 +25,7 @@ class cex(ccxt.async_support.cex):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -1129,6 +1130,7 @@ class cex(ccxt.async_support.cex):
         """
         fetches information on an order made by the user
         :see: https://docs.cex.io/#ws-api-get-order
+        :param str id: the order id
         :param str symbol: not used by cex fetchOrder
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

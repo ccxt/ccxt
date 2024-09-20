@@ -1135,12 +1135,14 @@ class xt extends xt$1 {
         let maxCost = undefined;
         let minPrice = undefined;
         let maxPrice = undefined;
+        let amountPrecision = undefined;
         for (let i = 0; i < filters.length; i++) {
             const entry = filters[i];
             const filter = this.safeString(entry, 'filter');
             if (filter === 'QUANTITY') {
                 minAmount = this.safeNumber(entry, 'min');
                 maxAmount = this.safeNumber(entry, 'max');
+                amountPrecision = this.safeNumber(entry, 'tickSize');
             }
             if (filter === 'QUOTE_QTY') {
                 minCost = this.safeNumber(entry, 'min');
@@ -1149,6 +1151,9 @@ class xt extends xt$1 {
                 minPrice = this.safeNumber(entry, 'min');
                 maxPrice = this.safeNumber(entry, 'max');
             }
+        }
+        if (amountPrecision === undefined) {
+            amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision')));
         }
         const underlyingType = this.safeString(market, 'underlyingType');
         let linear = undefined;
@@ -1232,7 +1237,7 @@ class xt extends xt$1 {
             'optionType': undefined,
             'precision': {
                 'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
-                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
+                'amount': amountPrecision,
                 'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseCoinPrecision'))),
                 'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quoteCoinPrecision'))),
             },
@@ -1372,7 +1377,7 @@ class xt extends xt$1 {
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
             this.safeNumber(ohlcv, 'c'),
-            this.safeNumber2(ohlcv, volumeIndex, 'v'),
+            this.safeNumber2(ohlcv, 'q', volumeIndex),
         ];
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -3592,8 +3597,10 @@ class xt extends xt$1 {
         const side = this.safeString(item, 'side');
         const direction = (side === 'ADD') ? 'in' : 'out';
         const currencyId = this.safeString(item, 'coin');
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'createdTime');
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'id'),
             'direction': direction,
             'account': undefined,
@@ -3611,8 +3618,7 @@ class xt extends xt$1 {
                 'currency': undefined,
                 'cost': undefined,
             },
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {

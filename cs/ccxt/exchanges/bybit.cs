@@ -90,7 +90,7 @@ public partial class bybit : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOption", true },
                 { "fetchOptionChain", true },
-                { "fetchOrder", false },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
@@ -916,6 +916,7 @@ public partial class bybit : Exchange
                     { "3200300", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Not supported symbols", typeof(BadSymbol) },
                     { "Request timeout", typeof(RequestTimeout) },
                     { "unknown orderInfo", typeof(OrderNotFound) },
                     { "invalid api_key", typeof(AuthenticationError) },
@@ -1658,6 +1659,7 @@ public partial class bybit : Exchange
     {
         parameters = this.extend(parameters);
         ((IDictionary<string,object>)parameters)["limit"] = 1000; // minimize number of requests
+        object preLaunchMarkets = ((object)new List<object>() {});
         object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
         object response = null;
         if (isTrue(usePrivateInstrumentsInfo))
@@ -1665,7 +1667,12 @@ public partial class bybit : Exchange
             response = await this.privateGetV5MarketInstrumentsInfo(parameters);
         } else
         {
-            response = await this.publicGetV5MarketInstrumentsInfo(parameters);
+            object linearPromises = new List<object> {this.publicGetV5MarketInstrumentsInfo(parameters), this.publicGetV5MarketInstrumentsInfo(this.extend(parameters, new Dictionary<string, object>() {
+    { "status", "PreLaunch" },
+}))};
+            object promises = await promiseAll(linearPromises);
+            response = this.safeDict(promises, 0, new Dictionary<string, object>() {});
+            preLaunchMarkets = this.safeDict(promises, 1, new Dictionary<string, object>() {});
         }
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "list", new List<object>() {});
@@ -1738,6 +1745,9 @@ public partial class bybit : Exchange
         //         "time": 1672712495660
         //     }
         //
+        object preLaunchData = this.safeDict(preLaunchMarkets, "result", new Dictionary<string, object>() {});
+        object preLaunchMarketsList = this.safeList(preLaunchData, "list", new List<object>() {});
+        markets = this.arrayConcat(markets, preLaunchMarketsList);
         object result = new List<object>() {};
         object category = this.safeString(data, "category");
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
@@ -5115,6 +5125,7 @@ public partial class bybit : Exchange
         * @name bybit#fetchOrderClassic
         * @description fetches information on an order made by the user *classic accounts only*
         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -5155,18 +5166,102 @@ public partial class bybit : Exchange
         * @name bybit#fetchOrderClassic
         * @description  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
         * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.acknowledged] to suppress the warning, set to true
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object res = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = this.safeBool(res, 1);
-        if (isTrue(enableUnifiedAccount))
+        await this.loadMarkets();
+        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
+        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
+        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
+        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
+        if (!isTrue(isUnifiedAccount))
         {
-            throw new NotSupported ((string)add(this.id, " fetchOrder() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrder or fetchClosedOrder")) ;
+            return await this.fetchOrderClassic(id, symbol, parameters);
         }
-        return await this.fetchOrderClassic(id, symbol, parameters);
+        object acknowledge = false;
+        var acknowledgeparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "acknowledged");
+        acknowledge = ((IList<object>)acknowledgeparametersVariable)[0];
+        parameters = ((IList<object>)acknowledgeparametersVariable)[1];
+        if (!isTrue(acknowledge))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder")) ;
+        }
+        object market = this.market(symbol);
+        object marketType = null;
+        var marketTypeparametersVariable = this.getBybitType("fetchOrder", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "orderId", id },
+            { "category", marketType },
+        };
+        object isTrigger = null;
+        var isTriggerparametersVariable = this.handleParamBool2(parameters, "trigger", "stop", false);
+        isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
+        parameters = ((IList<object>)isTriggerparametersVariable)[1];
+        if (isTrue(isTrigger))
+        {
+            ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
+        }
+        object response = await this.privateGetV5OrderRealtime(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "nextPageCursor": "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
+        //             "category": "spot",
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHUSDT",
+        //                     "orderType": "Limit",
+        //                     "orderLinkId": "1672217748277652",
+        //                     "orderId": "1321052653536515584",
+        //                     "cancelType": "UNKNOWN",
+        //                     "avgPrice": "",
+        //                     "stopOrderType": "tpslOrder",
+        //                     "lastPriceOnCreated": "",
+        //                     "orderStatus": "Cancelled",
+        //                     "takeProfit": "",
+        //                     "cumExecValue": "0",
+        //                     "triggerDirection": 0,
+        //                     "isLeverage": "0",
+        //                     "rejectReason": "",
+        //                     "price": "1000",
+        //                     "orderIv": "",
+        //                     "createdTime": "1672217748287",
+        //                     "tpTriggerBy": "",
+        //                     "positionIdx": 0,
+        //                     "timeInForce": "GTC",
+        //                     "leavesValue": "500",
+        //                     "updatedTime": "1672217748287",
+        //                     "side": "Buy",
+        //                     "triggerPrice": "1500",
+        //                     "cumExecFee": "0",
+        //                     "leavesQty": "0",
+        //                     "slTriggerBy": "",
+        //                     "closeOnTrigger": false,
+        //                     "cumExecQty": "0",
+        //                     "reduceOnly": false,
+        //                     "qty": "0.5",
+        //                     "stopLoss": "",
+        //                     "triggerBy": "1192.5"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672219526294
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object innerList = this.safeList(result, "list", new List<object>() {});
+        object order = this.safeDict(innerList, 0, new Dictionary<string, object>() {});
+        return this.parseOrder(order, market);
     }
 
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -6338,18 +6433,27 @@ public partial class bybit : Exchange
         /**
         * @method
         * @name bybit#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
         * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
+        }
         object request = new Dictionary<string, object>() {};
         object enableUnified = await this.isUnifiedEnabled();
         object currency = null;
@@ -6393,7 +6497,7 @@ public partial class bybit : Exchange
             }
         } else
         {
-            response = await this.privateGetV2PrivateWalletFundRecords(this.extend(request, parameters));
+            response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, parameters));
         }
         //
         //     {
@@ -6542,6 +6646,7 @@ public partial class bybit : Exchange
         //
         object currencyId = this.safeString2(item, "coin", "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeString2(item, "amount", "change");
         object after = this.safeString2(item, "wallet_balance", "cashBalance");
         object direction = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "out" : "in";
@@ -6556,26 +6661,26 @@ public partial class bybit : Exchange
         {
             timestamp = this.safeInteger(item, "transactionTime");
         }
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object id = this.safeString(item, "id");
-        object referenceId = this.safeString(item, "tx_id");
-        return new Dictionary<string, object>() {
-            { "id", id },
-            { "currency", code },
-            { "account", this.safeString(item, "wallet_id") },
-            { "referenceAccount", null },
-            { "referenceId", referenceId },
-            { "status", null },
-            { "amount", this.parseNumber(Precise.stringAbs(amount)) },
-            { "before", this.parseNumber(before) },
-            { "after", this.parseNumber(after) },
-            { "fee", this.parseNumber(this.safeString(item, "fee")) },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
+            { "id", this.safeString(item, "id") },
             { "direction", direction },
+            { "account", this.safeString(item, "wallet_id") },
+            { "referenceId", this.safeString(item, "tx_id") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
+            { "currency", code },
+            { "amount", this.parseToNumeric(Precise.stringAbs(amount)) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "type", type },
-            { "info", item },
-        };
+            { "before", this.parseToNumeric(before) },
+            { "after", this.parseToNumeric(after) },
+            { "status", "ok" },
+            { "fee", new Dictionary<string, object>() {
+                { "currency", code },
+                { "cost", this.parseToNumeric(this.safeString(item, "fee")) },
+            } },
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

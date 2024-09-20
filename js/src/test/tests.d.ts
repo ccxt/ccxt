@@ -66,5 +66,6 @@ declare class testMainClass extends baseMainTestClass {
     testXT(): Promise<boolean>;
     testVertex(): Promise<boolean>;
     testParadex(): Promise<boolean>;
+    testHashkey(): Promise<boolean>;
 }
 export default testMainClass;

@@ -480,7 +480,7 @@ public partial class woo : Exchange
             { "swap", swap },
             { "future", false },
             { "option", false },
-            { "active", null },
+            { "active", isEqual(this.safeString(market, "is_trading"), "1") },
             { "contract", contract },
             { "linear", linear },
             { "inverse", null },
@@ -1452,6 +1452,7 @@ public partial class woo : Exchange
         * @see https://docs.woo.org/#get-algo-order
         * @see https://docs.woo.org/#get-order
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.stop] whether the order is a stop/algo order
@@ -2259,9 +2260,9 @@ public partial class woo : Exchange
         * @name woo#fetchLedger
         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
         * @see https://docs.woo.org/#get-asset-history
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -2277,12 +2278,14 @@ public partial class woo : Exchange
         object networkizedCode = this.safeString(item, "token");
         object currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         object code = getValue(currencyDefined, "code");
+        currency = this.safeCurrency(code, currency);
         object amount = this.safeNumber(item, "amount");
         object side = this.safeString(item, "token_side");
         object direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
         object timestamp = this.safeTimestamp(item, "created_time");
         object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "id") },
             { "currency", code },
             { "account", this.safeString(item, "account") },
@@ -2292,13 +2295,12 @@ public partial class woo : Exchange
             { "amount", amount },
             { "before", null },
             { "after", null },
-            { "fee", fee },
             { "direction", direction },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
-            { "info", item },
-        };
+            { "fee", fee },
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

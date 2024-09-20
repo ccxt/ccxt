@@ -279,7 +279,7 @@ class testMainClass(baseMainTestClass):
                     else:
                         # wait and retry again
                         # (increase wait time on every retry)
-                        exchange.sleep(i * 1000)
+                        exchange.sleep((i + 1) * 1000)
                         continue
                 else:
                     # if it's loadMarkets, then fail test, because it's mandatory for tests
@@ -917,6 +917,12 @@ class testMainClass(baseMainTestClass):
                 is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
+                disabled_string = exchange.safe_string(result, 'disabled', '')
+                if disabled_string != '':
+                    continue
+                is_disabled_c_sharp = exchange.safe_bool(result, 'disabledCS', False)
+                if is_disabled_c_sharp and (self.lang == 'C#'):
+                    continue
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_request_statically(exchange, method, result, type, skip_keys)
@@ -1033,7 +1039,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1478,6 +1484,20 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             req_headers = exchange.last_request_headers
         assert req_headers['PARADEX-PARTNER'] == id, 'paradex - id: ' + id + ' not in headers'
+        if not self.is_synchronous:
+            close(exchange)
+        return True
+
+    def test_hashkey(self):
+        exchange = self.init_offline_exchange('hashkey')
+        req_headers = None
+        id = '10000700011'
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['INPUT-SOURCE'] == id, 'hashkey - id: ' + id + ' not in headers.'
         if not self.is_synchronous:
             close(exchange)
         return True

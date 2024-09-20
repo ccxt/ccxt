@@ -24,6 +24,7 @@ class hollaex extends \ccxt\async\hollaex {
                 'watchTicker' => false,
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
             ),
             'urls' => array(
                 'api' => array(

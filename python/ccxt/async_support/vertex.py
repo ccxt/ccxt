@@ -1886,6 +1886,7 @@ class vertex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

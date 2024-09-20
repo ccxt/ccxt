@@ -2800,6 +2800,7 @@ class phemex(Exchange, ImplicitAPI):
         """
         :see: https://phemex-docs.github.io/#query-orders-by-ids
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

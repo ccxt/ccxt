@@ -51,6 +51,7 @@ error_hierarchy = {
             },
             'CancelPending': {},
         },
+        'UnsubscribeError': {},
     },
 }
 
@@ -211,6 +212,10 @@ class CancelPending(OperationFailed):
     pass
 
 
+class UnsubscribeError(BaseError):
+    pass
+
+
 __all__ = [
     'error_hierarchy',
     'BaseError',
@@ -251,5 +256,6 @@ __all__ = [
     'RequestTimeout',
     'BadResponse',
     'NullResponse',
-    'CancelPending'
+    'CancelPending',
+    'UnsubscribeError'
 ]

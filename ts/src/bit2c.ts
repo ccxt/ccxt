@@ -510,6 +510,7 @@ export default class bit2c extends Exchange {
          * @name bit2c#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://bit2c.co.il/home/api#getoid
+         * @param {string} id the order id
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

@@ -17,6 +17,7 @@ class bitfinex extends bitfinex$1 {
                 'watchTickers': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': false,
                 'watchOHLCV': false, // missing on the exchange side in v1
             },

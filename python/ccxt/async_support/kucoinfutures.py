@@ -61,6 +61,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'createTriggerOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchClosedOrders': True,
@@ -752,11 +753,18 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        response = await self.futuresPublicGetContractsActive(params)
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive')
+        response: dict = None
+        if method == 'futuresPublicGetAllTickers':
+            response = await self.futuresPublicGetAllTickers(params)
+        else:
+            response = await self.futuresPublicGetContractsActive(params)
         #
         #    {
         #        "code": "200000",
@@ -819,7 +827,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_list(response, 'data', [])
+        data = self.safe_list(response, 'data')
         tickers = self.parse_tickers(data, symbols)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
@@ -928,6 +936,18 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'turnoverOf24h'),
             'info': ticker,
         }, market)
+
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        request = {
+            'method': 'futuresPublicGetAllTickers',
+        }
+        return await self.fetch_tickers(symbols, self.extend(request, params))
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

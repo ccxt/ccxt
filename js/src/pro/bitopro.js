@@ -23,6 +23,7 @@ export default class bitopro extends bitoproRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'ws': {

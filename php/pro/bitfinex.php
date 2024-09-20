@@ -22,6 +22,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                 'watchTickers' => false,
                 'watchOrderBook' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => false, // for now
                 'watchOHLCV' => false, // missing on the exchange side in v1
             ),

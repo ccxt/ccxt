@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\ChecksumError;
+use ccxt\UnsubscribeError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -131,6 +132,20 @@ class bitget extends \ccxt\async\bitget {
                 'instId' => $market['id'],
             );
             return Async\await($this->watch_public($messageHash, $args, $params));
+        }) ();
+    }
+
+    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unsubscribe from the ticker channel
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+             * @param {string} $symbol unified $symbol of the market to unwatch the ticker for
+             * @return {any} status of the unwatch request
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->un_watch_channel($symbol, 'ticker', 'ticker', $params));
         }) ();
     }
 
@@ -350,6 +365,23 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * unsubscribe from the ohlcv $channel
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+             * @param {string} $symbol unified $symbol of the market to unwatch the ohlcv for
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $timeframes = $this->safe_dict($this->options, 'timeframes');
+            $interval = $this->safe_string($timeframes, $timeframe);
+            $channel = 'candle' . $interval;
+            return Async\await($this->un_watch_channel($symbol, $channel, 'candles:' . $timeframe, $params));
+        }) ();
+    }
+
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
@@ -455,19 +487,26 @@ class bitget extends \ccxt\async\bitget {
              * unsubscribe from the orderbook $channel
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$params->limit] orderbook $limit, default is null
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = 'unsubscribe:orderbook:' . $market['symbol'];
             $channel = 'books';
             $limit = $this->safe_integer($params, 'limit');
             if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
                 $params = $this->omit($params, 'limit');
                 $channel .= (string) $limit;
             }
+            return Async\await($this->un_watch_channel($symbol, $channel, 'orderbook', $params));
+        }) ();
+    }
+
+    public function un_watch_channel(string $symbol, string $channel, string $messageHashTopic, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $channel, $messageHashTopic, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'unsubscribe:' . $messageHashTopic . ':' . $market['symbol'];
             $instType = null;
             list($instType, $params) = $this->get_inst_type($market, $params);
             $args = array(
@@ -697,6 +736,20 @@ class bitget extends \ccxt\async\bitget {
                 $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unsubscribe from the trades channel
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+             * @param {string} $symbol unified $symbol of the market to unwatch the trades for
+             * @return {any} status of the unwatch request
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->un_watch_channel($symbol, 'trade', 'trade', $params));
         }) ();
     }
 
@@ -1902,6 +1955,108 @@ class bitget extends \ccxt\async\bitget {
         return $message;
     }
 
+    public function handle_order_book_un_subscription(Client $client, $message) {
+        //
+        //    array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"books","instId":"BTCUSDT"))
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $type = ($instType === 'spot') ? 'spot' : 'contract';
+        $instId = $this->safe_string($arg, 'instId');
+        $market = $this->safe_market($instId, null, null, $type);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:orderbook:' . $market['symbol'];
+        $subMessageHash = 'orderbook:' . $symbol;
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$subMessageHash]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$messageHash]);
+        }
+        $error = new UnsubscribeError ($this->id . 'orderbook ' . $symbol);
+        $client->reject ($error, $subMessageHash);
+        $client->resolve (true, $messageHash);
+    }
+
+    public function handle_trades_un_subscription(Client $client, $message) {
+        //
+        //    array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"trade","instId":"BTCUSDT"))
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $type = ($instType === 'spot') ? 'spot' : 'contract';
+        $instId = $this->safe_string($arg, 'instId');
+        $market = $this->safe_market($instId, null, null, $type);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:trade:' . $market['symbol'];
+        $subMessageHash = 'trade:' . $symbol;
+        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+            unset($this->trades[$symbol]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$subMessageHash]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$messageHash]);
+        }
+        $error = new UnsubscribeError ($this->id . 'trades ' . $symbol);
+        $client->reject ($error, $subMessageHash);
+        $client->resolve (true, $messageHash);
+    }
+
+    public function handle_ticker_un_subscription(Client $client, $message) {
+        //
+        //    array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"trade","instId":"BTCUSDT"))
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $type = ($instType === 'spot') ? 'spot' : 'contract';
+        $instId = $this->safe_string($arg, 'instId');
+        $market = $this->safe_market($instId, null, null, $type);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:ticker:' . $market['symbol'];
+        $subMessageHash = 'ticker:' . $symbol;
+        if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+            unset($this->tickers[$symbol]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$subMessageHash]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$messageHash]);
+        }
+        $error = new UnsubscribeError ($this->id . 'ticker ' . $symbol);
+        $client->reject ($error, $subMessageHash);
+        $client->resolve (true, $messageHash);
+    }
+
+    public function handle_ohlcv_un_subscription(Client $client, $message) {
+        //
+        //    array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"))
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $type = ($instType === 'spot') ? 'spot' : 'contract';
+        $instId = $this->safe_string($arg, 'instId');
+        $channel = $this->safe_string($arg, 'channel');
+        $interval = str_replace('candle', '', $channel);
+        $timeframes = $this->safe_value($this->options, 'timeframes');
+        $timeframe = $this->find_timeframe($interval, $timeframes);
+        $market = $this->safe_market($instId, null, null, $type);
+        $symbol = $market['symbol'];
+        $messageHash = 'unsubscribe:candles:' . $timeframe . ':' . $market['symbol'];
+        $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
+        if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                unset($this->ohlcvs[$symbol][$timeframe]);
+            }
+        }
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+    }
+
     public function handle_un_subscription_status(Client $client, $message) {
         //
         //  {
@@ -1931,23 +2086,13 @@ class bitget extends \ccxt\async\bitget {
             $channel = $this->safe_string($arg, 'channel');
             if ($channel === 'books') {
                 // for now only unWatchOrderBook is supporteod
-                $instType = $this->safe_string_lower($arg, 'instType');
-                $type = ($instType === 'spot') ? 'spot' : 'contract';
-                $instId = $this->safe_string($arg, 'instId');
-                $market = $this->safe_market($instId, null, null, $type);
-                $symbol = $market['symbol'];
-                $messageHash = 'unsubscribe:orderbook:' . $market['symbol'];
-                $subMessageHash = 'orderbook:' . $symbol;
-                if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-                    unset($this->orderbooks[$symbol]);
-                }
-                if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
-                    unset($client->subscriptions[$subMessageHash]);
-                }
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                    unset($client->subscriptions[$messageHash]);
-                }
-                $client->resolve (true, $messageHash);
+                $this->handle_order_book_un_subscription($client, $message);
+            } elseif ($channel === 'trade') {
+                $this->handle_trades_un_subscription($client, $message);
+            } elseif ($channel === 'ticker') {
+                $this->handle_ticker_un_subscription($client, $message);
+            } elseif (str_starts_with($channel, 'candle')) {
+                $this->handle_ohlcv_un_subscription($client, $message);
             }
         }
         return $message;

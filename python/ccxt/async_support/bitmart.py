@@ -248,6 +248,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v4/query/trades': 5,  # 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/order-trades': 5,  # 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/cancel_orders': 3,
+                        'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
                         # newer endpoint
                         'spot/v3/cancel_order': 1,
@@ -880,43 +881,43 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_contract_markets(self, params={}):
         response = await self.publicGetContractPublicDetails(params)
         #
-        # {
-        #     "code": 1000,
-        #     "message": "Ok",
-        #     "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
-        #     "data": {
-        #       "symbols": [
-        #         {
-        #           "symbol": "BTCUSDT",
-        #           "product_type": 1,
-        #           "open_timestamp": 1594080000,
-        #           "expire_timestamp": 0,
-        #           "settle_timestamp": 0,
-        #           "base_currency": "BTC",
-        #           "quote_currency": "USDT",
-        #           "last_price": "23920",
-        #           "volume_24h": "18969368",
-        #           "turnover_24h": "458933659.7858",
-        #           "index_price": "23945.25191635",
-        #           "index_name": "BTCUSDT",
-        #           "contract_size": "0.001",
-        #           "min_leverage": "1",
-        #           "max_leverage": "100",
-        #           "price_precision": "0.1",
-        #           "vol_precision": "1",
-        #           "max_volume": "500000",
-        #           "min_volume": "1",
-        #           "funding_rate": "0.0001",
-        #           "expected_funding_rate": "0.00011",
-        #           "open_interest": "4134180870",
-        #           "open_interest_value": "94100888927.0433258",
-        #           "high_24h": "23900",
-        #           "low_24h": "23100",
-        #           "change_24h": "0.004"
-        #         },
-        #       ]
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": {
+        #             "symbols": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "product_type": 1,
+        #                     "open_timestamp": 1645977600000,
+        #                     "expire_timestamp": 0,
+        #                     "settle_timestamp": 0,
+        #                     "base_currency": "BTC",
+        #                     "quote_currency": "USDT",
+        #                     "last_price": "63547.4",
+        #                     "volume_24h": "110938430",
+        #                     "turnover_24h": "7004836342.6944",
+        #                     "index_price": "63587.85404255",
+        #                     "index_name": "BTCUSDT",
+        #                     "contract_size": "0.001",
+        #                     "min_leverage": "1",
+        #                     "max_leverage": "100",
+        #                     "price_precision": "0.1",
+        #                     "vol_precision": "1",
+        #                     "max_volume": "1000000",
+        #                     "min_volume": "1",
+        #                     "funding_rate": "0.0000801",
+        #                     "expected_funding_rate": "-0.0000035",
+        #                     "open_interest": "278214",
+        #                     "open_interest_value": "17555316.9355496",
+        #                     "high_24h": "64109.4",
+        #                     "low_24h": "61857.6",
+        #                     "change_24h": "0.0239264900886327",
+        #                     "funding_time": 1726819200000
+        #                 },
+        #             ]
+        #         }
         #     }
-        # }
         #
         data = self.safe_value(response, 'data', {})
         symbols = self.safe_value(data, 'symbols', [])
@@ -1191,33 +1192,34 @@ class bitmart(Exchange, ImplicitAPI):
         # swap
         #
         #     {
-        #       "symbol": "BTCUSDT",
-        #       "product_type": 1,
-        #       "open_timestamp": 1594080000,
-        #       "expire_timestamp": 0,
-        #       "settle_timestamp": 0,
-        #       "base_currency": "BTC",
-        #       "quote_currency": "USDT",
-        #       "last_price": "23920",
-        #       "volume_24h": "18969368",
-        #       "turnover_24h": "458933659.7858",
-        #       "index_price": "23945.25191635",
-        #       "index_name": "BTCUSDT",
-        #       "contract_size": "0.001",
-        #       "min_leverage": "1",
-        #       "max_leverage": "100",
-        #       "price_precision": "0.1",
-        #       "vol_precision": "1",
-        #       "max_volume": "500000",
-        #       "min_volume": "1",
-        #       "funding_rate": "0.0001",
-        #       "expected_funding_rate": "0.00011",
-        #       "open_interest": "4134180870",
-        #       "open_interest_value": "94100888927.0433258",
-        #       "high_24h": "23900",
-        #       "low_24h": "23100",
-        #       "change_24h": "0.004"
-        #  }
+        #         "symbol": "BTCUSDT",
+        #         "product_type": 1,
+        #         "open_timestamp": 1645977600000,
+        #         "expire_timestamp": 0,
+        #         "settle_timestamp": 0,
+        #         "base_currency": "BTC",
+        #         "quote_currency": "USDT",
+        #         "last_price": "63547.4",
+        #         "volume_24h": "110938430",
+        #         "turnover_24h": "7004836342.6944",
+        #         "index_price": "63587.85404255",
+        #         "index_name": "BTCUSDT",
+        #         "contract_size": "0.001",
+        #         "min_leverage": "1",
+        #         "max_leverage": "100",
+        #         "price_precision": "0.1",
+        #         "vol_precision": "1",
+        #         "max_volume": "1000000",
+        #         "min_volume": "1",
+        #         "funding_rate": "0.0000801",
+        #         "expected_funding_rate": "-0.0000035",
+        #         "open_interest": "278214",
+        #         "open_interest_value": "17555316.9355496",
+        #         "high_24h": "64109.4",
+        #         "low_24h": "61857.6",
+        #         "change_24h": "0.0239264900886327",
+        #         "funding_time": 1726819200000
+        #     }
         #
         result = self.safe_list(ticker, 'result', [])
         average = self.safe_string_2(ticker, 'avg_price', 'index_price')
@@ -1306,27 +1308,43 @@ class bitmart(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
             response = await self.publicGetContractPublicDetails(self.extend(request, params))
             #
-            #      {
-            #          "message":"OK",
-            #          "code":1000,
-            #          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
-            #          "data":{
-            #              "tickers":[
-            #                  {
-            #                      "contract_symbol":"DOGEUSDT",
-            #                      "last_price":"0.130180",
-            #                      "index_price":"0.13028635",
-            #                      "last_funding_rate":"0.00002025",
-            #                      "price_change_percent_24h":"-2.326",
-            #                      "volume_24h":"116789313.01797258",
-            #                      "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
-            #                      "high_price":"0.134520",
-            #                      "low_price":"0.128570",
-            #                      "legal_coin_price":"0.13017401"
-            #                  }
-            #              ]
-            #          }
-            #      }
+            #     {
+            #         "code": 1000,
+            #         "message": "Ok",
+            #         "data": {
+            #             "symbols": [
+            #                 {
+            #                     "symbol": "BTCUSDT",
+            #                     "product_type": 1,
+            #                     "open_timestamp": 1645977600000,
+            #                     "expire_timestamp": 0,
+            #                     "settle_timestamp": 0,
+            #                     "base_currency": "BTC",
+            #                     "quote_currency": "USDT",
+            #                     "last_price": "63547.4",
+            #                     "volume_24h": "110938430",
+            #                     "turnover_24h": "7004836342.6944",
+            #                     "index_price": "63587.85404255",
+            #                     "index_name": "BTCUSDT",
+            #                     "contract_size": "0.001",
+            #                     "min_leverage": "1",
+            #                     "max_leverage": "100",
+            #                     "price_precision": "0.1",
+            #                     "vol_precision": "1",
+            #                     "max_volume": "1000000",
+            #                     "min_volume": "1",
+            #                     "funding_rate": "0.0000801",
+            #                     "expected_funding_rate": "-0.0000035",
+            #                     "open_interest": "278214",
+            #                     "open_interest_value": "17555316.9355496",
+            #                     "high_24h": "64109.4",
+            #                     "low_24h": "61857.6",
+            #                     "change_24h": "0.0239264900886327",
+            #                     "funding_time": 1726819200000
+            #                 },
+            #             ]
+            #         }
+            #     }
             #
         elif market['spot']:
             request['symbol'] = market['id']
@@ -1413,43 +1431,43 @@ class bitmart(Exchange, ImplicitAPI):
         elif type == 'swap':
             response = await self.publicGetContractPublicDetails(params)
             #
-            # {
-            #       "code": 1000,
-            #       "message": "Ok",
-            #       "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
-            #       "data": {
-            #         "symbols": [
-            #           {
-            #             "symbol": "BTCUSDT",
-            #             "product_type": 1,
-            #             "open_timestamp": 1594080000,
-            #             "expire_timestamp": 0,
-            #             "settle_timestamp": 0,
-            #             "base_currency": "BTC",
-            #             "quote_currency": "USDT",
-            #             "last_price": "23920",
-            #             "volume_24h": "18969368",
-            #             "turnover_24h": "458933659.7858",
-            #             "index_price": "23945.25191635",
-            #             "index_name": "BTCUSDT",
-            #             "contract_size": "0.001",
-            #             "min_leverage": "1",
-            #             "max_leverage": "100",
-            #             "price_precision": "0.1",
-            #             "vol_precision": "1",
-            #             "max_volume": "500000",
-            #             "min_volume": "1",
-            #             "funding_rate": "0.0001",
-            #             "expected_funding_rate": "0.00011",
-            #             "open_interest": "4134180870",
-            #             "open_interest_value": "94100888927.0433258",
-            #             "high_24h": "23900",
-            #             "low_24h": "23100",
-            #             "change_24h": "0.004"
-            #           },
-            #         ]
-            #       }
-            #   }
+            #     {
+            #         "code": 1000,
+            #         "message": "Ok",
+            #         "data": {
+            #             "symbols": [
+            #                 {
+            #                     "symbol": "BTCUSDT",
+            #                     "product_type": 1,
+            #                     "open_timestamp": 1645977600000,
+            #                     "expire_timestamp": 0,
+            #                     "settle_timestamp": 0,
+            #                     "base_currency": "BTC",
+            #                     "quote_currency": "USDT",
+            #                     "last_price": "63547.4",
+            #                     "volume_24h": "110938430",
+            #                     "turnover_24h": "7004836342.6944",
+            #                     "index_price": "63587.85404255",
+            #                     "index_name": "BTCUSDT",
+            #                     "contract_size": "0.001",
+            #                     "min_leverage": "1",
+            #                     "max_leverage": "100",
+            #                     "price_precision": "0.1",
+            #                     "vol_precision": "1",
+            #                     "max_volume": "1000000",
+            #                     "min_volume": "1",
+            #                     "funding_rate": "0.0000801",
+            #                     "expected_funding_rate": "-0.0000035",
+            #                     "open_interest": "278214",
+            #                     "open_interest_value": "17555316.9355496",
+            #                     "high_24h": "64109.4",
+            #                     "low_24h": "61857.6",
+            #                     "change_24h": "0.0239264900886327",
+            #                     "funding_time": 1726819200000
+            #                 },
+            #             ]
+            #         }
+            #     }
             #
         else:
             raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted')
@@ -2789,6 +2807,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
         :see: https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+        :see: https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
         :see: https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
         :see: https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
         :param str symbol: unified market symbol of the market to cancel orders in
@@ -2806,7 +2825,7 @@ class bitmart(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if type == 'spot':
-            response = await self.privatePostSpotV1CancelOrders(self.extend(request, params))
+            response = await self.privatePostSpotV4CancelAll(self.extend(request, params))
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -3209,7 +3228,10 @@ class bitmart(Exchange, ImplicitAPI):
             parts = chain.split('-')
             partsLength = len(parts)
             networkId = self.safe_string(parts, partsLength - 1)
-            network = self.safe_network_code(networkId, currency)
+            if networkId == self.safe_string(currency, 'name'):
+                network = self.safe_string(currency, 'code')
+            else:
+                network = self.network_id_to_code(networkId)
         self.check_address(address)
         return {
             'info': depositAddress,
@@ -3218,13 +3240,6 @@ class bitmart(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'address_memo'),
             'network': network,
         }
-
-    def safe_network_code(self, networkId, currency=None):
-        name = self.safe_string(currency, 'name')
-        if networkId == name:
-            code = self.safe_string(currency, 'code')
-            return code
-        return self.network_id_to_code(networkId)
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """

@@ -20,6 +20,7 @@ class hollaex extends hollaex$1 {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {

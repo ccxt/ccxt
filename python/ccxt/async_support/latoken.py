@@ -1465,6 +1465,7 @@ class latoken(Exchange, ImplicitAPI):
         statuses: dict = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
+            'TRANSACTION_STATUS_CHECKING': 'pending',
             'TRANSACTION_STATUS_CANCELLED': 'canceled',
         }
         return self.safe_string(statuses, status, status)

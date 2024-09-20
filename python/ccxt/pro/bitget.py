@@ -16,6 +16,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ChecksumError
+from ccxt.base.errors import UnsubscribeError
 from ccxt.base.precise import Precise
 
 
@@ -132,6 +133,17 @@ class bitget(ccxt.async_support.bitget):
             'instId': market['id'],
         }
         return await self.watch_public(messageHash, args, params)
+
+    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+        """
+        unsubscribe from the ticker channel
+        :see: https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+        :see: https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+        :param str symbol: unified symbol of the market to unwatch the ticker for
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        return await self.un_watch_channel(symbol, 'ticker', 'ticker', params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -338,6 +350,20 @@ class bitget(ccxt.async_support.bitget):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+        """
+        unsubscribe from the ohlcv channel
+        :see: https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+        :see: https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+        :param str symbol: unified symbol of the market to unwatch the ohlcv for
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        timeframes = self.safe_dict(self.options, 'timeframes')
+        interval = self.safe_string(timeframes, timeframe)
+        channel = 'candle' + interval
+        return await self.un_watch_channel(symbol, channel, 'candles:' + timeframe, params)
+
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
@@ -440,13 +466,17 @@ class bitget(ccxt.async_support.bitget):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        market = self.market(symbol)
-        messageHash = 'unsubscribe:orderbook:' + market['symbol']
         channel = 'books'
         limit = self.safe_integer(params, 'limit')
         if (limit == 1) or (limit == 5) or (limit == 15):
             params = self.omit(params, 'limit')
             channel += str(limit)
+        return await self.un_watch_channel(symbol, channel, 'orderbook', params)
+
+    async def un_watch_channel(self, symbol: str, channel: str, messageHashTopic: str, params={}) -> Any:
+        await self.load_markets()
+        market = self.market(symbol)
+        messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol']
         instType = None
         instType, params = self.get_inst_type(market, params)
         args: dict = {
@@ -647,6 +677,17 @@ class bitget(ccxt.async_support.bitget):
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unsubscribe from the trades channel
+        :see: https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+        :see: https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+        :param str symbol: unified symbol of the market to unwatch the trades for
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        return await self.un_watch_channel(symbol, 'trade', 'trade', params)
 
     def handle_trades(self, client: Client, message):
         #
@@ -1750,6 +1791,93 @@ class bitget(ccxt.async_support.bitget):
         #
         return message
 
+    def handle_order_book_un_subscription(self, client: Client, message):
+        #
+        #    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
+        #
+        arg = self.safe_dict(message, 'arg', {})
+        instType = self.safe_string_lower(arg, 'instType')
+        type = 'spot' if (instType == 'spot') else 'contract'
+        instId = self.safe_string(arg, 'instId')
+        market = self.safe_market(instId, None, None, type)
+        symbol = market['symbol']
+        messageHash = 'unsubscribe:orderbook:' + market['symbol']
+        subMessageHash = 'orderbook:' + symbol
+        if symbol in self.orderbooks:
+            del self.orderbooks[symbol]
+        if subMessageHash in client.subscriptions:
+            del client.subscriptions[subMessageHash]
+        if messageHash in client.subscriptions:
+            del client.subscriptions[messageHash]
+        error = UnsubscribeError(self.id + 'orderbook ' + symbol)
+        client.reject(error, subMessageHash)
+        client.resolve(True, messageHash)
+
+    def handle_trades_un_subscription(self, client: Client, message):
+        #
+        #    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
+        #
+        arg = self.safe_dict(message, 'arg', {})
+        instType = self.safe_string_lower(arg, 'instType')
+        type = 'spot' if (instType == 'spot') else 'contract'
+        instId = self.safe_string(arg, 'instId')
+        market = self.safe_market(instId, None, None, type)
+        symbol = market['symbol']
+        messageHash = 'unsubscribe:trade:' + market['symbol']
+        subMessageHash = 'trade:' + symbol
+        if symbol in self.trades:
+            del self.trades[symbol]
+        if subMessageHash in client.subscriptions:
+            del client.subscriptions[subMessageHash]
+        if messageHash in client.subscriptions:
+            del client.subscriptions[messageHash]
+        error = UnsubscribeError(self.id + 'trades ' + symbol)
+        client.reject(error, subMessageHash)
+        client.resolve(True, messageHash)
+
+    def handle_ticker_un_subscription(self, client: Client, message):
+        #
+        #    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
+        #
+        arg = self.safe_dict(message, 'arg', {})
+        instType = self.safe_string_lower(arg, 'instType')
+        type = 'spot' if (instType == 'spot') else 'contract'
+        instId = self.safe_string(arg, 'instId')
+        market = self.safe_market(instId, None, None, type)
+        symbol = market['symbol']
+        messageHash = 'unsubscribe:ticker:' + market['symbol']
+        subMessageHash = 'ticker:' + symbol
+        if symbol in self.tickers:
+            del self.tickers[symbol]
+        if subMessageHash in client.subscriptions:
+            del client.subscriptions[subMessageHash]
+        if messageHash in client.subscriptions:
+            del client.subscriptions[messageHash]
+        error = UnsubscribeError(self.id + 'ticker ' + symbol)
+        client.reject(error, subMessageHash)
+        client.resolve(True, messageHash)
+
+    def handle_ohlcv_un_subscription(self, client: Client, message):
+        #
+        #    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
+        #
+        arg = self.safe_dict(message, 'arg', {})
+        instType = self.safe_string_lower(arg, 'instType')
+        type = 'spot' if (instType == 'spot') else 'contract'
+        instId = self.safe_string(arg, 'instId')
+        channel = self.safe_string(arg, 'channel')
+        interval = channel.replace('candle', '')
+        timeframes = self.safe_value(self.options, 'timeframes')
+        timeframe = self.find_timeframe(interval, timeframes)
+        market = self.safe_market(instId, None, None, type)
+        symbol = market['symbol']
+        messageHash = 'unsubscribe:candles:' + timeframe + ':' + market['symbol']
+        subMessageHash = 'candles:' + timeframe + ':' + symbol
+        if symbol in self.ohlcvs:
+            if timeframe in self.ohlcvs[symbol]:
+                del self.ohlcvs[symbol][timeframe]
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+
     def handle_un_subscription_status(self, client: Client, message):
         #
         #  {
@@ -1778,18 +1906,11 @@ class bitget(ccxt.async_support.bitget):
             channel = self.safe_string(arg, 'channel')
             if channel == 'books':
                 # for now only unWatchOrderBook is supporteod
-                instType = self.safe_string_lower(arg, 'instType')
-                type = 'spot' if (instType == 'spot') else 'contract'
-                instId = self.safe_string(arg, 'instId')
-                market = self.safe_market(instId, None, None, type)
-                symbol = market['symbol']
-                messageHash = 'unsubscribe:orderbook:' + market['symbol']
-                subMessageHash = 'orderbook:' + symbol
-                if symbol in self.orderbooks:
-                    del self.orderbooks[symbol]
-                if subMessageHash in client.subscriptions:
-                    del client.subscriptions[subMessageHash]
-                if messageHash in client.subscriptions:
-                    del client.subscriptions[messageHash]
-                client.resolve(True, messageHash)
+                self.handle_order_book_un_subscription(client, message)
+            elif channel == 'trade':
+                self.handle_trades_un_subscription(client, message)
+            elif channel == 'ticker':
+                self.handle_ticker_un_subscription(client, message)
+            elif channel.startswith('candle'):
+                self.handle_ohlcv_un_subscription(client, message)
         return message

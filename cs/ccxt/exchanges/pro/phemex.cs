@@ -13,7 +13,7 @@ public partial class phemex : ccxt.phemex
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
@@ -569,6 +569,56 @@ public partial class phemex : ccxt.phemex
         };
         object request = this.deepExtend(subscribe, parameters);
         return await this.watch(url, messageHash, request, subscriptionHash);
+    }
+
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name phemex#watchTickers
+        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-24-hours-ticker
+        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-24-hours-ticker
+        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-24-hours-ticker
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object first = getValue(symbols, 0);
+        object market = this.market(first);
+        object isSwap = getValue(market, "swap");
+        object settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        object name = "spot_market24h";
+        if (isTrue(isSwap))
+        {
+            name = ((bool) isTrue(settleIsUSDT)) ? "perp_market24h_pack_p" : "market24h";
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object requestId = this.requestId();
+        object subscriptionHash = add(name, ".subscribe");
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
+        }
+        object subscribe = new Dictionary<string, object>() {
+            { "method", subscriptionHash },
+            { "id", requestId },
+            { "params", new List<object>() {} },
+        };
+        object request = this.deepExtend(subscribe, parameters);
+        object ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)

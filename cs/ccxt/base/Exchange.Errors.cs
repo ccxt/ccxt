@@ -237,3 +237,9 @@ namespace ccxt;
         public CancelPending(string message) : base(message) { }
         public CancelPending(string message, OperationFailed inner) : base(message, inner) { }
     }
+   public class UnsubscribeError : BaseError
+    {
+        public UnsubscribeError() : base() { }
+        public UnsubscribeError(string message) : base(message) { }
+        public UnsubscribeError(string message, BaseError inner) : base(message, inner) { }
+    }
