@@ -11,6 +11,7 @@ import type {
     Dict,
     int,
     Int,
+    LedgerEntry,
     Market,
     Num,
     Order,
@@ -1794,7 +1795,7 @@ export default class valr extends Exchange {
         return this.parseLedger (response, currency, since, limit, this.extend (accountId, params));
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined): object {
+    parseLedgerEntry (item, currency: Currency = undefined): LedgerEntry {
         const ledgerTypeInfo = this.safeDict (item, 'transactionType');
         const ledgerType = this.safeString (ledgerTypeInfo, 'type');
         const transactionTypes = {
