@@ -1257,6 +1257,10 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 continue;
             }
 
+            if (tsFile.indexOf('json') > -1) {
+                continue; // skip json tests for now, exception handling outside classes is not supported
+            }
+
             // const goFileName = this.capitalize(testName.replace ('test.', ''));
             const goFile = `${outDir}/${testName}.go`;
 
