@@ -1,5 +1,5 @@
 import Exchange from './abstract/okcoin.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, LedgerEntry } from './base/types.js';
 /**
  * @class okcoin
  * @augments Exchange
@@ -52,25 +52,9 @@ export default class okcoin extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: Dict, currency?: Currency): {
-        id: string;
-        info: Dict;
-        timestamp: number;
-        datetime: string;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
-        type: string;
-        currency: string;
-        symbol: string;
-        amount: number;
-        before: any;
-        after: number;
-        status: string;
-        fee: any;
-    };
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

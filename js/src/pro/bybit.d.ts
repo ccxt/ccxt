@@ -1,5 +1,5 @@
 import bybitRest from '../bybit.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
@@ -14,6 +14,8 @@ export default class bybit extends bybitRest {
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     unWatchTicker(symbols: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    parseWsBidAsk(orderbook: any, market?: any): Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
@@ -65,5 +67,4 @@ export default class bybit extends bybitRest {
     handleAuthenticate(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscribe(client: Client, message: any): any;
-    cleanCache(subscription: Dict): void;
 }

@@ -468,6 +468,7 @@ export default class bingx extends Exchange {
             'commonCurrencies': {
                 'SNOW': 'Snowman',
                 'OMNI': 'OmniCat',
+                'NAP': '$NAP', // NAP on SOL = SNAP
             },
             'options': {
                 'defaultType': 'spot',

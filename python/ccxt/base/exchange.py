@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.95'
+__version__ = '4.4.5'
 
 # -----------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InvalidProxySettings
+from ccxt.base.errors import UnsubscribeError
 
 # -----------------------------------------------------------------------------
 
@@ -139,6 +140,8 @@ class Exchange(object):
     aiohttp_trust_env = False
     requests_trust_env = False
     session = None  # Session () by default
+    tcp_connector = None  # aiohttp.TCPConnector
+    aiohttp_socks_connector = None
     socks_proxy_sessions = None
     verify = True  # SSL verification
     validateServerSsl = True
@@ -1930,7 +1933,6 @@ class Exchange(object):
                 'fetchOrdersWs': None,
                 'fetchOrderTrades': None,
                 'fetchOrderWs': None,
-                'fetchPermissions': None,
                 'fetchPosition': None,
                 'fetchPositionHistory': None,
                 'fetchPositionsHistory': None,
@@ -2798,6 +2800,10 @@ class Exchange(object):
                     'min': None,
                     'max': None,
                 },
+            },
+            'marginModes': {
+                'cross': None,
+                'isolated': None,
             },
             'created': None,
             'info': None,
@@ -4137,9 +4143,6 @@ class Exchange(object):
     def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.cancel_order_ws(id, symbol)
         return self.create_order_ws(symbol, type, side, amount, price, params)
-
-    def fetch_permissions(self, params={}):
-        raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
     def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
@@ -6265,3 +6268,50 @@ class Exchange(object):
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
+
+    def clean_unsubscription(self, client, subHash: str, unsubHash: str):
+        if unsubHash in client.subscriptions:
+            del client.subscriptions[unsubHash]
+        if subHash in client.subscriptions:
+            del client.subscriptions[subHash]
+        if subHash in client.futures:
+            error = UnsubscribeError(self.id + ' ' + subHash)
+            client.reject(error, subHash)
+        client.resolve(True, unsubHash)
+
+    def clean_cache(self, subscription: dict):
+        topic = self.safe_string(subscription, 'topic')
+        symbols = self.safe_list(subscription, 'symbols', [])
+        symbolsLength = len(symbols)
+        if topic == 'ohlcv':
+            symbolsAndTimeFrames = self.safe_list(subscription, 'symbolsAndTimeframes', [])
+            for i in range(0, len(symbolsAndTimeFrames)):
+                symbolAndTimeFrame = symbolsAndTimeFrames[i]
+                symbol = self.safe_string(symbolAndTimeFrame, 0)
+                timeframe = self.safe_string(symbolAndTimeFrame, 1)
+                if timeframe in self.ohlcvs[symbol]:
+                    del self.ohlcvs[symbol][timeframe]
+        elif symbolsLength > 0:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                if topic == 'trades':
+                    del self.trades[symbol]
+                elif topic == 'orderbook':
+                    del self.orderbooks[symbol]
+                elif topic == 'ticker':
+                    del self.tickers[symbol]
+        else:
+            if topic == 'myTrades':
+                # don't reset self.myTrades directly here
+                # because in c# we need to use a different object
+                keys = list(self.myTrades.keys())
+                for i in range(0, len(keys)):
+                    del self.myTrades[keys[i]]
+            elif topic == 'orders':
+                orderSymbols = list(self.orders.keys())
+                for i in range(0, len(orderSymbols)):
+                    del self.orders[orderSymbols[i]]
+            elif topic == 'ticker':
+                tickerSymbols = list(self.tickers.keys())
+                for i in range(0, len(tickerSymbols)):
+                    del self.tickers[tickerSymbols[i]]

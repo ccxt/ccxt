@@ -1876,13 +1876,7 @@ class bitget(ccxt.async_support.bitget):
         if symbol in self.ohlcvs:
             if timeframe in self.ohlcvs[symbol]:
                 del self.ohlcvs[symbol][timeframe]
-        if subMessageHash in client.subscriptions:
-            del client.subscriptions[subMessageHash]
-        if messageHash in client.subscriptions:
-            del client.subscriptions[messageHash]
-        error = UnsubscribeError(self.id + ' ohlcv ' + timeframe + ' ' + symbol)
-        client.reject(error, subMessageHash)
-        client.resolve(True, messageHash)
+        self.clean_unsubscription(client, subMessageHash, messageHash)
 
     def handle_un_subscription_status(self, client: Client, message):
         #

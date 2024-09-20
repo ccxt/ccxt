@@ -84,6 +84,7 @@ class ImplicitAPI:
     private_post_spot_v4_query_trades = privatePostSpotV4QueryTrades = Entry('spot/v4/query/trades', 'private', 'POST', {'cost': 5})
     private_post_spot_v4_query_order_trades = privatePostSpotV4QueryOrderTrades = Entry('spot/v4/query/order-trades', 'private', 'POST', {'cost': 5})
     private_post_spot_v4_cancel_orders = privatePostSpotV4CancelOrders = Entry('spot/v4/cancel_orders', 'private', 'POST', {'cost': 3})
+    private_post_spot_v4_cancel_all = privatePostSpotV4CancelAll = Entry('spot/v4/cancel_all', 'private', 'POST', {'cost': 90})
     private_post_spot_v4_batch_orders = privatePostSpotV4BatchOrders = Entry('spot/v4/batch_orders', 'private', 'POST', {'cost': 3})
     private_post_spot_v3_cancel_order = privatePostSpotV3CancelOrder = Entry('spot/v3/cancel_order', 'private', 'POST', {'cost': 1})
     private_post_spot_v2_batch_orders = privatePostSpotV2BatchOrders = Entry('spot/v2/batch_orders', 'private', 'POST', {'cost': 1})

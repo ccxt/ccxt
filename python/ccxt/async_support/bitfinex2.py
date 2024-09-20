@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2730,7 +2730,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         else:
             return type
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     [
         #         [
@@ -2751,6 +2751,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         id = self.safe_string(itemList, 0)
         currencyId = self.safe_string(itemList, 1)
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(itemList, 3)
         amount = self.safe_number(itemList, 5)
         after = self.safe_number(itemList, 6)
@@ -2759,7 +2760,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             parts = description.split(' @ ')
             first = self.safe_string_lower(parts, 0)
             type = self.parse_ledger_entry_type(first)
-        return {
+        return self.safe_ledger_entry({
+            'info': item,
             'id': id,
             'direction': None,
             'account': None,
@@ -2774,16 +2776,15 @@ class bitfinex2(Exchange, ImplicitAPI):
             'after': after,
             'status': None,
             'fee': None,
-            'info': item,
-        }
+        }, currency)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://docs.bitfinex.com/reference/rest-auth-ledgers
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None max is 2500
+        :param int [limit]: max number of ledger entries to return, default is None, max is 2500
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)

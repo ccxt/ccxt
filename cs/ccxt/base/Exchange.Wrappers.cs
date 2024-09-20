@@ -344,11 +344,6 @@ public partial class Exchange
         var res = await this.editOrderWs(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Dictionary<string, object>> FetchPermissions(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPermissions(parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
@@ -1154,7 +1149,6 @@ public class  Binanceusdm: binanceusdm { public Binanceusdm(object args = null) 
 public class  Bingx: bingx { public Bingx(object args = null) : base(args) { } }
 public class  Bit2c: bit2c { public Bit2c(object args = null) : base(args) { } }
 public class  Bitbank: bitbank { public Bitbank(object args = null) : base(args) { } }
-public class  Bitbay: bitbay { public Bitbay(object args = null) : base(args) { } }
 public class  Bitbns: bitbns { public Bitbns(object args = null) : base(args) { } }
 public class  Bitcoincom: bitcoincom { public Bitcoincom(object args = null) : base(args) { } }
 public class  Bitfinex: bitfinex { public Bitfinex(object args = null) : base(args) { } }
@@ -1204,7 +1198,6 @@ public class  Gateio: gateio { public Gateio(object args = null) : base(args) { 
 public class  Gemini: gemini { public Gemini(object args = null) : base(args) { } }
 public class  Hashkey: hashkey { public Hashkey(object args = null) : base(args) { } }
 public class  Hitbtc: hitbtc { public Hitbtc(object args = null) : base(args) { } }
-public class  Hitbtc3: hitbtc3 { public Hitbtc3(object args = null) : base(args) { } }
 public class  Hollaex: hollaex { public Hollaex(object args = null) : base(args) { } }
 public class  Htx: htx { public Htx(object args = null) : base(args) { } }
 public class  Huobi: huobi { public Huobi(object args = null) : base(args) { } }

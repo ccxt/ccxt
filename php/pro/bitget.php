@@ -2054,15 +2054,7 @@ class bitget extends \ccxt\async\bitget {
                 unset($this->ohlcvs[$symbol][$timeframe]);
             }
         }
-        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$subMessageHash]);
-        }
-        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$messageHash]);
-        }
-        $error = new UnsubscribeError ($this->id . ' ohlcv ' . $timeframe . ' ' . $symbol);
-        $client->reject ($error, $subMessageHash);
-        $client->resolve (true, $messageHash);
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
     }
 
     public function handle_un_subscription_status(Client $client, $message) {
