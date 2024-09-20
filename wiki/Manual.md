@@ -1413,7 +1413,7 @@ A future market symbol consists of the underlying currency, the quoting currency
 | Litecoin                              | LTC          |
 | Dogecoin                              | DOGE         |
 | Stellar                               | XLM          |
-| Tron                                  | TRX          |
+| Tron                                  | TRX (For TRX) / TRC20 (For Tokens)         |
 | Ethereum Classic                      | ETC          |
 | Zcash                                 | ZEC          |
 | Monero                                | XMR          |
