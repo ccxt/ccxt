@@ -5862,6 +5862,7 @@ export default class binance extends Exchange {
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
+        const isSpotMargin = this.isSpotMargin (params, 'createOrder', market);
         const marketType = this.safeString (params, 'type', market['type']);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const initialUppercaseType = type.toUpperCase ();
@@ -5876,7 +5877,6 @@ export default class binance extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const isSpot = market['spot'] || (marketType === 'spot');
-        const isSpotMargin = this.isSpotMargin (marketType, marginMode);
         if (isSpotMargin || market['option']) {
             // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
             const reduceOnly = this.safeBool (params, 'reduceOnly', false);
