@@ -1222,6 +1222,7 @@ class binance(Exchange, ImplicitAPI):
             # exchange-specific options
             'options': {
                 'sandboxMode': False,
+                'fetchMargins': True,
                 'fetchMarkets': [
                     'spot',  # allows CORS in browsers
                     'linear',  # allows CORS in browsers
@@ -2853,13 +2854,12 @@ class binance(Exchange, ImplicitAPI):
             if type == 'option' and sandboxMode:
                 continue
             fetchMarkets.append(type)
-        fetchMargins = False
+        fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
         for i in range(0, len(fetchMarkets)):
             marketType = fetchMarkets[i]
             if marketType == 'spot':
                 promisesRaw.append(self.publicGetExchangeInfo(params))
-                if self.check_required_credentials(False) and not sandboxMode:
-                    fetchMargins = True
+                if fetchMargins and self.check_required_credentials(False) and not sandboxMode:
                     promisesRaw.append(self.sapiGetMarginAllPairs(params))
                     promisesRaw.append(self.sapiGetMarginIsolatedAllPairs(params))
             elif marketType == 'linear':

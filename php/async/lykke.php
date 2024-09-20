@@ -689,9 +689,9 @@ class lykke extends Exchange {
             $currencyId = $this->safe_string($balance, 'assetId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $free = $this->safe_string($balance, 'available');
+            $total = $this->safe_string($balance, 'available');
             $used = $this->safe_string($balance, 'reserved');
-            $account['free'] = $free;
+            $account['total'] = $total;
             $account['used'] = $used;
             $result[$code] = $account;
         }

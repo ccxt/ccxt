@@ -13,7 +13,11 @@ var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 // -----------------------------------------------------------------------------
 class binance extends binance$1 {
     describe() {
-        return this.deepExtend(super.describe(), {
+        const superDescribe = super.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'watchBalance': true,
@@ -155,7 +159,7 @@ class binance extends binance$1 {
                     'bookTicker': 'bookTicker',
                 },
             },
-        });
+        };
     }
     requestId(url) {
         const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
