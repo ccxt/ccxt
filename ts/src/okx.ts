@@ -1182,6 +1182,7 @@ export default class okx extends Exchange {
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
+                            'GTD': false,
                         },
                         'hedged': true,
                         // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them

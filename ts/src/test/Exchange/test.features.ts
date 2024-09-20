@@ -14,7 +14,7 @@ async function testFeatures (exchange: Exchange, skippedProperties: object) {
             const value = features[marketType];
             // assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
             if (value === undefined) {
-                return;
+                continue;
             }
             if (marketType === 'spot') {
                 testFeaturesInner (exchange, skippedProperties, value);

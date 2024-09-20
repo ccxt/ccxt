@@ -1086,6 +1086,7 @@ export default class bybit extends Exchange {
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
+                            'GTD': false,
                         },
                         'hedged': true,
                         // exchange-supported features
@@ -1147,6 +1148,7 @@ export default class bybit extends Exchange {
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
+                            'GTD': false,
                         },
                         'hedged': true,
                         // exchange-supported features
