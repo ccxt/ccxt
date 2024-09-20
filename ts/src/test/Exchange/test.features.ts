@@ -106,12 +106,11 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
             'limit': 0,
         },
     };
-    const foramtKeys = Object.keys (format);
     const featureKeys = Object.keys (featureObj);
     const allMethods = Object.keys (exchange.has);
     for (let i = 0; i < featureKeys.length; i++) {
         testSharedMethods.assertInArray (exchange, skippedProperties, 'features', featureKeys, i, allMethods);
-        testSharedMethods.assertStructure (exchange, skippedProperties, 'features', featureObj, format, foramtKeys, true); // deep structure check
+        testSharedMethods.assertStructure (exchange, skippedProperties, 'features', featureObj, format, undefined, true); // deep structure check
     }
 }
 

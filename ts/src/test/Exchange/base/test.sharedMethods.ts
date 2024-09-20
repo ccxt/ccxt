@@ -40,7 +40,7 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     return result;
 }
 
-function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor = [], deep = false) {
+function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: any [] = undefined, deep = false) {
     const logText = logTemplate (exchange, method, entry);
     assert (entry, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -94,14 +94,13 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
                 assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
                     if (typeof value === 'object') {
-                        assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor);
+                        assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
                     }
                 }
             }
         }
     }
 }
- 
 
 function assertTimestamp (exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck: any = undefined, keyNameOrIndex : string | number = 'timestamp') {
     const logText = logTemplate (exchange, method, entry);
