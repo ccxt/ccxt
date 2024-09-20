@@ -864,7 +864,12 @@ func GetArg(v []interface{}, index int, def interface{}) interface{} {
 	if len(v) <= index {
 		return def
 	}
-	return v[index]
+	val := v[index]
+
+	if val == nil {
+		return def
+	}
+	return val
 }
 
 func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{} {
