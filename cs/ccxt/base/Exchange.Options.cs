@@ -276,5 +276,6 @@ public partial class Exchange
         this.httpProxy = SafeString(extendedProperties, "httpProxy");
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
+        this.features = SafeValue(extendedProperties, "features", features) as dict;
     }
 }
