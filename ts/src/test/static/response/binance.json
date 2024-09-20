@@ -1353,7 +1353,8 @@
                     "USDT": {
                         "free": 31.022612,
                         "used": 0,
-                        "total": 31.022612
+                        "total": 31.022612,
+                        "unrealizedPnl": 0
                     },
                     "timestamp": null,
                     "datetime": null,
@@ -1365,6 +1366,9 @@
                     },
                     "total": {
                         "USDT": 31.022612
+                    },
+                    "unrealizedPnl": {
+                        "USDT": 0
                     }
                 }
             },
@@ -1504,22 +1508,26 @@
                     "ETH": {
                         "free": null,
                         "used": null,
-                        "total": 0.00057786
+                        "total": 0.00057786,
+                        "unrealizedPnl": null
                     },
                     "USDT": {
                         "free": null,
                         "used": null,
-                        "total": 136.03451668
+                        "total": 136.03451668,
+                        "unrealizedPnl": null
                     },
                     "LTC": {
                         "free": null,
                         "used": null,
-                        "total": 0.000636
+                        "total": 0.000636,
+                        "unrealizedPnl": null
                     },
                     "ADA": {
                         "free": null,
                         "used": null,
-                        "total": 10.0325
+                        "total": 10.0325,
+                        "unrealizedPnl": null
                     },
                     "timestamp": null,
                     "datetime": null,
@@ -1680,22 +1688,26 @@
                     "ETH": {
                         "free": 0,
                         "used": 0,
-                        "total": 0
+                        "total": 0,
+                        "unrealizedPnl": null
                     },
                     "USDT": {
                         "free": 105.43419058,
                         "used": 0,
-                        "total": 105.43419058
+                        "total": 105.43419058,
+                        "unrealizedPnl": null
                     },
                     "LTC": {
                         "free": 0,
                         "used": 0,
-                        "total": 0
+                        "total": 0,
+                        "unrealizedPnl": null
                     },
                     "ADA": {
                         "free": 0,
                         "used": 0,
-                        "total": 0
+                        "total": 0,
+                        "unrealizedPnl": null
                     },
                     "timestamp": null,
                     "datetime": null,

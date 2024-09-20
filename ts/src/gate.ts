@@ -2657,6 +2657,9 @@ export default class gate extends Exchange {
         if ('borrowed' in entry) {
             account['debt'] = this.safeString (entry, 'borrowed');
         }
+        if ('unrealised_pnl' in entry) {
+            account['unrealizedPnl'] = this.safeNumber (entry, 'unrealised_pnl');
+        }
         return account;
     }
 

@@ -637,6 +637,69 @@
                         "FON": 2.997
                     }
                 }
+            },
+            {
+                "description": "swap balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1726798881399,
+                    "data":[
+                        {
+                            "marginCoin": "USDT",
+                            "locked": "0",
+                            "available": "19.88811074",
+                            "crossedMaxAvailable": "19.88811074",
+                            "isolatedMaxAvailable": "19.88811074",
+                            "maxTransferOut": "19.88811074",
+                            "accountEquity": "19.88811074",
+                            "usdtEquity": "19.888110749166",
+                            "btcEquity": "0.000315754725",
+                            "crossedRiskRate": "0",
+                            "unrealizedPL": "0",
+                            "coupon": "0",
+                            "crossedUnrealizedPL": "",
+                            "isolatedUnrealizedPL": "",
+                            "grant": "",
+                            "unionTotalMargin": "19.88811074",
+                            "unionAvailable": "19.88811074",
+                            "unionMm": "0",
+                            "assetList": []
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "marginCoin": "USDT",
+                            "locked": "0",
+                            "available": "19.88811074",
+                            "crossedMaxAvailable": "19.88811074",
+                            "isolatedMaxAvailable": "19.88811074",
+                            "maxTransferOut": "19.88811074",
+                            "accountEquity": "19.88811074",
+                            "usdtEquity": "19.888110749166",
+                            "btcEquity": "0.000315754725",
+                            "crossedRiskRate": "0",
+                            "unrealizedPL": "0",
+                            "coupon": "0",
+                            "crossedUnrealizedPL": "",
+                            "isolatedUnrealizedPL": "",
+                            "grant": "",
+                            "unionTotalMargin": "19.88811074",
+                            "unionAvailable": "19.88811074",
+                            "unionMm": "0",
+                            "assetList": []
+                        }
+                    ],
+                    "USDT": { "free": 19.88811074, "used": 0, "total": 19.88811074, "unrealizedPnl": 0 },
+                    "free": { "USDT": 19.88811074 },
+                    "used": { "USDT": 0 },
+                    "total": { "USDT": 19.88811074 },
+                    "unrealizedPnl": { "USDT": 0 }
+                }
             }
         ],
         "fetchPositions": [
