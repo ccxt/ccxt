@@ -1,6 +1,6 @@
 {
     "exchange": "coincatch",
-    "skipKeys": [ "startTime", "endTime" ],
+    "skipKeys": [ "startTime", "endTime", "pageNo" ],
     "outputType": "both",
     "methods": {
         "fetchCurrencies": [
@@ -144,7 +144,7 @@
                 ]
             },
             {
-                "description": "Fetch funding rate histiry with since and limit",
+                "description": "Fetch funding rate history with since and limit",
                 "method": "fetchFundingRateHistory",
                 "url": "https://api.coincatch.com/api/mix/v1/market/history-fundRate?symbol=ETHUSDT_UMCBL&pageNo=4&pageSize=1",
                 "input": [
@@ -174,11 +174,14 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "Fetch deposit address",
+                "description": "Fill this with a description of the method call",
                 "method": "fetchDepositAddress",
                 "url": "https://api.coincatch.com/api/spot/v1/wallet/deposit-address?coin=USDT&chain=TRC20",
                 "input": [
-                    "USDT"
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
                 ]
             }
         ],
@@ -221,13 +224,100 @@
         ],
         "fetchMyTrades": [
             {
-                "description": "Fetch my trades",
+                "description": "Fill this with a description of the method call",
                 "method": "fetchMyTrades",
                 "url": "https://api.coincatch.com/api/spot/v1/trade/fills",
                 "input": [
                     "ETH/USDT"
                 ],
                 "output": "{\"symbol\":\"ETHUSDT_SPBL\"}"
+            },
+            {
+                "description": "Fetch my trades with since and limit",
+                "method": "fetchMyTrades",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/fills",
+                "input": [
+                    "ETH/USDT",
+                    1725915471400,
+                    1
+                ],
+                "output": "{\"symbol\":\"ETHUSDT_SPBL\",\"limit\":500}"
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://api.coincatch.com/api/mix/v1/account/account?symbol=ETHUSDT_UMCBL&marginCoin=USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.coincatch.com/api/mix/v1/account/setMarginMode",
+                "input": [
+                    "cross",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETHUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"marginMode\":\"crossed\"}"
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "Fetch position mode",
+                "method": "fetchPositionMode",
+                "url": "https://api.coincatch.com/api/mix/v1/account/account?symbol=ETHUSDT_UMCBL&marginCoin=USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "Set position mode",
+                "method": "setPositionMode",
+                "url": "https://api.coincatch.com/api/mix/v1/account/setPositionMode",
+                "input": [
+                    true,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"productType\":\"UMCBL\",\"holdMode\":\"double_hold\"}"
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://api.coincatch.com/api/mix/v1/account/account?symbol=ETHUSDT_UMCBL&marginCoin=USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set leverage",
+                "method": "setLeverage",
+                "url": "https://api.coincatch.com/api/mix/v1/account/setLeverage",
+                "input": [
+                    5,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETHUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"leverage\":5}"
+              }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Fetch position",
+                "method": "fetchPosition",
+                "url": "https://api.coincatch.com/api/mix/v1/position/singlePosition-v2?symbol=ETHUSDT_UMCBL&marginCoin=USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
             }
         ]
     }
