@@ -246,6 +246,10 @@ class bitmart extends Exchange {
                         'contract/private/submit-plan-order' => 2.5,
                         'contract/private/cancel-plan-order' => 1.5,
                         'contract/private/submit-leverage' => 2.5,
+                        'contract/private/submit-tp-sl-order' => 2.5,
+                        'contract/private/modify-plan-order' => 2.5,
+                        'contract/private/modify-preset-plan-order' => 2.5,
+                        'contract/private/modify-tp-sl-order' => 2.5,
                     ),
                 ),
             ),
@@ -2446,6 +2450,7 @@ class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#submit-$order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-$order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-$order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-$order-signed
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} $side 'buy' or 'sell'
@@ -2463,6 +2468,9 @@ class bitmart extends Exchange {
          * @param {int} [$params->activation_price_type] *swap trailing $order only* 1 => last $price, 2 => fair $price, default is 1
          * @param {string} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price, min 0.1 max 5
          * @param {string} [$params->trailingTriggerPrice] *swap only* the $price to trigger a trailing $order, default uses the $price argument
+         * @param {string} [$params->stopLossPrice] *swap only* the $price to trigger a stop-loss $order
+         * @param {string} [$params->takeProfitPrice] *swap only* the $price to trigger a take-profit $order
+         * @param {int} [$params->plan_category] *swap tp/sl only* 1 => tp/sl, 2 => position tp/sl, default is 1
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -2470,6 +2478,10 @@ class bitmart extends Exchange {
         $result = $this->handle_margin_mode_and_params('createOrder', $params);
         $marginMode = $this->safe_string($result, 0);
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'trigger_price' ));
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
         $isTriggerOrder = $triggerPrice !== null;
         $response = null;
         if ($market['spot']) {
@@ -2483,6 +2495,8 @@ class bitmart extends Exchange {
             $swapRequest = $this->create_swap_order_request($symbol, $type, $side, $amount, $price, $params);
             if ($isTriggerOrder) {
                 $response = $this->privatePostContractPrivateSubmitPlanOrder ($swapRequest);
+            } elseif ($isStopLoss || $isTakeProfit) {
+                $response = $this->privatePostContractPrivateSubmitTpSlOrder ($swapRequest);
             } else {
                 $response = $this->privatePostContractPrivateSubmitOrder ($swapRequest);
             }
@@ -2586,8 +2600,9 @@ class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market', 'limit' or 'trailing'
+         * @param {string} $type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
@@ -2602,9 +2617,21 @@ class bitmart extends Exchange {
          * @param {int} [$params->activation_price_type] *swap trailing order only* 1 => last $price, 2 => fair $price, default is 1
          * @param {string} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price, min 0.1 max 5
          * @param {string} [$params->trailingTriggerPrice] *swap only* the $price to trigger a trailing order, default uses the $price argument
+         * @param {string} [$params->stopLossPrice] *swap only* the $price to trigger a stop-loss order
+         * @param {string} [$params->takeProfitPrice] *swap only* the $price to trigger a take-profit order
+         * @param {int} [$params->plan_category] *swap tp/sl only* 1 => tp/sl, 2 => position tp/sl, default is 1
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $market = $this->market($symbol);
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
+        if ($isStopLoss) {
+            $type = 'stop_loss';
+        } elseif ($isTakeProfit) {
+            $type = 'take_profit';
+        }
         $request = array(
             'symbol' => $market['id'],
             'type' => $type,
@@ -2614,7 +2641,7 @@ class bitmart extends Exchange {
         $mode = $this->safe_integer($params, 'mode'); // only for swap
         $isMarketOrder = $type === 'market';
         $postOnly = null;
-        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         $isExchangeSpecificPo = ($mode === 4);
         list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $isExchangeSpecificPo, $params);
         $ioc = (($timeInForce === 'IOC') || ($mode === 3));
@@ -2661,6 +2688,20 @@ class bitmart extends Exchange {
                 }
             }
         }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
+        if ($isStopLoss || $isTakeProfit) {
+            $reduceOnly = true;
+            $request['price_type'] = $this->safe_integer($params, 'price_type', 1);
+            $request['executive_price'] = $this->price_to_precision($symbol, $price);
+            if ($isStopLoss) {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $stopLossPrice);
+            } else {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
+            }
+        } else {
+            $request['open_type'] = $marginMode;
+        }
         if ($side === 'buy') {
             if ($reduceOnly) {
                 $request['side'] = 2; // buy close short
@@ -2674,16 +2715,13 @@ class bitmart extends Exchange {
                 $request['side'] = 4; // sell open short
             }
         }
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
-        $request['open_type'] = $marginMode;
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $params = $this->omit($params, 'clientOrderId');
             $request['client_order_id'] = $clientOrderId;
         }
         $leverage = $this->safe_integer($params, 'leverage');
-        $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice' ));
+        $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
         if ($leverage !== null) {
             $request['leverage'] = $this->number_to_string($leverage);
         } elseif ($isTriggerOrder) {

@@ -191,6 +191,8 @@ public partial class kraken : Exchange
                 { "XDG", "DOGE" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "marketsByAltname", new Dictionary<string, object>() {} },
                 { "delistedMarketsById", new Dictionary<string, object>() {} },
                 { "inactiveCurrencies", new List<object>() {"CAD", "USD", "JPY", "GBP"} },
@@ -425,6 +427,10 @@ public partial class kraken : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object response = await this.publicGetAssetPairs(parameters);
         //
         //     {
@@ -3415,7 +3421,7 @@ public partial class kraken : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

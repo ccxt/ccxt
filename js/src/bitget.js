@@ -1318,6 +1318,8 @@ export default class bitget extends Exchange {
                 'TONCOIN': 'TON',
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'timeframes': {
                     'spot': {
                         '1m': '1min',
@@ -1540,6 +1542,9 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let types = this.safeValue(this.options, 'fetchMarkets', ['spot', 'swap']);
         if (sandboxMode) {
@@ -8825,6 +8830,9 @@ export default class bitget extends Exchange {
         }
         return undefined;
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
@@ -8842,7 +8850,7 @@ export default class bitget extends Exchange {
         }
         if (signed) {
             this.checkRequiredCredentials();
-            const timestamp = this.milliseconds().toString();
+            const timestamp = this.nonce().toString();
             let auth = timestamp + method + payload;
             if (method === 'POST') {
                 body = this.json(params);

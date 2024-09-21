@@ -1312,6 +1312,8 @@ class bitget extends Exchange {
                 'TONCOIN' => 'TON',
             ),
             'options' => array(
+                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'timeframes' => array(
                     'spot' => array(
                         '1m' => '1min',
@@ -1528,6 +1530,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
         if ($sandboxMode) {
@@ -8623,6 +8628,10 @@ class bitget extends Exchange {
         return null;
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
+    }
+
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
@@ -8640,7 +8649,7 @@ class bitget extends Exchange {
         }
         if ($signed) {
             $this->check_required_credentials();
-            $timestamp = (string) $this->milliseconds();
+            $timestamp = (string) $this->nonce();
             $auth = $timestamp . $method . $payload;
             if ($method === 'POST') {
                 $body = $this->json($params);

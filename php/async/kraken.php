@@ -241,6 +241,8 @@ class kraken extends Exchange {
                 'XDG' => 'DOGE',
             ),
             'options' => array(
+                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'marketsByAltname' => array(),
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
@@ -472,6 +474,9 @@ class kraken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $response = Async\await($this->publicGetAssetPairs ($params));
             //
             //     {
@@ -3197,7 +3202,7 @@ class kraken extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

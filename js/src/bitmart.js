@@ -252,6 +252,10 @@ export default class bitmart extends Exchange {
                         'contract/private/submit-plan-order': 2.5,
                         'contract/private/cancel-plan-order': 1.5,
                         'contract/private/submit-leverage': 2.5,
+                        'contract/private/submit-tp-sl-order': 2.5,
+                        'contract/private/modify-plan-order': 2.5,
+                        'contract/private/modify-preset-plan-order': 2.5,
+                        'contract/private/modify-tp-sl-order': 2.5,
                     },
                 },
             },
@@ -2483,6 +2487,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
@@ -2500,6 +2505,9 @@ export default class bitmart extends Exchange {
          * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
          * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
          * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
+         * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+         * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+         * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2507,6 +2515,10 @@ export default class bitmart extends Exchange {
         const result = this.handleMarginModeAndParams('createOrder', params);
         const marginMode = this.safeString(result, 0);
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
         let response = undefined;
         if (market['spot']) {
@@ -2522,6 +2534,9 @@ export default class bitmart extends Exchange {
             const swapRequest = this.createSwapOrderRequest(symbol, type, side, amount, price, params);
             if (isTriggerOrder) {
                 response = await this.privatePostContractPrivateSubmitPlanOrder(swapRequest);
+            }
+            else if (isStopLoss || isTakeProfit) {
+                response = await this.privatePostContractPrivateSubmitTpSlOrder(swapRequest);
             }
             else {
                 response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
@@ -2629,8 +2644,9 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit' or 'trailing'
+         * @param {string} type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -2645,9 +2661,22 @@ export default class bitmart extends Exchange {
          * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
          * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
          * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
+         * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+         * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+         * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market(symbol);
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        if (isStopLoss) {
+            type = 'stop_loss';
+        }
+        else if (isTakeProfit) {
+            type = 'take_profit';
+        }
         const request = {
             'symbol': market['id'],
             'type': type,
@@ -2657,7 +2686,7 @@ export default class bitmart extends Exchange {
         const mode = this.safeInteger(params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
         let postOnly = undefined;
-        const reduceOnly = this.safeValue(params, 'reduceOnly');
+        let reduceOnly = this.safeBool(params, 'reduceOnly');
         const isExchangeSpecificPo = (mode === 4);
         [postOnly, params] = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, params);
         const ioc = ((timeInForce === 'IOC') || (mode === 3));
@@ -2710,6 +2739,22 @@ export default class bitmart extends Exchange {
                 }
             }
         }
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params, 'cross');
+        if (isStopLoss || isTakeProfit) {
+            reduceOnly = true;
+            request['price_type'] = this.safeInteger(params, 'price_type', 1);
+            request['executive_price'] = this.priceToPrecision(symbol, price);
+            if (isStopLoss) {
+                request['trigger_price'] = this.priceToPrecision(symbol, stopLossPrice);
+            }
+            else {
+                request['trigger_price'] = this.priceToPrecision(symbol, takeProfitPrice);
+            }
+        }
+        else {
+            request['open_type'] = marginMode;
+        }
         if (side === 'buy') {
             if (reduceOnly) {
                 request['side'] = 2; // buy close short
@@ -2726,16 +2771,13 @@ export default class bitmart extends Exchange {
                 request['side'] = 4; // sell open short
             }
         }
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params, 'cross');
-        request['open_type'] = marginMode;
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             params = this.omit(params, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
         }
         const leverage = this.safeInteger(params, 'leverage');
-        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice']);
+        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']);
         if (leverage !== undefined) {
             request['leverage'] = this.numberToString(leverage);
         }

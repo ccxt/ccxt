@@ -414,6 +414,8 @@ class mexc extends mexc$1 {
                 },
             },
             'options': {
+                'adjustForTimeDifference': false,
+                'timeDifference': 0,
                 'createMarketBuyOrderRequiresPrice': true,
                 'unavailableContracts': {
                     'BTC/USDT:USDT': true,
@@ -1029,6 +1031,9 @@ class mexc extends mexc$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const spotMarketPromise = this.fetchSpotMarkets(params);
         const swapMarketPromise = this.fetchSwapMarkets(params);
         const [spotMarket, swapMarket] = await Promise.all([spotMarketPromise, swapMarketPromise]);
@@ -4557,7 +4562,7 @@ class mexc extends mexc$1 {
         // 'coin': currency['id'] + network example: USDT-TRX,
         // 'status': 'status',
         // 'startTime': since, // default 90 days
-        // 'endTime': this.milliseconds (),
+        // 'endTime': this.nonce(),
         // 'limit': limit, // default 1000, maximum 1000
         };
         let currency = undefined;
@@ -4617,7 +4622,7 @@ class mexc extends mexc$1 {
         // 'coin': currency['id'],
         // 'status': 'status',
         // 'startTime': since, // default 90 days
-        // 'endTime': this.milliseconds (),
+        // 'endTime': this.nonce(),
         // 'limit': limit, // default 1000, maximum 1000
         };
         let currency = undefined;
@@ -5643,6 +5648,9 @@ class mexc extends mexc$1 {
         const positions = this.parsePositions(data, symbols, params);
         return this.filterBySinceLimit(positions, since, limit);
     }
+    nonce() {
+        return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const section = this.safeString(api, 0);
         const access = this.safeString(api, 1);
@@ -5657,7 +5665,7 @@ class mexc extends mexc$1 {
             }
             let paramsEncoded = '';
             if (access === 'private') {
-                params['timestamp'] = this.milliseconds();
+                params['timestamp'] = this.nonce();
                 params['recvWindow'] = this.safeInteger(this.options, 'recvWindow', 5000);
             }
             if (Object.keys(params).length) {
@@ -5687,7 +5695,7 @@ class mexc extends mexc$1 {
             }
             else {
                 this.checkRequiredCredentials();
-                const timestamp = this.milliseconds().toString();
+                const timestamp = this.nonce().toString();
                 let auth = '';
                 headers = {
                     'ApiKey': this.apiKey,

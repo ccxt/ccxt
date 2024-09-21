@@ -421,6 +421,8 @@ class mexc extends Exchange {
                 ),
             ),
             'options' => array(
+                'adjustForTimeDifference' => false,
+                'timeDifference' => 0,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'unavailableContracts' => array(
                     'BTC/USDT:USDT' => true,
@@ -1037,6 +1039,9 @@ class mexc extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
+            if ($this->options['adjustForTimeDifference']) {
+                Async\await($this->load_time_difference());
+            }
             $spotMarketPromise = $this->fetch_spot_markets($params);
             $swapMarketPromise = $this->fetch_swap_markets($params);
             list($spotMarket, $swapMarket) = Async\await(Promise\all(array( $spotMarketPromise, $swapMarketPromise )));
@@ -4569,7 +4574,7 @@ class mexc extends Exchange {
                 // 'coin' => $currency['id'] . network example => USDT-TRX,
                 // 'status' => 'status',
                 // 'startTime' => $since, // default 90 days
-                // 'endTime' => $this->milliseconds(),
+                // 'endTime' => $this->nonce(),
                 // 'limit' => $limit, // default 1000, maximum 1000
             );
             $currency = null;
@@ -4630,7 +4635,7 @@ class mexc extends Exchange {
                 // 'coin' => $currency['id'],
                 // 'status' => 'status',
                 // 'startTime' => $since, // default 90 days
-                // 'endTime' => $this->milliseconds(),
+                // 'endTime' => $this->nonce(),
                 // 'limit' => $limit, // default 1000, maximum 1000
             );
             $currency = null;
@@ -5676,6 +5681,10 @@ class mexc extends Exchange {
         }) ();
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $section = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
@@ -5689,7 +5698,7 @@ class mexc extends Exchange {
             }
             $paramsEncoded = '';
             if ($access === 'private') {
-                $params['timestamp'] = $this->milliseconds();
+                $params['timestamp'] = $this->nonce();
                 $params['recvWindow'] = $this->safe_integer($this->options, 'recvWindow', 5000);
             }
             if ($params) {
@@ -5717,7 +5726,7 @@ class mexc extends Exchange {
                 }
             } else {
                 $this->check_required_credentials();
-                $timestamp = (string) $this->milliseconds();
+                $timestamp = (string) $this->nonce();
                 $auth = '';
                 $headers = array(
                     'ApiKey' => $this->apiKey,

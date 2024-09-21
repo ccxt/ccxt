@@ -429,6 +429,8 @@ class mexc(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'adjustForTimeDifference': False,
+                'timeDifference': 0,
                 'createMarketBuyOrderRequiresPrice': True,
                 'unavailableContracts': {
                     'BTC/USDT:USDT': True,
@@ -1023,6 +1025,8 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         spotMarketPromise = self.fetch_spot_markets(params)
         swapMarketPromise = self.fetch_swap_markets(params)
         spotMarket, swapMarket = await asyncio.gather(*[spotMarketPromise, swapMarketPromise])
@@ -4263,7 +4267,7 @@ class mexc(Exchange, ImplicitAPI):
             # 'coin': currency['id'] + network example: USDT-TRX,
             # 'status': 'status',
             # 'startTime': since,  # default 90 days
-            # 'endTime': self.milliseconds(),
+            # 'endTime': self.nonce(),
             # 'limit': limit,  # default 1000, maximum 1000
         }
         currency = None
@@ -4316,7 +4320,7 @@ class mexc(Exchange, ImplicitAPI):
             # 'coin': currency['id'],
             # 'status': 'status',
             # 'startTime': since,  # default 90 days
-            # 'endTime': self.milliseconds(),
+            # 'endTime': self.nonce(),
             # 'limit': limit,  # default 1000, maximum 1000
         }
         currency = None
@@ -5281,6 +5285,9 @@ class mexc(Exchange, ImplicitAPI):
         positions = self.parse_positions(data, symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
 
+    def nonce(self):
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
@@ -5293,7 +5300,7 @@ class mexc(Exchange, ImplicitAPI):
                 url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
             paramsEncoded = ''
             if access == 'private':
-                params['timestamp'] = self.milliseconds()
+                params['timestamp'] = self.nonce()
                 params['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
             if params:
                 paramsEncoded = self.urlencode(params)
@@ -5316,7 +5323,7 @@ class mexc(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(params)
             else:
                 self.check_required_credentials()
-                timestamp = str(self.milliseconds())
+                timestamp = str(self.nonce())
                 auth = ''
                 headers = {
                     'ApiKey': self.apiKey,
