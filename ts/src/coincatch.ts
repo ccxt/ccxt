@@ -366,6 +366,7 @@ export default class coincatch extends Exchange {
                     // {"code":"400172","msg":"symbol cannot be empty","requestTime":1726491190749,"data":null}
                     // {"code":"43117","msg":"Exceeds the maximum amount that can be transferred","requestTime":1726665370746,"data":null}
                     // {"code":"45006","msg":"Insufficient position","requestTime":1726750130410,"data":null}
+                    // {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1726919166747,"data":null}
                 },
                 'broad': {},
             },
@@ -2243,6 +2244,7 @@ export default class coincatch extends Exchange {
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.hedged] default false
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
          * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2263,7 +2265,6 @@ export default class coincatch extends Exchange {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'orderType': type,
-            'side': side,
             'size': this.amountToPrecision (symbol, amount),
         };
         [ request, params ] = this.handleOptionParamsAndRequest (params, methodName, 'clientOrderId', request, 'clientOid');
@@ -2290,6 +2291,30 @@ export default class coincatch extends Exchange {
         if (takeProfitPrice !== undefined) {
             request['presetTakeProfitPrice'] = takeProfitPrice;
         }
+        let hedged: Bool = false;
+        [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
+        // hedged and non-hedged orders have different side values and reduseOnly handling
+        // todo find the best way to handle this
+        if (hedged) {
+            let reduceOnly: Bool = false;
+            [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly', reduceOnly);
+            if (reduceOnly) {
+                if (side === 'buy') {
+                    side = 'close_short';
+                } else if (side === 'sell') {
+                    side = 'close_long';
+                }
+            } else {
+                if (side === 'buy') {
+                    side = 'open_long';
+                } else if (side === 'sell') {
+                    side = 'open_short';
+                }
+            }
+        } else {
+            side = side.toLowerCase () + '_single';
+        }
+        request['side'] = side;
         return this.extend (request, params);
     }
 
