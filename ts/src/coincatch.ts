@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coincatch.js';
-import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, BadSymbol, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -192,7 +192,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/account/account': 2, // done
                         'api/mix/v1/account/accounts': 2, // done
                         'api/mix/v1/position/singlePosition-v2': 2, // done
-                        'api/mix/v1/position/allPosition-v2': 2, // done
+                        'api/mix/v1/position/allPosition-v2': 4, // done
                         'api/mix/v1/account/accountBill': 1,
                         'api/mix/v1/account/accountBusinessBill': 1,
                         'api/mix/v1/order/current': 1,
@@ -367,6 +367,7 @@ export default class coincatch extends Exchange {
                     // {"code":"43117","msg":"Exceeds the maximum amount that can be transferred","requestTime":1726665370746,"data":null}
                     // {"code":"45006","msg":"Insufficient position","requestTime":1726750130410,"data":null}
                     // {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1726919166747,"data":null}
+                    // {"code":"40762","msg":"The order amount exceeds the balance","requestTime":1726935546610,"data":null}
                 },
                 'broad': {},
             },
@@ -1391,7 +1392,7 @@ export default class coincatch extends Exchange {
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger2 (trade, 'fillTime', 'timestamp');
+        const timestamp = this.safeIntegerN (trade, [ 'fillTime', 'timestamp', 'cTime' ]);
         const fees = this.safeString (trade, 'fees');
         let feeCost: Str = undefined;
         if (fees !== undefined) {
@@ -1779,6 +1780,9 @@ export default class coincatch extends Exchange {
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             networkCode = this.defaultNetworkCode (code);
+        }
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a network parameter or a default network code');
         }
         request['chain'] = this.networkCodeToId (networkCode, code);
         const response = await this.privateGetApiSpotV1WalletDepositAddress (this.extend (request, params));
@@ -3640,25 +3644,146 @@ export default class coincatch extends Exchange {
         return this.parsePositions (data, [ symbol ]);
     }
 
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name coincatch#fetchPositions
+         * @description fetch all open positions
+         * @see https://coincatch.github.io/github.io/en/mix/#get-all-position
+         * @param {string[]} [symbols] list of unified market symbols (all symbols must belong to the same product type)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl' if symbols are not provided)
+         * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const methodName = 'fetchPositions';
+        await this.loadMarkets ();
+        let productType = 'umcbl';
+        if (symbols !== undefined) {
+            const marketIds = this.marketIds (symbols);
+            let productTypes = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const parts = marketId.split ('_');
+                const marketProductType = this.safeString (parts, 1);
+                productTypes.push (marketProductType);
+            }
+            productTypes = this.unique (productTypes);
+            const arrayLength = productTypes.length;
+            if (arrayLength > 1) {
+                throw new BadSymbol (this.id + methodName + '() requires all symbols to belong to the same product type (umcbl or dmcbl)');
+            } else {
+                productType = productTypes[0];
+            }
+        } else {
+            [ productType, params ] = this.handleOptionAndParams (params, methodName, 'productType', productType);
+        }
+        const request: Dict = {
+            'productType': productType,
+        };
+        if (productType === 'dmcbl') {
+            let marginCoin: Str = undefined;
+            [ marginCoin, params ] = this.handleOptionAndParams (params, methodName, 'marginCoin');
+            if (marginCoin !== undefined) {
+                const currency = this.currency (marginCoin);
+                request['marginCoin'] = currency['id'];
+            }
+        }
+        const response = await this.privateGetApiMixV1PositionAllPositionV2 (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1726933132054,
+        //         "data": [
+        //             {
+        //                 "marginCoin": "USDT",
+        //                 "symbol": "ETHUSDT_UMCBL",
+        //                 "holdSide": "long",
+        //                 "openDelegateCount": "0",
+        //                 "margin": "2.55512",
+        //                 "available": "0.01",
+        //                 "locked": "0",
+        //                 "total": "0.01",
+        //                 "leverage": 10,
+        //                 "achievedProfits": "0",
+        //                 "averageOpenPrice": "2555.12",
+        //                 "marginMode": "crossed",
+        //                 "holdMode": "double_hold",
+        //                 "unrealizedPL": "0.0093",
+        //                 "liquidationPrice": "-3433.378333",
+        //                 "keepMarginRate": "0.0033",
+        //                 "marketPrice": "2556.05",
+        //                 "marginRatio": "0.001661599511",
+        //                 "autoMargin": "off",
+        //                 "cTime": "1726919819686",
+        //                 "uTime": "1726919819686"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, symbols);
+    }
+
     parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "marginCoin": "USDT",
+        //         "symbol": "ETHUSDT_UMCBL",
+        //         "holdSide": "long",
+        //         "openDelegateCount": "0",
+        //         "margin": "2.55512",
+        //         "available": "0.01",
+        //         "locked": "0",
+        //         "total": "0.01",
+        //         "leverage": 10,
+        //         "achievedProfits": "0",
+        //         "averageOpenPrice": "2555.12",
+        //         "marginMode": "crossed",
+        //         "holdMode": "double_hold",
+        //         "unrealizedPL": "0.0093",
+        //         "liquidationPrice": "-3433.378333",
+        //         "keepMarginRate": "0.0033",
+        //         "marketPrice": "2556.05",
+        //         "marginRatio": "0.001661599511",
+        //         "autoMargin": "off",
+        //         "cTime": "1726919819686",
+        //         "uTime": "1726919819686"
+        //     }
+        //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const lastUpdateTimestamp = this.safeInteger (position, 'cTime');
+        try {
+            market = this.safeMarket (marketId, market);
+        } catch (e) {
+            // dmcbl markets have the same id and market type but different settleId
+            // so we need to resolve the market by settleId
+            const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
+            const settleId = this.safeString (position, 'marginCoin');
+            for (let i = 0; i < marketsWithCurrentId.length; i++) {
+                const marketWithCurrentId = marketsWithCurrentId[i];
+                if (marketWithCurrentId['settleId'] === settleId) {
+                    market = marketWithCurrentId;
+                    break;
+                }
+            }
+        }
+        const timestamp = this.safeInteger (position, 'cTime');
         const marginMode = this.safeString (position, 'marginMode');
-        let isHeged: Bool = undefined;
+        let isHedged: Bool = undefined;
         const holdMode = this.safeString (position, 'holdMode');
         if (holdMode === 'double_hold') {
-            isHeged = true;
+            isHedged = true;
         } else if (holdMode === 'single_hold') {
-            isHeged = false;
+            isHedged = false;
         }
         const margin = this.safeNumber (position, 'margin');
         const keepMarginRate = this.safeString (position, 'keepMarginRate');
         return this.safePosition ({
             'symbol': market['symbol'],
             'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'contracts': this.safeNumber (position, 'total'), // todo check
             'contractSize': undefined,
             'side': this.safeString (position, 'side'),
@@ -3671,13 +3796,13 @@ export default class coincatch extends Exchange {
             'markPrice': this.safeNumber (position, 'marketPrice'),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': this.parseMarginModeType (marginMode),
-            'hedged': isHeged,
+            'hedged': isHedged,
             'maintenanceMargin': undefined, // todo check
             'maintenanceMarginPercentage': this.parseNumber (Precise.stringMul (keepMarginRate, '100')), // todo check
             'initialMargin': margin, // todo check
             'initialMarginPercentage': undefined,
             'marginRatio': this.safeNumber (position, 'marginRatio'),
-            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'lastUpdateTimestamp': this.safeInteger (position, 'uTime'),
             'lastPrice': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
