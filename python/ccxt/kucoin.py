@@ -1820,6 +1820,7 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string(order, 'symbol')
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'createdAt')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         cancelExist = self.safe_value(order, 'cancelExist', False)
