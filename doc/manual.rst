@@ -5882,6 +5882,8 @@ Returns ordered array ``[]`` of trades (most recent trade last).
 Trade structure
 ~~~~~~~~~~~~~~~
 
+Trades denote the exchange of one currency for another, unlike :ref:`transactions <transaction structure>`, which denote a transfer of a given coin.
+
 .. code-block:: JavaScript
 
    {
@@ -6206,6 +6208,7 @@ You may set the value of ``exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km
 Transaction Structure
 ^^^^^^^^^^^^^^^^^^^^^
 
+Transactions denote a transfer of a given coin, unlike :ref:`trades <trade structure>`, which denote the exchange of one currency for another.
 
  * *deposit structure*
  * *withdrawal structure*
