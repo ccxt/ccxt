@@ -340,6 +340,788 @@
                     "nonce": null
                 }
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV for spot",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    1726956360000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726957385791",
+                    "data": [
+                        {
+                            "open": "2563.55",
+                            "high": "2563.55",
+                            "low": "2563.5",
+                            "close": "2563.52",
+                            "quoteVol": "3337.952208",
+                            "baseVol": "1.3021",
+                            "usdtVol": "3337.952208",
+                            "ts": "1726957380000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1726957380000,
+                        2563.55,
+                        2563.55,
+                        2563.5,
+                        2563.52,
+                        1.3021
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch OHLCV for swap",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    1726956360000,
+                    1
+                ],
+                "httpResponse": [
+                    [
+                        "1726957440000",
+                        "2563.42",
+                        "2564.04",
+                        "2563.36",
+                        "2564.04",
+                        "84.15",
+                        "215716.0056"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1726957440000,
+                        2563.42,
+                        2564.04,
+                        2563.36,
+                        2564.04,
+                        84.15
+                    ]
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades for spot",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT",
+                    1726956360000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726957529021",
+                    "data": [
+                        {
+                            "symbol": "ETHUSDT_SPBL",
+                            "tradeId": "1221509009577381895",
+                            "side": "Buy",
+                            "fillPrice": "2562.19",
+                            "fillQuantity": "0.4927",
+                            "fillTime": "1726956363000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1221509009577381895",
+                        "order": null,
+                        "timestamp": 1726956363000,
+                        "datetime": "2024-09-21T22:06:03.000Z",
+                        "symbol": "ETH/USDT",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 2562.19,
+                        "amount": 0.4927,
+                        "cost": 1262.391013,
+                        "fee": {
+                        "cost": null,
+                        "currency": null
+                        },
+                        "info": {
+                            "symbol": "ETHUSDT_SPBL",
+                            "tradeId": "1221509009577381895",
+                            "side": "Buy",
+                            "fillPrice": "2562.19",
+                            "fillQuantity": "0.4927",
+                            "fillTime": "1726956363000"
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "Fetch trades for swap",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1726956360000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726957779791",
+                    "data": [
+                        {
+                            "tradeId": "1221508997762031617",
+                            "price": "2560.25",
+                            "size": "26.21",
+                            "side": "Sell",
+                            "timestamp": "1726956360000",
+                            "symbol": "ETHUSDT_UMCBL"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1221508997762031617",
+                        "order": null,
+                        "timestamp": 1726956360000,
+                        "datetime": "2024-09-21T22:06:00.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2560.25,
+                        "amount": 26.21,
+                        "cost": 0.00010237281515476997,
+                        "fee": {
+                        "cost": null,
+                        "currency": null
+                        },
+                        "info": {
+                            "tradeId": "1221508997762031617",
+                            "price": "2560.25",
+                            "size": "26.21",
+                            "side": "Sell",
+                            "timestamp": "1726956360000",
+                            "symbol": "ETHUSDT_UMCBL"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fetch funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726957973542",
+                    "data": {
+                        "symbol": "ETHUSDT_UMCBL",
+                        "fundingRate": "0.000029"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "ETHUSDT_UMCBL",
+                        "fundingRate": "0.000029"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.000029,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null
+                }
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726958196458",
+                    "data": {
+                        "coin": "USDT",
+                        "address": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+                        "chain": "TRC20",
+                        "tag": null,
+                        "url": "https://tronscan.org/#/transaction/"
+                    }
+                },
+                "parsedResponse": {
+                    "currency": "USDT",
+                    "address": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+                    "tag": null,
+                    "network": "TRC20",
+                    "info": {
+                        "coin": "USDT",
+                        "address": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+                        "chain": "TRC20",
+                        "tag": null,
+                        "url": "https://tronscan.org/#/transaction/"
+                    }
+                }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDT",
+                    1724139852000,
+                    1,
+                    {
+                        "until": 1726386252000
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726958434803",
+                    "data": [
+                        {
+                            "id": "1213046466852196352",
+                            "txId": "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
+                            "coin": "USDT",
+                            "type": "deposit",
+                            "amount": "99.20000000",
+                            "status": "success",
+                            "toAddress": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+                            "fee": null,
+                            "chain": "TRX(TRC20)",
+                            "confirm": null,
+                            "clientOid": null,
+                            "tag": null,
+                            "fromAddress": null,
+                            "dest": "on_chain",
+                            "cTime": "1724938735688",
+                            "uTime": "1724938746015"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1213046466852196352",
+                            "txId": "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
+                            "coin": "USDT",
+                            "type": "deposit",
+                            "amount": "99.20000000",
+                            "status": "success",
+                            "toAddress": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+                            "fee": null,
+                            "chain": "TRX(TRC20)",
+                            "confirm": null,
+                            "clientOid": null,
+                            "tag": null,
+                            "fromAddress": null,
+                            "dest": "on_chain",
+                            "cTime": "1724938735688",
+                            "uTime": "1724938746015"
+                        },
+                        "id": "1213046466852196352",
+                        "txid": "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
+                        "timestamp": 1724938735688,
+                        "datetime": "2024-08-29T13:38:55.688Z",
+                        "network": "TRC20",
+                        "address": null,
+                        "addressTo": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 99.2,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDT",
+                    1724139852000,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726958662925",
+                    "data": [
+                        {
+                            "accountId": "1002820815393",
+                            "symbol": "ETHUSDT_SPBL",
+                            "orderId": "1217143186968068096",
+                            "fillId": "1217143193356505089",
+                            "orderType": "market",
+                            "side": "buy",
+                            "fillPrice": "2340.55",
+                            "fillQuantity": "0.0042",
+                            "fillTotalAmount": "9.83031",
+                            "feeCcy": "ETH",
+                            "fees": "-0.0000042",
+                            "takerMakerFlag": "taker",
+                            "cTime": "1725915471400"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1217143193356505089",
+                        "order": "1217143186968068096",
+                        "timestamp": 1725915471400,
+                        "datetime": "2024-09-09T20:57:51.400Z",
+                        "symbol": "ETH/USDT",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 2340.55,
+                        "amount": 0.0042,
+                        "cost": 9.83031,
+                        "fee": {
+                            "currency": "ETH",
+                            "cost": 0.0000042
+                        },
+                        "info": {
+                            "accountId": "1002820815393",
+                            "symbol": "ETHUSDT_SPBL",
+                            "orderId": "1217143186968068096",
+                            "fillId": "1217143193356505089",
+                            "orderType": "market",
+                            "side": "buy",
+                            "fillPrice": "2340.55",
+                            "fillQuantity": "0.0042",
+                            "fillTotalAmount": "9.83031",
+                            "feeCcy": "ETH",
+                            "fees": "-0.0000042",
+                            "takerMakerFlag": "taker",
+                            "cTime": "1725915471400"
+                        },
+                        "fees": [
+                            {
+                                "currency": "ETH",
+                                "cost": 0.0000042
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726959438787",
+                    "data": {
+                        "marginCoin": "USDT",
+                        "locked": "0",
+                        "available": "59.98367155",
+                        "crossMaxAvailable": "55.06983155",
+                        "fixedMaxAvailable": "55.06983155",
+                        "maxTransferOut": "54.87343155",
+                        "equity": "60.18007155",
+                        "usdtEquity": "60.1800715547",
+                        "btcEquity": "0.00095175178",
+                        "crossRiskRate": "0.001668586252",
+                        "crossMarginLeverage": "5",
+                        "fixedLongLeverage": "10",
+                        "fixedShortLeverage": "10",
+                        "marginMode": "crossed",
+                        "holdMode": "double_hold",
+                        "unrealizedPL": "0.1964",
+                        "bonus": "0",
+                        "crossedUnrealizedPL": "0.1964",
+                        "isolatedUnrealizedPL": ""
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "marginCoin": "USDT",
+                        "locked": "0",
+                        "available": "59.98367155",
+                        "crossMaxAvailable": "55.06983155",
+                        "fixedMaxAvailable": "55.06983155",
+                        "maxTransferOut": "54.87343155",
+                        "equity": "60.18007155",
+                        "usdtEquity": "60.1800715547",
+                        "btcEquity": "0.00095175178",
+                        "crossRiskRate": "0.001668586252",
+                        "crossMarginLeverage": "5",
+                        "fixedLongLeverage": "10",
+                        "fixedShortLeverage": "10",
+                        "marginMode": "crossed",
+                        "holdMode": "double_hold",
+                        "unrealizedPL": "0.1964",
+                        "bonus": "0",
+                        "crossedUnrealizedPL": "0.1964",
+                        "isolatedUnrealizedPL": ""
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set margin mode",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726958903442",
+                    "data": {
+                        "symbol": "ETHUSDT_UMCBL",
+                        "marginCoin": "USDT",
+                        "longLeverage": "5",
+                        "shortLeverage": "5",
+                        "crossMarginLeverage": null,
+                        "marginMode": "crossed"
+                    }
+                },
+                "parsedResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726958903442",
+                    "data": {
+                        "symbol": "ETHUSDT_UMCBL",
+                        "marginCoin": "USDT",
+                        "longLeverage": "5",
+                        "shortLeverage": "5",
+                        "crossMarginLeverage": null,
+                        "marginMode": "crossed"
+                    }
+                }
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "Fetch position mode",
+                "method": "fetchPositionMode",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726958984026",
+                    "data": {
+                        "marginCoin": "USDT",
+                        "locked": "0",
+                        "available": "59.98367155",
+                        "crossMaxAvailable": "55.00803155",
+                        "fixedMaxAvailable": "55.00803155",
+                        "maxTransferOut": "54.87343155",
+                        "equity": "60.11827155",
+                        "usdtEquity": "60.1182715547",
+                        "btcEquity": "0.000951879277",
+                        "crossRiskRate": "0.001666292417",
+                        "crossMarginLeverage": "5",
+                        "fixedLongLeverage": "10",
+                        "fixedShortLeverage": "10",
+                        "marginMode": "crossed",
+                        "holdMode": "double_hold",
+                        "unrealizedPL": "0.1346",
+                        "bonus": "0",
+                        "crossedUnrealizedPL": "0.1346",
+                        "isolatedUnrealizedPL": ""
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "00000",
+                        "msg": "success",
+                        "requestTime": "1726958984026",
+                        "data": {
+                            "marginCoin": "USDT",
+                            "locked": "0",
+                            "available": "59.98367155",
+                            "crossMaxAvailable": "55.00803155",
+                            "fixedMaxAvailable": "55.00803155",
+                            "maxTransferOut": "54.87343155",
+                            "equity": "60.11827155",
+                            "usdtEquity": "60.1182715547",
+                            "btcEquity": "0.000951879277",
+                            "crossRiskRate": "0.001666292417",
+                            "crossMarginLeverage": "5",
+                            "fixedLongLeverage": "10",
+                            "fixedShortLeverage": "10",
+                            "marginMode": "crossed",
+                            "holdMode": "double_hold",
+                            "unrealizedPL": "0.1346",
+                            "bonus": "0",
+                            "crossedUnrealizedPL": "0.1346",
+                            "isolatedUnrealizedPL": ""
+                        }
+                    },
+                    "hedged": true
+                }
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "Set position mode",
+                "method": "setPositionMode",
+                "input": [
+                    true,
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726959061849",
+                    "data": {
+                        "marginCoin": "USDT",
+                        "dualSidePosition": true
+                    }
+                },
+                "parsedResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726959061849",
+                    "data": {
+                        "marginCoin": "USDT",
+                        "dualSidePosition": true
+                    }
+                }
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch leverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726959119499",
+                    "data": {
+                        "marginCoin": "USDT",
+                        "locked": "0",
+                        "available": "59.98367155",
+                        "crossMaxAvailable": "55.03953155",
+                        "fixedMaxAvailable": "55.03953155",
+                        "maxTransferOut": "54.87343155",
+                        "equity": "60.14977155",
+                        "usdtEquity": "60.1497715547",
+                        "btcEquity": "0.000951788617",
+                        "crossRiskRate": "0.001667462194",
+                        "crossMarginLeverage": "5",
+                        "fixedLongLeverage": "10",
+                        "fixedShortLeverage": "10",
+                        "marginMode": "crossed",
+                        "holdMode": "double_hold",
+                        "unrealizedPL": "0.1661",
+                        "bonus": "0",
+                        "crossedUnrealizedPL": "0.1661",
+                        "isolatedUnrealizedPL": ""
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "marginCoin": "USDT",
+                        "locked": "0",
+                        "available": "59.98367155",
+                        "crossMaxAvailable": "55.03953155",
+                        "fixedMaxAvailable": "55.03953155",
+                        "maxTransferOut": "54.87343155",
+                        "equity": "60.14977155",
+                        "usdtEquity": "60.1497715547",
+                        "btcEquity": "0.000951788617",
+                        "crossRiskRate": "0.001667462194",
+                        "crossMarginLeverage": "5",
+                        "fixedLongLeverage": "10",
+                        "fixedShortLeverage": "10",
+                        "marginMode": "crossed",
+                        "holdMode": "double_hold",
+                        "unrealizedPL": "0.1661",
+                        "bonus": "0",
+                        "crossedUnrealizedPL": "0.1661",
+                        "isolatedUnrealizedPL": ""
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": "cross",
+                    "longLeverage": 5,
+                    "shortLeverage": 5
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set leverage",
+                "method": "setLeverage",
+                "input": [
+                    5,
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726959175416",
+                    "data": {
+                        "symbol": "ETHUSDT_UMCBL",
+                        "marginCoin": "USDT",
+                        "longLeverage": "5",
+                        "shortLeverage": "5",
+                        "crossMarginLeverage": "5",
+                        "marginMode": "crossed"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "ETHUSDT_UMCBL",
+                        "marginCoin": "USDT",
+                        "longLeverage": "5",
+                        "shortLeverage": "5",
+                        "crossMarginLeverage": "5",
+                        "marginMode": "crossed"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "marginMode": "cross",
+                    "longLeverage": 5,
+                    "shortLeverage": 5
+                }
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchPosition",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1726959233398",
+                    "data": [
+                        {
+                            "marginCoin": "USDT",
+                            "symbol": "ETHUSDT_UMCBL",
+                            "holdSide": "long",
+                            "openDelegateCount": "0",
+                            "margin": "5.11024",
+                            "available": "0.01",
+                            "locked": "0",
+                            "total": "0.01",
+                            "leverage": "5",
+                            "achievedProfits": "0",
+                            "averageOpenPrice": "2555.12",
+                            "marginMode": "crossed",
+                            "holdMode": "double_hold",
+                            "unrealizedPL": "0.1907",
+                            "liquidationPrice": "-3433.20781447",
+                            "keepMarginRate": "0.0033",
+                            "marketPrice": "2574.19",
+                            "marginRatio": "0.001668374882",
+                            "autoMargin": "off",
+                            "cTime": "1726919819686"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "id": null,
+                    "timestamp": 1726919819686,
+                    "datetime": "2024-09-21T11:56:59.686Z",
+                    "contracts": 0.01,
+                    "contractSize": 0.01,
+                    "side": null,
+                    "notional": 5.11024,
+                    "leverage": 5,
+                    "unrealizedPnl": 0.1907,
+                    "realizedPnl": 0,
+                    "collateral": null,
+                    "entryPrice": 2555.12,
+                    "markPrice": 2574.19,
+                    "liquidationPrice": -3433.20781447,
+                    "marginMode": "cross",
+                    "hedged": true,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": 0.33,
+                    "initialMargin": 5.11024,
+                    "initialMarginPercentage": null,
+                    "marginRatio": 0.001668374882,
+                    "lastUpdateTimestamp": null,
+                    "lastPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "percentage": null,
+                    "info": {
+                        "marginCoin": "USDT",
+                        "symbol": "ETHUSDT_UMCBL",
+                        "holdSide": "long",
+                        "openDelegateCount": "0",
+                        "margin": "5.11024",
+                        "available": "0.01",
+                        "locked": "0",
+                        "total": "0.01",
+                        "leverage": "5",
+                        "achievedProfits": "0",
+                        "averageOpenPrice": "2555.12",
+                        "marginMode": "crossed",
+                        "holdMode": "double_hold",
+                        "unrealizedPL": "0.1907",
+                        "liquidationPrice": "-3433.20781447",
+                        "keepMarginRate": "0.0033",
+                        "marketPrice": "2574.19",
+                        "marginRatio": "0.001668374882",
+                        "autoMargin": "off",
+                        "cTime": "1726919819686"
+                    }
+                }
+            }
         ]
     }
 }
