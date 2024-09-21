@@ -262,6 +262,38 @@
                   }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"market\",\"size\":1,\"trigger_price\":\"55\",\"price_type\":1,\"price_way\":1,\"side\":1,\"open_type\":\"cross\",\"leverage\":\"1\"}"
+            },
+            {
+                "description": "swap stop loss order",
+                "method": "createOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-tp-sl-order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  50000,
+                  {
+                    "stopLossPrice": "51000"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"stop_loss\",\"size\":1,\"price_type\":1,\"executive_price\":\"50000\",\"trigger_price\":\"51000\",\"side\":3}"
+            },
+            {
+                "description": "swap take profit order",
+                "method": "createOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-tp-sl-order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  70000,
+                  {
+                    "takeProfitPrice": "71000"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"take_profit\",\"size\":1,\"price_type\":1,\"executive_price\":\"70000\",\"trigger_price\":\"71000\",\"side\":3}"
             }
         ],
         "createOrders": [
