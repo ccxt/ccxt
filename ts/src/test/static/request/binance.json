@@ -733,6 +733,19 @@
                 ]
             },
             {
+                "description": "Linear swap portfolio margin trigger cancel order",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/order?timestamp=1707269945072&symbol=BTCUSDT&strategyId=3733207&recvWindow=10000&signature=b5ec95255493898e91209894976c9883d22a3de188b62ea177bf1c23efcd0db5",
+                "input": [
+                    3733207,
+                    "BTC/USDT:USDT",
+                    {
+                        "portfolioMargin": true,
+                        "trigger": true
+                    }
+                ]
+            },
+            {
                 "description": "Inverse swap portfolio margin conditional cancel order",
                 "method": "cancelOrder",
                 "url": "https://papi.binance.com/papi/v1/cm/conditional/order?timestamp=1707270382591&symbol=ETHUSD_PERP&strategyId=1423466&recvWindow=10000&signature=4c5d4d9522fef4c07eab511eb42359bbfd9b929b312c247b3d64fdd1b0684a3f",
@@ -742,6 +755,19 @@
                     {
                         "portfolioMargin": true,
                         "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap portfolio margin trigger cancel order",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/order?timestamp=1707270382591&symbol=ETHUSD_PERP&strategyId=1423466&recvWindow=10000&signature=4c5d4d9522fef4c07eab511eb42359bbfd9b929b312c247b3d64fdd1b0684a3f",
+                "input": [
+                    1423466,
+                    "ETH/USD:ETH",
+                    {
+                        "portfolioMargin": true,
+                        "trigger": true
                     }
                 ]
             }
@@ -3045,6 +3071,19 @@
                 ]
             },
             {
+                "description": "Linear portfolio margin trigger fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/openOrder?timestamp=1707894696072&symbol=BTCUSDT&strategyId=4084339&recvWindow=10000&signature=22ae21d4e6cca439461b2deae7750b973f8b307025e2124e779e93eb86bcb1cd",
+                "input": [
+                    "4084339",
+                    "BTC/USDT:USDT",
+                    {
+                        "portfolioMargin": true,
+                        "trigger": true
+                    }
+                ]
+            },
+            {
                 "description": "Inverse portfolio margin conditional fetch open order",
                 "method": "fetchOpenOrder",
                 "url": "https://papi.binance.com/papi/v1/cm/conditional/openOrder?timestamp=1707894959489&symbol=ETHUSD_PERP&strategyId=1423501&recvWindow=10000&signature=83acda806cf655ebbcecabaa76d6c024a30daf49ad9d6bceeb939807d22964a7",
@@ -3054,6 +3093,20 @@
                     {
                         "portfolioMargin": true,
                         "stop": true
+                    }
+                ]
+            },
+            
+            {
+                "description": "Inverse portfolio margin trigger fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/openOrder?timestamp=1707894959489&symbol=ETHUSD_PERP&strategyId=1423501&recvWindow=10000&signature=83acda806cf655ebbcecabaa76d6c024a30daf49ad9d6bceeb939807d22964a7",
+                "input": [
+                    "1423501",
+                    "ETH/USD:ETH",
+                    {
+                        "portfolioMargin": true,
+                        "trigger": true
                     }
                 ]
             }

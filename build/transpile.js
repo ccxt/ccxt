@@ -121,6 +121,7 @@ class Transpiler {
             [ /\.addWatchFunction /g, '.add_watch_function'],
             [ /\.activeWatchFunctions/g, '.active_watch_functions'],
             [ /\.streamOHLCVS/g, '.stream_ohlcvs'],
+            [ /\.describeData /g, '.describe_data'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
@@ -792,6 +793,7 @@ class Transpiler {
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
+            'LedgerEntry': /-> LedgerEntry:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
             'LeverageTier': /-> (?:List\[)?LeverageTier/,
@@ -1481,7 +1483,7 @@ class Transpiler {
                 'Topic': 'string',
                 'ConsumerFunction': 'mixed',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|OHLCVC|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|OHLCVC|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {

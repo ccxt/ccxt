@@ -6486,7 +6486,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
@@ -6494,12 +6494,12 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
-         * @param {string} $code unified $currency $code
+         * @param {string} [$code] unified $currency $code
          * @param {int} [$since] timestamp in ms of the earliest ledger entry
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] end time in ms
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
@@ -6598,7 +6598,7 @@ class gate extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // spot
         //
@@ -6652,6 +6652,7 @@ class gate extends Exchange {
             $direction = 'in';
         }
         $currencyId = $this->safe_string($item, 'currency');
+        $currency = $this->safe_currency($currencyId, $currency);
         $type = $this->safe_string($item, 'type');
         $rawTimestamp = $this->safe_string($item, 'time');
         $timestamp = null;
@@ -6663,7 +6664,8 @@ class gate extends Exchange {
         $balanceString = $this->safe_string($item, 'balance');
         $changeString = $this->safe_string($item, 'change');
         $before = $this->parse_number(Precise::string_sub($balanceString, $changeString));
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string($item, 'id'),
             'direction' => $direction,
             'account' => null,
@@ -6678,8 +6680,7 @@ class gate extends Exchange {
             'after' => $this->safe_number($item, 'balance'),
             'status' => null,
             'fee' => null,
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {

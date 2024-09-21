@@ -1483,8 +1483,11 @@ class okx extends \ccxt\async\okx {
                         ),
                     ),
                 );
-                $message = $this->extend($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
+                // Only add $params['access'] to prevent sending custom parameters, such.
+                if (is_array($params) && array_key_exists('access', $params)) {
+                    $request['access'] = $params['access'];
+                }
+                $this->watch($url, $messageHash, $request, $messageHash);
             }
             return Async\await($future);
         }) ();
@@ -1660,7 +1663,7 @@ class okx extends \ccxt\async\okx {
                     'channel' => 'positions',
                     'instType' => 'ANY',
                 );
-                $args = array( $arg );
+                $args = array( $this->extend($arg, $params) );
                 $nonSymbolRequest = array(
                     'op' => 'subscribe',
                     'args' => $args,

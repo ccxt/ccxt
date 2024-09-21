@@ -795,6 +795,44 @@
                 ]
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "spot",
+                "method": "fetchOrder",
+                "url": "https://api.bybit.com/v5/order/realtime?symbol=LTCUSDT&orderId=1777987504537082112&category=spot",
+                "input": [
+                  "1777987504537082112",
+                  "LTC/USDT",
+                  {
+                    "acknowledged": true
+                  }
+                ]
+            },
+            {
+                "description": "linear swap",
+                "method": "fetchOrder",
+                "url": "https://api.bybit.com/v5/order/realtime?symbol=LTCUSDT&orderId=b04e654c-22fe-4fad-b9f9-d116eabd68b3&category=linear",
+                "input": [
+                  "b04e654c-22fe-4fad-b9f9-d116eabd68b3",
+                  "LTC/USDT:USDT",
+                  {
+                    "acknowledged": true
+                  }
+                ]
+            },
+            {
+                "description": "inverse swap",
+                "method": "fetchOrder",
+                "url": "https://api.bybit.com/v5/order/realtime?symbol=LTCUSD&orderId=117d831c-2e8c-4bcf-b362-3e9c95addc4e&category=inverse",
+                "input": [
+                  "117d831c-2e8c-4bcf-b362-3e9c95addc4e",
+                  "LTC/USD:LTC",
+                  {
+                    "acknowledged": true
+                  }
+                ]
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "Fetch USDT transfers",

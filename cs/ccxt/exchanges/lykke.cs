@@ -701,9 +701,9 @@ public partial class lykke : Exchange
             object currencyId = this.safeString(balance, "assetId");
             object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            object free = this.safeString(balance, "available");
+            object total = this.safeString(balance, "available");
             object used = this.safeString(balance, "reserved");
-            ((IDictionary<string,object>)account)["free"] = free;
+            ((IDictionary<string,object>)account)["total"] = total;
             ((IDictionary<string,object>)account)["used"] = used;
             ((IDictionary<string,object>)result)[(string)code] = account;
         }

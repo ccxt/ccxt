@@ -7933,7 +7933,7 @@ class htx extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "accountId" => 10000001,
@@ -7947,46 +7947,43 @@ class htx extends Exchange {
         //         "transferee" => 13496526
         //     }
         //
-        $id = $this->safe_string($item, 'transactId');
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $amount = $this->safe_number($item, 'transactAmt');
+        $currency = $this->safe_currency($currencyId, $currency);
+        $id = $this->safe_string($item, 'transactId');
         $transferType = $this->safe_string($item, 'transferType');
-        $type = $this->parse_ledger_entry_type($transferType);
-        $direction = $this->safe_string($item, 'direction');
         $timestamp = $this->safe_integer($item, 'transactTime');
-        $datetime = $this->iso8601($timestamp);
         $account = $this->safe_string($item, 'accountId');
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $id,
-            'direction' => $direction,
+            'direction' => $this->safe_string($item, 'direction'),
             'account' => $account,
             'referenceId' => $id,
             'referenceAccount' => $account,
-            'type' => $type,
+            'type' => $this->parse_ledger_entry_type($transferType),
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->safe_number($item, 'transactAmt'),
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601($timestamp),
             'before' => null,
             'after' => null,
             'status' => null,
             'fee' => null,
-            'info' => $item,
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             * @param {string} $code unified $currency $code, default is null
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());

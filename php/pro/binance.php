@@ -17,7 +17,12 @@ use React\Promise\PromiseInterface;
 class binance extends \ccxt\async\binance {
 
     public function describe() {
-        return $this->deep_extend(parent::describe(), array(
+        $superDescribe = parent::describe();
+        return $this->deep_extend($superDescribe, $this->describe_data());
+    }
+
+    public function describe_data() {
+        return array(
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
@@ -159,7 +164,7 @@ class binance extends \ccxt\async\binance {
                     'bookTicker' => 'bookTicker',
                 ),
             ),
-        ));
+        );
     }
 
     public function request_id($url) {

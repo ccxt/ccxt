@@ -16,7 +16,11 @@ import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 // -----------------------------------------------------------------------------
 export default class binance extends binanceRest {
     describe() {
-        return this.deepExtend(super.describe(), {
+        const superDescribe = super.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'watchBalance': true,
@@ -158,7 +162,7 @@ export default class binance extends binanceRest {
                     'bookTicker': 'bookTicker',
                 },
             },
-        });
+        };
     }
     requestId(url) {
         const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());

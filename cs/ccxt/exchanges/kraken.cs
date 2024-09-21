@@ -191,6 +191,8 @@ public partial class kraken : Exchange
                 { "XDG", "DOGE" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "marketsByAltname", new Dictionary<string, object>() {} },
                 { "delistedMarketsById", new Dictionary<string, object>() {} },
                 { "inactiveCurrencies", new List<object>() {"CAD", "USD", "JPY", "GBP"} },
@@ -425,6 +427,10 @@ public partial class kraken : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object response = await this.publicGetAssetPairs(parameters);
         //
         //     {
@@ -1098,7 +1104,9 @@ public partial class kraken : Exchange
         object referenceId = this.safeString(item, "refid");
         object referenceAccount = null;
         object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "asset"), currency);
+        object currencyId = this.safeString(item, "asset");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeString(item, "amount");
         if (isTrue(Precise.stringLt(amount, "0")))
         {
@@ -1109,7 +1117,7 @@ public partial class kraken : Exchange
             direction = "in";
         }
         object timestamp = this.safeIntegerProduct(item, "time", 1000);
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
             { "direction", direction },
@@ -1128,7 +1136,7 @@ public partial class kraken : Exchange
                 { "cost", this.safeNumber(item, "fee") },
                 { "currency", code },
             } },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -1136,11 +1144,11 @@ public partial class kraken : Exchange
         /**
         * @method
         * @name kraken#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
         * @param {int} [params.end] timestamp in seconds of the latest ledger entry
@@ -3413,7 +3421,7 @@ public partial class kraken : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
