@@ -291,7 +291,7 @@ export default class idex extends idexRest {
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'm');
         const messageHash = type + ':' + marketId;
-        const parsed: OHLCV = [
+        const parsed = [
             this.safeInteger (data, 's'),
             this.safeFloat (data, 'o'),
             this.safeFloat (data, 'h'),

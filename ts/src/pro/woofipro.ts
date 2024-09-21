@@ -431,7 +431,7 @@ export default class woofipro extends woofiproRest {
         const symbol = market['symbol'];
         const interval = this.safeString (data, 'type');
         const timeframe = this.findTimeframe (interval);
-        const parsed: OHLCV = [
+        const parsed = [
             this.safeInteger (data, 'startTime'),
             this.safeNumber (data, 'open'),
             this.safeNumber (data, 'high'),

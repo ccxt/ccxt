@@ -739,7 +739,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'ohlcv::' + symbol + '_' + timeframe;
         const ohlcv = this.safeList (data, 'candles');
-        const parsed: OHLCV = [
+        const parsed  = [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 2),

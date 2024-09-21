@@ -191,7 +191,7 @@ export default class lbank extends lbankRest {
         const records = this.safeValue (message, 'records');
         if (records !== undefined) {  // from request
             const rawOHLCV = this.safeValue (records, 0, []);
-            const parsed: OHLCV = [
+            const parsed = [
                 this.safeInteger (rawOHLCV, 0),
                 this.safeNumber (rawOHLCV, 1),
                 this.safeNumber (rawOHLCV, 2),
@@ -217,7 +217,7 @@ export default class lbank extends lbankRest {
             const rawOHLCV = this.safeValue (message, 'kbar', {});
             const timeframeId = this.safeString (rawOHLCV, 'slot');
             const datetime = this.safeString (rawOHLCV, 't');
-            const parsed: OHLCV = [
+            const parsed = [
                 this.parse8601 (datetime),
                 this.safeNumber (rawOHLCV, 'o'),
                 this.safeNumber (rawOHLCV, 'h'),

@@ -479,7 +479,7 @@ export default class woo extends wooRest {
         const symbol = market['symbol'];
         const interval = this.safeString (data, 'type');
         const timeframe = this.findTimeframe (interval);
-        const parsed: OHLCV = [
+        const parsed = [
             this.safeInteger (data, 'startTime'),
             this.safeFloat (data, 'open'),
             this.safeFloat (data, 'high'),

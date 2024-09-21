@@ -432,7 +432,7 @@ export default class kraken extends krakenRest {
             let timestamp = this.safeFloat (candle, 1);
             timestamp -= duration;
             const ts = this.parseToInt (timestamp * 1000);
-            const result: OHLCV = [
+            const result = [
                 ts,
                 this.safeFloat (candle, 2),
                 this.safeFloat (candle, 3),

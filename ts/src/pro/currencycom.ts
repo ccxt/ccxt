@@ -273,7 +273,7 @@ export default class currencycom extends currencycomRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = destination + ':' + timeframe + ':' + symbol;
-        const result: OHLCV = [
+        const result  = [
             this.safeInteger (payload, 't'),
             this.safeNumber (payload, 'o'),
             this.safeNumber (payload, 'h'),

@@ -1190,7 +1190,7 @@ export default class cex extends cexRest {
         const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;
-        const ohlcv: OHLCV = [
+        const ohlcv = [
             this.safeTimestamp (data, 'time'),
             this.safeNumber (data, 'o'),
             this.safeNumber (data, 'h'),
@@ -1222,7 +1222,7 @@ export default class cex extends cexRest {
         // const stored = this.safeValue (this.ohlcvs, symbol);
         const stored = this.ohlcvs[symbol]['unknown'];
         for (let i = 0; i < data.length; i++) {
-            const ohlcv: OHLCV = [
+            const ohlcv = [
                 this.safeTimestamp (data[i], 0),
                 this.safeNumber (data[i], 1),
                 this.safeNumber (data[i], 2),
