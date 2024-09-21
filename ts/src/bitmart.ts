@@ -2533,7 +2533,7 @@ export default class bitmart extends Exchange {
         } else {
             const swapRequest = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
             if (isTriggerOrder) {
-                response = await this.privatePostContractPrivateSubmitOrder (swapRequest);
+                response = await this.privatePostContractPrivateSubmitPlanOrder (swapRequest);
             } else if (isStopLoss || isTakeProfit) {
                 response = await this.privatePostContractPrivateSubmitTpSlOrder (swapRequest);
             } else {
