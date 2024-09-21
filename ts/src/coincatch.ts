@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, InvalidOrder, NotSupported } from './bas
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -96,11 +96,11 @@ export default class coincatch extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
-                'fetchPositions': false,
-                'fetchPositionsForSymbol': false,
+                'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -191,8 +191,8 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/account/transferRecords': 1,
                         'api/mix/v1/account/account': 2, // done
                         'api/mix/v1/account/accounts': 2, // done
-                        'api/mix/v1/position/singlePosition-v2': 1,
-                        'api/mix/v1/position/allPosition-v2': 1,
+                        'api/mix/v1/position/singlePosition-v2': 2, // done
+                        'api/mix/v1/position/allPosition-v2': 2, // done
                         'api/mix/v1/account/accountBill': 1,
                         'api/mix/v1/account/accountBusinessBill': 1,
                         'api/mix/v1/order/current': 1,
@@ -3558,6 +3558,132 @@ export default class coincatch extends Exchange {
          */
         params['methodName'] = 'addMargin';
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
+        /**
+         * @method
+         * @name coincatch#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @see https://coincatch.github.io/github.io/en/mix/#get-symbol-position
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string}  [parmas.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const methodName = 'fetchPosition';
+        let side = 'long';
+        [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
+        const positions = await this.fetchPositionsForSymbol (symbol, params);
+        const arrayLength = positions.length;
+        if (arrayLength > 1) {
+            for (let i = 0; i < positions.length; i++) {
+                const position = positions[i];
+                if (position['side'] === side) {
+                    return position;
+                }
+            }
+        }
+        return positions[0];
+    }
+
+    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @description fetch open positions for a single market
+         * @name coincatch#fetchPositionsForSymbol
+         * @see https://coincatch.github.io/github.io/en/mix/#get-symbol-position
+         * @description fetch all open positions for specific symbol
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+        };
+        const response = await this.privateGetApiMixV1PositionSinglePositionV2 (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1726926959041,
+        //         "data": [
+        //             {
+        //                 "marginCoin": "USDT",
+        //                 "symbol": "ETHUSDT_UMCBL",
+        //                 "holdSide": "long",
+        //                 "openDelegateCount": "0",
+        //                 "margin": "2.55512",
+        //                 "available": "0.01",
+        //                 "locked": "0",
+        //                 "total": "0.01",
+        //                 "leverage": 10,
+        //                 "achievedProfits": "0",
+        //                 "averageOpenPrice": "2555.12",
+        //                 "marginMode": "crossed",
+        //                 "holdMode": "double_hold",
+        //                 "unrealizedPL": "0.1371",
+        //                 "liquidationPrice": "-3433.328491",
+        //                 "keepMarginRate": "0.0033",
+        //                 "marketPrice": "2568.83",
+        //                 "marginRatio": "0.001666357648",
+        //                 "autoMargin": "off",
+        //                 "cTime": "1726919819686"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, [ symbol ]);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const lastUpdateTimestamp = this.safeInteger (position, 'cTime');
+        const marginMode = this.safeString (position, 'marginMode');
+        let isHeged: Bool = undefined;
+        const holdMode = this.safeString (position, 'holdMode');
+        if (holdMode === 'double_hold') {
+            isHeged = true;
+        } else if (holdMode === 'single_hold') {
+            isHeged = false;
+        }
+        const margin = this.safeNumber (position, 'margin');
+        const keepMarginRate = this.safeString (position, 'keepMarginRate');
+        return this.safePosition ({
+            'symbol': market['symbol'],
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'contracts': this.safeNumber (position, 'total'), // todo check
+            'contractSize': undefined,
+            'side': this.safeString (position, 'side'),
+            'notional': margin, // todo check
+            'leverage': this.safeInteger (position, 'leverage'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
+            'realizedPnl': this.safeNumber (position, 'achievedProfits'),
+            'collateral': undefined, // todo check
+            'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
+            'markPrice': this.safeNumber (position, 'marketPrice'),
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'marginMode': this.parseMarginModeType (marginMode),
+            'hedged': isHeged,
+            'maintenanceMargin': undefined, // todo check
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringMul (keepMarginRate, '100')), // todo check
+            'initialMargin': margin, // todo check
+            'initialMarginPercentage': undefined,
+            'marginRatio': this.safeNumber (position, 'marginRatio'),
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'lastPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'percentage': undefined,
+            'info': position,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
