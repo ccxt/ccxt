@@ -7,6 +7,7 @@ import struct
 import json
 from ccxt.base.errors import ExchangeError, AuthenticationError
 from ccxt.base.exchange import Exchange
+from abstract.cube import ImplicitAPI
 
 class cube(Exchange):
     def __init__(self, config={}):
@@ -98,7 +99,6 @@ class cube(Exchange):
     def request(self, endpoint, method='GET', params={}, headers=None):
         # Determine whether it's a public or private API request
         public_endpoints = ['markets', 'history/klines', 'parsed/book', 'parsed/tickers', 'tickers/snapshot']
-
         # Check if the request is for public data
         if any(public_endpoint in endpoint for public_endpoint in public_endpoints):
             # Use the private base URL if necessary for these specific public endpoints
@@ -137,7 +137,6 @@ class cube(Exchange):
 
         except Exception as e:
             raise ExchangeError(f"Error making request: {e}")
-
 
     #Authentification
     def sign(self, path, method='GET', params={}):
@@ -490,7 +489,6 @@ class cube(Exchange):
             except Exception as e:
                 print(f"Error making withdrawal request: {e}")
                 raise
-
    #Public endpoint 
     def fetch_markets(self, symbol=None, params={}):
         symbol_provided = False  # Flag to signal if a symbol was passed

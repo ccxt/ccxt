@@ -113,6 +113,7 @@ from ccxt.async_support.coinone import coinone                                  
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
+from ccxt.async_support.cube import cube                                        # noqa: F401
 from ccxt.async_support.currencycom import currencycom                          # noqa: F401
 from ccxt.async_support.delta import delta                                      # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
@@ -223,6 +224,7 @@ exchanges = [
     'coinsph',
     'coinspot',
     'cryptocom',
+    'cube',
     'currencycom',
     'delta',
     'deribit',

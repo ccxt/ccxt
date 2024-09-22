@@ -83,7 +83,7 @@ import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
-import coinbase from  './src/coinbase.js'
+import coinbase from  './src/coinbase.js'   
 import coinbaseadvanced from  './src/coinbaseadvanced.js'
 import coinbaseexchange from  './src/coinbaseexchange.js'
 import coinbaseinternational from  './src/coinbaseinternational.js'
@@ -96,6 +96,7 @@ import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
+import cube from  './src/cube.js'
 import currencycom from  './src/currencycom.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
@@ -281,6 +282,7 @@ const exchanges = {
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
     'currencycom':            currencycom,
+    'cube':                   cube,
     'delta':                  delta,
     'deribit':                deribit,
     'digifinex':              digifinex,

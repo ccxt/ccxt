@@ -6,5 +6,10 @@
         "options": {
             "defaultType": "spot"
         }
+    },
+    "cube" : {
+        "apiKey": "API_KEY",
+        "secret": "API_SECRET"
+        
     }
 }

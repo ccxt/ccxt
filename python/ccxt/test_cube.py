@@ -1,8 +1,5 @@
-import sys
 import base64
 from cube import cube
-
-sys.path.append('/Users/admin/Documents/PROG/Cube/ccxt/python/ccxt')
 
 # Test the updated cube class
 # Fill out api_key and secret of account to fetch 
