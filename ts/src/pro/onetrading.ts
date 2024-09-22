@@ -1174,7 +1174,7 @@ export default class onetrading extends onetradingRest {
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (timeframeId, timeframes);
         const channel = 'ohlcv.' + symbol + '.' + timeframe;
-        const parsed  = [
+        const parsed = [
             this.parse8601 (dateTime),
             this.safeNumber (message, 'open'),
             this.safeNumber (message, 'high'),
