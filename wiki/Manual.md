@@ -1416,11 +1416,13 @@ A future market symbol consists of the underlying currency, the quoting currency
 | Tron                                  | TRX (For TRX) / TRC20 (For Tokens)         |
 | Ethereum Classic                      | ETC          |
 | Zcash                                 | ZEC          |
+| BSC (Binance Smart Chain)             | BEP20        |
 | Monero                                | XMR          |
 | Cardano                               | ADA          |
 | Tezos                                 | XTZ          |
 | Cosmos                                | ATOM         |
 | Solana                                | SOL          |
+| BNB Beacon Chain                      | BEP2         |
 | Polkadot                              | DOT          |
 | Algorand                              | ALGO         |
 | Avalanche                             | AVAX         |
