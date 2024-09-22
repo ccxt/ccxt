@@ -473,6 +473,7 @@ export default class mexc extends Exchange {
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
+                    'BEP20': 'BSC',
                     // 'ADA': 'Cardano(ADA)',
                     // 'AE': 'AE',
                     // 'ALGO': 'Algorand(ALGO)',
