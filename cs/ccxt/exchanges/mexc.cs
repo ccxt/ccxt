@@ -459,6 +459,7 @@ public partial class mexc : Exchange
                     { "AVAXC", "AVAX_CCHAIN" },
                     { "ERC20", "ETH" },
                     { "ACA", "ACALA" },
+                    { "BEP20", "BSC" },
                     { "ASTR", "ASTAR" },
                     { "BTM", "BTM2" },
                     { "CRC20", "CRONOS" },

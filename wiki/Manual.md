@@ -1416,11 +1416,13 @@ A future market symbol consists of the underlying currency, the quoting currency
 | Tron                                  | TRX (For TRX) / TRC20 (For Tokens)         |
 | Ethereum Classic                      | ETC          |
 | Zcash                                 | ZEC          |
+| BSC (Binance Smart Chain)             | BEP20        |
 | Monero                                | XMR          |
 | Cardano                               | ADA          |
 | Tezos                                 | XTZ          |
 | Cosmos                                | ATOM         |
 | Solana                                | SOL          |
+| BNB Beacon Chain                      | BEP2         |
 | Polkadot                              | DOT          |
 | Algorand                              | ALGO         |
 | Avalanche                             | AVAX         |
@@ -4973,6 +4975,8 @@ Returns ordered array `[]` of trades (most recent trade last).
 
 #### Trade Structure
 
+Trades denote the exchange of one currency for another, unlike [transactions](#transaction-structure), which denote a transfer of a given coin.
+
 ```javascript
 {
     'info':         { ... },                    // the original decoded JSON as is
@@ -5263,6 +5267,8 @@ The following aliases of `network` allow for withdrawing crypto on multiple chai
 You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km95sDFN9jhLxJ2D', { 'network': 'TRX' })` in order to withdraw USDT on the TRON chain, or 'BSC' to withdraw USDT on Binance Smart Chain. In the table above BSC and BEP20 are equivalent aliases, so it doesn't matter which one you use as they both will achieve the same effect.
 
 ### Transaction Structure
+
+Transactions denote a transfer of a given coin, unlike [trades](#trade-structure), which denote the exchange of one currency for another.
 
 - *deposit structure*
 - *withdrawal structure*
