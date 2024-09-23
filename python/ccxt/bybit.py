@@ -3045,7 +3045,7 @@ class bybit(Exchange):
         fee = None
         feeCostString = self.safe_string(order, 'cumExecFee')
         feeCurrency = self.safe_string(order, 'feeCurrency')  # ws
-        if feeCostString is not None:
+        if feeCostString:
             feeCurrencyCode = None
             if market['spot']:
                 if Precise.string_gt(feeCostString, '0'):
