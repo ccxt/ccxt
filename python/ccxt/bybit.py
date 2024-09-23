@@ -2802,10 +2802,7 @@ class bybit(Exchange):
         isSpot = (type == 'spot')
         isSwap = self.is_linear() or self.is_inverse()
         if isUnifiedAccount:
-            if isSpot or self.is_linear():
-                type = 'unified'
-            else:
-                type = 'contract'
+            type = 'unified'
         else:
             if isSwap:
                 type = 'contract'
@@ -5267,7 +5264,7 @@ class bybit(Exchange):
     def _change_margin_type(self, is_cross, symbol=None, leverage=None):
         try:
             enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-            if enableUnifiedAccount and not self.is_inverse():
+            if enableUnifiedAccount:
                 margin_mode = 'cross' if is_cross else 'isolated'
                 return self.set_margin_mode(margin_mode)
             elif symbol and leverage:
