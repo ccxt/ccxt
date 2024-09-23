@@ -1336,6 +1336,8 @@ class bitget(Exchange, ImplicitAPI):
                 'TONCOIN': 'TON',
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'timeframes': {
                     'spot': {
                         '1m': '1min',
@@ -1538,6 +1540,8 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
         if sandboxMode:
@@ -8202,6 +8206,9 @@ class bitget(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
         endpoint = api[1]
@@ -8217,7 +8224,7 @@ class bitget(Exchange, ImplicitAPI):
                 url = url + '?' + self.urlencode(query)
         if signed:
             self.check_required_credentials()
-            timestamp = str(self.milliseconds())
+            timestamp = str(self.nonce())
             auth = timestamp + method + payload
             if method == 'POST':
                 body = self.json(params)

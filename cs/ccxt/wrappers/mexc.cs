@@ -459,6 +459,9 @@ public partial class mexc
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -503,6 +506,9 @@ public partial class mexc
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -542,6 +548,9 @@ public partial class mexc
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -575,6 +584,9 @@ public partial class mexc
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

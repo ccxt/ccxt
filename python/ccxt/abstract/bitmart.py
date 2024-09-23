@@ -101,3 +101,7 @@ class ImplicitAPI:
     private_post_contract_private_submit_plan_order = privatePostContractPrivateSubmitPlanOrder = Entry('contract/private/submit-plan-order', 'private', 'POST', {'cost': 2.5})
     private_post_contract_private_cancel_plan_order = privatePostContractPrivateCancelPlanOrder = Entry('contract/private/cancel-plan-order', 'private', 'POST', {'cost': 1.5})
     private_post_contract_private_submit_leverage = privatePostContractPrivateSubmitLeverage = Entry('contract/private/submit-leverage', 'private', 'POST', {'cost': 2.5})
+    private_post_contract_private_submit_tp_sl_order = privatePostContractPrivateSubmitTpSlOrder = Entry('contract/private/submit-tp-sl-order', 'private', 'POST', {'cost': 2.5})
+    private_post_contract_private_modify_plan_order = privatePostContractPrivateModifyPlanOrder = Entry('contract/private/modify-plan-order', 'private', 'POST', {'cost': 2.5})
+    private_post_contract_private_modify_preset_plan_order = privatePostContractPrivateModifyPresetPlanOrder = Entry('contract/private/modify-preset-plan-order', 'private', 'POST', {'cost': 2.5})
+    private_post_contract_private_modify_tp_sl_order = privatePostContractPrivateModifyTpSlOrder = Entry('contract/private/modify-tp-sl-order', 'private', 'POST', {'cost': 2.5})

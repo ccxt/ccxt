@@ -249,6 +249,8 @@ class kraken(Exchange, ImplicitAPI):
                 'XDG': 'DOGE',
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
@@ -477,6 +479,8 @@ class kraken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            self.load_time_difference()
         response = self.publicGetAssetPairs(params)
         #
         #     {
@@ -2941,7 +2945,7 @@ class kraken(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def nonce(self):
-        return self.milliseconds()
+        return self.milliseconds() - self.options['timeDifference']
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if code == 520:

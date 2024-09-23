@@ -1659,6 +1659,7 @@ public partial class bybit : Exchange
     {
         parameters = this.extend(parameters);
         ((IDictionary<string,object>)parameters)["limit"] = 1000; // minimize number of requests
+        object preLaunchMarkets = ((object)new List<object>() {});
         object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
         object response = null;
         if (isTrue(usePrivateInstrumentsInfo))
@@ -1666,7 +1667,12 @@ public partial class bybit : Exchange
             response = await this.privateGetV5MarketInstrumentsInfo(parameters);
         } else
         {
-            response = await this.publicGetV5MarketInstrumentsInfo(parameters);
+            object linearPromises = new List<object> {this.publicGetV5MarketInstrumentsInfo(parameters), this.publicGetV5MarketInstrumentsInfo(this.extend(parameters, new Dictionary<string, object>() {
+    { "status", "PreLaunch" },
+}))};
+            object promises = await promiseAll(linearPromises);
+            response = this.safeDict(promises, 0, new Dictionary<string, object>() {});
+            preLaunchMarkets = this.safeDict(promises, 1, new Dictionary<string, object>() {});
         }
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "list", new List<object>() {});
@@ -1739,6 +1745,9 @@ public partial class bybit : Exchange
         //         "time": 1672712495660
         //     }
         //
+        object preLaunchData = this.safeDict(preLaunchMarkets, "result", new Dictionary<string, object>() {});
+        object preLaunchMarketsList = this.safeList(preLaunchData, "list", new List<object>() {});
+        markets = this.arrayConcat(markets, preLaunchMarketsList);
         object result = new List<object>() {};
         object category = this.safeString(data, "category");
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))

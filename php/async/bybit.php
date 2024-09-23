@@ -1657,12 +1657,19 @@ class bybit extends Exchange {
         return Async\async(function () use ($params) {
             $params = $this->extend($params);
             $params['limit'] = 1000; // minimize number of requests
+            $preLaunchMarkets = array();
             $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
             $response = null;
             if ($usePrivateInstrumentsInfo) {
                 $response = Async\await($this->privateGetV5MarketInstrumentsInfo ($params));
             } else {
-                $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($params));
+                $linearPromises = array(
+                    $this->publicGetV5MarketInstrumentsInfo ($params),
+                    $this->publicGetV5MarketInstrumentsInfo ($this->extend($params, array( 'status' => 'PreLaunch' ))),
+                );
+                $promises = Async\await(Promise\all($linearPromises));
+                $response = $this->safe_dict($promises, 0, array());
+                $preLaunchMarkets = $this->safe_dict($promises, 1, array());
             }
             $data = $this->safe_dict($response, 'result', array());
             $markets = $this->safe_list($data, 'list', array());
@@ -1730,6 +1737,9 @@ class bybit extends Exchange {
             //         "time" => 1672712495660
             //     }
             //
+            $preLaunchData = $this->safe_dict($preLaunchMarkets, 'result', array());
+            $preLaunchMarketsList = $this->safe_list($preLaunchData, 'list', array());
+            $markets = $this->array_concat($markets, $preLaunchMarketsList);
             $result = array();
             $category = $this->safe_string($data, 'category');
             for ($i = 0; $i < count($markets); $i++) {

@@ -224,6 +224,7 @@ export default class bitget extends Exchange {
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     fetchConvertCurrencies(params?: {}): Promise<Currencies>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    nonce(): number;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

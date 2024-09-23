@@ -779,15 +779,14 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+         * @description Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
@@ -795,15 +794,14 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+         * @description Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params);
     }
 
@@ -2275,8 +2273,8 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
+         * @description Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
          * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entries to return, default is undefined

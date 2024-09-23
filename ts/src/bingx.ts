@@ -490,6 +490,9 @@ export default class bingx extends Exchange {
                     'BTC': 'BTC',
                     'LTC': 'LTC',
                 },
+                'networks': {
+                    'ARB': 'ARBITRUM',
+                },
             },
         });
     }

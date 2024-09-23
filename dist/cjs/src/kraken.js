@@ -231,6 +231,8 @@ class kraken extends kraken$1 {
                 'XDG': 'DOGE',
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
@@ -461,6 +463,9 @@ class kraken extends kraken$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const response = await this.publicGetAssetPairs(params);
         //
         //     {
@@ -3145,7 +3150,7 @@ class kraken extends kraken$1 {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     nonce() {
-        return this.milliseconds();
+        return this.milliseconds() - this.options['timeDifference'];
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code === 520) {
