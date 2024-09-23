@@ -3372,7 +3372,7 @@ class kucoin(Exchange, ImplicitAPI):
         headers = headers if (headers is not None) else {}
         url = self.urls['api'][api]
         isSandbox = url.find('sandbox') >= 0
-        if path == 'symbols' and not isSandbox:
+        if path in {'symbols', 'position/changeMarginMode', 'changeCrossUserLeverage'} and not isSandbox:
             endpoint = '/api/v2/' + self.implode_params(path, params)
         if query:
             if (method == 'GET') or (method == 'DELETE'):
