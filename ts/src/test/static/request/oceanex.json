@@ -1,0 +1,17 @@
+{
+    "exchange": "oceanex",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchDepositAddressesByNetwork": [
+            {
+                "description": "Fetch Deposit Addresses By Network",
+                "method": "fetchDepositAddressesByNetwork",
+                "url": "https://api.oceanex.pro/v1//deposit_addresses?user_jwt=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJJRDBBMzhGNTE5NjAiLCJkYXRhIjp7ImN1cnJlbmN5IjoidXNkdCJ9fQ.QaF5KF_TAJJS8SGWuCzZVkgd7oQHh7W3LDBy2DHGRaLctzRsmZlDvcOOH-ShQ2FXhdyEiG3rRllm3sN6YeZRRfDEZvNaIJvEeRHb90XYMSmPWAuX8XFq40r91tGcaG2kkqBHEXw3uEKIquvFwDk1xHftWzaB2WGeNwP7qDv46eqBCWbtoSL3sUj_g_sR3zk3FXNUIHgnRxEOZgTsjSpTZ-KSmU5mRdqMog5V6DNO2nm3U7lxc8abwmyWSygxGD2llcZMAcej6zu8vc_5Bb9l7gZSzJzvib6SjcmWxKG77Jtu9nF4RMB_c9PJ_JFJQoifZ8qmariBPRJUW7Km-aJ8Nw",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ]
+    }
+}
