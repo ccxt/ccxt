@@ -194,6 +194,21 @@ func (this *Exchange) PrecisionFromString(str2 interface{}) int {
 	return 0
 }
 
+func getDecimalPlaces(number float64) int {
+	str := fmt.Sprintf("%f", number)
+	parts := strings.Split(str, ".")
+	if len(parts) == 2 {
+		// Count the number of decimal places by looking at the fractional part
+		return len(strings.TrimRight(parts[1], "0"))
+	}
+	return 0
+}
+
+func roundToDecimalPlaces(num float64, decimalPlaces int) float64 {
+	shift := math.Pow(10, float64(decimalPlaces))
+	return math.Round(num*shift) / shift
+}
+
 func (this *Exchange) DecimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, args ...interface{}) string {
 	countingMode := GetArg(args, 0, nil)
 	paddingMode := GetArg(args, 1, nil)
@@ -225,7 +240,17 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 			return fmt.Sprintf("%f", toNearest*floatRes)
 		}
 		if roundingMode == TRUNCATE {
-			return fmt.Sprintf("%f", parsedX-(parsedX-math.Mod(parsedX, toNearest)))
+			decimalPlaces := getDecimalPlaces(parsedX)
+			modResult := roundToDecimalPlaces(math.Mod(parsedX, toNearest), decimalPlaces) // tricky go does not have fixed point types out of the box
+			truncVal := parsedX - modResult
+			truncValStr := ""
+			if truncVal == math.Trunc(truncVal) {
+				truncValStr = fmt.Sprintf("%d", int(truncVal)) // Output: 10
+			} else {
+				// Float value, print with decimals
+				truncValStr = fmt.Sprintf("%f", truncVal)
+			}
+			return truncValStr
 		}
 	}
 
