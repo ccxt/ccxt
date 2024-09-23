@@ -2137,6 +2137,7 @@ export default class mexc extends Exchange {
          * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
          * @param {string} [params.externalOid] *contract only* external order ID
          * @param {int} [params.positionMode] *contract only*  1:hedge, 2:one-way, default: the user's current config
+         * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2218,8 +2219,15 @@ export default class mexc extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        const test = this.safeBool (params, 'test', false);
+        params = this.omit (params, 'test');
         const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
-        const response = await this.spotPrivatePostOrder (this.extend (request, params));
+        let response = undefined;
+        if (test) {
+            response = await this.spotPrivatePostOrderTest (this.extend (request, params));
+        } else {
+            response = await this.spotPrivatePostOrder (this.extend (request, params));
+        }
         //
         // spot
         //
