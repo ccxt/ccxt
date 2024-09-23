@@ -132,7 +132,7 @@ export default class mexc extends Exchange {
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'setLeverage': true,
-                'setMarginMode': undefined,
+                'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': undefined,
@@ -5708,6 +5708,51 @@ export default class mexc extends Exchange {
         const data = this.safeList (response, 'data');
         const positions = this.parsePositions (data, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
+    }
+
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} [symbol] required when there is no position, else provide params["positionId"]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.positionId] required when a position is set
+         * @param {string} [params.direction] "long" or "short" required when there is no position
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadSymbol (this.id + ' setMarginMode() supports contract markets only');
+        }
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        const leverage = this.safeInteger (params, 'leverage');
+        if (leverage === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
+        }
+        const direction = this.safeStringLower2 (params, 'direction', 'positionId');
+        const request: Dict = {
+            'leverage': leverage,
+            'openType': (marginMode === 'isolated') ? 1 : 2,
+        };
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (direction !== undefined) {
+            request['positionType'] = (direction === 'short') ? 2 : 1;
+        }
+        params = this.omit (params, 'direction');
+        const response = await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+        //
+        // { success: true, code: '0' }
+        //
+        return this.parseLeverage (response, market);
     }
 
     nonce () {
