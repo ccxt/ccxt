@@ -423,7 +423,7 @@ export default class bitmart extends bitmartRest {
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = this.parseWsBidAsk (rawTickers[i]);
             const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            this.bidsasks[symbol] = ticker;
             const messageHash = 'bidask:' + symbol;
             client.resolve (ticker, messageHash);
         }
