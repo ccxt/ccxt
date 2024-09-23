@@ -38,6 +38,62 @@ func (this *Exchange) NumberToString(x interface{}) string {
 		return ""
 	case float64, float32, int, int64, int32:
 		str := fmt.Sprintf("%v", v)
+		val := ToFloat64(v)
+
+		// Handle very large numbers (positive exponents)
+		if math.Abs(val) >= 1.0 {
+			parts := strings.Split(str, "e")
+			if len(parts) == 2 {
+				// Convert the exponent into an integer
+				exponent, _ := strconv.Atoi(parts[1])
+				// Split the mantissa into integer and fractional parts
+				mantissaParts := strings.Split(parts[0], ".")
+				integerPart := mantissaParts[0]
+				fractionalPart := ""
+				if len(mantissaParts) > 1 {
+					fractionalPart = mantissaParts[1]
+				}
+
+				// Adjust the number of zeros based on the exponent
+				if exponent >= 0 {
+					totalDigits := integerPart + fractionalPart
+					if exponent >= len(fractionalPart) {
+						zerosToAdd := exponent - len(fractionalPart)
+						return totalDigits + strings.Repeat("0", zerosToAdd)
+					} else {
+						return totalDigits[:len(integerPart)+exponent] + "." + totalDigits[len(integerPart)+exponent:]
+					}
+				}
+			}
+		}
+
+		// Handle numbers with negative exponents (fractions)
+		if math.Abs(val) < 1.0 {
+			parts := strings.Split(str, "e-")
+			if len(parts) == 2 {
+				n := strings.Replace(parts[0], ".", "", -1)
+				e, _ := strconv.Atoi(parts[1])
+				neg := str[0] == '-'
+				if e != 0 {
+					// Format the result with leading zeros
+					return fmt.Sprintf("%s0.%s%s", map[bool]string{true: "-", false: ""}[neg], strings.Repeat("0", e-1), strings.Replace(n, "-", "", 1))
+				}
+			}
+		}
+
+		// If no scientific notation, return the original string
+		return str
+	default:
+		return fmt.Sprintf("%v", x)
+	}
+}
+
+func (this *Exchange) NumberToString2(x interface{}) string {
+	switch v := x.(type) {
+	case nil:
+		return ""
+	case float64, float32, int, int64, int32:
+		str := fmt.Sprintf("%v", v)
 		if math.Abs(ToFloat64((v))) < 1.0 {
 			parts := strings.Split(str, "e-")
 			if len(parts) == 2 {
@@ -45,7 +101,8 @@ func (this *Exchange) NumberToString(x interface{}) string {
 				e, _ := strconv.Atoi(parts[1])
 				neg := str[0] == '-'
 				if e != 0 {
-					return fmt.Sprintf("%s0.%s%s", map[bool]string{true: "-", false: ""}[neg], strings.Repeat("0", e-1), n)
+					// Fix: Remove the extra "-" sign in the result
+					return fmt.Sprintf("%s0.%s%s", map[bool]string{true: "-", false: ""}[neg], strings.Repeat("0", e-1), strings.Replace(n, "-", "", 1))
 				}
 			}
 		} else {
@@ -64,6 +121,39 @@ func (this *Exchange) NumberToString(x interface{}) string {
 		return fmt.Sprintf("%v", x)
 	}
 }
+
+// func (this *Exchange) NumberToString(x interface{}) string {
+// 	switch v := x.(type) {
+// 	case nil:
+// 		return ""
+// 	case float64, float32, int, int64, int32:
+// 		str := fmt.Sprintf("%v", v)
+// 		if math.Abs(ToFloat64((v))) < 1.0 {
+// 			parts := strings.Split(str, "e-")
+// 			if len(parts) == 2 {
+// 				n := strings.Replace(parts[0], ".", "", -1)
+// 				e, _ := strconv.Atoi(parts[1])
+// 				neg := str[0] == '-'
+// 				if e != 0 {
+// 					return fmt.Sprintf("%s0.%s%s", map[bool]string{true: "-", false: ""}[neg], strings.Repeat("0", e-1), n)
+// 				}
+// 			}
+// 		} else {
+// 			parts := strings.Split(str, "e")
+// 			if len(parts) == 2 {
+// 				e, _ := strconv.Atoi(parts[1])
+// 				m := strings.Split(parts[0], ".")
+// 				if len(m) > 1 {
+// 					e -= len(m[1])
+// 				}
+// 				return fmt.Sprintf("%s%s%s", m[0], m[1], strings.Repeat("0", e))
+// 			}
+// 		}
+// 		return str
+// 	default:
+// 		return fmt.Sprintf("%v", x)
+// 	}
+// }
 
 var truncateRegExpCache = make(map[int]*regexp.Regexp)
 

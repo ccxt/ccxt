@@ -1746,6 +1746,7 @@ func  (this *Exchange) SetMarkets(markets interface{}, optionalArgs ...interface
         if IsTrue(InOp(this.Markets_by_id, GetValue(value, "id"))) {
             var marketsByIdArray interface{} =             GetValue(this.Markets_by_id, GetValue(value, "id"))
             AppendToArray(&marketsByIdArray,value)
+            AddElementToObject(this.Markets_by_id, GetValue(value, "id"), marketsByIdArray)
         } else {
             AddElementToObject(this.Markets_by_id, GetValue(value, "id"), []interface{}{value})
         }
