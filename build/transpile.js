@@ -118,6 +118,7 @@ class Transpiler {
             [ /\.parsePositionRisk /g, '.parse_position_risk'],
             [ /\.parseTimeInForce /g, '.parse_time_in_force'],
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
+            [ /\.describeData /g, '.describe_data'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],

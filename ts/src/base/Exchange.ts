@@ -2764,6 +2764,7 @@ export default class Exchange {
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
+                'BRC20': { 'BRC20': 'BTC' },
                 'CRO': { 'CRC20': 'CRONOS' },
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },

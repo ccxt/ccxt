@@ -27,6 +27,9 @@ class mexc extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
@@ -40,12 +43,21 @@ class mexc extends Exchange {
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'deposit' => null,
                 'editOrder' => null,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
-                'fetchBorrowRateHistory' => null,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
@@ -66,6 +78,7 @@ class mexc extends Exchange {
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => true,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
@@ -74,11 +87,13 @@ class mexc extends Exchange {
                 'fetchLeverageTiers' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
-                'fetchMarketLeverageTiers' => null,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -86,7 +101,7 @@ class mexc extends Exchange {
                 'fetchOrderBooks' => null,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
-                'fetchPosition' => true,
+                'fetchPosition' => 'emulated',
                 'fetchPositionHistory' => 'emulated',
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
@@ -396,6 +411,8 @@ class mexc extends Exchange {
                 ),
             ),
             'options' => array(
+                'adjustForTimeDifference' => false,
+                'timeDifference' => 0,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'unavailableContracts' => array(
                     'BTC/USDT:USDT' => true,
@@ -450,6 +467,7 @@ class mexc extends Exchange {
                     'AVAXC' => 'AVAX_CCHAIN',
                     'ERC20' => 'ETH',
                     'ACA' => 'ACALA',
+                    'BEP20' => 'BSC',
                     // 'ADA' => 'Cardano(ADA)',
                     // 'AE' => 'AE',
                     // 'ALGO' => 'Algorand(ALGO)',
@@ -1005,6 +1023,9 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $spotMarketPromise = $this->fetch_spot_markets($params);
         $swapMarketPromise = $this->fetch_swap_markets($params);
         list($spotMarket, $swapMarket) = array( $spotMarketPromise, $swapMarketPromise );
@@ -2501,6 +2522,9 @@ class mexc extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2729,6 +2753,9 @@ class mexc extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -2817,6 +2844,9 @@ class mexc extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2829,6 +2859,9 @@ class mexc extends Exchange {
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] max number of orders to return, default is null
@@ -2857,6 +2890,9 @@ class mexc extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-$order
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-$order-under-maintenance
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-$order-under-maintenance
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2968,6 +3004,7 @@ class mexc extends Exchange {
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4451,7 +4488,7 @@ class mexc extends Exchange {
             // 'coin' => $currency['id'] . network example => USDT-TRX,
             // 'status' => 'status',
             // 'startTime' => $since, // default 90 days
-            // 'endTime' => $this->milliseconds(),
+            // 'endTime' => $this->nonce(),
             // 'limit' => $limit, // default 1000, maximum 1000
         );
         $currency = null;
@@ -4510,7 +4547,7 @@ class mexc extends Exchange {
             // 'coin' => $currency['id'],
             // 'status' => 'status',
             // 'startTime' => $since, // default 90 days
-            // 'endTime' => $this->milliseconds(),
+            // 'endTime' => $this->nonce(),
             // 'limit' => $limit, // default 1000, maximum 1000
         );
         $currency = null;
@@ -4676,6 +4713,7 @@ class mexc extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch data on a single open contract trade position
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
          * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -4692,6 +4730,7 @@ class mexc extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -5529,6 +5568,10 @@ class mexc extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
+    public function nonce() {
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $section = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
@@ -5542,7 +5585,7 @@ class mexc extends Exchange {
             }
             $paramsEncoded = '';
             if ($access === 'private') {
-                $params['timestamp'] = $this->milliseconds();
+                $params['timestamp'] = $this->nonce();
                 $params['recvWindow'] = $this->safe_integer($this->options, 'recvWindow', 5000);
             }
             if ($params) {
@@ -5570,7 +5613,7 @@ class mexc extends Exchange {
                 }
             } else {
                 $this->check_required_credentials();
-                $timestamp = (string) $this->milliseconds();
+                $timestamp = (string) $this->nonce();
                 $auth = '';
                 $headers = array(
                     'ApiKey' => $this->apiKey,

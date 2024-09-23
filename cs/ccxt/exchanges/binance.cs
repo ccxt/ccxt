@@ -1219,6 +1219,7 @@ public partial class binance : Exchange
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
+                { "fetchMargins", true },
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
                 { "fetchCurrencies", true },
                 { "defaultTimeInForce", "GTC" },
@@ -2827,16 +2828,15 @@ public partial class binance : Exchange
             }
             ((IList<object>)fetchMarkets).Add(type);
         }
-        object fetchMargins = false;
+        object fetchMargins = this.safeBool(this.options, "fetchMargins", false);
         for (object i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
         {
             object marketType = getValue(fetchMarkets, i);
             if (isTrue(isEqual(marketType, "spot")))
             {
                 ((IList<object>)promisesRaw).Add(this.publicGetExchangeInfo(parameters));
-                if (isTrue(isTrue(this.checkRequiredCredentials(false)) && !isTrue(sandboxMode)))
+                if (isTrue(isTrue(isTrue(fetchMargins) && isTrue(this.checkRequiredCredentials(false))) && !isTrue(sandboxMode)))
                 {
-                    fetchMargins = true;
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginAllPairs(parameters));
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginIsolatedAllPairs(parameters));
                 }

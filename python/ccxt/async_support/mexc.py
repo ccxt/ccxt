@@ -45,6 +45,9 @@ class mexc(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': True,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
@@ -58,12 +61,21 @@ class mexc(Exchange, ImplicitAPI):
                 'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'deposit': None,
                 'editOrder': None,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
-                'fetchBorrowRateHistory': None,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': True,
@@ -84,6 +96,7 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchL2OrderBook': True,
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
@@ -92,11 +105,13 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchLeverageTiers': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
-                'fetchMarketLeverageTiers': None,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -104,7 +119,7 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchOrderBooks': None,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
-                'fetchPosition': True,
+                'fetchPosition': 'emulated',
                 'fetchPositionHistory': 'emulated',
                 'fetchPositionMode': True,
                 'fetchPositions': True,
@@ -414,6 +429,8 @@ class mexc(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'adjustForTimeDifference': False,
+                'timeDifference': 0,
                 'createMarketBuyOrderRequiresPrice': True,
                 'unavailableContracts': {
                     'BTC/USDT:USDT': True,
@@ -468,6 +485,7 @@ class mexc(Exchange, ImplicitAPI):
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
+                    'BEP20': 'BSC',
                     # 'ADA': 'Cardano(ADA)',
                     # 'AE': 'AE',
                     # 'ALGO': 'Algorand(ALGO)',
@@ -1008,6 +1026,8 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         spotMarketPromise = self.fetch_spot_markets(params)
         swapMarketPromise = self.fetch_swap_markets(params)
         spotMarket, swapMarket = await asyncio.gather(*[spotMarketPromise, swapMarketPromise])
@@ -2407,6 +2427,9 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2620,6 +2643,9 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -2702,6 +2728,9 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2713,6 +2742,9 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: max number of orders to return, default is None
@@ -2737,6 +2769,9 @@ class mexc(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-order
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-order-under-maintenance
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2839,6 +2874,7 @@ class mexc(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4244,7 +4280,7 @@ class mexc(Exchange, ImplicitAPI):
             # 'coin': currency['id'] + network example: USDT-TRX,
             # 'status': 'status',
             # 'startTime': since,  # default 90 days
-            # 'endTime': self.milliseconds(),
+            # 'endTime': self.nonce(),
             # 'limit': limit,  # default 1000, maximum 1000
         }
         currency = None
@@ -4297,7 +4333,7 @@ class mexc(Exchange, ImplicitAPI):
             # 'coin': currency['id'],
             # 'status': 'status',
             # 'startTime': since,  # default 90 days
-            # 'endTime': self.milliseconds(),
+            # 'endTime': self.nonce(),
             # 'limit': limit,  # default 1000, maximum 1000
         }
         currency = None
@@ -4452,6 +4488,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -4467,6 +4504,7 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -5260,6 +5298,9 @@ class mexc(Exchange, ImplicitAPI):
         positions = self.parse_positions(data, symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
 
+    def nonce(self):
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
@@ -5272,7 +5313,7 @@ class mexc(Exchange, ImplicitAPI):
                 url = self.urls['api'][section][access] + '/api/' + self.version + '/' + path
             paramsEncoded = ''
             if access == 'private':
-                params['timestamp'] = self.milliseconds()
+                params['timestamp'] = self.nonce()
                 params['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
             if params:
                 paramsEncoded = self.urlencode(params)
@@ -5295,7 +5336,7 @@ class mexc(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(params)
             else:
                 self.check_required_credentials()
-                timestamp = str(self.milliseconds())
+                timestamp = str(self.nonce())
                 auth = ''
                 headers = {
                     'ApiKey': self.apiKey,

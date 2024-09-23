@@ -32,6 +32,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Symbols"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/margin/common/support-currencies"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -45,11 +46,6 @@ public partial class bitget
     public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchMarketsByType(object type, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsByType(type, parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>

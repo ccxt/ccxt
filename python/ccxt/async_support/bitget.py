@@ -1337,6 +1337,8 @@ class bitget(Exchange, ImplicitAPI):
                 'TONCOIN': 'TON',
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'timeframes': {
                     'spot': {
                         '1m': '1min',
@@ -1535,17 +1537,21 @@ class bitget(Exchange, ImplicitAPI):
         retrieves data on all markets for bitget
         :see: https://www.bitget.com/api-doc/spot/market/Get-Symbols
         :see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+        :see: https://www.bitget.com/api-doc/margin/common/support-currencies
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
         if sandboxMode:
             types = ['swap']
         promises = []
+        fetchMargins = False
         for i in range(0, len(types)):
             type = types[i]
-            if type == 'swap':
+            if (type == 'swap') or (type == 'future'):
                 subTypes = None
                 if sandboxMode:
                     # the following are simulated trading markets ['SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES']
@@ -1553,15 +1559,33 @@ class bitget(Exchange, ImplicitAPI):
                 else:
                     subTypes = ['USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES']
                 for j in range(0, len(subTypes)):
-                    promises.append(self.fetch_markets_by_type(type, self.extend(params, {
+                    promises.append(self.publicMixGetV2MixMarketContracts(self.extend(params, {
                         'productType': subTypes[j],
                     })))
+            elif type == 'spot':
+                promises.append(self.publicSpotGetV2SpotPublicSymbols(params))
+                fetchMargins = True
+                promises.append(self.publicMarginGetV2MarginCurrencies(params))
             else:
-                promises.append(self.fetch_markets_by_type(types[i], params))
-        promises = await asyncio.gather(*promises)
-        result = promises[0]
-        for i in range(1, len(promises)):
-            result = self.array_concat(result, promises[i])
+                raise NotSupported(self.id + ' does not support ' + type + ' market')
+        results = await asyncio.gather(*promises)
+        markets = []
+        self.options['crossMarginPairsData'] = []
+        self.options['isolatedMarginPairsData'] = []
+        for i in range(0, len(results)):
+            res = self.safe_dict(results, i)
+            data = self.safe_list(res, 'data', [])
+            firstData = self.safe_dict(data, 0, {})
+            isBorrowable = self.safe_string(firstData, 'isBorrowable')
+            if fetchMargins and isBorrowable is not None:
+                keysList = list(self.index_by(data, 'symbol').keys())
+                self.options['crossMarginPairsData'] = keysList
+                self.options['isolatedMarginPairsData'] = keysList
+            else:
+                markets = self.array_concat(markets, data)
+        result = []
+        for i in range(0, len(markets)):
+            result.append(self.parse_market(markets[i]))
         return result
 
     def parse_market(self, market: dict) -> Market:
@@ -1649,11 +1673,20 @@ class bitget(Exchange, ImplicitAPI):
         expiry = None
         expiryDatetime = None
         symbolType = self.safe_string(market, 'symbolType')
+        marginModes = None
+        isMarginTradingAllowed = False
         if symbolType is None:
             type = 'spot'
             spot = True
             pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision')))
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
+            hasCrossMargin = self.in_array(marketId, self.options['crossMarginPairsData'])
+            hasIsolatedMargin = self.in_array(marketId, self.options['isolatedMarginPairsData'])
+            marginModes = {
+                'cross': hasCrossMargin,
+                'isolated': hasIsolatedMargin,
+            }
+            isMarginTradingAllowed = hasCrossMargin or hasCrossMargin
         else:
             if symbolType == 'perpetual':
                 type = 'swap'
@@ -1689,6 +1722,10 @@ class bitget(Exchange, ImplicitAPI):
             preciseAmount.reduce()
             amountString = str(preciseAmount)
             amountPrecision = self.parse_number(amountString)
+            marginModes = {
+                'cross': True,
+                'isolated': True,
+            }
         status = self.safe_string_2(market, 'status', 'symbolStatus')
         active = None
         if status is not None:
@@ -1708,7 +1745,8 @@ class bitget(Exchange, ImplicitAPI):
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': None,
+            'margin': spot and isMarginTradingAllowed,
+            'marginModes': marginModes,
             'swap': swap,
             'future': future,
             'option': False,
@@ -1748,88 +1786,6 @@ class bitget(Exchange, ImplicitAPI):
             'created': self.safe_integer(market, 'launchTime'),
             'info': market,
         }
-
-    async def fetch_markets_by_type(self, type, params={}):
-        response = None
-        if type == 'spot':
-            response = await self.publicSpotGetV2SpotPublicSymbols(params)
-        elif (type == 'swap') or (type == 'future'):
-            response = await self.publicMixGetV2MixMarketContracts(params)
-        else:
-            raise NotSupported(self.id + ' does not support ' + type + ' market')
-        #
-        # spot
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1700102364653,
-        #         "data": [
-        #             {
-        #                 "symbol": "TRXUSDT",
-        #                 "baseCoin": "TRX",
-        #                 "quoteCoin": "USDT",
-        #                 "minTradeAmount": "0",
-        #                 "maxTradeAmount": "10000000000",
-        #                 "takerFeeRate": "0.002",
-        #                 "makerFeeRate": "0.002",
-        #                 "pricePrecision": "6",
-        #                 "quantityPrecision": "4",
-        #                 "quotePrecision": "6",
-        #                 "status": "online",
-        #                 "minTradeUSDT": "5",
-        #                 "buyLimitPriceRatio": "0.05",
-        #                 "sellLimitPriceRatio": "0.05"
-        #             },
-        #         ]
-        #     }
-        #
-        # swap and future
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1700102364709,
-        #         "data": [
-        #             {
-        #                 "symbol": "BTCUSDT",
-        #                 "baseCoin": "BTC",
-        #                 "quoteCoin": "USDT",
-        #                 "buyLimitPriceRatio": "0.01",
-        #                 "sellLimitPriceRatio": "0.01",
-        #                 "feeRateUpRatio": "0.005",
-        #                 "makerFeeRate": "0.0002",
-        #                 "takerFeeRate": "0.0006",
-        #                 "openCostUpRatio": "0.01",
-        #                 "supportMarginCoins": ["USDT"],
-        #                 "minTradeNum": "0.001",
-        #                 "priceEndStep": "1",
-        #                 "volumePlace": "3",
-        #                 "pricePlace": "1",
-        #                 "sizeMultiplier": "0.001",
-        #                 "symbolType": "perpetual",
-        #                 "minTradeUSDT": "5",
-        #                 "maxSymbolOrderNum": "200",
-        #                 "maxProductOrderNum": "400",
-        #                 "maxPositionNum": "150",
-        #                 "symbolStatus": "normal",
-        #                 "offTime": "-1",
-        #                 "limitOpenTime": "-1",
-        #                 "deliveryTime": "",
-        #                 "deliveryStartTime": "",
-        #                 "deliveryPeriod": "",
-        #                 "launchTime": "",
-        #                 "fundInterval": "8",
-        #                 "minLever": "1",
-        #                 "maxLever": "125",
-        #                 "posLimit": "0.05",
-        #                 "maintainTime": ""
-        #             },
-        #         ]
-        #     }
-        #
-        data = self.safe_value(response, 'data', [])
-        return self.parse_markets(data)
 
     async def fetch_currencies(self, params={}) -> Currencies:
         """
@@ -8251,6 +8207,9 @@ class bitget(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
         endpoint = api[1]
@@ -8266,7 +8225,7 @@ class bitget(Exchange, ImplicitAPI):
                 url = url + '?' + self.urlencode(query)
         if signed:
             self.check_required_credentials()
-            timestamp = str(self.milliseconds())
+            timestamp = str(self.nonce())
             auth = timestamp + method + payload
             if method == 'POST':
                 body = self.json(params)

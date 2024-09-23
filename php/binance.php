@@ -1193,6 +1193,7 @@ class binance extends Exchange {
             // exchange-specific options
             'options' => array(
                 'sandboxMode' => false,
+                'fetchMargins' => true,
                 'fetchMarkets' => array(
                     'spot', // allows CORS in browsers
                     'linear', // allows CORS in browsers
@@ -2860,13 +2861,12 @@ class binance extends Exchange {
             }
             $fetchMarkets[] = $type;
         }
-        $fetchMargins = false;
+        $fetchMargins = $this->safe_bool($this->options, 'fetchMargins', false);
         for ($i = 0; $i < count($fetchMarkets); $i++) {
             $marketType = $fetchMarkets[$i];
             if ($marketType === 'spot') {
                 $promisesRaw[] = $this->publicGetExchangeInfo ($params);
-                if ($this->check_required_credentials(false) && !$sandboxMode) {
-                    $fetchMargins = true;
+                if ($fetchMargins && $this->check_required_credentials(false) && !$sandboxMode) {
                     $promisesRaw[] = $this->sapiGetMarginAllPairs ($params);
                     $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs ($params);
                 }

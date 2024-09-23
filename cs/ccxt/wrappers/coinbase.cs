@@ -185,10 +185,10 @@ public partial class coinbase
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
-    /// fetch all withdrawals made from an account
+    /// Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -219,10 +219,10 @@ public partial class coinbase
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
-    /// fetch all deposits made to an account
+    /// Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -406,10 +406,10 @@ public partial class coinbase
         return new Balances(res);
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
+    /// Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>

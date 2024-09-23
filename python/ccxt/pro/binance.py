@@ -20,7 +20,11 @@ from ccxt.base.precise import Precise
 class binance(ccxt.async_support.binance):
 
     def describe(self):
-        return self.deep_extend(super(binance, self).describe(), {
+        superDescribe = super(binance, self).describe()
+        return self.deep_extend(superDescribe, self.describe_data())
+
+    def describe_data(self):
+        return {
             'has': {
                 'ws': True,
                 'watchBalance': True,
@@ -162,7 +166,7 @@ class binance(ccxt.async_support.binance):
                     'bookTicker': 'bookTicker',
                 },
             },
-        })
+        }
 
     def request_id(self, url):
         options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())

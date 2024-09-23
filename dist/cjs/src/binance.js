@@ -1199,6 +1199,7 @@ class binance extends binance$1 {
             // exchange-specific options
             'options': {
                 'sandboxMode': false,
+                'fetchMargins': true,
                 'fetchMarkets': [
                     'spot',
                     'linear',
@@ -2872,13 +2873,12 @@ class binance extends binance$1 {
             }
             fetchMarkets.push(type);
         }
-        let fetchMargins = false;
+        const fetchMargins = this.safeBool(this.options, 'fetchMargins', false);
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push(this.publicGetExchangeInfo(params));
-                if (this.checkRequiredCredentials(false) && !sandboxMode) {
-                    fetchMargins = true;
+                if (fetchMargins && this.checkRequiredCredentials(false) && !sandboxMode) {
                     promisesRaw.push(this.sapiGetMarginAllPairs(params));
                     promisesRaw.push(this.sapiGetMarginIsolatedAllPairs(params));
                 }

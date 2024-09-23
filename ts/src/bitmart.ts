@@ -251,6 +251,10 @@ export default class bitmart extends Exchange {
                         'contract/private/submit-plan-order': 2.5,
                         'contract/private/cancel-plan-order': 1.5,
                         'contract/private/submit-leverage': 2.5,
+                        'contract/private/submit-tp-sl-order': 2.5,
+                        'contract/private/modify-plan-order': 2.5,
+                        'contract/private/modify-preset-plan-order': 2.5,
+                        'contract/private/modify-tp-sl-order': 2.5,
                     },
                 },
             },
@@ -876,43 +880,43 @@ export default class bitmart extends Exchange {
     async fetchContractMarkets (params = {}) {
         const response = await this.publicGetContractPublicDetails (params);
         //
-        // {
-        //     "code": 1000,
-        //     "message": "Ok",
-        //     "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
-        //     "data": {
-        //       "symbols": [
-        //         {
-        //           "symbol": "BTCUSDT",
-        //           "product_type": 1,
-        //           "open_timestamp": 1594080000,
-        //           "expire_timestamp": 0,
-        //           "settle_timestamp": 0,
-        //           "base_currency": "BTC",
-        //           "quote_currency": "USDT",
-        //           "last_price": "23920",
-        //           "volume_24h": "18969368",
-        //           "turnover_24h": "458933659.7858",
-        //           "index_price": "23945.25191635",
-        //           "index_name": "BTCUSDT",
-        //           "contract_size": "0.001",
-        //           "min_leverage": "1",
-        //           "max_leverage": "100",
-        //           "price_precision": "0.1",
-        //           "vol_precision": "1",
-        //           "max_volume": "500000",
-        //           "min_volume": "1",
-        //           "funding_rate": "0.0001",
-        //           "expected_funding_rate": "0.00011",
-        //           "open_interest": "4134180870",
-        //           "open_interest_value": "94100888927.0433258",
-        //           "high_24h": "23900",
-        //           "low_24h": "23100",
-        //           "change_24h": "0.004"
-        //         },
-        //       ]
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "symbols": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "product_type": 1,
+        //                     "open_timestamp": 1645977600000,
+        //                     "expire_timestamp": 0,
+        //                     "settle_timestamp": 0,
+        //                     "base_currency": "BTC",
+        //                     "quote_currency": "USDT",
+        //                     "last_price": "63547.4",
+        //                     "volume_24h": "110938430",
+        //                     "turnover_24h": "7004836342.6944",
+        //                     "index_price": "63587.85404255",
+        //                     "index_name": "BTCUSDT",
+        //                     "contract_size": "0.001",
+        //                     "min_leverage": "1",
+        //                     "max_leverage": "100",
+        //                     "price_precision": "0.1",
+        //                     "vol_precision": "1",
+        //                     "max_volume": "1000000",
+        //                     "min_volume": "1",
+        //                     "funding_rate": "0.0000801",
+        //                     "expected_funding_rate": "-0.0000035",
+        //                     "open_interest": "278214",
+        //                     "open_interest_value": "17555316.9355496",
+        //                     "high_24h": "64109.4",
+        //                     "low_24h": "61857.6",
+        //                     "change_24h": "0.0239264900886327",
+        //                     "funding_time": 1726819200000
+        //                 },
+        //             ]
+        //         }
         //     }
-        // }
         //
         const data = this.safeValue (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
@@ -1204,33 +1208,34 @@ export default class bitmart extends Exchange {
         // swap
         //
         //     {
-        //       "symbol": "BTCUSDT",
-        //       "product_type": 1,
-        //       "open_timestamp": 1594080000,
-        //       "expire_timestamp": 0,
-        //       "settle_timestamp": 0,
-        //       "base_currency": "BTC",
-        //       "quote_currency": "USDT",
-        //       "last_price": "23920",
-        //       "volume_24h": "18969368",
-        //       "turnover_24h": "458933659.7858",
-        //       "index_price": "23945.25191635",
-        //       "index_name": "BTCUSDT",
-        //       "contract_size": "0.001",
-        //       "min_leverage": "1",
-        //       "max_leverage": "100",
-        //       "price_precision": "0.1",
-        //       "vol_precision": "1",
-        //       "max_volume": "500000",
-        //       "min_volume": "1",
-        //       "funding_rate": "0.0001",
-        //       "expected_funding_rate": "0.00011",
-        //       "open_interest": "4134180870",
-        //       "open_interest_value": "94100888927.0433258",
-        //       "high_24h": "23900",
-        //       "low_24h": "23100",
-        //       "change_24h": "0.004"
-        //  }
+        //         "symbol": "BTCUSDT",
+        //         "product_type": 1,
+        //         "open_timestamp": 1645977600000,
+        //         "expire_timestamp": 0,
+        //         "settle_timestamp": 0,
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USDT",
+        //         "last_price": "63547.4",
+        //         "volume_24h": "110938430",
+        //         "turnover_24h": "7004836342.6944",
+        //         "index_price": "63587.85404255",
+        //         "index_name": "BTCUSDT",
+        //         "contract_size": "0.001",
+        //         "min_leverage": "1",
+        //         "max_leverage": "100",
+        //         "price_precision": "0.1",
+        //         "vol_precision": "1",
+        //         "max_volume": "1000000",
+        //         "min_volume": "1",
+        //         "funding_rate": "0.0000801",
+        //         "expected_funding_rate": "-0.0000035",
+        //         "open_interest": "278214",
+        //         "open_interest_value": "17555316.9355496",
+        //         "high_24h": "64109.4",
+        //         "low_24h": "61857.6",
+        //         "change_24h": "0.0239264900886327",
+        //         "funding_time": 1726819200000
+        //     }
         //
         const result = this.safeList (ticker, 'result', []);
         const average = this.safeString2 (ticker, 'avg_price', 'index_price');
@@ -1327,27 +1332,43 @@ export default class bitmart extends Exchange {
             request['symbol'] = market['id'];
             response = await this.publicGetContractPublicDetails (this.extend (request, params));
             //
-            //      {
-            //          "message":"OK",
-            //          "code":1000,
-            //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
-            //          "data":{
-            //              "tickers":[
-            //                  {
-            //                      "contract_symbol":"DOGEUSDT",
-            //                      "last_price":"0.130180",
-            //                      "index_price":"0.13028635",
-            //                      "last_funding_rate":"0.00002025",
-            //                      "price_change_percent_24h":"-2.326",
-            //                      "volume_24h":"116789313.01797258",
-            //                      "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
-            //                      "high_price":"0.134520",
-            //                      "low_price":"0.128570",
-            //                      "legal_coin_price":"0.13017401"
-            //                  }
-            //              ]
-            //          }
-            //      }
+            //     {
+            //         "code": 1000,
+            //         "message": "Ok",
+            //         "data": {
+            //             "symbols": [
+            //                 {
+            //                     "symbol": "BTCUSDT",
+            //                     "product_type": 1,
+            //                     "open_timestamp": 1645977600000,
+            //                     "expire_timestamp": 0,
+            //                     "settle_timestamp": 0,
+            //                     "base_currency": "BTC",
+            //                     "quote_currency": "USDT",
+            //                     "last_price": "63547.4",
+            //                     "volume_24h": "110938430",
+            //                     "turnover_24h": "7004836342.6944",
+            //                     "index_price": "63587.85404255",
+            //                     "index_name": "BTCUSDT",
+            //                     "contract_size": "0.001",
+            //                     "min_leverage": "1",
+            //                     "max_leverage": "100",
+            //                     "price_precision": "0.1",
+            //                     "vol_precision": "1",
+            //                     "max_volume": "1000000",
+            //                     "min_volume": "1",
+            //                     "funding_rate": "0.0000801",
+            //                     "expected_funding_rate": "-0.0000035",
+            //                     "open_interest": "278214",
+            //                     "open_interest_value": "17555316.9355496",
+            //                     "high_24h": "64109.4",
+            //                     "low_24h": "61857.6",
+            //                     "change_24h": "0.0239264900886327",
+            //                     "funding_time": 1726819200000
+            //                 },
+            //             ]
+            //         }
+            //     }
             //
         } else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -1440,43 +1461,43 @@ export default class bitmart extends Exchange {
         } else if (type === 'swap') {
             response = await this.publicGetContractPublicDetails (params);
             //
-            // {
-            //       "code": 1000,
-            //       "message": "Ok",
-            //       "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
-            //       "data": {
-            //         "symbols": [
-            //           {
-            //             "symbol": "BTCUSDT",
-            //             "product_type": 1,
-            //             "open_timestamp": 1594080000,
-            //             "expire_timestamp": 0,
-            //             "settle_timestamp": 0,
-            //             "base_currency": "BTC",
-            //             "quote_currency": "USDT",
-            //             "last_price": "23920",
-            //             "volume_24h": "18969368",
-            //             "turnover_24h": "458933659.7858",
-            //             "index_price": "23945.25191635",
-            //             "index_name": "BTCUSDT",
-            //             "contract_size": "0.001",
-            //             "min_leverage": "1",
-            //             "max_leverage": "100",
-            //             "price_precision": "0.1",
-            //             "vol_precision": "1",
-            //             "max_volume": "500000",
-            //             "min_volume": "1",
-            //             "funding_rate": "0.0001",
-            //             "expected_funding_rate": "0.00011",
-            //             "open_interest": "4134180870",
-            //             "open_interest_value": "94100888927.0433258",
-            //             "high_24h": "23900",
-            //             "low_24h": "23100",
-            //             "change_24h": "0.004"
-            //           },
-            //         ]
-            //       }
-            //   }
+            //     {
+            //         "code": 1000,
+            //         "message": "Ok",
+            //         "data": {
+            //             "symbols": [
+            //                 {
+            //                     "symbol": "BTCUSDT",
+            //                     "product_type": 1,
+            //                     "open_timestamp": 1645977600000,
+            //                     "expire_timestamp": 0,
+            //                     "settle_timestamp": 0,
+            //                     "base_currency": "BTC",
+            //                     "quote_currency": "USDT",
+            //                     "last_price": "63547.4",
+            //                     "volume_24h": "110938430",
+            //                     "turnover_24h": "7004836342.6944",
+            //                     "index_price": "63587.85404255",
+            //                     "index_name": "BTCUSDT",
+            //                     "contract_size": "0.001",
+            //                     "min_leverage": "1",
+            //                     "max_leverage": "100",
+            //                     "price_precision": "0.1",
+            //                     "vol_precision": "1",
+            //                     "max_volume": "1000000",
+            //                     "min_volume": "1",
+            //                     "funding_rate": "0.0000801",
+            //                     "expected_funding_rate": "-0.0000035",
+            //                     "open_interest": "278214",
+            //                     "open_interest_value": "17555316.9355496",
+            //                     "high_24h": "64109.4",
+            //                     "low_24h": "61857.6",
+            //                     "change_24h": "0.0239264900886327",
+            //                     "funding_time": 1726819200000
+            //                 },
+            //             ]
+            //         }
+            //     }
             //
         } else {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted');
@@ -2468,6 +2489,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
@@ -2485,6 +2507,9 @@ export default class bitmart extends Exchange {
          * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
          * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
          * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
+         * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+         * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+         * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2492,6 +2517,10 @@ export default class bitmart extends Exchange {
         const result = this.handleMarginModeAndParams ('createOrder', params);
         const marginMode = this.safeString (result, 0);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
         let response = undefined;
         if (market['spot']) {
@@ -2505,6 +2534,8 @@ export default class bitmart extends Exchange {
             const swapRequest = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
             if (isTriggerOrder) {
                 response = await this.privatePostContractPrivateSubmitPlanOrder (swapRequest);
+            } else if (isStopLoss || isTakeProfit) {
+                response = await this.privatePostContractPrivateSubmitTpSlOrder (swapRequest);
             } else {
                 response = await this.privatePostContractPrivateSubmitOrder (swapRequest);
             }
@@ -2612,8 +2643,9 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit' or 'trailing'
+         * @param {string} type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -2628,9 +2660,21 @@ export default class bitmart extends Exchange {
          * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
          * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
          * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
+         * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+         * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+         * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market (symbol);
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        if (isStopLoss) {
+            type = 'stop_loss';
+        } else if (isTakeProfit) {
+            type = 'take_profit';
+        }
         const request: Dict = {
             'symbol': market['id'],
             'type': type,
@@ -2640,7 +2684,7 @@ export default class bitmart extends Exchange {
         const mode = this.safeInteger (params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
         let postOnly = undefined;
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        let reduceOnly = this.safeBool (params, 'reduceOnly');
         const isExchangeSpecificPo = (mode === 4);
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isExchangeSpecificPo, params);
         const ioc = ((timeInForce === 'IOC') || (mode === 3));
@@ -2687,6 +2731,20 @@ export default class bitmart extends Exchange {
                 }
             }
         }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
+        if (isStopLoss || isTakeProfit) {
+            reduceOnly = true;
+            request['price_type'] = this.safeInteger (params, 'price_type', 1);
+            request['executive_price'] = this.priceToPrecision (symbol, price);
+            if (isStopLoss) {
+                request['trigger_price'] = this.priceToPrecision (symbol, stopLossPrice);
+            } else {
+                request['trigger_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+            }
+        } else {
+            request['open_type'] = marginMode;
+        }
         if (side === 'buy') {
             if (reduceOnly) {
                 request['side'] = 2; // buy close short
@@ -2700,16 +2758,13 @@ export default class bitmart extends Exchange {
                 request['side'] = 4; // sell open short
             }
         }
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
-        request['open_type'] = marginMode;
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             params = this.omit (params, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
         }
         const leverage = this.safeInteger (params, 'leverage');
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice' ]);
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (leverage !== undefined) {
             request['leverage'] = this.numberToString (leverage);
         } else if (isTriggerOrder) {
