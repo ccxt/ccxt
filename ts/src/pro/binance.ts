@@ -2811,7 +2811,7 @@ export default class binance extends binanceRest {
         return type;
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name binance#createOrderWs

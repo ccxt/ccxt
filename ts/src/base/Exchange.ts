@@ -5388,7 +5388,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrderWs() is not supported yet');
     }
 

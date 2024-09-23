@@ -1072,7 +1072,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (this.balance, messageHashRequest);
     }
 
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cryptocom#createOrderWs
