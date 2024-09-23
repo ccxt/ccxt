@@ -97,6 +97,21 @@
                     }
                 ],
                 "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":1,\"openType\":2,\"triggerPrice\":\"0.7\",\"triggerType\":1,\"executeCycle\":1,\"trend\":1,\"orderType\":1,\"price\":0.6,\"side\":3}"
+            },
+            {
+                "description": "spot market sell with cost",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=PYTHUSDT&side=SELL&type=MARKET&quoteOrderQty=5&timestamp=1727088487177&recvWindow=5000&signature=242ef7a21a3b00e4b68cbb6dc1ccb94b62489169d6627e4e771ee30e15d7aec6",
+                "input": [
+                  "PYTH/USDT",
+                  "market",
+                  "sell",
+                  0,
+                  null,
+                  {
+                    "cost": 5
+                  }
+                ]
             }
         ],
         "createOrders": [
