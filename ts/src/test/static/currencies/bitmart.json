@@ -1,39 +1,65 @@
 {
     "BTC": {
+        "info": {
+          "currency": "BTC",
+          "name": "Bitcoin",
+          "contract_address": null,
+          "network": "BTC",
+          "withdraw_enabled": true,
+          "deposit_enabled": true,
+          "withdraw_minsize": "0.00105",
+          "withdraw_minfee": "61.48"
+        },
         "id": "BTC",
         "code": "BTC",
         "name": "Bitcoin",
-        "info": {
-            "id": "BTC",
-            "name": "Bitcoin",
-            "withdraw_enabled": true,
-            "deposit_enabled": true
-        },
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "amount": {},
-            "withdraw": {}
-        }
+        "fee": 61.48,
+        "networks": [
+          {
+            "id": "BTC",
+            "network": "BTC",
+            "active": true,
+            "deposit": true,
+            "withdraw": true,
+            "fee": 61.48,
+            "limits": { "withdraw": { "min": 0.00105 }, "deposit": {} }
+          }
+        ],
+        "limits": { "amount": {}, "withdraw": { "min": 0.00105 } }
     },
     "USDT": {
+        "info": {
+          "currency": "USDT",
+          "name": "Tether USD",
+          "contract_address": null,
+          "network": "OMNI",
+          "withdraw_enabled": false,
+          "deposit_enabled": false,
+          "withdraw_minsize": "10",
+          "withdraw_minfee": "1.99"
+        },
         "id": "USDT",
         "code": "USDT",
         "name": "Tether USD",
-        "info": {
-            "id": "USDT",
-            "name": "Tether USD",
-            "withdraw_enabled": false,
-            "deposit_enabled": false
-        },
         "active": false,
         "deposit": false,
         "withdraw": false,
-        "limits": {
-            "amount": {},
-            "withdraw": {}
-        }
+        "fee": 1.99,
+        "networks": [
+          {
+            "id": "OMNI",
+            "network": "OMNI",
+            "active": false,
+            "deposit": false,
+            "withdraw": false,
+            "fee": 1.99,
+            "limits": { "withdraw": { "min": 10 }, "deposit": {} }
+          }
+        ],
+        "limits": { "amount": {}, "withdraw": { "min": 10 } }
     },
     "INR": {
         "id": "INR",
@@ -54,40 +80,66 @@
         }
     },
     "LTC": {
+        "info": {
+          "currency": "LTC",
+          "name": "LiteCoin",
+          "contract_address": null,
+          "network": "LTC",
+          "withdraw_enabled": true,
+          "deposit_enabled": true,
+          "withdraw_minsize": "0.2",
+          "withdraw_minfee": "0.06"
+        },
         "id": "LTC",
         "code": "LTC",
         "name": "LiteCoin",
-        "info": {
-            "id": "LTC",
-            "name": "LiteCoin",
-            "withdraw_enabled": true,
-            "deposit_enabled": true
-        },
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "amount": {},
-            "withdraw": {}
-        }
+        "fee": 0.06,
+        "networks": [
+          {
+            "id": "LTC",
+            "network": "LTC",
+            "active": true,
+            "deposit": true,
+            "withdraw": true,
+            "fee": 0.06,
+            "limits": { "withdraw": { "min": 0.2 }, "deposit": {} }
+          }
+        ],
+        "limits": { "amount": {}, "withdraw": { "min": 0.2 } }
     },
     "ETH": {
+        "info": {
+          "currency": "ETH",
+          "name": "Ethereum",
+          "contract_address": null,
+          "network": "ERC20",
+          "withdraw_enabled": true,
+          "deposit_enabled": true,
+          "withdraw_minsize": "0.01",
+          "withdraw_minfee": "5.94"
+        },
         "id": "ETH",
         "code": "ETH",
         "name": "Ethereum",
-        "info": {
-            "id": "ETH",
-            "name": "Ethereum",
-            "withdraw_enabled": true,
-            "deposit_enabled": true
-        },
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "amount": {},
-            "withdraw": {}
-        }
+        "fee": 5.94,
+        "networks": [
+          {
+            "id": "ERC20",
+            "network": "ERC20",
+            "active": true,
+            "deposit": true,
+            "withdraw": true,
+            "fee": 5.94,
+            "limits": { "withdraw": { "min": 0.01 }, "deposit": {} }
+          }
+        ],
+        "limits": { "amount": {}, "withdraw": { "min": 0.01 } }
     },
     "ADA": {
         "id": "ADA",
@@ -108,39 +160,65 @@
         }
     },
     "XRP": {
+        "info": {
+          "currency": "XRP",
+          "name": "XRP",
+          "contract_address": null,
+          "network": "XRP",
+          "withdraw_enabled": true,
+          "deposit_enabled": true,
+          "withdraw_minsize": "10",
+          "withdraw_minfee": "0.11"
+        },
         "id": "XRP",
         "code": "XRP",
-        "name": "Ripple",
-        "info": {
-            "id": "XRP",
-            "name": "Ripple",
-            "withdraw_enabled": true,
-            "deposit_enabled": true
-        },
+        "name": "XRP",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "amount": {},
-            "withdraw": {}
-        }
+        "fee": 0.11,
+        "networks": [
+          {
+            "id": "XRP",
+            "network": "XRP",
+            "active": true,
+            "deposit": true,
+            "withdraw": true,
+            "fee": 0.11,
+            "limits": { "withdraw": { "min": 10 }, "deposit": {} }
+          }
+        ],
+        "limits": { "amount": {}, "withdraw": { "min": 10 } }
     },
     "USDC": {
+        "info": {
+            "currency": "USDC",
+            "name": "USDC",
+            "contract_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "network": "ERC20",
+            "withdraw_enabled": true,
+            "deposit_enabled": true,
+            "withdraw_minsize": "8",
+            "withdraw_minfee": "4"
+        },
         "id": "USDC",
         "code": "USDC",
         "name": "USDC",
-        "info": {
-            "id": "USDC",
-            "name": "USDC",
-            "withdraw_enabled": true,
-            "deposit_enabled": true
-        },
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": {
-            "amount": {},
-            "withdraw": {}
-        }
+        "fee": 4,
+        "networks": [
+            {
+                "id": "ERC20",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 4,
+                "limits": { "withdraw": { "min": 8 }, "deposit": {} }
+            }
+        ],
+        "limits": { "amount": {}, "withdraw": { "min": 8 } }
     }
 }

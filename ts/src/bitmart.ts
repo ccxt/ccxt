@@ -519,6 +519,19 @@ export default class bitmart extends Exchange {
                 'GLD': 'Goldario',
                 'MVP': 'MVP Coin',
                 'TRU': 'Truebit', // conflict with TrueFi
+                'XODEX-Chain': 'XODEX',
+                'DRAC-Chain': 'DRAC',
+                'ONT-Chain': 'ONT',
+                'CUBE-Chain': 'CUBE',
+                'GODE-Chain': 'GODE',
+                'CRU-Chain': 'CRU',
+                'IGT-Chain': 'IGT',
+                'VITE-Chain': 'VITE',
+                'ZIL-Chain': 'ZIL',
+                'REEF-Chain': 'REEF',
+                'CHEQ-Chain': 'CHEQ',
+                'CRO-Chain': 'CRO',
+                'FUSE-Chain': 'FUSE',
             },
             'options': {
                 'defaultNetwork': 'ERC20',
@@ -675,6 +688,23 @@ export default class bitmart extends Exchange {
                     // 'ETHERCOIN': 'ETE',
                     // undetermined chains:
                     // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
+                },
+                'networksById': {
+                    'POLYGON': 'MATIC',
+                    'klaytn': 'KLAY',
+                    'BEP20': 'BSC',
+                    'ERC': 'ERC20',
+                    'KRC': 'KRC20',
+                    'TRC': 'TRC20',
+                    'SPL': 'SOL',
+                    'Shimmer': 'SMR',
+                    'ETH': 'ERC20',
+                    'ZKSYNCERA': 'ZKSYNC',
+                    'ZEN-20': 'ZEN20',
+                    'GODE': 'GRC20',
+                    'IGT': 'IGT20',
+                    'KCS-Mainnet': 'KCC',
+                    'Mainnet-BHRC20': 'FTN',
                 },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
@@ -1011,48 +1041,97 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://developer-pro.bitmart.com/en/spot/#get-currency-list-v1
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetSpotV1Currencies (params);
+        const response = await this.publicGetAccountV1Currencies (params);
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":[
-        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
-        //             ]
-        //         }
-        //     }
+        //    {
+        //        message: 'OK',
+        //        code: '1000',
+        //        trace: '5534867fdee4403aba27b34c6922da0f.123.17225867075010273',
+        //        data: {
+        //            currencies: [
+        //                {
+        //                    currency: 'GGT',
+        //                    name: 'Grape Governance Token',
+        //                    contract_address: '0x39B0E13A29c2A27ce88ceBD21262A232b0633613',
+        //                    network: 'ERC20',
+        //                    withdraw_enabled: true,
+        //                    deposit_enabled: true,
+        //                    withdraw_minsize: '42',
+        //                    withdraw_minfee: '4.18'
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
         //
-        const data = this.safeValue (response, 'data', {});
-        const currencies = this.safeValue (data, 'currencies', []);
+        const data = this.safeDict (response, 'data', {});
+        const currencies = this.safeList (data, 'currencies', []);
         const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
+            let currencyId = this.safeString (currency, 'currency');
             const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
             const depositEnabled = this.safeValue (currency, 'deposit_enabled');
+            const networkId = this.safeString (currency, 'network');
+            const networkCode = this.networkIdToCode (networkId);
             const active = withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'info': currency, // the original payload
+            const fee = this.safeString (currency, 'withdraw_minfee');
+            const minWithdraw = this.safeString (currency, 'withdraw_minsize');
+            const currenciesWithDashes = [ 'WEMP-V2', 'FUTURE-AI' ];
+            if (!this.inArray (currencyId, currenciesWithDashes)) {
+                const splitId = currencyId.split ('-');
+                currencyId = splitId[0];
+            }
+            const code = this.safeCurrencyCode (currencyId);
+            if (code in result) {
+                const currentFee = result[code]['fee'];
+                const currentMin = result[code]['limits']['withdraw']['min'];
+                result[code]['fee'] = Precise.stringMin (currentFee, fee);
+                result[code]['limits']['withdraw']['min'] = Precise.stringMin (currentMin, minWithdraw);
+            } else {
+                result[code] = this.safeCurrencyStructure ({
+                    'info': currency, // the original payload
+                    'id': currencyId,
+                    'code': code,
+                    'name': this.safeString (currency, 'name'),
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': fee,
+                    'fees': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': { 'min': undefined, 'max': undefined },
+                        'withdraw': {
+                            'min': minWithdraw,
+                            'max': undefined,
+                        },
+                    },
+                    'networks': {},
+                });
+            }
+            result[code]['networks'][networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'network': this.networkIdToCode (networkId),
                 'active': active,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
-                'fee': undefined,
+                'fee': this.parseNumber (fee),
                 'precision': undefined,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': this.parseNumber (minWithdraw),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
             };
         }
