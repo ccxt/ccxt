@@ -5493,7 +5493,7 @@ class bybit(Exchange):
         response = None
         try:
             response = self.privatePostV5PositionSwitchMode(self.extend(request, params))
-            return_message = self.safe_string(response, "ret_msg")
+            return_message = self.safe_string_2(response, 'ret_msg', 'retMsg')
             if return_message and return_message.lower().startswith("partial symbols switched"):
                 feedback = self.id + ' ' + json.dumps(response)
                 raise ExchangeError(feedback)
