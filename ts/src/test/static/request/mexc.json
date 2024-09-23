@@ -22,6 +22,17 @@
             {
                 "description": "Spot market buy",
                 "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quantity=1&timestamp=1701338981732&recvWindow=5000&signature=b32153696c3ea535b0c796cefd1b5a576b140a6ba0bcb80c9bde15cee3384059",
+                "input": [
+                    "ATLAS/USDT",
+                    "market",
+                    "buy",
+                    1
+                ]
+            },
+            {
+                "description": "Spot market buy with price",
+                "method": "createOrder",
                 "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=6&price=6&timestamp=1701338981732&recvWindow=5000&signature=b32153696c3ea535b0c796cefd1b5a576b140a6ba0bcb80c9bde15cee3384059",
                 "input": [
                     "ATLAS/USDT",
@@ -44,24 +55,9 @@
                 ]
             },
             {
-                "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
-                "method": "createOrder",
-                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&createMarketBuyOrderRequiresPrice=false&timestamp=1701830554641&recvWindow=5000&signature=d759959eda792a05500a913b3607cae54bf02d9ec3da7ea68e7d6df28e54c5fd",
-                "input": [
-                    "ATLAS/USDT",
-                    "market",
-                    "buy",
-                    8,
-                    null,
-                    {
-                        "createMarketBuyOrderRequiresPrice": false
-                    }
-                ]
-            },
-            {
                 "description": "Spot market buy using the cost param",
                 "method": "createOrder",
-                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&cost=8&timestamp=1701830656889&recvWindow=5000&signature=86d3ce4c125affa17221bfb95a77550fedbbb872c0f153d432abe1b1a23348e3",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&timestamp=1701830656889&recvWindow=5000&signature=86d3ce4c125affa17221bfb95a77550fedbbb872c0f153d432abe1b1a23348e3",
                 "input": [
                     "ATLAS/USDT",
                     "market",
@@ -132,7 +128,7 @@
             {
                 "description": "Spot market buy order with cost",
                 "method": "createMarketBuyOrderWithCost",
-                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&createMarketBuyOrderRequiresPrice=false&timestamp=1701830758140&recvWindow=5000&signature=0e5e245e6ed272d5d0c170259f27c2a7a2344af5037d821ea74e4ac2168538de",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=8&timestamp=1701830758140&recvWindow=5000&signature=0e5e245e6ed272d5d0c170259f27c2a7a2344af5037d821ea74e4ac2168538de",
                 "input": [
                     "ATLAS/USDT",
                     8

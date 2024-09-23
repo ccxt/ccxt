@@ -418,7 +418,6 @@ export default class mexc extends Exchange {
             'options': {
                 'adjustForTimeDifference': false,
                 'timeDifference': 0,
-                'createMarketBuyOrderRequiresPrice': true,
                 'unavailableContracts': {
                     'BTC/USDT:USDT': true,
                     'LTC/USDT:USDT': true,
@@ -2109,8 +2108,8 @@ export default class mexc extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        params['cost'] = cost;
+        return await this.createOrder (symbol, 'market', 'buy', undefined, undefined, params);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -2159,23 +2158,22 @@ export default class mexc extends Exchange {
             'type': type.toUpperCase (),
         };
         if (orderSide === 'BUY' && type === 'market') {
-            let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
             const cost = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
             params = this.omit (params, 'cost');
             if (cost !== undefined) {
                 amount = cost;
-            } else if (createMarketBuyOrderRequiresPrice) {
+                request['quoteOrderQty'] = this.costToPrecision (symbol, amount);
+            } else {
                 if (price === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                    request['quantity'] = this.amountToPrecision (symbol, amount);
                 } else {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
                     const quoteAmount = Precise.stringMul (amountString, priceString);
                     amount = quoteAmount;
+                    request['quoteOrderQty'] = this.costToPrecision (symbol, amount);
                 }
             }
-            request['quoteOrderQty'] = this.costToPrecision (symbol, amount);
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
@@ -2224,9 +2222,9 @@ export default class mexc extends Exchange {
         const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
         let response = undefined;
         if (test) {
-            response = await this.spotPrivatePostOrderTest (this.extend (request, params));
+            response = await this.spotPrivatePostOrderTest (request);
         } else {
-            response = await this.spotPrivatePostOrder (this.extend (request, params));
+            response = await this.spotPrivatePostOrder (request);
         }
         //
         // spot
