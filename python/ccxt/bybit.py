@@ -3144,11 +3144,10 @@ class bybit(Exchange):
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
+        assert id or params.get('orderLinkId')
         self.load_markets()
         self.check_required_symbol('fetchOrder', symbol)
-        request = {
-            'orderId': id,
-        }
+        request = {'orderId': id} if id is not None else {}
         params, isStop = self.has_stop_params(params, should_omit=False)
         original_params = copy(params)
         result = self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
