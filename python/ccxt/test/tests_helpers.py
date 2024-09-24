@@ -114,6 +114,12 @@ LOG_CHARS_LENGTH = 10000
 ext = 'py'
 proxyTestFileName = 'proxies'
 
+lang = 'PY'
+root_dir = rootDir
+proxy_test_file_name = proxyTestFileName
+env_vars = envVars
+
+
 
 def get_cli_arg_value(arg):
     arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
@@ -124,30 +130,6 @@ def get_cli_arg_value(arg):
     return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
 
 isWsTests = get_cli_arg_value('--ws')
-
-
-class baseMainTestClass():
-    lang = 'PY'
-    is_synchronous = is_synchronous
-    request_tests_failed = False
-    response_tests_failed = False
-    response_tests = False
-    ws_tests = False
-    load_keys = False
-    skipped_settings_for_exchange = {}
-    skipped_methods = {}
-    check_public_tests = {}
-    test_files = {}
-    public_tests = {}
-    new_line = '\n'
-    root_dir = rootDir
-    env_vars = envVars
-    ext = ext
-    root_dir_for_skips = rootDirForSkips
-    only_specific_tests = []
-    proxy_test_file_name = proxyTestFileName
-    pass
-
 
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
