@@ -237,7 +237,15 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 		if roundingMode == ROUND {
 			res := this._decimalToPrecision(parsedX/toNearest, roundingMode, 0, countmode2, paddingMode)
 			floatRes, _ := strconv.ParseFloat(res, 64)
-			return fmt.Sprintf("%f", toNearest*floatRes)
+			resultFloat := toNearest * floatRes
+			resultStr := ""
+			if resultFloat == math.Trunc(resultFloat) {
+				resultStr = fmt.Sprintf("%d", int(resultFloat)) // Output: 10
+			} else {
+				// Float value, print with decimals
+				resultStr = fmt.Sprintf("%f", resultFloat)
+			}
+			return resultStr
 		}
 		if roundingMode == TRUNCATE {
 			decimalPlaces := getDecimalPlaces(parsedX)
