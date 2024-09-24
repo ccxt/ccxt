@@ -118,6 +118,7 @@ lang = 'PY'
 root_dir = rootDir
 proxy_test_file_name = proxyTestFileName
 env_vars = envVars
+new_line = '\n'
 
 
 

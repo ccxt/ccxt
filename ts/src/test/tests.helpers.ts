@@ -62,6 +62,7 @@ const proxyTestFileName = 'proxies';
 const rootDir = DIR_NAME + '/../../../';
 const lang = 'JS';
 const envVars = process.env;
+const newLine = '\n';
 
 const LOG_CHARS_LENGTH = 10000;
 
@@ -215,7 +216,6 @@ export {
     // shared
     getCliArgValue,
     //
-    baseMainTestClass,
     dump,
     jsonParse,
     jsonStringify,
@@ -244,6 +244,7 @@ export {
     argvMethod,
     lang,
     envVars,
+    newLine,
     ext,
     rootDir,
     proxyTestFileName,

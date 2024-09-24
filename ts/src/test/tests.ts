@@ -16,6 +16,7 @@ import {
     getCliArgValue,
     //
     envVars,
+    newLine,
     lang,
     ext,
     rootDir,
@@ -66,7 +67,7 @@ class testMainClass {
     checkedPublicTests = {};
     testFiles = {};
     publicTests = {};
-    newLine = '\n';
+    newLine = newLine;
     rootDir = rootDir;
     onlySpecificTests = [];
     envVars = envVars;
