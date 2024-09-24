@@ -2902,7 +2902,7 @@ export default class binance extends Exchange {
             const res = this.safeValue (results, i);
             if (fetchMargins && Array.isArray (res)) {
                 const keysList = Object.keys (this.indexBy (res, 'symbol'));
-                const length = (Object.keys (this.options['crossMarginPairsData'])).length;
+                const length = this.options['crossMarginPairsData'].length;
                 // first one is the cross-margin promise
                 if (length === 0) {
                     this.options['crossMarginPairsData'] = keysList;
