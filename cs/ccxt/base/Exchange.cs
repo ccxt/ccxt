@@ -396,7 +396,7 @@ public partial class Exchange
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
     }
 
-    public static int randNumber(int size)
+    public int randNumber(int size)
     {
         Random random = new Random();
         string number = "";
