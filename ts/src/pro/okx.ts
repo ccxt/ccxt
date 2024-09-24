@@ -1996,7 +1996,8 @@ export default class okx extends okxRest {
 
     requestId () {
         const ts = this.milliseconds ().toString ();
-        const randomPart = this.randNumber (4).toString ();
+        const randomNumber = this.randNumber (4);
+        const randomPart = randomNumber.toString ();
         return ts + randomPart;
     }
 
