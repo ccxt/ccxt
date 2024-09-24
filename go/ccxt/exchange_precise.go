@@ -65,11 +65,11 @@ func (p *PreciseStruct) Mul(other *PreciseStruct) *PreciseStruct {
 }
 
 func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...interface{}) *PreciseStruct {
-	precision := 18
+	precision := int64(18)
 	if len(precision2) > 0 {
-		precision = int(precision2[0].(int32))
+		precision = ParseInt(precision2[0])
 	}
-	distance := precision - p.Decimals.(int) + other.Decimals.(int)
+	distance := precision - ParseInt(p.Decimals) + ParseInt(other.Decimals)
 	var numerator *big.Int
 
 	if distance == 0 {
