@@ -1412,11 +1412,13 @@ class bitget extends Exchange {
                 'networks' => array(
                     'TRX' => 'TRC20',
                     'ETH' => 'ERC20',
-                    'BSC' => 'BEP20',
+                    'BEP20' => 'BSC',
+                    'ZKSYNC' => 'zkSyncEra',
+                    'STARKNET' => 'Starknet',
+                    'OPTIMISM' => 'Optimism',
+                    'ARBITRUM' => 'Arbitrum',
                 ),
                 'networksById' => array(
-                    'TRC20' => 'TRX',
-                    'BSC' => 'BEP20',
                 ),
                 'fetchPositions' => array(
                     'method' => 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
@@ -1845,7 +1847,10 @@ class bitget extends Exchange {
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
-                $network = $this->safe_currency_code($networkId);
+                $network = $this->network_id_to_code($networkId, $code);
+                if ($network !== null) {
+                    $network = strtoupper($network);
+                }
                 $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
                 $canWithdraw = $withdrawEnabled === 'true';
                 $withdraw = ($canWithdraw) ? $canWithdraw : $withdraw;

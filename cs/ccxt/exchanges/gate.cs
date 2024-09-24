@@ -629,6 +629,9 @@ public partial class gate : Exchange
                     { "OPTIMISM", "OPETH" },
                     { "POLKADOT", "DOTSM" },
                     { "TRC20", "TRX" },
+                    { "LUNA", "LUNC" },
+                    { "BASE", "BASEEVM" },
+                    { "BRC20", "BTCBRC" },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
                     { "GTC", "gtc" },

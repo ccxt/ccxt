@@ -755,7 +755,7 @@ class kucoin extends Exchange {
                     'hf' => 'trade_hf',
                 ),
                 'networks' => array(
-                    'BTC' => 'btc',
+                    'BRC20' => 'btc',
                     'BTCNATIVESEGWIT' => 'bech32',
                     'ERC20' => 'eth',
                     'TRC20' => 'trx',
@@ -1335,7 +1335,7 @@ class kucoin extends Exchange {
             for ($j = 0; $j < $chainsLength; $j++) {
                 $chain = $chains[$j];
                 $chainId = $this->safe_string($chain, 'chainId');
-                $networkCode = $this->network_id_to_code($chainId);
+                $networkCode = $this->network_id_to_code($chainId, $code);
                 $chainWithdrawEnabled = $this->safe_bool($chain, 'isWithdrawEnabled', false);
                 if ($isWithdrawEnabled === null) {
                     $isWithdrawEnabled = $chainWithdrawEnabled;

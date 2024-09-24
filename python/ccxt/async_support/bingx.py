@@ -504,6 +504,9 @@ class bingx(Exchange, ImplicitAPI):
                     'BTC': 'BTC',
                     'LTC': 'LTC',
                 },
+                'networks': {
+                    'ARB': 'ARBITRUM',
+                },
             },
         })
 

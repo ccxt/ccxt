@@ -6647,14 +6647,18 @@ public partial class bybit : Exchange
         object currencyId = this.safeString2(item, "coin", "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        object amount = this.safeString2(item, "amount", "change");
-        object after = this.safeString2(item, "wallet_balance", "cashBalance");
-        object direction = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "out" : "in";
+        object amountString = this.safeString2(item, "amount", "change");
+        object afterString = this.safeString2(item, "wallet_balance", "cashBalance");
+        object direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
         object before = null;
-        if (isTrue(isTrue(!isEqual(after, null)) && isTrue(!isEqual(amount, null))))
+        object after = null;
+        object amount = null;
+        if (isTrue(isTrue(!isEqual(afterString, null)) && isTrue(!isEqual(amountString, null))))
         {
-            object difference = ((bool) isTrue((isEqual(direction, "out")))) ? amount : Precise.stringNeg(amount);
-            before = Precise.stringAdd(after, difference);
+            object difference = ((bool) isTrue((isEqual(direction, "out")))) ? amountString : Precise.stringNeg(amountString);
+            before = this.parseToNumeric(Precise.stringAdd(afterString, difference));
+            after = this.parseToNumeric(afterString);
+            amount = this.parseToNumeric(Precise.stringAbs(amountString));
         }
         object timestamp = this.parse8601(this.safeString(item, "exec_time"));
         if (isTrue(isEqual(timestamp, null)))
@@ -6670,15 +6674,15 @@ public partial class bybit : Exchange
             { "referenceAccount", null },
             { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
             { "currency", code },
-            { "amount", this.parseToNumeric(Precise.stringAbs(amount)) },
+            { "amount", amount },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "before", this.parseToNumeric(before) },
-            { "after", this.parseToNumeric(after) },
+            { "before", before },
+            { "after", after },
             { "status", "ok" },
             { "fee", new Dictionary<string, object>() {
                 { "currency", code },
-                { "cost", this.parseToNumeric(this.safeString(item, "fee")) },
+                { "cost", this.safeNumber(item, "fee") },
             } },
         }, currency);
     }

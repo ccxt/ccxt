@@ -6223,13 +6223,17 @@ class bybit extends bybit$1 {
         const currencyId = this.safeString2(item, 'coin', 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        const amount = this.safeString2(item, 'amount', 'change');
-        const after = this.safeString2(item, 'wallet_balance', 'cashBalance');
-        const direction = Precise["default"].stringLt(amount, '0') ? 'out' : 'in';
+        const amountString = this.safeString2(item, 'amount', 'change');
+        const afterString = this.safeString2(item, 'wallet_balance', 'cashBalance');
+        const direction = Precise["default"].stringLt(amountString, '0') ? 'out' : 'in';
         let before = undefined;
-        if (after !== undefined && amount !== undefined) {
-            const difference = (direction === 'out') ? amount : Precise["default"].stringNeg(amount);
-            before = Precise["default"].stringAdd(after, difference);
+        let after = undefined;
+        let amount = undefined;
+        if (afterString !== undefined && amountString !== undefined) {
+            const difference = (direction === 'out') ? amountString : Precise["default"].stringNeg(amountString);
+            before = this.parseToNumeric(Precise["default"].stringAdd(afterString, difference));
+            after = this.parseToNumeric(afterString);
+            amount = this.parseToNumeric(Precise["default"].stringAbs(amountString));
         }
         let timestamp = this.parse8601(this.safeString(item, 'exec_time'));
         if (timestamp === undefined) {
@@ -6244,15 +6248,15 @@ class bybit extends bybit$1 {
             'referenceAccount': undefined,
             'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
             'currency': code,
-            'amount': this.parseToNumeric(Precise["default"].stringAbs(amount)),
+            'amount': amount,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'before': this.parseToNumeric(before),
-            'after': this.parseToNumeric(after),
+            'before': before,
+            'after': after,
             'status': 'ok',
             'fee': {
                 'currency': code,
-                'cost': this.parseToNumeric(this.safeString(item, 'fee')),
+                'cost': this.safeNumber(item, 'fee'),
             },
         }, currency);
     }

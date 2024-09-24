@@ -1957,6 +1957,12 @@ export default class okx extends okxRest {
             client.resolve(this.orders, symbolMessageHash);
         }
     }
+    requestId() {
+        const ts = this.milliseconds().toString();
+        const randomNumber = this.randNumber(4);
+        const randomPart = randomNumber.toString();
+        return ts + randomPart;
+    }
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1975,7 +1981,7 @@ export default class okx extends okxRest {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.milliseconds().toString();
+        const messageHash = this.requestId();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest(symbol, type, side, amount, price, params);
@@ -2045,7 +2051,7 @@ export default class okx extends okxRest {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.milliseconds().toString();
+        const messageHash = this.requestId();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest(id, symbol, type, side, amount, price, params);
@@ -2074,7 +2080,7 @@ export default class okx extends okxRest {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.milliseconds().toString();
+        const messageHash = this.requestId();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         params = this.omit(params, ['clientOrderId', 'clOrdId']);
         const arg = {
@@ -2114,7 +2120,7 @@ export default class okx extends okxRest {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.milliseconds().toString();
+        const messageHash = this.requestId();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
             const arg = {
@@ -2150,7 +2156,7 @@ export default class okx extends okxRest {
             throw new BadRequest(this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl('private', 'private');
-        const messageHash = this.milliseconds().toString();
+        const messageHash = this.requestId();
         const request = {
             'id': messageHash,
             'op': 'mass-cancel',

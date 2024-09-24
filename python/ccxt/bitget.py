@@ -1436,11 +1436,13 @@ class bitget(Exchange, ImplicitAPI):
                 'networks': {
                     'TRX': 'TRC20',
                     'ETH': 'ERC20',
-                    'BSC': 'BEP20',
+                    'BEP20': 'BSC',
+                    'ZKSYNC': 'zkSyncEra',
+                    'STARKNET': 'Starknet',
+                    'OPTIMISM': 'Optimism',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksById': {
-                    'TRC20': 'TRX',
-                    'BSC': 'BEP20',
                 },
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition',  # or privateMixGetV2MixPositionHistoryPosition
@@ -1839,7 +1841,9 @@ class bitget(Exchange, ImplicitAPI):
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
-                network = self.safe_currency_code(networkId)
+                network = self.network_id_to_code(networkId, code)
+                if network is not None:
+                    network = network.upper()
                 withdrawEnabled = self.safe_string(chain, 'withdrawable')
                 canWithdraw = withdrawEnabled == 'true'
                 withdraw = canWithdraw if (canWithdraw) else withdraw

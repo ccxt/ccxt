@@ -379,6 +379,7 @@ export default class Exchange {
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(): {};
     randomBytes(length: number): string;
+    randNumber(size: number): number;
     describe(): {
         id: any;
         name: any;
@@ -808,6 +809,9 @@ export default class Exchange {
             };
             CRO: {
                 CRC20: string;
+            };
+            BRC20: {
+                BRC20: string;
             };
         };
     };

@@ -488,6 +488,9 @@ class bingx extends bingx$1 {
                     'BTC': 'BTC',
                     'LTC': 'LTC',
                 },
+                'networks': {
+                    'ARB': 'ARBITRUM',
+                },
             },
         });
     }

@@ -485,6 +485,9 @@ class bingx extends Exchange {
                     'BTC' => 'BTC',
                     'LTC' => 'LTC',
                 ),
+                'networks' => array(
+                    'ARB' => 'ARBITRUM',
+                ),
             ),
         ));
     }

@@ -481,6 +481,9 @@ public partial class bingx : Exchange
                     { "BTC", "BTC" },
                     { "LTC", "LTC" },
                 } },
+                { "networks", new Dictionary<string, object>() {
+                    { "ARB", "ARBITRUM" },
+                } },
             } },
         });
     }

@@ -648,6 +648,9 @@ class gate extends Exchange {
                     'OPTIMISM' => 'OPETH',
                     'POLKADOT' => 'DOTSM',
                     'TRC20' => 'TRX',
+                    'LUNA' => 'LUNC',
+                    'BASE' => 'BASEEVM',
+                    'BRC20' => 'BTCBRC',
                 ),
                 'timeInForce' => array(
                     'GTC' => 'gtc',

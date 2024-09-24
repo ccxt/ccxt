@@ -2260,7 +2260,7 @@ class bitmart extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "order_id" => 2707217580
@@ -4685,6 +4685,123 @@ class bitmart extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+        /**
+         * edits an open order
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to edit an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} [$amount] how much you want to trade in units of the base currency
+         * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->triggerPrice] *swap only* the $price to trigger a stop order
+         * @param {string} [$params->stopLossPrice] *swap only* the $price to trigger a stop-loss order
+         * @param {string} [$params->takeProfitPrice] *swap only* the $price to trigger a take-profit order
+         * @param {string} [$params->stopLoss.triggerPrice] *swap only* the $price to trigger a preset stop-loss order
+         * @param {string} [$params->takeProfit.triggerPrice] *swap only* the $price to trigger a preset take-profit order
+         * @param {string} [$params->clientOrderId] client order $id of the order
+         * @param {int} [$params->price_type] *swap only* 1 => last $price, 2 => fair $price, default is 1
+         * @param {int} [$params->plan_category] *swap tp/sl only* 1 => tp/sl, 2 => position tp/sl, default is 1
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' markets, only swap markets are supported');
+        }
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'trigger_price' ));
+        $stopLoss = $this->safe_dict($params, 'stopLoss', array());
+        $takeProfit = $this->safe_dict($params, 'takeProfit', array());
+        $presetStopLoss = $this->safe_string($stopLoss, 'triggerPrice');
+        $presetTakeProfit = $this->safe_string($takeProfit, 'triggerPrice');
+        $isTriggerOrder = $triggerPrice !== null;
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
+        $isPresetStopLoss = $presetStopLoss !== null;
+        $isPresetTakeProfit = $presetTakeProfit !== null;
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, 'clientOrderId');
+            $request['client_order_id'] = $clientOrderId;
+        }
+        if ($id !== null) {
+            $request['order_id'] = $id;
+        }
+        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ));
+        $response = null;
+        if ($isTriggerOrder || $isStopLoss || $isTakeProfit) {
+            $request['price_type'] = $this->safe_integer($params, 'price_type', 1);
+            if ($price !== null) {
+                $request['executive_price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
+        if ($isTriggerOrder) {
+            $request['type'] = $type;
+            $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $response = $this->privatePostContractPrivateModifyPlanOrder ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => 1000,
+            //         "message" => "Ok",
+            //         "data" => array(
+            //             "order_id" => "3000023150003503"
+            //         ),
+            //         "trace" => "324523453245.108.1734567125596324575"
+            //     }
+            //
+        } elseif ($isStopLoss || $isTakeProfit) {
+            $request['category'] = $type;
+            if ($isStopLoss) {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $stopLossPrice);
+            } else {
+                $request['trigger_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
+            }
+            $response = $this->privatePostContractPrivateModifyTpSlOrder ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => 1000,
+            //         "message" => "Ok",
+            //         "data" => array(
+            //             "order_id" => "3000023150003480"
+            //         ),
+            //         "trace" => "23452345.104.1724536582682345459"
+            //     }
+            //
+        } elseif ($isPresetStopLoss || $isPresetTakeProfit) {
+            if ($isPresetStopLoss) {
+                $request['preset_stop_loss_price_type'] = $this->safe_integer($params, 'price_type', 1);
+                $request['preset_stop_loss_price'] = $this->price_to_precision($symbol, $presetStopLoss);
+            } else {
+                $request['preset_take_profit_price_type'] = $this->safe_integer($params, 'price_type', 1);
+                $request['preset_take_profit_price'] = $this->price_to_precision($symbol, $presetTakeProfit);
+            }
+            $response = $this->privatePostContractPrivateModifyPresetPlanOrder ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => 1000,
+            //         "message" => "Ok",
+            //         "data" => array(
+            //             "order_id" => "3000023150003496"
+            //         ),
+            //         "trace" => "a5c3234534534a836bc476a203.123452.172716624359200197"
+            //     }
+            //
+        } else {
+            throw new NotSupported($this->id . ' editOrder() only supports trigger, stop loss and take profit orders');
+        }
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function nonce() {

@@ -2206,7 +2206,7 @@ class bitmart(Exchange, ImplicitAPI):
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
-        # createOrder
+        # createOrder, editOrder
         #
         #     {
         #         "order_id": 2707217580
@@ -4465,6 +4465,114 @@ class bitmart(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+        """
+        edits an open order
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+        :param str id: order id
+        :param str symbol: unified symbol of the market to edit an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float [amount]: how much you want to trade in units of the base currency
+        :param float [price]: the price to fulfill the order, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.triggerPrice]: *swap only* the price to trigger a stop order
+        :param str [params.stopLossPrice]: *swap only* the price to trigger a stop-loss order
+        :param str [params.takeProfitPrice]: *swap only* the price to trigger a take-profit order
+        :param str [params.stopLoss.triggerPrice]: *swap only* the price to trigger a preset stop-loss order
+        :param str [params.takeProfit.triggerPrice]: *swap only* the price to trigger a preset take-profit order
+        :param str [params.clientOrderId]: client order id of the order
+        :param int [params.price_type]: *swap only* 1: last price, 2: fair price, default is 1
+        :param int [params.plan_category]: *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' markets, only swap markets are supported')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
+        stopLoss = self.safe_dict(params, 'stopLoss', {})
+        takeProfit = self.safe_dict(params, 'takeProfit', {})
+        presetStopLoss = self.safe_string(stopLoss, 'triggerPrice')
+        presetTakeProfit = self.safe_string(takeProfit, 'triggerPrice')
+        isTriggerOrder = triggerPrice is not None
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        isPresetStopLoss = presetStopLoss is not None
+        isPresetTakeProfit = presetTakeProfit is not None
+        request: dict = {
+            'symbol': market['id'],
+        }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            params = self.omit(params, 'clientOrderId')
+            request['client_order_id'] = clientOrderId
+        if id is not None:
+            request['order_id'] = id
+        params = self.omit(params, ['triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit'])
+        response = None
+        if isTriggerOrder or isStopLoss or isTakeProfit:
+            request['price_type'] = self.safe_integer(params, 'price_type', 1)
+            if price is not None:
+                request['executive_price'] = self.price_to_precision(symbol, price)
+        if isTriggerOrder:
+            request['type'] = type
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            response = self.privatePostContractPrivateModifyPlanOrder(self.extend(request, params))
+            #
+            #     {
+            #         "code": 1000,
+            #         "message": "Ok",
+            #         "data": {
+            #             "order_id": "3000023150003503"
+            #         },
+            #         "trace": "324523453245.108.1734567125596324575"
+            #     }
+            #
+        elif isStopLoss or isTakeProfit:
+            request['category'] = type
+            if isStopLoss:
+                request['trigger_price'] = self.price_to_precision(symbol, stopLossPrice)
+            else:
+                request['trigger_price'] = self.price_to_precision(symbol, takeProfitPrice)
+            response = self.privatePostContractPrivateModifyTpSlOrder(self.extend(request, params))
+            #
+            #     {
+            #         "code": 1000,
+            #         "message": "Ok",
+            #         "data": {
+            #             "order_id": "3000023150003480"
+            #         },
+            #         "trace": "23452345.104.1724536582682345459"
+            #     }
+            #
+        elif isPresetStopLoss or isPresetTakeProfit:
+            if isPresetStopLoss:
+                request['preset_stop_loss_price_type'] = self.safe_integer(params, 'price_type', 1)
+                request['preset_stop_loss_price'] = self.price_to_precision(symbol, presetStopLoss)
+            else:
+                request['preset_take_profit_price_type'] = self.safe_integer(params, 'price_type', 1)
+                request['preset_take_profit_price'] = self.price_to_precision(symbol, presetTakeProfit)
+            response = self.privatePostContractPrivateModifyPresetPlanOrder(self.extend(request, params))
+            #
+            #     {
+            #         "code": 1000,
+            #         "message": "Ok",
+            #         "data": {
+            #             "order_id": "3000023150003496"
+            #         },
+            #         "trace": "a5c3234534534a836bc476a203.123452.172716624359200197"
+            #     }
+            #
+        else:
+            raise NotSupported(self.id + ' editOrder() only supports trigger, stop loss and take profit orders')
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
 
     def nonce(self):
         return self.milliseconds()

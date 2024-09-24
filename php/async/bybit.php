@@ -6228,13 +6228,17 @@ class bybit extends Exchange {
         $currencyId = $this->safe_string_2($item, 'coin', 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $currency = $this->safe_currency($currencyId, $currency);
-        $amount = $this->safe_string_2($item, 'amount', 'change');
-        $after = $this->safe_string_2($item, 'wallet_balance', 'cashBalance');
-        $direction = Precise::string_lt($amount, '0') ? 'out' : 'in';
+        $amountString = $this->safe_string_2($item, 'amount', 'change');
+        $afterString = $this->safe_string_2($item, 'wallet_balance', 'cashBalance');
+        $direction = Precise::string_lt($amountString, '0') ? 'out' : 'in';
         $before = null;
-        if ($after !== null && $amount !== null) {
-            $difference = ($direction === 'out') ? $amount : Precise::string_neg($amount);
-            $before = Precise::string_add($after, $difference);
+        $after = null;
+        $amount = null;
+        if ($afterString !== null && $amountString !== null) {
+            $difference = ($direction === 'out') ? $amountString : Precise::string_neg($amountString);
+            $before = $this->parse_to_numeric(Precise::string_add($afterString, $difference));
+            $after = $this->parse_to_numeric($afterString);
+            $amount = $this->parse_to_numeric(Precise::string_abs($amountString));
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'exec_time'));
         if ($timestamp === null) {
@@ -6249,15 +6253,15 @@ class bybit extends Exchange {
             'referenceAccount' => null,
             'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
             'currency' => $code,
-            'amount' => $this->parse_to_numeric(Precise::string_abs($amount)),
+            'amount' => $amount,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'before' => $this->parse_to_numeric($before),
-            'after' => $this->parse_to_numeric($after),
+            'before' => $before,
+            'after' => $after,
             'status' => 'ok',
             'fee' => array(
                 'currency' => $code,
-                'cost' => $this->parse_to_numeric($this->safe_string($item, 'fee')),
+                'cost' => $this->safe_number($item, 'fee'),
             ),
         ), $currency);
     }
