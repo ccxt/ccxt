@@ -1734,6 +1734,9 @@ class Exchange(object):
     def create_safe_dictionary(self):
         return {}
 
+    def rand_number(self, size):
+        return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -2676,6 +2679,7 @@ class Exchange(object):
                 'ETH': {'ERC20': 'ETH'},
                 'TRX': {'TRC20': 'TRX'},
                 'CRO': {'CRC20': 'CRONOS'},
+                'BRC20': {'BRC20': 'BTC'},
             },
         }
 

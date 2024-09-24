@@ -1552,6 +1552,14 @@ export default class Exchange {
         return Buffer.from (x).toString ('hex');
     }
 
+    randNumber(size: number) {
+        let number = '';
+        for (let i = 0; i < size; i++) {
+            number += Math.floor(Math.random() * 10);
+        }
+        return parseInt(number, 10);
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
