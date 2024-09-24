@@ -6575,7 +6575,7 @@ $ex = new ccxt\\coinbase();
 $ex->number = 'strval'; // 'strval' | 'floatval'
 ```
 #### **C#**
-```c#
+```csharp
 var ex = new ccxt.coinbase();
 ex.number = typeof(String); // typeof(String) | typeof(float)
 ```
