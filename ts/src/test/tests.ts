@@ -15,7 +15,9 @@ import {
     // shared
     getCliArgValue,
     //
-    baseMainTestClass,
+    ext,
+    rootDir,
+    proxyTestFileName,
     dump,
     jsonParse,
     jsonStringify,
@@ -41,7 +43,35 @@ import {
 } from './tests.helpers.js';
 
 
-class testMainClass extends baseMainTestClass {
+class testMainClass {
+    lang = 'JS';
+    isSynchronous = false;
+    idTests = false;
+    requestTestsFailed = false;
+    responseTestsFailed = false;
+    requestTests = false;
+    wsTests = false;
+    responseTests = false;
+    staticTests = false;
+    info = false;
+    verbose = false;
+    debug = false;
+    privateTest = false;
+    privateTestOnly = false;
+    loadKeys = false;
+    sandbox = false;
+    skippedSettingsForExchange = {};
+    skippedMethods = {};
+    checkedPublicTests = {};
+    testFiles = {};
+    publicTests = {};
+    newLine = '\n';
+    rootDir = rootDir;
+    onlySpecificTests = [];
+    envVars = process.env;
+    proxyTestFileName = proxyTestFileName;
+    ext = ext;
+
     parseCliArgs () {
         this.responseTests = getCliArgValue ('--responseTests');
         this.idTests = getCliArgValue ('--idTests');
@@ -173,7 +203,7 @@ class testMainClass extends baseMainTestClass {
             this.loadCredentialsFromEnv (exchange);
         }
         // skipped tests
-        const skippedFile = this.rootDirForSkips + 'skip-tests.json';
+        const skippedFile = this.rootDir + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
         this.skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         const skippedSettingsForExchange = this.skippedSettingsForExchange;

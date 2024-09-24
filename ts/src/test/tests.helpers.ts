@@ -59,7 +59,7 @@ function getCliArgValue (arg) {
 }
 
 const proxyTestFileName = 'proxies';
-
+const rootDir = DIR_NAME + '/../../../';
 class baseMainTestClass {
     lang = 'JS';
     isSynchronous = false;
@@ -270,6 +270,9 @@ export {
     argvExchange,
     argvSymbol,
     argvMethod,
+    ext,
+    rootDir,
+    proxyTestFileName,
 };
 
 export default {};
