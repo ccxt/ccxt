@@ -2888,7 +2888,7 @@ class binance extends Exchange {
             $res = $this->safe_value($results, $i);
             if ($fetchMargins && gettype($res) === 'array' && array_keys($res) === array_keys(array_keys($res))) {
                 $keysList = is_array($this->index_by($res, 'symbol')) ? array_keys($this->index_by($res, 'symbol')) : array();
-                $length = ($this->options['crossMarginPairsData']);
+                $length = count($this->options['crossMarginPairsData']);
                 // first one is the cross-margin promise
                 if ($length === 0) {
                     $this->options['crossMarginPairsData'] = $keysList;

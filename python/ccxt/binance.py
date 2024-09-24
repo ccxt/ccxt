@@ -2878,7 +2878,7 @@ class binance(Exchange, ImplicitAPI):
             res = self.safe_value(results, i)
             if fetchMargins and isinstance(res, list):
                 keysList = list(self.index_by(res, 'symbol').keys())
-                length = (self.options['crossMarginPairsData'])
+                length = len(self.options['crossMarginPairsData'])
                 # first one is the cross-margin promise
                 if length == 0:
                     self.options['crossMarginPairsData'] = keysList

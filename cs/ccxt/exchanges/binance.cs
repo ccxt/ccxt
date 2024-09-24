@@ -2864,7 +2864,7 @@ public partial class binance : Exchange
             if (isTrue(isTrue(fetchMargins) && isTrue(((res is IList<object>) || (res.GetType().IsGenericType && res.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 object keysList = new List<object>(((IDictionary<string,object>)this.indexBy(res, "symbol")).Keys);
-                object length = getArrayLength((new List<object>(((IDictionary<string,object>)getValue(this.options, "crossMarginPairsData")).Keys)));
+                object length = getArrayLength(getValue(this.options, "crossMarginPairsData"));
                 // first one is the cross-margin promise
                 if (isTrue(isEqual(length, 0)))
                 {
