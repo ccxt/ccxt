@@ -6741,8 +6741,8 @@ export default class Exchange {
                 const last = this.safeDict (response, responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = undefined; // search for the cursor
-                for (let i = 0; i < responseLength; i++) {
-                    const index = responseLength - i - 1;
+                for (let j = 0; j < responseLength; j++) {
+                    const index = responseLength - j - 1;
                     const entry = this.safeDict (response, index);
                     const info = this.safeDict (entry, 'info');
                     const cursor = this.safeValue (info, cursorReceived);
