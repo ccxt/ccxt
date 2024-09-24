@@ -6738,8 +6738,18 @@ export default class Exchange {
                     break;
                 }
                 result = this.arrayConcat (result, response);
-                const last = this.safeValue (response, responseLength - 1);
-                cursorValue = this.safeValue (last['info'], cursorReceived);
+                const last = this.safeDict (response, responseLength - 1);
+                // cursorValue = this.safeValue (last['info'], cursorReceived);
+                cursorValue = undefined; // search for the cursor
+                for (let i = responseLength - 1; i >= 0; i--) {
+                    const entry = response[i];
+                    const info = this.safeDict (entry, 'info');
+                    const cursor = this.safeValue (info, cursorReceived);
+                    if (cursor !== undefined) {
+                        cursorValue = cursor;
+                        break;
+                    }
+                }
                 if (cursorValue === undefined) {
                     break;
                 }
