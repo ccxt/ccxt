@@ -15,6 +15,8 @@ import {
     // shared
     getCliArgValue,
     //
+    envVars,
+    lang,
     ext,
     rootDir,
     proxyTestFileName,
@@ -44,7 +46,6 @@ import {
 
 
 class testMainClass {
-    lang = 'JS';
     isSynchronous = false;
     idTests = false;
     requestTestsFailed = false;
@@ -68,9 +69,10 @@ class testMainClass {
     newLine = '\n';
     rootDir = rootDir;
     onlySpecificTests = [];
-    envVars = process.env;
+    envVars = envVars;
     proxyTestFileName = proxyTestFileName;
     ext = ext;
+    lang = lang;
 
     parseCliArgs () {
         this.responseTests = getCliArgValue ('--responseTests');

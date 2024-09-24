@@ -60,36 +60,8 @@ function getCliArgValue (arg) {
 
 const proxyTestFileName = 'proxies';
 const rootDir = DIR_NAME + '/../../../';
-class baseMainTestClass {
-    lang = 'JS';
-    isSynchronous = false;
-    idTests = false;
-    requestTestsFailed = false;
-    responseTestsFailed = false;
-    requestTests = false;
-    wsTests = false;
-    responseTests = false;
-    staticTests = false;
-    info = false;
-    verbose = false;
-    debug = false;
-    privateTest = false;
-    privateTestOnly = false;
-    loadKeys = false;
-    sandbox = false;
-    skippedSettingsForExchange = {};
-    skippedMethods = {};
-    checkedPublicTests = {};
-    testFiles = {};
-    publicTests = {};
-    newLine = '\n';
-    rootDir = DIR_NAME + '/../../../';
-    rootDirForSkips = DIR_NAME + '/../../../';
-    onlySpecificTests = [];
-    envVars = process.env;
-    proxyTestFileName = proxyTestFileName;
-    ext = ext;
-}
+const lang = 'JS';
+const envVars = process.env;
 
 const LOG_CHARS_LENGTH = 10000;
 
@@ -270,6 +242,8 @@ export {
     argvExchange,
     argvSymbol,
     argvMethod,
+    lang,
+    envVars,
     ext,
     rootDir,
     proxyTestFileName,
