@@ -2779,6 +2779,20 @@
                     }
                 ],
                 "output": "timestamp=1707370050475&asset=USDT&amount=5&recvWindow=10000&signature=25ac0418c9c3e2830f2b231da826c7d5deb816f58d0b31f654fe0f80c63561b7"
+            },
+            {
+                "description": "Portfolio margin repay cross margin with an alternative endpoint",
+                "method": "repayCrossMargin",
+                "url": "https://papi.binance.com/papi/v1/margin/repay-debt",
+                "input": [
+                  "USDC",
+                  10,
+                  {
+                    "method": "papiPostMarginRepayDebt",
+                    "papi": true
+                  }
+                ],
+                "output": "timestamp=1727170759618&asset=USDC&amount=10&recvWindow=10000&signature=b9f6e7773fb5639f4d7c33556841287091ca35278560528f3bbebd54e00d4c1a"
             }
         ],
         "fetchMyDustTrades": [
