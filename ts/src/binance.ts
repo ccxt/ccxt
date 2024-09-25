@@ -12059,9 +12059,8 @@ export default class binance extends Exchange {
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
         if (isPortfolioMargin) {
-            let method = this.safeString (this.options, 'repayCrossMarginMethod');
-            method = this.safeString2 (params, 'repayCrossMarginMethod', 'method', method);
-            params = this.omit (params, [ 'repayCrossMarginMethod', 'method' ]);
+            let method = undefined;
+            [ method, params ] = this.handleOptionAndParams2 (params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
             if (method === 'papiPostMarginRepayDebt') {
                 response = await this.papiPostMarginRepayDebt (this.extend (request, params));
                 //
