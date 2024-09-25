@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -65,6 +65,7 @@ export default class bybit extends Exchange {
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
+                'fetchConvertCurrencies': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -331,6 +332,9 @@ export default class bybit extends Exchange {
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         // asset
+                        'v5/asset/exchange/query-coin-list': 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/convert-result-query': 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/query-convert-history': 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/order-record': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/asset/delivery-record': 5,
                         'v5/asset/settlement-record': 5,
@@ -489,6 +493,8 @@ export default class bybit extends Exchange {
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
                         // asset
+                        'v5/asset/exchange/quote-apply': 1, // 50/s
+                        'v5/asset/exchange/convert-execute': 1, // 50/s
                         'v5/asset/transfer/inter-transfer': 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/save-transfer-sub-member': 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer': 10, // 5/s => cost = 50 / 5 = 10
@@ -8877,6 +8883,101 @@ export default class bybit extends Exchange {
         const rawPositions = this.safeList (result, 'list');
         const positions = this.parsePositions (rawPositions, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
+    }
+
+    async fetchConvertCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name bybit#fetchConvertCurrencies
+         * @description fetches all available currencies that can be converted
+         * @see https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+         * @returns {object} an associative dictionary of currencies
+         */
+        await this.loadMarkets ();
+        let accountType = undefined;
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault);
+        const request: Dict = {
+            'accountType': accountType,
+        };
+        const response = await this.privateGetV5AssetExchangeQueryCoinList (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "ok",
+        //         "result": {
+        //             "coins": [
+        //                 {
+        //                     "coin": "MATIC",
+        //                     "fullName": "MATIC",
+        //                     "icon": "https://s1.bycsi.com/app/assets/token/0552ae79c535c3095fa18f7b377dd2e9.svg",
+        //                     "iconNight": "https://t1.bycsi.com/app/assets/token/f59301aef2d6ac2165c4c4603e672fb4.svg",
+        //                     "accuracyLength": 8,
+        //                     "coinType": "crypto",
+        //                     "balance": "0",
+        //                     "uBalance": "0",
+        //                     "timePeriod": 0,
+        //                     "singleFromMinLimit": "1.1",
+        //                     "singleFromMaxLimit": "20001",
+        //                     "singleToMinLimit": "0",
+        //                     "singleToMaxLimit": "0",
+        //                     "dailyFromMinLimit": "0",
+        //                     "dailyFromMaxLimit": "0",
+        //                     "dailyToMinLimit": "0",
+        //                     "dailyToMaxLimit": "0",
+        //                     "disableFrom": false,
+        //                     "disableTo": false
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1727256416250
+        //     }
+        //
+        const result: Dict = {};
+        const data = this.safeDict (response, 'result', {});
+        const coins = this.safeList (data, 'coins', []);
+        for (let i = 0; i < coins.length; i++) {
+            const entry = coins[i];
+            const id = this.safeString (entry, 'coin');
+            const disableFrom = this.safeBool (entry, 'disableFrom');
+            const disableTo = this.safeBool (entry, 'disableTo');
+            const active = ((disableFrom === false) && (disableTo === false));
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': undefined,
+                'type': this.safeString (entry, 'coinType'),
+                'name': this.safeString (entry, 'fullName'),
+                'active': active,
+                'deposit': undefined,
+                'withdraw': this.safeNumber (entry, 'balance'),
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': this.safeNumber (entry, 'singleFromMinLimit'),
+                        'max': this.safeNumber (entry, 'singleFromMaxLimit'),
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+            };
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

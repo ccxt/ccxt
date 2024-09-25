@@ -1206,6 +1206,14 @@
                 ],
                 "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz\",\"timestamp\":1723663288607,\"accountType\":\"SPOT\",\"chain\":\"TRX\"}"
             }
+        ],
+        "fetchConvertCurrencies": [
+            {
+                "description": "fetch conversion enabled currencies",
+                "method": "fetchConvertCurrencies",
+                "url": "https://api-testnet.bybit.com/v5/asset/exchange/query-coin-list?accountType=eb_convert_uta",
+                "input": []
+              }
         ]
     },
     "disabled": []
