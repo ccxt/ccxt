@@ -1241,6 +1241,16 @@
                 ],
                 "output": "{\"quoteTxId\":\"1010020692439483803499737088\"}"
             }
+        ],
+        "fetchConvertTrade": [
+            {
+                "description": "fetch a conversion trade",
+                "method": "fetchConvertTrade",
+                "url": "https://api-testnet.bybit.com/v5/asset/exchange/convert-result-query?quoteTxId=1010020692439483803499737088&accountType=eb_convert_uta",
+                "input": [
+                  "1010020692439483803499737088"
+                ]
+            }
         ]
     },
     "disabled": []
