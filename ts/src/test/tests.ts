@@ -47,33 +47,33 @@ import {
 
 
 class testMainClass {
-    isSynchronous = false;
-    idTests = false;
-    requestTestsFailed = false;
-    responseTestsFailed = false;
-    requestTests = false;
-    wsTests = false;
-    responseTests = false;
-    staticTests = false;
-    info = false;
-    verbose = false;
-    debug = false;
-    privateTest = false;
-    privateTestOnly = false;
-    loadKeys = false;
-    sandbox = false;
-    skippedSettingsForExchange = {};
-    skippedMethods = {};
-    checkedPublicTests = {};
-    testFiles = {};
-    publicTests = {};
-    newLine = newLine;
-    rootDir = rootDir;
-    onlySpecificTests = [];
-    envVars = envVars;
-    proxyTestFileName = proxyTestFileName;
-    ext = ext;
-    lang = lang;
+    isSynchronous: boolean = false;
+    idTests: boolean = false;
+    requestTestsFailed: boolean = false;
+    responseTestsFailed: boolean = false;
+    requestTests: boolean = false;
+    wsTests: boolean = false;
+    responseTests: boolean = false;
+    staticTests: boolean = false;
+    info: boolean = false;
+    verbose: boolean = false;
+    debug: boolean = false;
+    privateTest: boolean = false;
+    privateTestOnly: boolean = false;
+    private loadKeys: boolean = false;
+    sandbox: boolean = false;
+    proxyTestFileName: string = proxyTestFileName;
+    onlySpecificTests: string[] = [];
+    skippedSettingsForExchange: any = {};
+    skippedMethods: any = {};
+    checkedPublicTests: any = {};
+    testFiles: any = {};
+    publicTests: any = {};
+    newLine: string = newLine;
+    rootDir: string = rootDir;
+    envVars: any = envVars;
+    ext: string = ext;
+    lang: string = lang;
 
     parseCliArgs () {
         this.responseTests = getCliArgValue ('--responseTests');
