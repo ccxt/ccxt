@@ -78,43 +78,12 @@ function get_cli_arg_value ($arg) {
 }
 
 define('is_synchronous', get_cli_arg_value('--sync'));
-define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('LOG_CHARS_LENGTH', 1000000); // no need to trim
 define('ext', 'php');
+define('lang', 'PHP');
 define('proxyTestFileName', 'proxies');
-
-class baseMainTestClass {
-    public $lang = 'PHP';
-    public $is_synchronous = is_synchronous;
-    public $test_files = [];
-    public $skipped_settings_for_exchange = [];
-    public $skipped_methods = [];
-    public $checked_public_tests = [];
-    public $public_tests = [];
-    public $ws_tests = false;
-    public $info = false;
-    public $verbose = false;
-    public $debug = false;
-    public $private_test = false;
-    public $private_test_only = false;
-    public $sandbox = false;
-    public $static_tests = false;
-    public $request_tests_failed = false;
-    public $response_tests_failed = false;
-    public $id_tests = false;
-    public $response_tests = false;
-    public $request_tests = false;
-    public $load_keys = false;
-
-    public $new_line = "\n";
-    public $root_dir = root_dir;
-    public $env_vars = envVars;
-    public $root_dir_for_skips = rootDirForSkips;
-    public $only_specific_tests = [];
-    public $proxy_test_file_name = proxyTestFileName;
-    public $ext = ext;
-}
+define('new_line', "\n");
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
