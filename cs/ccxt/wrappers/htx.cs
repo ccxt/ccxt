@@ -87,6 +87,10 @@ public partial class htx
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

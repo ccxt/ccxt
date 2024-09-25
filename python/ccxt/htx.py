@@ -2030,6 +2030,10 @@ class htx(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
