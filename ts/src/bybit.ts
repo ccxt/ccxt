@@ -69,6 +69,7 @@ export default class bybit extends Exchange {
                 'fetchConvertCurrencies': true,
                 'fetchConvertQuote': true,
                 'fetchConvertTrade': true,
+                'fetchConvertTradeHistory': true,
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -9135,6 +9136,57 @@ export default class bybit extends Exchange {
         return this.parseConversion (result, fromCurrency, toCurrency);
     }
 
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        /**
+         * @method
+         * @name bybit#fetchConvertTradeHistory
+         * @description fetch the users history of conversion trades
+         * @see https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history
+         * @param {string} [code] the unified currency code
+         * @param {int} [since] the earliest time in ms to fetch conversions for
+         * @param {int} [limit] the maximum number of conversion structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+         * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV5AssetExchangeQueryConvertHistory (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "ok",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "accountType": "eb_convert_uta",
+        //                     "exchangeTxId": "1010020692439483803499737088",
+        //                     "userId": "100406395",
+        //                     "fromCoin": "USDT",
+        //                     "fromCoinType": "crypto",
+        //                     "fromAmount": "10",
+        //                     "toCoin": "BTC",
+        //                     "toCoinType": "crypto",
+        //                     "toAmount": "0.00015344889",
+        //                     "exchangeStatus": "success",
+        //                     "extInfo": {},
+        //                     "convertRate": "0.000015344889",
+        //                     "createdAt": "1727257904726"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1727258761874
+        //     }
+        //
+        const data = this.safeDict (response, 'result', {});
+        const dataList = this.safeList (data, 'list', []);
+        return this.parseConversions (dataList, code, 'fromCoin', 'toCoin', since, limit);
+    }
+
     parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
@@ -9159,7 +9211,7 @@ export default class bybit extends Exchange {
         //         "quoteTxId": "1010020692439483803499737088"
         //     }
         //
-        // fetchConvertTrade
+        // fetchConvertTrade, fetchConvertTradeHistory
         //
         //     {
         //         "accountType": "eb_convert_uta",
@@ -9186,7 +9238,7 @@ export default class bybit extends Exchange {
             'info': conversion,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'id': this.safeString (conversion, 'quoteTxId'),
+            'id': this.safeString2 (conversion, 'quoteTxId', 'exchangeTxId'),
             'fromCurrency': fromCode,
             'fromAmount': this.safeNumber (conversion, 'fromAmount'),
             'toCurrency': toCode,

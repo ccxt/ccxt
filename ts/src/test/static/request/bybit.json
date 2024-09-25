@@ -1251,6 +1251,18 @@
                   "1010020692439483803499737088"
                 ]
             }
+        ],
+        "fetchConvertTradeHistory": [
+            {
+                "description": "fetch conversion trade history with code and limit arguments",
+                "method": "fetchConvertTradeHistory",
+                "url": "https://api-testnet.bybit.com/v5/asset/exchange/query-convert-history?limit=3",
+                "input": [
+                  "USDT",
+                  null,
+                  3
+                ]
+            }
         ]
     },
     "disabled": []
