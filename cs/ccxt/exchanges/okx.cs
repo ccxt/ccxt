@@ -252,6 +252,7 @@ public partial class okx : Exchange
                         { "copytrading/public-preference-currency", 4 },
                         { "copytrading/public-current-subpositions", 4 },
                         { "copytrading/public-subpositions-history", 4 },
+                        { "support/announcements-types", 20 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -385,6 +386,7 @@ public partial class okx : Exchange
                         { "broker/fd/if-rebate", 5 },
                         { "affiliate/invitee/detail", 1 },
                         { "users/partner/if-rebate", 1 },
+                        { "support/announcements", 4 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "rfq/create-rfq", 4 },
@@ -747,6 +749,8 @@ public partial class okx : Exchange
                     { "52000", typeof(ExchangeError) },
                     { "54000", typeof(ExchangeError) },
                     { "54001", typeof(ExchangeError) },
+                    { "54008", typeof(InvalidOrder) },
+                    { "54009", typeof(InvalidOrder) },
                     { "54011", typeof(InvalidOrder) },
                     { "55100", typeof(InvalidOrder) },
                     { "55101", typeof(InvalidOrder) },

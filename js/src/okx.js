@@ -269,6 +269,7 @@ export default class okx extends Exchange {
                         'copytrading/public-preference-currency': 4,
                         'copytrading/public-current-subpositions': 4,
                         'copytrading/public-subpositions-history': 4,
+                        'support/announcements-types': 20,
                     },
                 },
                 'private': {
@@ -414,6 +415,7 @@ export default class okx extends Exchange {
                         // affiliate
                         'affiliate/invitee/detail': 1,
                         'users/partner/if-rebate': 1,
+                        'support/announcements': 4,
                     },
                     'post': {
                         // rfq
@@ -793,6 +795,8 @@ export default class okx extends Exchange {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': ExchangeError,
                     '54001': ExchangeError,
+                    '54008': InvalidOrder,
+                    '54009': InvalidOrder,
                     '54011': InvalidOrder,
                     // Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder,

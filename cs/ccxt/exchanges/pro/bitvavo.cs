@@ -17,6 +17,8 @@ public partial class bitvavo : ccxt.bitvavo
                 { "watchOrderBook", true },
                 { "watchTrades", true },
                 { "watchTicker", true },
+                { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchOHLCV", true },
                 { "watchOrders", true },
                 { "watchMyTrades", true },
@@ -77,12 +79,37 @@ public partial class bitvavo : ccxt.bitvavo
         return await this.watch(url, messageHash, message, messageHash);
     }
 
+    public async virtual Task<object> watchPublicMultiple(object methodName, object channelName, object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object messageHashes = new List<object>() {methodName};
+        object args = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)args).Add(getValue(market, "id"));
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "action", "subscribe" },
+            { "channels", new List<object>() {new Dictionary<string, object>() {
+    { "name", channelName },
+    { "markets", args },
+}} },
+        };
+        object message = this.extend(request, parameters);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+    }
+
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         /**
         * @method
         * @name bitvavo#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -91,7 +118,26 @@ public partial class bitvavo : ccxt.bitvavo
         return await this.watchPublic("ticker24h", symbol, parameters);
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitvavo#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object channel = "ticker24h";
+        object tickers = await this.watchPublicMultiple(channel, channel, symbols, parameters);
+        return this.filterByArray(tickers, "symbol", symbols);
+    }
+
+    public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
         //     {
@@ -114,8 +160,10 @@ public partial class bitvavo : ccxt.bitvavo
         //         ]
         //     }
         //
+        this.handleBidAsk(client as WebSocketClient, message);
         object eventVar = this.safeString(message, "event");
         object tickers = this.safeValue(message, "data", new List<object>() {});
+        object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object data = getValue(tickers, i);
@@ -125,9 +173,65 @@ public partial class bitvavo : ccxt.bitvavo
             object ticker = this.parseTicker(data, market);
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            ((IList<object>)result).Add(ticker);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
-        return message;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {result, eventVar});
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#watchBidsAsks
+        * @description watches best bid & ask for symbols
+        * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object channel = "ticker24h";
+        object tickers = await this.watchPublicMultiple("bidask", channel, symbols, parameters);
+        return this.filterByArray(tickers, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        object eventVar = "bidask";
+        object tickers = this.safeValue(message, "data", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        {
+            object data = getValue(tickers, i);
+            object ticker = this.parseWsBidAsk(data);
+            object symbol = getValue(ticker, "symbol");
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            ((IList<object>)result).Add(ticker);
+            object messageHash = add(add(eventVar, ":"), symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {result, eventVar});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "market");
+        market = this.safeMarket(marketId, null, "-");
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "timestamp");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeNumber(ticker, "ask") },
+            { "askVolume", this.safeNumber(ticker, "askSize") },
+            { "bid", this.safeNumber(ticker, "bid") },
+            { "bidVolume", this.safeNumber(ticker, "bidSize") },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
