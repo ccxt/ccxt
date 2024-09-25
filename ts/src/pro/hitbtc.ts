@@ -18,6 +18,7 @@ export default class hitbtc extends hitbtcRest {
                 'ws': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBook': true,
@@ -52,8 +53,11 @@ export default class hitbtc extends hitbtcRest {
                 'watchTickers': {
                     'method': 'ticker/{speed}',  // 'ticker/{speed}','ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
                 },
+                'watchBidsAsks': {
+                    'method': 'orderbook/top/{speed}',  // 'orderbook/top/{speed}', 'orderbook/top/{speed}/batch'
+                },
                 'watchOrderBook': {
-                    'method': 'orderbook/full',  // 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
+                    'method': 'orderbook/full',  // 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
                 },
             },
             'timeframes': {
@@ -202,7 +206,7 @@ export default class hitbtc extends hitbtcRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
+         * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
          * @param {int} [params.depth] 5 , 10, or 20 (default)
          * @param {int} [params.speed] 100 (default), 500, or 1000
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
@@ -216,10 +220,6 @@ export default class hitbtc extends hitbtcRest {
             name = 'orderbook/D' + depth + '/' + speed + 'ms';
         } else if (name === 'orderbook/{depth}/{speed}/batch') {
             name = 'orderbook/D' + depth + '/' + speed + 'ms/batch';
-        } else if (name === 'orderbook/top/{speed}') {
-            name = 'orderbook/top/' + speed + 'ms';
-        } else if (name === 'orderbook/top/{speed}/batch') {
-            name = 'orderbook/top/' + speed + 'ms/batch';
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -493,6 +493,84 @@ export default class hitbtc extends hitbtcRest {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': this.safeString (ticker, 'q'),
+            'info': ticker,
+        }, market);
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name hitbtc#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://api.hitbtc.com/#subscribe-to-top-of-book
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] 'orderbook/top/{speed}' (default) or 'orderbook/top/{speed}/batch'
+         * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const options = this.safeValue (this.options, 'watchBidsAsks');
+        const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}');
+        const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
+        const speed = this.safeString (params, 'speed', '100ms');
+        const name = this.implodeParams (method, { 'speed': speed });
+        params = this.omit (params, [ 'method', 'speed' ]);
+        const marketIds = this.marketIds (symbols);
+        const url = this.urls['api']['ws']['public'];
+        const messageHash = 'bidask';
+        const request: Dict = {
+            'method': 'subscribe',
+            'id': this.nonce (),
+            'ch': name,
+            'params': {
+                'symbols': marketIds,
+            },
+        };
+        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //     {
+        //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
+        //         "data": {
+        //             "BTCUSDT": {
+        //                 "t": 1727276919771,
+        //                 "a": "63931.45",
+        //                 "A": "0.02879",
+        //                 "b": "63926.97",
+        //                 "B": "0.00100"
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketIds = Object.keys (data);
+        const result = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const ticker = this.parseWsBidAsk (data[marketId], market);
+            this.bidsasks[symbol] = ticker;
+            result.push (ticker);
+        }
+        client.resolve (result, 'bidask');
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const timestamp = this.safeInteger (ticker, 't');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeString (ticker, 'a'),
+            'askVolume': this.safeString (ticker, 'A'),
+            'bid': this.safeString (ticker, 'b'),
+            'bidVolume': this.safeString (ticker, 'B'),
             'info': ticker,
         }, market);
     }
@@ -1241,11 +1319,18 @@ export default class hitbtc extends hitbtcRest {
         if (channel !== undefined) {
             const splitChannel = channel.split ('/');
             channel = this.safeString (splitChannel, 0);
+            if (channel === 'orderbook') {
+                const channel2 = this.safeString (splitChannel, 1);
+                if (channel2 !== undefined && channel2 === 'top') {
+                    channel = 'orderbook/top';
+                }
+            }
             const methods: Dict = {
                 'candles': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,
                 'orderbook': this.handleOrderBook,
+                'orderbook/top': this.handleBidAsk,
                 'spot_order': this.handleOrder,
                 'spot_orders': this.handleOrder,
                 'margin_order': this.handleOrder,
