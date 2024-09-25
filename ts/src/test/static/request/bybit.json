@@ -1214,6 +1214,19 @@
                 "url": "https://api-testnet.bybit.com/v5/asset/exchange/query-coin-list?accountType=eb_convert_uta",
                 "input": []
               }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "fetch a conversion quote",
+                "method": "fetchConvertQuote",
+                "url": "https://api-testnet.bybit.com/v5/asset/exchange/quote-apply",
+                "input": [
+                  "USDT",
+                  "BTC",
+                  10
+                ],
+                "output": "{\"fromCoin\":\"USDT\",\"toCoin\":\"BTC\",\"requestAmount\":\"10\",\"requestCoin\":\"USDT\",\"accountType\":\"eb_convert_uta\"}"
+            }
         ]
     },
     "disabled": []
