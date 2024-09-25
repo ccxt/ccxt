@@ -8950,7 +8950,7 @@ export default class bybit extends Exchange {
             const id = this.safeString (entry, 'coin');
             const disableFrom = this.safeBool (entry, 'disableFrom');
             const disableTo = this.safeBool (entry, 'disableTo');
-            const active = ((disableFrom === false) && (disableTo === false));
+            const inactive = (disableFrom || disableTo);
             const code = this.safeCurrencyCode (id);
             result[code] = {
                 'info': entry,
@@ -8959,7 +8959,7 @@ export default class bybit extends Exchange {
                 'networks': undefined,
                 'type': this.safeString (entry, 'coinType'),
                 'name': this.safeString (entry, 'fullName'),
-                'active': active,
+                'active': !inactive,
                 'deposit': undefined,
                 'withdraw': this.safeNumber (entry, 'balance'),
                 'fee': undefined,
