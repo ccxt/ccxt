@@ -67,8 +67,6 @@ build_and_test_all () {
       #   # update pyenv
       #   (cd "$(pyenv root)" && git pull -q origin master)
       #   # install python interpreters
-      #   pyenv install -s 3.7.17
-      #   pyenv install -s 3.8.18
       #   pyenv install -s 3.9.18
       #   pyenv install -s 3.10.13
       #   pyenv install -s 3.11.6

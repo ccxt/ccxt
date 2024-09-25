@@ -137,6 +137,7 @@ export default class blofin extends blofinRest {
             }
             stored.append (trade);
             const messageHash = channelName + ':' + symbol;
+            this.streamProduce ('trades', trade);
             client.resolve (stored, messageHash);
         }
     }
@@ -228,6 +229,7 @@ export default class blofin extends blofinRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -292,6 +294,7 @@ export default class blofin extends blofinRest {
             const symbol = ticker['symbol'];
             const messageHash = channelName + ':' + symbol;
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (this.tickers[symbol], messageHash);
         }
     }
@@ -374,6 +377,8 @@ export default class blofin extends blofinRest {
         for (let i = 0; i < data.length; i++) {
             const candle = data[i];
             const parsed = this.parseOHLCV (candle, market);
+            const ohlcvs = this.createOHLCVObject (symbol, unifiedTimeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
             stored.append (parsed);
         }
         const resolveData = [ symbol, unifiedTimeframe, stored ];
@@ -421,6 +426,7 @@ export default class blofin extends blofinRest {
         }
         this.balance[marketType] = this.parseWsBalance (message);
         const messageHash = marketType + ':balance';
+        this.streamProduce ('balances', this.balance[marketType]);
         client.resolve (this.balance[marketType], messageHash);
     }
 
@@ -490,6 +496,7 @@ export default class blofin extends blofinRest {
             const symbol = order['symbol'];
             const messageHash = channelName + ':' + symbol;
             orders.append (order);
+            this.streamProduce ('orders', order);
             client.resolve (orders, messageHash);
             client.resolve (orders, channelName);
         }
@@ -540,6 +547,7 @@ export default class blofin extends blofinRest {
             newPositions.push (position);
             cache.append (position);
             const messageHash = channelName + ':' + position['symbol'];
+            this.streamProduce ('positions', position);
             client.resolve (position, messageHash);
         }
     }
@@ -628,6 +636,7 @@ export default class blofin extends blofinRest {
         //
         // incoming data updates' examples can be seen under each handler method
         //
+        this.streamProduce ('raw', message);
         const methods = {
             // public
             'pong': this.handlePong,

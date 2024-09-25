@@ -260,6 +260,8 @@ export default class p2b extends p2bRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
         }
         return message;
@@ -300,6 +302,7 @@ export default class p2b extends p2bRest {
             const item = trades[i];
             const trade = this.parseTrade (item, market);
             tradesArray.append (trade);
+            this.streamProduce ('trades', trade);
         }
         const messageHash = 'deals::' + symbol;
         client.resolve (tradesArray, messageHash);
@@ -359,6 +362,7 @@ export default class p2b extends p2bRest {
         }
         const symbol = ticker['symbol'];
         const messageHash = messageHashStart + '::' + symbol;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         return message;
     }
@@ -416,10 +420,12 @@ export default class p2b extends p2bRest {
             }
         }
         orderbook['symbol'] = symbol;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -445,7 +451,10 @@ export default class p2b extends p2bRest {
     handleErrorMessage (client: Client, message) {
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
-            throw new ExchangeError (this.id + ' error: ' + this.json (error));
+            const err = new ExchangeError (this.id + ' error: ' + this.json (error));
+            this.streamProduce ('errors', undefined, err);
+            client.reject (err);
+            return true;
         }
         return false;
     }

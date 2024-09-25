@@ -131,6 +131,7 @@ export default class bitfinex extends bitfinexRest {
             const trades = this.parseTrades (data, market);
             for (let i = 0; i < trades.length; i++) {
                 stored.append (trades[i]);
+                this.streamProduce ('trades', trades[i]);
             }
         } else {
             const second = this.safeString (message, 1);
@@ -139,6 +140,7 @@ export default class bitfinex extends bitfinexRest {
             }
             const trade = this.parseTrade (message, market);
             stored.append (trade);
+            this.streamProduce ('trades', trade);
         }
         client.resolve (stored, messageHash);
     }
@@ -252,6 +254,7 @@ export default class bitfinex extends bitfinexRest {
             'info': message,
         };
         this.tickers[symbol] = result;
+        this.streamProduce ('tickers', result);
         client.resolve (result, messageHash);
     }
 
@@ -351,6 +354,7 @@ export default class bitfinex extends bitfinexRest {
                     countedBookSide.storeArray ([ delta[0], size, delta[1] ]);
                 }
             }
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
@@ -371,6 +375,7 @@ export default class bitfinex extends bitfinexRest {
                 const countedBookSide = orderbook[side];
                 countedBookSide.storeArray ([ message[1], size, message[2] ]);
             }
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -453,6 +458,7 @@ export default class bitfinex extends bitfinexRest {
             future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, 'authenticated');
             // allows further authentication attempts
             const method = this.safeString (message, 'event');
@@ -626,11 +632,13 @@ export default class bitfinex extends bitfinexRest {
         }
         const orders = this.orders;
         orders.append (parsed);
+        this.streamProduce ('orders', parsed);
         client.resolve (parsed, id);
         return parsed;
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (Array.isArray (message)) {
             const channelId = this.safeString (message, 0);
             //

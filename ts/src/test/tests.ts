@@ -192,17 +192,17 @@ class testMainClass extends baseMainTestClass {
         this.checkedPublicTests = {};
     }
 
-    addPadding (message: string, size) {
+    addPadding (msg: string, size) {
         // has to be transpilable
         let res = '';
-        const messageLength = message.length; // avoid php transpilation issue
+        const messageLength = msg.length; // avoid php transpilation issue
         const missingSpace = size - messageLength - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if (missingSpace > 0) {
             for (let i = 0; i < missingSpace; i++) {
                 res += ' ';
             }
         }
-        return message + res;
+        return msg + res;
     }
 
     async testMethod (methodName: string, exchange: any, args: any[], isPublic: boolean) {
@@ -849,13 +849,13 @@ class testMainClass extends baseMainTestClass {
         }
     }
 
-    assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput, key = undefined) {
+    assertStaticError (cond:boolean, msg: string, calculatedOutput, storedOutput, key = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         const calculatedString = jsonStringify (calculatedOutput);
         const storedString = jsonStringify (storedOutput);
-        let errorMessage = message + ' computed ' + storedString + ' stored: ' + calculatedString;
+        let errorMessage = msg + ' computed ' + storedString + ' stored: ' + calculatedString;
         if (key !== undefined) {
             errorMessage = ' | ' + key + ' | ' + 'computed value: ' + storedString + ' stored value: ' + calculatedString;
         }
