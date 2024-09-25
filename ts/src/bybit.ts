@@ -42,6 +42,7 @@ export default class bybit extends Exchange {
                 'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createConvertTrade': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
@@ -9036,6 +9037,40 @@ export default class bybit extends Exchange {
         return this.parseConversion (data, fromCurrency, toCurrency);
     }
 
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        /**
+         * @method
+         * @name bybit#createConvertTrade
+         * @description convert from one currency to another
+         * @see https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote
+         * @param {string} id the id of the trade that you want to make
+         * @param {string} fromCode the currency that you want to sell and convert from
+         * @param {string} toCode the currency that you want to buy and convert into
+         * @param {float} amount how much you want to trade in units of the from currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'quoteTxId': id,
+        };
+        const response = await this.privatePostV5AssetExchangeConvertExecute (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "ok",
+        //         "result": {
+        //             "exchangeStatus": "processing",
+        //             "quoteTxId": "1010020692439483803499737088"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1727257904969
+        //     }
+        //
+        const data = this.safeDict (response, 'result', {});
+        return this.parseConversion (data);
+    }
+
     parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
         //
         // fetchConvertQuote
@@ -9051,6 +9086,13 @@ export default class bybit extends Exchange {
         //         "toAmount": "0.000153308367800000",
         //         "expiredTime": "1727257413353",
         //         "requestId": ""
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "exchangeStatus": "processing",
+        //         "quoteTxId": "1010020692439483803499737088"
         //     }
         //
         const timestamp = this.safeInteger (conversion, 'expiredTime');

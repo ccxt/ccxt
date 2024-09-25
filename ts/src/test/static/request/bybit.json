@@ -1227,6 +1227,20 @@
                 ],
                 "output": "{\"fromCoin\":\"USDT\",\"toCoin\":\"BTC\",\"requestAmount\":\"10\",\"requestCoin\":\"USDT\",\"accountType\":\"eb_convert_uta\"}"
             }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "create a conversion trade",
+                "method": "createConvertTrade",
+                "url": "https://api-testnet.bybit.com/v5/asset/exchange/convert-execute",
+                "input": [
+                  "1010210067439483213403283456",
+                  "USDT",
+                  "BTC",
+                  10
+                ],
+                "output": "{\"quoteTxId\":\"1010020692439483803499737088\"}"
+            }
         ]
     },
     "disabled": []
