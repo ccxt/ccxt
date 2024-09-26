@@ -172,12 +172,15 @@ export default class kucoinfutures extends kucoin {
                         'trade-fees': 1,
                         'history-positions': 1,
                         'getMaxOpenSize': 1,
+                        'getCrossUserLeverage ': 1,
+                        'position/getMarginMode ': 1,
                     },
                     'post': {
                         'withdrawals': 1,
                         'transfer-out': 1, // v2
                         'transfer-in': 1,
                         'orders': 1.33,
+                        'st-orders': 1.33,
                         'orders/test': 1.33,
                         'position/margin/auto-deposit-status': 1,
                         'position/margin/deposit-margin': 1,
@@ -185,6 +188,8 @@ export default class kucoinfutures extends kucoin {
                         'bullet-private': 1,
                         'sub/api-key': 1,
                         'sub/api-key/update': 1,
+                        'changeCrossUserLeverage': 1,
+                        'position/changeMarginMode': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -319,9 +324,13 @@ export default class kucoinfutures extends kucoin {
                     'futuresPrivate': {
                         'GET': {
                             'getMaxOpenSize': 'v2',
+                            'getCrossUserLeverage': 'v2',
+                            'position/getMarginMode': 'v2',
                         },
                         'POST': {
                             'transfer-out': 'v2',
+                            'changeCrossUserLeverage ': 'v2',
+                            'position/changeMarginMode': 'v2',
                         },
                     },
                     'futuresPublic': {
