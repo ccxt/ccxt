@@ -2953,4 +2953,38 @@ export default class kucoinfutures extends kucoin {
         } as MarginMode;
     }
 
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        this.checkRequiredArgument ('setMarginMode', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginMode': marginMode.toUpperCase (),
+        };
+        const response = await this.futuresPrivatePostPositionChangeMarginMode (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "marginMode": "ISOLATED"
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
+    }
 }
