@@ -30,6 +30,7 @@ class bybit extends \ccxt\async\bybit {
                 'fetchTradesWs' => false,
                 'fetchBalanceWs' => false,
                 'watchBalance' => true,
+                'watchBidsAsks' => true,
                 'watchLiquidations' => true,
                 'watchLiquidationsForSymbols' => false,
                 'watchMyLiquidations' => false,
@@ -594,6 +595,54 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve ($this->tickers[$symbol], $messageHash);
     }
 
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches best bid & ask for $symbols
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+             * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $messageHashes = array();
+            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchBidsAsks', $params));
+            $params = $this->clean_params($params);
+            $marketIds = $this->market_ids($symbols);
+            $topics = [ ];
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $topic = 'orderbook.1.' . $marketId;
+                $topics[] = $topic;
+                $messageHashes[] = 'bidask:' . $symbols[$i];
+            }
+            $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+            if ($this->newUpdates) {
+                return $ticker;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function parse_ws_bid_ask($orderbook, $market = null) {
+        $timestamp = $this->safe_integer($orderbook, 'timestamp');
+        $bids = $this->sort_by($this->aggregate($orderbook['bids']), 0);
+        $asks = $this->sort_by($this->aggregate($orderbook['asks']), 0);
+        $bestBid = $this->safe_list($bids, 0, array());
+        $bestAsk = $this->safe_list($asks, 0, array());
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_number($bestAsk, 0),
+            'askVolume' => $this->safe_number($bestAsk, 1),
+            'bid' => $this->safe_number($bestBid, 0),
+            'bidVolume' => $this->safe_number($bestBid, 1),
+            'info' => $orderbook,
+        ), $market);
+    }
+
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
@@ -926,6 +975,8 @@ class bybit extends \ccxt\async\bybit {
         //         }
         //     }
         //
+        $topic = $this->safe_string($message, 'topic');
+        $limit = explode('.', $topic)[1];
         $isSpot = mb_strpos($client->url, 'spot') !== false;
         $type = $this->safe_string($message, 'type');
         $isSnapshot = ($type === 'snapshot');
@@ -953,6 +1004,13 @@ class bybit extends \ccxt\async\bybit {
         $messageHash = 'orderbook' . ':' . $symbol;
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve ($orderbook, $messageHash);
+        if ($limit === '1') {
+            $bidask = $this->parse_ws_bid_ask($this->orderbooks[$symbol], $market);
+            $newBidsAsks = array();
+            $newBidsAsks[$symbol] = $bidask;
+            $this->bidsasks[$symbol] = $bidask;
+            $client->resolve ($newBidsAsks, 'bidask:' . $symbol);
+        }
     }
 
     public function handle_delta($bookside, $delta) {

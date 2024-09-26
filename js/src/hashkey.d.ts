@@ -1,5 +1,5 @@
 import Exchange from './abstract/hashkey.js';
-import type { Account, Balances, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry } from './base/types.js';
 /**
  * @class hashkey
  * @augments Exchange
@@ -73,26 +73,9 @@ export default class hashkey extends Exchange {
     parseAccountType(type: any): string;
     encodeAccountType(type: any): number;
     encodeFlowType(type: any): number;
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: Dict, currency?: Currency): {
-        id: string;
-        info: Dict;
-        timestamp: number;
-        datetime: string;
-        account: string;
-        direction: string;
-        referenceId: any;
-        referenceAccount: any;
-        type: string;
-        currency: string;
-        symbol: any;
-        amount: number;
-        before: any;
-        after: number;
-        status: string;
-        fee: any;
-    };
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;

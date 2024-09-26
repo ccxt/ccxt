@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -1093,6 +1093,7 @@ export default class binance extends Exchange {
                         'repay-futures-negative-balance': 150, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1, // 1
                         'asset-collection': 3,
+                        'margin/repay-debt': 0.4, // Weight(Order): 0.4 => (1000 / (50 * 0.4)) * 60 = 3000
                     },
                     'put': {
                         'listenKey': 1, // 1
@@ -1201,6 +1202,7 @@ export default class binance extends Exchange {
             // exchange-specific options
             'options': {
                 'sandboxMode': false,
+                'fetchMargins': true,
                 'fetchMarkets': [
                     'spot', // allows CORS in browsers
                     'linear', // allows CORS in browsers
@@ -1209,6 +1211,7 @@ export default class binance extends Exchange {
                 ],
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
+                // 'repayCrossMarginMethod': 'papiPostRepayLoan', // papiPostMarginRepayDebt
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
@@ -2874,13 +2877,12 @@ export default class binance extends Exchange {
             }
             fetchMarkets.push (type);
         }
-        let fetchMargins = false;
+        const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push (this.publicGetExchangeInfo (params));
-                if (this.checkRequiredCredentials (false) && !sandboxMode) {
-                    fetchMargins = true;
+                if (fetchMargins && this.checkRequiredCredentials (false) && !sandboxMode) {
                     promisesRaw.push (this.sapiGetMarginAllPairs (params));
                     promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
                 }
@@ -2902,7 +2904,7 @@ export default class binance extends Exchange {
             const res = this.safeValue (results, i);
             if (fetchMargins && Array.isArray (res)) {
                 const keysList = Object.keys (this.indexBy (res, 'symbol'));
-                const length = (Object.keys (this.options['crossMarginPairsData'])).length;
+                const length = this.options['crossMarginPairsData'].length;
                 // first one is the cross-margin promise
                 if (length === 0) {
                     this.options['crossMarginPairsData'] = keysList;
@@ -6305,8 +6307,8 @@ export default class binance extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBool2 (params, 'stop', 'conditional');
-        params = this.omit (params, [ 'stop', 'conditional', 'type' ]);
+        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        params = this.omit (params, [ 'stop', 'trigger', 'conditional', 'type' ]);
         let request: Dict = {
             'symbol': market['id'],
         };
@@ -6567,7 +6569,7 @@ export default class binance extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBoolN (params, [ 'stop', 'conditional', 'trigger' ]);
+        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -6582,7 +6584,7 @@ export default class binance extends Exchange {
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
-        params = this.omit (params, [ 'type', 'stop', 'conditional', 'trigger' ]);
+        params = this.omit (params, [ 'type', 'stop', 'trigger', 'conditional' ]);
         let response = undefined;
         if (type === 'option') {
             if (since !== undefined) {
@@ -6657,8 +6659,8 @@ export default class binance extends Exchange {
         };
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBoolN (params, [ 'stop', 'conditional', 'trigger' ]);
-        params = this.omit (params, [ 'stop', 'conditional', 'trigger' ]);
+        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        params = this.omit (params, [ 'stop', 'trigger', 'conditional' ]);
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
         const orderIdRequest = isPortfolioMarginConditional ? 'strategyId' : 'orderId';
         request[orderIdRequest] = id;
@@ -6970,7 +6972,7 @@ export default class binance extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBool2 (params, 'stop', 'conditional');
+        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -6992,7 +6994,7 @@ export default class binance extends Exchange {
                 request['orderId'] = id;
             }
         }
-        params = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional' ]);
+        params = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional' ]);
         let response = undefined;
         if (market['option']) {
             response = await this.eapiPrivateDeleteOrder (this.extend (request, params));
@@ -7062,9 +7064,9 @@ export default class binance extends Exchange {
         };
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBool2 (params, 'stop', 'conditional');
+        const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         const type = this.safeString (params, 'type', market['type']);
-        params = this.omit (params, [ 'type', 'stop', 'conditional' ]);
+        params = this.omit (params, [ 'type', 'stop', 'trigger', 'conditional' ]);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         let response = undefined;
@@ -11041,21 +11043,46 @@ export default class binance extends Exchange {
         return result;
     }
 
-    async fetchLedgerEntry (id: string, code: Str = undefined, params = {}) {
+    async fetchLedgerEntry (id: string, code: Str = undefined, params = {}): Promise<LedgerEntry> {
+        /**
+         * @method
+         * @name binance#fetchLedgerEntry
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+         * @param {string} id the identification number of the ledger entry
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedgerEntry', undefined, params);
-        const query: Dict = {
-            'recordId': id,
-            'type': type,
-        };
         if (type !== 'option') {
-            throw new BadRequest (this.id + ' fetchLedgerEntry () can only be used for type option');
+            throw new BadRequest (this.id + ' fetchLedgerEntry() can only be used for type option');
         }
-        return await this.fetchLedger (code, undefined, undefined, this.extend (query, params));
+        this.checkRequiredArgument ('fetchLedgerEntry', code, 'code');
+        const currency = this.currency (code);
+        const request: Dict = {
+            'recordId': id,
+            'currency': currency['id'],
+        };
+        const response = await this.eapiPrivateGetBill (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "1125899906845701870",
+        //             "asset": "USDT",
+        //             "amount": "-0.16518203",
+        //             "type": "FEE",
+        //             "createDate": 1676621042489
+        //         }
+        //     ]
+        //
+        const first = this.safeDict (response, 0, response);
+        return this.parseLedgerEntry (first, currency);
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name binance#fetchLedger
@@ -11065,9 +11092,9 @@ export default class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
-         * @param {int} [limit] max number of ledger entrys to return
+         * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -11079,7 +11106,7 @@ export default class binance extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params) as LedgerEntry[];
         }
         let type = undefined;
         let subType = undefined;
@@ -11154,7 +11181,7 @@ export default class binance extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         // options (eapi)
         //
@@ -11188,16 +11215,19 @@ export default class binance extends Exchange {
             direction = 'in';
         }
         const currencyId = this.safeString (item, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.safeInteger2 (item, 'createDate', 'time');
         const type = this.safeString2 (item, 'type', 'incomeType');
-        return {
+        return this.safeLedgerEntry ({
+            'info': item,
             'id': this.safeString2 (item, 'id', 'tranId'),
             'direction': direction,
             'account': undefined,
             'referenceAccount': undefined,
             'referenceId': this.safeString (item, 'tradeId'),
             'type': this.parseLedgerEntryType (type),
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': code,
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -11205,8 +11235,7 @@ export default class binance extends Exchange {
             'after': undefined,
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency) as LedgerEntry;
     }
 
     parseLedgerEntryType (type) {
@@ -12011,10 +12040,13 @@ export default class binance extends Exchange {
          * @description repay borrowed margin and interest
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
          * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
+         * @param {string} [params.repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+         * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
@@ -12027,18 +12059,39 @@ export default class binance extends Exchange {
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
         if (isPortfolioMargin) {
-            response = await this.papiPostRepayLoan (this.extend (request, params));
+            let method = undefined;
+            [ method, params ] = this.handleOptionAndParams2 (params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
+            if (method === 'papiPostMarginRepayDebt') {
+                response = await this.papiPostMarginRepayDebt (this.extend (request, params));
+                //
+                //     {
+                //         "asset": "USDC",
+                //         "amount": 10,
+                //         "specifyRepayAssets": null,
+                //         "updateTime": 1727170761267,
+                //         "success": true
+                //     }
+                //
+            } else {
+                response = await this.papiPostRepayLoan (this.extend (request, params));
+                //
+                //     {
+                //         "tranId": 108988250265,
+                //         "clientTag":""
+                //     }
+                //
+            }
         } else {
             request['isIsolated'] = 'FALSE';
             request['type'] = 'REPAY';
             response = await this.sapiPostMarginBorrowRepay (this.extend (request, params));
+            //
+            //     {
+            //         "tranId": 108988250265,
+            //         "clientTag":""
+            //     }
+            //
         }
-        //
-        //     {
-        //         "tranId": 108988250265,
-        //         "clientTag":""
-        //     }
-        //
         return this.parseMarginLoan (response, currency);
     }
 
@@ -12151,13 +12204,25 @@ export default class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
+        // repayCrossMargin alternative endpoint
+        //
+        //     {
+        //         "asset": "USDC",
+        //         "amount": 10,
+        //         "specifyRepayAssets": null,
+        //         "updateTime": 1727170761267,
+        //         "success": true
+        //     }
+        //
+        const currencyId = this.safeString (info, 'asset');
+        const timestamp = this.safeInteger (info, 'updateTime');
         return {
             'id': this.safeInteger (info, 'tranId'),
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (info, 'amount'),
             'symbol': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'info': info,
         };
     }

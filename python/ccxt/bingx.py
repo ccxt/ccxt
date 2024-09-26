@@ -480,6 +480,7 @@ class bingx(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
                 'OMNI': 'OmniCat',
+                'NAP': '$NAP',  # NAP on SOL = SNAP
             },
             'options': {
                 'defaultType': 'spot',
@@ -501,6 +502,9 @@ class bingx(Exchange, ImplicitAPI):
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
                     'LTC': 'LTC',
+                },
+                'networks': {
+                    'ARB': 'ARBITRUM',
                 },
             },
         })

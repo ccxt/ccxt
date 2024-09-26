@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1413,17 +1413,17 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://blofin.com/docs#get-funds-transfer-history
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
@@ -1554,30 +1554,28 @@ class blofin(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
-        id = self.safe_string(item, 'transferId')
-        referenceId = self.safe_string(item, 'clientId')
-        fromAccount = self.safe_string(item, 'fromAccount')
-        toAccount = self.safe_string(item, 'toAccount')
-        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        code = self.safe_currency_code(self.safe_string(item, 'currency'), currency)
-        amountString = self.safe_string(item, 'amount')
-        amount = self.parse_number(amountString)
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
+        currencyId = self.safe_string(item, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'ts')
-        status = 'ok'
-        return {
-            'id': id,
+        return self.safe_ledger_entry({
             'info': item,
+            'id': self.safe_string(item, 'transferId'),
+            'direction': None,
+            'account': None,
+            'referenceId': self.safe_string(item, 'clientId'),
+            'referenceAccount': None,
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
+            'currency': code,
+            'amount': self.safe_number(item, 'amount'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'type': type,
-            'currency': code,
-            'amount': amount,
-            'clientId': referenceId,  # balance before
-            'status': status,
-        }
+            'before': None,
+            'after': None,
+            'status': 'ok',
+            'fee': None,
+        }, currency)
 
     def parse_ids(self, ids):
         """

@@ -357,8 +357,8 @@ export interface LeverageTier {
 }
 
 export interface LedgerEntry {
-    id?: Str;
     info: any;
+    id?: Str;
     timestamp?: number;
     datetime?: Str;
     direction?: Str;

@@ -2599,14 +2599,16 @@ class digifinex extends digifinex$1 {
         //     }
         //
         const type = this.parseLedgerEntryType(this.safeString2(item, 'type', 'finance_type'));
-        const code = this.safeCurrencyCode(this.safeString2(item, 'currency_mark', 'currency'), currency);
+        const currencyId = this.safeString2(item, 'currency_mark', 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const amount = this.safeNumber2(item, 'num', 'change');
         const after = this.safeNumber(item, 'balance');
         let timestamp = this.safeTimestamp(item, 'time');
         if (timestamp === undefined) {
             timestamp = this.safeInteger(item, 'timestamp');
         }
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': undefined,
             'direction': undefined,
@@ -2622,18 +2624,18 @@ class digifinex extends digifinex$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fee': undefined,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */

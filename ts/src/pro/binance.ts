@@ -16,7 +16,12 @@ import Client from '../base/ws/Client.js';
 
 export default class binance extends binanceRest {
     describe () {
-        return this.deepExtend (super.describe (), {
+        const superDescribe = super.describe ();
+        return this.deepExtend (superDescribe, this.describeData ());
+    }
+
+    describeData () {
+        return {
             'has': {
                 'ws': true,
                 'watchBalance': true,
@@ -158,7 +163,7 @@ export default class binance extends binanceRest {
                     'bookTicker': 'bookTicker',
                 },
             },
-        });
+        };
     }
 
     requestId (url) {

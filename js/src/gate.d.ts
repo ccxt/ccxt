@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -267,24 +267,8 @@ export default class gate extends Exchange {
         datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntry(item: Dict, currency?: Currency): {
-        id: string;
-        direction: any;
-        account: any;
-        referenceAccount: any;
-        referenceId: any;
-        type: string;
-        currency: string;
-        amount: number;
-        timestamp: any;
-        datetime: string;
-        before: number;
-        after: number;
-        status: any;
-        fee: any;
-        info: Dict;
-    };
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: any): string;
     setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
     fetchUnderlyingAssets(params?: {}): Promise<any[]>;

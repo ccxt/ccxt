@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1980,13 +1980,13 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return(default 200, max 500)
+        :param int [limit]: max number of ledger entries to return(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
@@ -2079,7 +2079,7 @@ class coinlist(Exchange, ImplicitAPI):
         ledger = self.safe_value(response, 'transactions', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         # deposit transaction from wallet(funding) to pro(trading)
         #     {
@@ -2163,8 +2163,9 @@ class coinlist(Exchange, ImplicitAPI):
             direction = 'in'
         currencyId = self.safe_string(item, 'asset')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        return {
+        return self.safe_ledger_entry({
             'info': item,
             'id': id,
             'timestamp': timestamp,
@@ -2180,7 +2181,7 @@ class coinlist(Exchange, ImplicitAPI):
             'after': None,
             'status': 'ok',
             'fee': None,
-        }
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         types: dict = {

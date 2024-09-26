@@ -2917,6 +2917,7 @@ class bitfinex2 extends bitfinex2$1 {
         const id = this.safeString(itemList, 0);
         const currencyId = this.safeString(itemList, 1);
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(itemList, 3);
         const amount = this.safeNumber(itemList, 5);
         const after = this.safeNumber(itemList, 6);
@@ -2926,7 +2927,8 @@ class bitfinex2 extends bitfinex2$1 {
             const first = this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': id,
             'direction': undefined,
             'account': undefined,
@@ -2941,18 +2943,17 @@ class bitfinex2 extends bitfinex2$1 {
             'after': after,
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined max is 2500
+         * @param {int} [limit] max number of ledger entries to return, default is undefined, max is 2500
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)

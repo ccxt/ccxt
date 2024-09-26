@@ -46,6 +46,7 @@ class bybit extends Exchange {
                 'cancelOrdersForSymbols' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createConvertTrade' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
@@ -69,6 +70,10 @@ class bybit extends Exchange {
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => true,
                 'fetchClosedOrders' => true,
+                'fetchConvertCurrencies' => true,
+                'fetchConvertQuote' => true,
+                'fetchConvertTrade' => true,
+                'fetchConvertTradeHistory' => true,
                 'fetchCrossBorrowRate' => true,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -104,7 +109,7 @@ class bybit extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOption' => true,
                 'fetchOptionChain' => true,
-                'fetchOrder' => false,
+                'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
@@ -335,6 +340,9 @@ class bybit extends Exchange {
                         'v5/account/smp-group' => 1,
                         'v5/account/mmp-state' => 5,
                         // asset
+                        'v5/asset/exchange/query-coin-list' => 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/convert-result-query' => 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/query-convert-history' => 0.5, // 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/order-record' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/asset/delivery-record' => 5,
                         'v5/asset/settlement-record' => 5,
@@ -493,6 +501,8 @@ class bybit extends Exchange {
                         'v5/account/mmp-modify' => 5,
                         'v5/account/mmp-reset' => 5,
                         // asset
+                        'v5/asset/exchange/quote-apply' => 1, // 50/s
+                        'v5/asset/exchange/convert-execute' => 1, // 50/s
                         'v5/asset/transfer/inter-transfer' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/save-transfer-sub-member' => 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer' => 10, // 5/s => cost = 50 / 5 = 10
@@ -982,6 +992,7 @@ class bybit extends Exchange {
                     '3200300' => '\\ccxt\\InsufficientFunds', // array("retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":array())
                 ),
                 'broad' => array(
+                    'Not supported symbols' => '\\ccxt\\BadSymbol', // array("retCode":10001,"retMsg":"Not supported symbols","result":array(),"retExtInfo":array(),"time":1726147060461)
                     'Request timeout' => '\\ccxt\\RequestTimeout', // array("retCode":10016,"retMsg":"Request timeout, please try again later","result":array(),"retExtInfo":array(),"time":1675307914985)
                     'unknown orderInfo' => '\\ccxt\\OrderNotFound', // array("ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100)
                     'invalid api_key' => '\\ccxt\\AuthenticationError', // array("ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797")
@@ -1656,12 +1667,19 @@ class bybit extends Exchange {
         return Async\async(function () use ($params) {
             $params = $this->extend($params);
             $params['limit'] = 1000; // minimize number of requests
+            $preLaunchMarkets = array();
             $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
             $response = null;
             if ($usePrivateInstrumentsInfo) {
                 $response = Async\await($this->privateGetV5MarketInstrumentsInfo ($params));
             } else {
-                $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($params));
+                $linearPromises = array(
+                    $this->publicGetV5MarketInstrumentsInfo ($params),
+                    $this->publicGetV5MarketInstrumentsInfo ($this->extend($params, array( 'status' => 'PreLaunch' ))),
+                );
+                $promises = Async\await(Promise\all($linearPromises));
+                $response = $this->safe_dict($promises, 0, array());
+                $preLaunchMarkets = $this->safe_dict($promises, 1, array());
             }
             $data = $this->safe_dict($response, 'result', array());
             $markets = $this->safe_list($data, 'list', array());
@@ -1729,6 +1747,9 @@ class bybit extends Exchange {
             //         "time" => 1672712495660
             //     }
             //
+            $preLaunchData = $this->safe_dict($preLaunchMarkets, 'result', array());
+            $preLaunchMarketsList = $this->safe_list($preLaunchData, 'list', array());
+            $markets = $this->array_concat($markets, $preLaunchMarketsList);
             $result = array();
             $category = $this->safe_string($data, 'category');
             for ($i = 0; $i < count($markets); $i++) {
@@ -4851,19 +4872,92 @@ class bybit extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-             *  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
+             *  *classic accounts only/ spot not supported*  fetches information on an $order made by the user *classic accounts only*
              * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-             * @param {string} $id the order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {string} $id the $order $id
+             * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @param {array} [$params->acknowledged] to suppress the warning, set to true
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
-            $res = Async\await($this->is_unified_enabled());
-            $enableUnifiedAccount = $this->safe_bool($res, 1);
-            if ($enableUnifiedAccount) {
-                throw new NotSupported($this->id . ' fetchOrder() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrder or fetchClosedOrder');
+            Async\await($this->load_markets());
+            list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
+            $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
+            if (!$isUnifiedAccount) {
+                return Async\await($this->fetch_order_classic($id, $symbol, $params));
             }
-            return Async\await($this->fetch_order_classic($id, $symbol, $params));
+            $acknowledge = false;
+            list($acknowledge, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'acknowledged');
+            if (!$acknowledge) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() can only access an $order if it is in last 500 orders (of any status) for your account. Set $params["acknowledged"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder');
+            }
+            $market = $this->market($symbol);
+            $marketType = null;
+            list($marketType, $params) = $this->get_bybit_type('fetchOrder', $market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+                'orderId' => $id,
+                'category' => $marketType,
+            );
+            $isTrigger = null;
+            list($isTrigger, $params) = $this->handle_param_bool_2($params, 'trigger', 'stop', false);
+            if ($isTrigger) {
+                $request['orderFilter'] = 'StopOrder';
+            }
+            $response = Async\await($this->privateGetV5OrderRealtime ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "nextPageCursor" => "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
+            //             "category" => "spot",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "ETHUSDT",
+            //                     "orderType" => "Limit",
+            //                     "orderLinkId" => "1672217748277652",
+            //                     "orderId" => "1321052653536515584",
+            //                     "cancelType" => "UNKNOWN",
+            //                     "avgPrice" => "",
+            //                     "stopOrderType" => "tpslOrder",
+            //                     "lastPriceOnCreated" => "",
+            //                     "orderStatus" => "Cancelled",
+            //                     "takeProfit" => "",
+            //                     "cumExecValue" => "0",
+            //                     "triggerDirection" => 0,
+            //                     "isLeverage" => "0",
+            //                     "rejectReason" => "",
+            //                     "price" => "1000",
+            //                     "orderIv" => "",
+            //                     "createdTime" => "1672217748287",
+            //                     "tpTriggerBy" => "",
+            //                     "positionIdx" => 0,
+            //                     "timeInForce" => "GTC",
+            //                     "leavesValue" => "500",
+            //                     "updatedTime" => "1672217748287",
+            //                     "side" => "Buy",
+            //                     "triggerPrice" => "1500",
+            //                     "cumExecFee" => "0",
+            //                     "leavesQty" => "0",
+            //                     "slTriggerBy" => "",
+            //                     "closeOnTrigger" => false,
+            //                     "cumExecQty" => "0",
+            //                     "reduceOnly" => false,
+            //                     "qty" => "0.5",
+            //                     "stopLoss" => "",
+            //                     "triggerBy" => "1192.5"
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1672219526294
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $innerList = $this->safe_list($result, 'list', array());
+            $order = $this->safe_dict($innerList, 0, array());
+            return $this->parse_order($order, $market);
         }) ();
     }
 
@@ -5925,16 +6019,16 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
              * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
-             * @param {string} $code unified $currency $code, default is null
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {int} [$limit] max number of ledger entries to return, default is null
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->subType] if inverse will use v5/account/contract-transaction-log
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
@@ -6104,7 +6198,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "id" => 234467,
@@ -6143,38 +6237,43 @@ class bybit extends Exchange {
         //
         $currencyId = $this->safe_string_2($item, 'coin', 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $amount = $this->safe_string_2($item, 'amount', 'change');
-        $after = $this->safe_string_2($item, 'wallet_balance', 'cashBalance');
-        $direction = Precise::string_lt($amount, '0') ? 'out' : 'in';
+        $currency = $this->safe_currency($currencyId, $currency);
+        $amountString = $this->safe_string_2($item, 'amount', 'change');
+        $afterString = $this->safe_string_2($item, 'wallet_balance', 'cashBalance');
+        $direction = Precise::string_lt($amountString, '0') ? 'out' : 'in';
         $before = null;
-        if ($after !== null && $amount !== null) {
-            $difference = ($direction === 'out') ? $amount : Precise::string_neg($amount);
-            $before = Precise::string_add($after, $difference);
+        $after = null;
+        $amount = null;
+        if ($afterString !== null && $amountString !== null) {
+            $difference = ($direction === 'out') ? $amountString : Precise::string_neg($amountString);
+            $before = $this->parse_to_numeric(Precise::string_add($afterString, $difference));
+            $after = $this->parse_to_numeric($afterString);
+            $amount = $this->parse_to_numeric(Precise::string_abs($amountString));
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'exec_time'));
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($item, 'transactionTime');
         }
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
-        $id = $this->safe_string($item, 'id');
-        $referenceId = $this->safe_string($item, 'tx_id');
-        return array(
-            'id' => $id,
-            'currency' => $code,
-            'account' => $this->safe_string($item, 'wallet_id'),
-            'referenceAccount' => null,
-            'referenceId' => $referenceId,
-            'status' => null,
-            'amount' => $this->parse_number(Precise::string_abs($amount)),
-            'before' => $this->parse_number($before),
-            'after' => $this->parse_number($after),
-            'fee' => $this->parse_number($this->safe_string($item, 'fee')),
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
+            'id' => $this->safe_string($item, 'id'),
             'direction' => $direction,
+            'account' => $this->safe_string($item, 'wallet_id'),
+            'referenceId' => $this->safe_string($item, 'tx_id'),
+            'referenceAccount' => null,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'currency' => $code,
+            'amount' => $amount,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'type' => $type,
-            'info' => $item,
-        );
+            'before' => $before,
+            'after' => $after,
+            'status' => 'ok',
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $this->safe_number($item, 'fee'),
+            ),
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -8818,6 +8917,365 @@ class bybit extends Exchange {
             $positions = $this->parse_positions($rawPositions, $symbols, $params);
             return $this->filter_by_since_limit($positions, $since, $limit);
         }) ();
+    }
+
+    public function fetch_convert_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies that can be converted
+             * @see https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+             * @return {array} an associative dictionary of currencies
+             */
+            Async\await($this->load_markets());
+            $accountType = null;
+            list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
+            $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
+            $accountTypeDefault = $isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+            list($accountType, $params) = $this->handle_option_and_params($params, 'fetchConvertCurrencies', 'accountType', $accountTypeDefault);
+            $request = array(
+                'accountType' => $accountType,
+            );
+            $response = Async\await($this->privateGetV5AssetExchangeQueryCoinList ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "ok",
+            //         "result" => array(
+            //             "coins" => array(
+            //                 array(
+            //                     "coin" => "MATIC",
+            //                     "fullName" => "MATIC",
+            //                     "icon" => "https://s1.bycsi.com/app/assets/token/0552ae79c535c3095fa18f7b377dd2e9.svg",
+            //                     "iconNight" => "https://t1.bycsi.com/app/assets/token/f59301aef2d6ac2165c4c4603e672fb4.svg",
+            //                     "accuracyLength" => 8,
+            //                     "coinType" => "crypto",
+            //                     "balance" => "0",
+            //                     "uBalance" => "0",
+            //                     "timePeriod" => 0,
+            //                     "singleFromMinLimit" => "1.1",
+            //                     "singleFromMaxLimit" => "20001",
+            //                     "singleToMinLimit" => "0",
+            //                     "singleToMaxLimit" => "0",
+            //                     "dailyFromMinLimit" => "0",
+            //                     "dailyFromMaxLimit" => "0",
+            //                     "dailyToMinLimit" => "0",
+            //                     "dailyToMaxLimit" => "0",
+            //                     "disableFrom" => false,
+            //                     "disableTo" => false
+            //                 ),
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1727256416250
+            //     }
+            //
+            $result = array();
+            $data = $this->safe_dict($response, 'result', array());
+            $coins = $this->safe_list($data, 'coins', array());
+            for ($i = 0; $i < count($coins); $i++) {
+                $entry = $coins[$i];
+                $id = $this->safe_string($entry, 'coin');
+                $disableFrom = $this->safe_bool($entry, 'disableFrom');
+                $disableTo = $this->safe_bool($entry, 'disableTo');
+                $inactive = ($disableFrom || $disableTo);
+                $code = $this->safe_currency_code($id);
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => $this->safe_string($entry, 'coinType'),
+                    'name' => $this->safe_string($entry, 'fullName'),
+                    'active' => !$inactive,
+                    'deposit' => null,
+                    'withdraw' => $this->safe_number($entry, 'balance'),
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $this->safe_number($entry, 'singleFromMinLimit'),
+                            'max' => $this->safe_number($entry, 'singleFromMaxLimit'),
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'created' => null,
+                );
+            }
+            return $result;
+        }) ();
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
+            /**
+             * fetch a quote for converting from one currency to another
+             * @see https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} [$amount] how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $accountType = null;
+            list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
+            $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
+            $accountTypeDefault = $isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+            list($accountType, $params) = $this->handle_option_and_params($params, 'fetchConvertQuote', 'accountType', $accountTypeDefault);
+            $request = array(
+                'fromCoin' => $fromCode,
+                'toCoin' => $toCode,
+                'requestAmount' => $this->number_to_string($amount),
+                'requestCoin' => $fromCode,
+                'accountType' => $accountType,
+            );
+            $response = Async\await($this->privatePostV5AssetExchangeQuoteApply ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "ok",
+            //         "result" => array(
+            //             "quoteTxId" => "1010020692439481682687668224",
+            //             "exchangeRate" => "0.000015330836780000",
+            //             "fromCoin" => "USDT",
+            //             "fromCoinType" => "crypto",
+            //             "toCoin" => "BTC",
+            //             "toCoinType" => "crypto",
+            //             "fromAmount" => "10",
+            //             "toAmount" => "0.000153308367800000",
+            //             "expiredTime" => "1727257413353",
+            //             "requestId" => ""
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1727257398375
+            //     }
+            //
+            $data = $this->safe_dict($response, 'result', array());
+            $fromCurrencyId = $this->safe_string($data, 'fromCoin', $fromCode);
+            $fromCurrency = $this->currency($fromCurrencyId);
+            $toCurrencyId = $this->safe_string($data, 'toCoin', $toCode);
+            $toCurrency = $this->currency($toCurrencyId);
+            return $this->parse_conversion($data, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
+            /**
+             * convert from one currency to another
+             * @see https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote
+             * @param {string} $id the $id of the trade that you want to make
+             * @param {string} $fromCode the currency that you want to sell and convert from
+             * @param {string} $toCode the currency that you want to buy and convert into
+             * @param {float} $amount how much you want to trade in units of the from currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'quoteTxId' => $id,
+            );
+            $response = Async\await($this->privatePostV5AssetExchangeConvertExecute ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "ok",
+            //         "result" => array(
+            //             "exchangeStatus" => "processing",
+            //             "quoteTxId" => "1010020692439483803499737088"
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1727257904969
+            //     }
+            //
+            $data = $this->safe_dict($response, 'result', array());
+            return $this->parse_conversion($data);
+        }) ();
+    }
+
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch the $data for a conversion trade
+             * @see https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-$result
+             * @param {string} $id the $id of the trade that you want to fetch
+             * @param {string} [$code] the unified currency $code of the conversion trade
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=conversion-structure conversion structure~
+             */
+            Async\await($this->load_markets());
+            $accountType = null;
+            list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
+            $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
+            $accountTypeDefault = $isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+            list($accountType, $params) = $this->handle_option_and_params($params, 'fetchConvertQuote', 'accountType', $accountTypeDefault);
+            $request = array(
+                'quoteTxId' => $id,
+                'accountType' => $accountType,
+            );
+            $response = Async\await($this->privateGetV5AssetExchangeConvertResultQuery ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "ok",
+            //         "result" => {
+            //             "result" => array(
+            //                 "accountType" => "eb_convert_uta",
+            //                 "exchangeTxId" => "1010020692439483803499737088",
+            //                 "userId" => "100406395",
+            //                 "fromCoin" => "USDT",
+            //                 "fromCoinType" => "crypto",
+            //                 "fromAmount" => "10",
+            //                 "toCoin" => "BTC",
+            //                 "toCoinType" => "crypto",
+            //                 "toAmount" => "0.00015344889",
+            //                 "exchangeStatus" => "success",
+            //                 "extInfo" => array(),
+            //                 "convertRate" => "0.000015344889",
+            //                 "createdAt" => "1727257904726"
+            //             }
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1727258257216
+            //     }
+            //
+            $data = $this->safe_dict($response, 'result', array());
+            $result = $this->safe_dict($data, 'result', array());
+            $fromCurrencyId = $this->safe_string($result, 'fromCoin');
+            $toCurrencyId = $this->safe_string($result, 'toCoin');
+            $fromCurrency = null;
+            $toCurrency = null;
+            if ($fromCurrencyId !== null) {
+                $fromCurrency = $this->currency($fromCurrencyId);
+            }
+            if ($toCurrencyId !== null) {
+                $toCurrency = $this->currency($toCurrencyId);
+            }
+            return $this->parse_conversion($result, $fromCurrency, $toCurrency);
+        }) ();
+    }
+
+    public function fetch_convert_trade_history(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the users history of conversion trades
+             * @see https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history
+             * @param {string} [$code] the unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch conversions for
+             * @param {int} [$limit] the maximum number of conversion structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=conversion-structure conversion structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetV5AssetExchangeQueryConvertHistory ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "ok",
+            //         "result" => {
+            //             "list" => array(
+            //                 array(
+            //                     "accountType" => "eb_convert_uta",
+            //                     "exchangeTxId" => "1010020692439483803499737088",
+            //                     "userId" => "100406395",
+            //                     "fromCoin" => "USDT",
+            //                     "fromCoinType" => "crypto",
+            //                     "fromAmount" => "10",
+            //                     "toCoin" => "BTC",
+            //                     "toCoinType" => "crypto",
+            //                     "toAmount" => "0.00015344889",
+            //                     "exchangeStatus" => "success",
+            //                     "extInfo" => array(),
+            //                     "convertRate" => "0.000015344889",
+            //                     "createdAt" => "1727257904726"
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1727258761874
+            //     }
+            //
+            $data = $this->safe_dict($response, 'result', array());
+            $dataList = $this->safe_list($data, 'list', array());
+            return $this->parse_conversions($dataList, $code, 'fromCoin', 'toCoin', $since, $limit);
+        }) ();
+    }
+
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "quoteTxId" => "1010020692439481682687668224",
+        //         "exchangeRate" => "0.000015330836780000",
+        //         "fromCoin" => "USDT",
+        //         "fromCoinType" => "crypto",
+        //         "toCoin" => "BTC",
+        //         "toCoinType" => "crypto",
+        //         "fromAmount" => "10",
+        //         "toAmount" => "0.000153308367800000",
+        //         "expiredTime" => "1727257413353",
+        //         "requestId" => ""
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "exchangeStatus" => "processing",
+        //         "quoteTxId" => "1010020692439483803499737088"
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "accountType" => "eb_convert_uta",
+        //         "exchangeTxId" => "1010020692439483803499737088",
+        //         "userId" => "100406395",
+        //         "fromCoin" => "USDT",
+        //         "fromCoinType" => "crypto",
+        //         "fromAmount" => "10",
+        //         "toCoin" => "BTC",
+        //         "toCoinType" => "crypto",
+        //         "toAmount" => "0.00015344889",
+        //         "exchangeStatus" => "success",
+        //         "extInfo" => array(),
+        //         "convertRate" => "0.000015344889",
+        //         "createdAt" => "1727257904726"
+        //     }
+        //
+        $timestamp = $this->safe_integer_2($conversion, 'expiredTime', 'createdAt');
+        $fromCoin = $this->safe_string($conversion, 'fromCoin');
+        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
+        $to = $this->safe_string($conversion, 'toCoin');
+        $toCode = $this->safe_currency_code($to, $toCurrency);
+        return array(
+            'info' => $conversion,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string_2($conversion, 'quoteTxId', 'exchangeTxId'),
+            'fromCurrency' => $fromCode,
+            'fromAmount' => $this->safe_number($conversion, 'fromAmount'),
+            'toCurrency' => $toCode,
+            'toAmount' => $this->safe_number($conversion, 'toAmount'),
+            'price' => null,
+            'fee' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

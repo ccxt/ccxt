@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry } from './base/types.js';
 /**
  * @class bitstamp
  * @augments Exchange
@@ -73,40 +73,8 @@ export default class bitstamp extends Exchange {
     parseTransactionStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: Dict, currency?: Currency): {
-        id: string;
-        info: Dict;
-        timestamp: number;
-        datetime: string;
-        direction: string;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
-        type: string;
-        currency: any;
-        amount: number;
-        before: any;
-        after: any;
-        status: string;
-        fee: import("./base/types.js").FeeInterface;
-    } | {
-        id: string;
-        info: Dict;
-        timestamp: number;
-        datetime: string;
-        direction: any;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
-        type: string;
-        currency: string;
-        amount: number;
-        before: any;
-        after: any;
-        status: string;
-        fee: import("./base/types.js").FeeInterface;
-    };
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     getCurrencyName(code: any): any;
     isFiat(code: any): boolean;

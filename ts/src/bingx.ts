@@ -467,6 +467,7 @@ export default class bingx extends Exchange {
             'commonCurrencies': {
                 'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
                 'OMNI': 'OmniCat',
+                'NAP': '$NAP', // NAP on SOL = SNAP
             },
             'options': {
                 'defaultType': 'spot',
@@ -488,6 +489,9 @@ export default class bingx extends Exchange {
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
                     'LTC': 'LTC',
+                },
+                'networks': {
+                    'ARB': 'ARBITRUM',
                 },
             },
         });

@@ -7,13 +7,14 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, CrossBorrowRate, Currencies, Currency, Greeks, Int, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NoChange
 from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import ManualInteractionNeeded
@@ -56,6 +57,7 @@ class bybit(Exchange, ImplicitAPI):
                 'cancelOrdersForSymbols': True,
                 'closeAllPositions': False,
                 'closePosition': False,
+                'createConvertTrade': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketSellOrderWithCost': True,
                 'createOrder': True,
@@ -79,6 +81,10 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchCanceledOrders': True,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
+                'fetchConvertCurrencies': True,
+                'fetchConvertQuote': True,
+                'fetchConvertTrade': True,
+                'fetchConvertTradeHistory': True,
                 'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
@@ -114,7 +120,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOption': True,
                 'fetchOptionChain': True,
-                'fetchOrder': False,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
@@ -345,6 +351,9 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         # asset
+                        'v5/asset/exchange/query-coin-list': 0.5,  # 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/convert-result-query': 0.5,  # 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/query-convert-history': 0.5,  # 100/s => cost = 50 / 100 = 0.5
                         'v5/asset/exchange/order-record': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/asset/delivery-record': 5,
                         'v5/asset/settlement-record': 5,
@@ -503,6 +512,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
                         # asset
+                        'v5/asset/exchange/quote-apply': 1,  # 50/s
+                        'v5/asset/exchange/convert-execute': 1,  # 50/s
                         'v5/asset/transfer/inter-transfer': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/save-transfer-sub-member': 150,  # 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer': 10,  # 5/s => cost = 50 / 5 = 10
@@ -992,6 +1003,7 @@ class bybit(Exchange, ImplicitAPI):
                     '3200300': InsufficientFunds,  # {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
                 },
                 'broad': {
+                    'Not supported symbols': BadSymbol,  # {"retCode":10001,"retMsg":"Not supported symbols","result":{},"retExtInfo":{},"time":1726147060461}
                     'Request timeout': RequestTimeout,  # {"retCode":10016,"retMsg":"Request timeout, please try again later","result":{},"retExtInfo":{},"time":1675307914985}
                     'unknown orderInfo': OrderNotFound,  # {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
                     'invalid api_key': AuthenticationError,  # {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
@@ -1612,12 +1624,19 @@ class bybit(Exchange, ImplicitAPI):
     async def fetch_future_markets(self, params):
         params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
+        preLaunchMarkets = []
         usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
         response: dict = None
         if usePrivateInstrumentsInfo:
             response = await self.privateGetV5MarketInstrumentsInfo(params)
         else:
-            response = await self.publicGetV5MarketInstrumentsInfo(params)
+            linearPromises = [
+                self.publicGetV5MarketInstrumentsInfo(params),
+                self.publicGetV5MarketInstrumentsInfo(self.extend(params, {'status': 'PreLaunch'})),
+            ]
+            promises = await asyncio.gather(*linearPromises)
+            response = self.safe_dict(promises, 0, {})
+            preLaunchMarkets = self.safe_dict(promises, 1, {})
         data = self.safe_dict(response, 'result', {})
         markets = self.safe_list(data, 'list', [])
         paginationCursor = self.safe_string(data, 'nextPageCursor')
@@ -1680,6 +1699,9 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672712495660
         #     }
         #
+        preLaunchData = self.safe_dict(preLaunchMarkets, 'result', {})
+        preLaunchMarketsList = self.safe_list(preLaunchData, 'list', [])
+        markets = self.array_concat(markets, preLaunchMarketsList)
         result = []
         category = self.safe_string(data, 'category')
         for i in range(0, len(markets)):
@@ -4525,13 +4547,84 @@ class bybit(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.acknowledged]: to suppress the warning, set to True
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        res = await self.is_unified_enabled()
-        enableUnifiedAccount = self.safe_bool(res, 1)
-        if enableUnifiedAccount:
-            raise NotSupported(self.id + ' fetchOrder() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrder or fetchClosedOrder')
-        return await self.fetch_order_classic(id, symbol, params)
+        await self.load_markets()
+        enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
+        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
+        if not isUnifiedAccount:
+            return await self.fetch_order_classic(id, symbol, params)
+        acknowledge = False
+        acknowledge, params = self.handle_option_and_params(params, 'fetchOrder', 'acknowledged')
+        if not acknowledge:
+            raise ArgumentsRequired(self.id + ' fetchOrder() can only access an order if it is in last 500 orders(of any status) for your account. Set params["acknowledged"] = True to hide self warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder')
+        market = self.market(symbol)
+        marketType = None
+        marketType, params = self.get_bybit_type('fetchOrder', market, params)
+        request: dict = {
+            'symbol': market['id'],
+            'orderId': id,
+            'category': marketType,
+        }
+        isTrigger = None
+        isTrigger, params = self.handle_param_bool_2(params, 'trigger', 'stop', False)
+        if isTrigger:
+            request['orderFilter'] = 'StopOrder'
+        response = await self.privateGetV5OrderRealtime(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "nextPageCursor": "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
+        #             "category": "spot",
+        #             "list": [
+        #                 {
+        #                     "symbol": "ETHUSDT",
+        #                     "orderType": "Limit",
+        #                     "orderLinkId": "1672217748277652",
+        #                     "orderId": "1321052653536515584",
+        #                     "cancelType": "UNKNOWN",
+        #                     "avgPrice": "",
+        #                     "stopOrderType": "tpslOrder",
+        #                     "lastPriceOnCreated": "",
+        #                     "orderStatus": "Cancelled",
+        #                     "takeProfit": "",
+        #                     "cumExecValue": "0",
+        #                     "triggerDirection": 0,
+        #                     "isLeverage": "0",
+        #                     "rejectReason": "",
+        #                     "price": "1000",
+        #                     "orderIv": "",
+        #                     "createdTime": "1672217748287",
+        #                     "tpTriggerBy": "",
+        #                     "positionIdx": 0,
+        #                     "timeInForce": "GTC",
+        #                     "leavesValue": "500",
+        #                     "updatedTime": "1672217748287",
+        #                     "side": "Buy",
+        #                     "triggerPrice": "1500",
+        #                     "cumExecFee": "0",
+        #                     "leavesQty": "0",
+        #                     "slTriggerBy": "",
+        #                     "closeOnTrigger": False,
+        #                     "cumExecQty": "0",
+        #                     "reduceOnly": False,
+        #                     "qty": "0.5",
+        #                     "stopLoss": "",
+        #                     "triggerBy": "1192.5"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1672219526294
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        innerList = self.safe_list(result, 'list', [])
+        order = self.safe_dict(innerList, 0, {})
+        return self.parse_order(order, market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         res = await self.is_unified_enabled()
@@ -5495,15 +5588,15 @@ class bybit(Exchange, ImplicitAPI):
             'comment': None,
         }
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://bybit-exchange.github.io/docs/v5/account/transaction-log
         :see: https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [limit]: max number of ledger entries to return, default is None
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
@@ -5663,7 +5756,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_ledger(data, currency, since, limit)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "id": 234467,
@@ -5702,36 +5795,41 @@ class bybit(Exchange, ImplicitAPI):
         #
         currencyId = self.safe_string_2(item, 'coin', 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        amount = self.safe_string_2(item, 'amount', 'change')
-        after = self.safe_string_2(item, 'wallet_balance', 'cashBalance')
-        direction = 'out' if Precise.string_lt(amount, '0') else 'in'
+        currency = self.safe_currency(currencyId, currency)
+        amountString = self.safe_string_2(item, 'amount', 'change')
+        afterString = self.safe_string_2(item, 'wallet_balance', 'cashBalance')
+        direction = 'out' if Precise.string_lt(amountString, '0') else 'in'
         before = None
-        if after is not None and amount is not None:
-            difference = amount if (direction == 'out') else Precise.string_neg(amount)
-            before = Precise.string_add(after, difference)
+        after = None
+        amount = None
+        if afterString is not None and amountString is not None:
+            difference = amountString if (direction == 'out') else Precise.string_neg(amountString)
+            before = self.parse_to_numeric(Precise.string_add(afterString, difference))
+            after = self.parse_to_numeric(afterString)
+            amount = self.parse_to_numeric(Precise.string_abs(amountString))
         timestamp = self.parse8601(self.safe_string(item, 'exec_time'))
         if timestamp is None:
             timestamp = self.safe_integer(item, 'transactionTime')
-        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        id = self.safe_string(item, 'id')
-        referenceId = self.safe_string(item, 'tx_id')
-        return {
-            'id': id,
-            'currency': code,
-            'account': self.safe_string(item, 'wallet_id'),
-            'referenceAccount': None,
-            'referenceId': referenceId,
-            'status': None,
-            'amount': self.parse_number(Precise.string_abs(amount)),
-            'before': self.parse_number(before),
-            'after': self.parse_number(after),
-            'fee': self.parse_number(self.safe_string(item, 'fee')),
+        return self.safe_ledger_entry({
+            'info': item,
+            'id': self.safe_string(item, 'id'),
             'direction': direction,
+            'account': self.safe_string(item, 'wallet_id'),
+            'referenceId': self.safe_string(item, 'tx_id'),
+            'referenceAccount': None,
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
+            'currency': code,
+            'amount': amount,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'type': type,
-            'info': item,
-        }
+            'before': before,
+            'after': after,
+            'status': 'ok',
+            'fee': {
+                'currency': code,
+                'cost': self.safe_number(item, 'fee'),
+            },
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         types: dict = {
@@ -8157,6 +8255,345 @@ class bybit(Exchange, ImplicitAPI):
         rawPositions = self.safe_list(result, 'list')
         positions = self.parse_positions(rawPositions, symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
+
+    async def fetch_convert_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies that can be converted
+        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+        :returns dict: an associative dictionary of currencies
+        """
+        await self.load_markets()
+        accountType = None
+        enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
+        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
+        accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
+        accountType, params = self.handle_option_and_params(params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault)
+        request: dict = {
+            'accountType': accountType,
+        }
+        response = await self.privateGetV5AssetExchangeQueryCoinList(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "ok",
+        #         "result": {
+        #             "coins": [
+        #                 {
+        #                     "coin": "MATIC",
+        #                     "fullName": "MATIC",
+        #                     "icon": "https://s1.bycsi.com/app/assets/token/0552ae79c535c3095fa18f7b377dd2e9.svg",
+        #                     "iconNight": "https://t1.bycsi.com/app/assets/token/f59301aef2d6ac2165c4c4603e672fb4.svg",
+        #                     "accuracyLength": 8,
+        #                     "coinType": "crypto",
+        #                     "balance": "0",
+        #                     "uBalance": "0",
+        #                     "timePeriod": 0,
+        #                     "singleFromMinLimit": "1.1",
+        #                     "singleFromMaxLimit": "20001",
+        #                     "singleToMinLimit": "0",
+        #                     "singleToMaxLimit": "0",
+        #                     "dailyFromMinLimit": "0",
+        #                     "dailyFromMaxLimit": "0",
+        #                     "dailyToMinLimit": "0",
+        #                     "dailyToMaxLimit": "0",
+        #                     "disableFrom": False,
+        #                     "disableTo": False
+        #                 },
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1727256416250
+        #     }
+        #
+        result: dict = {}
+        data = self.safe_dict(response, 'result', {})
+        coins = self.safe_list(data, 'coins', [])
+        for i in range(0, len(coins)):
+            entry = coins[i]
+            id = self.safe_string(entry, 'coin')
+            disableFrom = self.safe_bool(entry, 'disableFrom')
+            disableTo = self.safe_bool(entry, 'disableTo')
+            inactive = (disableFrom or disableTo)
+            code = self.safe_currency_code(id)
+            result[code] = {
+                'info': entry,
+                'id': id,
+                'code': code,
+                'networks': None,
+                'type': self.safe_string(entry, 'coinType'),
+                'name': self.safe_string(entry, 'fullName'),
+                'active': not inactive,
+                'deposit': None,
+                'withdraw': self.safe_number(entry, 'balance'),
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_number(entry, 'singleFromMinLimit'),
+                        'max': self.safe_number(entry, 'singleFromMaxLimit'),
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'created': None,
+            }
+        return result
+
+    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        fetch a quote for converting from one currency to another
+        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        accountType = None
+        enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
+        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
+        accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
+        accountType, params = self.handle_option_and_params(params, 'fetchConvertQuote', 'accountType', accountTypeDefault)
+        request: dict = {
+            'fromCoin': fromCode,
+            'toCoin': toCode,
+            'requestAmount': self.number_to_string(amount),
+            'requestCoin': fromCode,
+            'accountType': accountType,
+        }
+        response = await self.privatePostV5AssetExchangeQuoteApply(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "ok",
+        #         "result": {
+        #             "quoteTxId": "1010020692439481682687668224",
+        #             "exchangeRate": "0.000015330836780000",
+        #             "fromCoin": "USDT",
+        #             "fromCoinType": "crypto",
+        #             "toCoin": "BTC",
+        #             "toCoinType": "crypto",
+        #             "fromAmount": "10",
+        #             "toAmount": "0.000153308367800000",
+        #             "expiredTime": "1727257413353",
+        #             "requestId": ""
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1727257398375
+        #     }
+        #
+        data = self.safe_dict(response, 'result', {})
+        fromCurrencyId = self.safe_string(data, 'fromCoin', fromCode)
+        fromCurrency = self.currency(fromCurrencyId)
+        toCurrencyId = self.safe_string(data, 'toCoin', toCode)
+        toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(data, fromCurrency, toCurrency)
+
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float amount: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request: dict = {
+            'quoteTxId': id,
+        }
+        response = await self.privatePostV5AssetExchangeConvertExecute(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "ok",
+        #         "result": {
+        #             "exchangeStatus": "processing",
+        #             "quoteTxId": "1010020692439483803499737088"
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1727257904969
+        #     }
+        #
+        data = self.safe_dict(response, 'result', {})
+        return self.parse_conversion(data)
+
+    async def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
+        """
+        fetch the data for a conversion trade
+        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-result
+        :param str id: the id of the trade that you want to fetch
+        :param str [code]: the unified currency code of the conversion trade
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        accountType = None
+        enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
+        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
+        accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
+        accountType, params = self.handle_option_and_params(params, 'fetchConvertQuote', 'accountType', accountTypeDefault)
+        request: dict = {
+            'quoteTxId': id,
+            'accountType': accountType,
+        }
+        response = await self.privateGetV5AssetExchangeConvertResultQuery(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "ok",
+        #         "result": {
+        #             "result": {
+        #                 "accountType": "eb_convert_uta",
+        #                 "exchangeTxId": "1010020692439483803499737088",
+        #                 "userId": "100406395",
+        #                 "fromCoin": "USDT",
+        #                 "fromCoinType": "crypto",
+        #                 "fromAmount": "10",
+        #                 "toCoin": "BTC",
+        #                 "toCoinType": "crypto",
+        #                 "toAmount": "0.00015344889",
+        #                 "exchangeStatus": "success",
+        #                 "extInfo": {},
+        #                 "convertRate": "0.000015344889",
+        #                 "createdAt": "1727257904726"
+        #             }
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1727258257216
+        #     }
+        #
+        data = self.safe_dict(response, 'result', {})
+        result = self.safe_dict(data, 'result', {})
+        fromCurrencyId = self.safe_string(result, 'fromCoin')
+        toCurrencyId = self.safe_string(result, 'toCoin')
+        fromCurrency = None
+        toCurrency = None
+        if fromCurrencyId is not None:
+            fromCurrency = self.currency(fromCurrencyId)
+        if toCurrencyId is not None:
+            toCurrency = self.currency(toCurrencyId)
+        return self.parse_conversion(result, fromCurrency, toCurrency)
+
+    async def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+        """
+        fetch the users history of conversion trades
+        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history
+        :param str [code]: the unified currency code
+        :param int [since]: the earliest time in ms to fetch conversions for
+        :param int [limit]: the maximum number of conversion structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+        :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request: dict = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetV5AssetExchangeQueryConvertHistory(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "ok",
+        #         "result": {
+        #             "list": [
+        #                 {
+        #                     "accountType": "eb_convert_uta",
+        #                     "exchangeTxId": "1010020692439483803499737088",
+        #                     "userId": "100406395",
+        #                     "fromCoin": "USDT",
+        #                     "fromCoinType": "crypto",
+        #                     "fromAmount": "10",
+        #                     "toCoin": "BTC",
+        #                     "toCoinType": "crypto",
+        #                     "toAmount": "0.00015344889",
+        #                     "exchangeStatus": "success",
+        #                     "extInfo": {},
+        #                     "convertRate": "0.000015344889",
+        #                     "createdAt": "1727257904726"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1727258761874
+        #     }
+        #
+        data = self.safe_dict(response, 'result', {})
+        dataList = self.safe_list(data, 'list', [])
+        return self.parse_conversions(dataList, code, 'fromCoin', 'toCoin', since, limit)
+
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        #
+        # fetchConvertQuote
+        #
+        #     {
+        #         "quoteTxId": "1010020692439481682687668224",
+        #         "exchangeRate": "0.000015330836780000",
+        #         "fromCoin": "USDT",
+        #         "fromCoinType": "crypto",
+        #         "toCoin": "BTC",
+        #         "toCoinType": "crypto",
+        #         "fromAmount": "10",
+        #         "toAmount": "0.000153308367800000",
+        #         "expiredTime": "1727257413353",
+        #         "requestId": ""
+        #     }
+        #
+        # createConvertTrade
+        #
+        #     {
+        #         "exchangeStatus": "processing",
+        #         "quoteTxId": "1010020692439483803499737088"
+        #     }
+        #
+        # fetchConvertTrade, fetchConvertTradeHistory
+        #
+        #     {
+        #         "accountType": "eb_convert_uta",
+        #         "exchangeTxId": "1010020692439483803499737088",
+        #         "userId": "100406395",
+        #         "fromCoin": "USDT",
+        #         "fromCoinType": "crypto",
+        #         "fromAmount": "10",
+        #         "toCoin": "BTC",
+        #         "toCoinType": "crypto",
+        #         "toAmount": "0.00015344889",
+        #         "exchangeStatus": "success",
+        #         "extInfo": {},
+        #         "convertRate": "0.000015344889",
+        #         "createdAt": "1727257904726"
+        #     }
+        #
+        timestamp = self.safe_integer_2(conversion, 'expiredTime', 'createdAt')
+        fromCoin = self.safe_string(conversion, 'fromCoin')
+        fromCode = self.safe_currency_code(fromCoin, fromCurrency)
+        to = self.safe_string(conversion, 'toCoin')
+        toCode = self.safe_currency_code(to, toCurrency)
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string_2(conversion, 'quoteTxId', 'exchangeTxId'),
+            'fromCurrency': fromCode,
+            'fromAmount': self.safe_number(conversion, 'fromAmount'),
+            'toCurrency': toCode,
+            'toAmount': self.safe_number(conversion, 'toAmount'),
+            'price': None,
+            'fee': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path

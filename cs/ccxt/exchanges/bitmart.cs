@@ -208,6 +208,7 @@ public partial class bitmart : Exchange
                         { "spot/v4/query/trades", 5 },
                         { "spot/v4/query/order-trades", 5 },
                         { "spot/v4/cancel_orders", 3 },
+                        { "spot/v4/cancel_all", 90 },
                         { "spot/v4/batch_orders", 3 },
                         { "spot/v3/cancel_order", 1 },
                         { "spot/v2/batch_orders", 1 },
@@ -224,6 +225,10 @@ public partial class bitmart : Exchange
                         { "contract/private/submit-plan-order", 2.5 },
                         { "contract/private/cancel-plan-order", 1.5 },
                         { "contract/private/submit-leverage", 2.5 },
+                        { "contract/private/submit-tp-sl-order", 2.5 },
+                        { "contract/private/modify-plan-order", 2.5 },
+                        { "contract/private/modify-preset-plan-order", 2.5 },
+                        { "contract/private/modify-tp-sl-order", 2.5 },
                     } },
                 } },
             } },
@@ -786,43 +791,43 @@ public partial class bitmart : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetContractPublicDetails(parameters);
         //
-        // {
-        //     "code": 1000,
-        //     "message": "Ok",
-        //     "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
-        //     "data": {
-        //       "symbols": [
-        //         {
-        //           "symbol": "BTCUSDT",
-        //           "product_type": 1,
-        //           "open_timestamp": 1594080000,
-        //           "expire_timestamp": 0,
-        //           "settle_timestamp": 0,
-        //           "base_currency": "BTC",
-        //           "quote_currency": "USDT",
-        //           "last_price": "23920",
-        //           "volume_24h": "18969368",
-        //           "turnover_24h": "458933659.7858",
-        //           "index_price": "23945.25191635",
-        //           "index_name": "BTCUSDT",
-        //           "contract_size": "0.001",
-        //           "min_leverage": "1",
-        //           "max_leverage": "100",
-        //           "price_precision": "0.1",
-        //           "vol_precision": "1",
-        //           "max_volume": "500000",
-        //           "min_volume": "1",
-        //           "funding_rate": "0.0001",
-        //           "expected_funding_rate": "0.00011",
-        //           "open_interest": "4134180870",
-        //           "open_interest_value": "94100888927.0433258",
-        //           "high_24h": "23900",
-        //           "low_24h": "23100",
-        //           "change_24h": "0.004"
-        //         },
-        //       ]
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "symbols": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "product_type": 1,
+        //                     "open_timestamp": 1645977600000,
+        //                     "expire_timestamp": 0,
+        //                     "settle_timestamp": 0,
+        //                     "base_currency": "BTC",
+        //                     "quote_currency": "USDT",
+        //                     "last_price": "63547.4",
+        //                     "volume_24h": "110938430",
+        //                     "turnover_24h": "7004836342.6944",
+        //                     "index_price": "63587.85404255",
+        //                     "index_name": "BTCUSDT",
+        //                     "contract_size": "0.001",
+        //                     "min_leverage": "1",
+        //                     "max_leverage": "100",
+        //                     "price_precision": "0.1",
+        //                     "vol_precision": "1",
+        //                     "max_volume": "1000000",
+        //                     "min_volume": "1",
+        //                     "funding_rate": "0.0000801",
+        //                     "expected_funding_rate": "-0.0000035",
+        //                     "open_interest": "278214",
+        //                     "open_interest_value": "17555316.9355496",
+        //                     "high_24h": "64109.4",
+        //                     "low_24h": "61857.6",
+        //                     "change_24h": "0.0239264900886327",
+        //                     "funding_time": 1726819200000
+        //                 },
+        //             ]
+        //         }
         //     }
-        // }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object symbols = this.safeValue(data, "symbols", new List<object>() {});
@@ -1133,33 +1138,34 @@ public partial class bitmart : Exchange
         // swap
         //
         //     {
-        //       "symbol": "BTCUSDT",
-        //       "product_type": 1,
-        //       "open_timestamp": 1594080000,
-        //       "expire_timestamp": 0,
-        //       "settle_timestamp": 0,
-        //       "base_currency": "BTC",
-        //       "quote_currency": "USDT",
-        //       "last_price": "23920",
-        //       "volume_24h": "18969368",
-        //       "turnover_24h": "458933659.7858",
-        //       "index_price": "23945.25191635",
-        //       "index_name": "BTCUSDT",
-        //       "contract_size": "0.001",
-        //       "min_leverage": "1",
-        //       "max_leverage": "100",
-        //       "price_precision": "0.1",
-        //       "vol_precision": "1",
-        //       "max_volume": "500000",
-        //       "min_volume": "1",
-        //       "funding_rate": "0.0001",
-        //       "expected_funding_rate": "0.00011",
-        //       "open_interest": "4134180870",
-        //       "open_interest_value": "94100888927.0433258",
-        //       "high_24h": "23900",
-        //       "low_24h": "23100",
-        //       "change_24h": "0.004"
-        //  }
+        //         "symbol": "BTCUSDT",
+        //         "product_type": 1,
+        //         "open_timestamp": 1645977600000,
+        //         "expire_timestamp": 0,
+        //         "settle_timestamp": 0,
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USDT",
+        //         "last_price": "63547.4",
+        //         "volume_24h": "110938430",
+        //         "turnover_24h": "7004836342.6944",
+        //         "index_price": "63587.85404255",
+        //         "index_name": "BTCUSDT",
+        //         "contract_size": "0.001",
+        //         "min_leverage": "1",
+        //         "max_leverage": "100",
+        //         "price_precision": "0.1",
+        //         "vol_precision": "1",
+        //         "max_volume": "1000000",
+        //         "min_volume": "1",
+        //         "funding_rate": "0.0000801",
+        //         "expected_funding_rate": "-0.0000035",
+        //         "open_interest": "278214",
+        //         "open_interest_value": "17555316.9355496",
+        //         "high_24h": "64109.4",
+        //         "low_24h": "61857.6",
+        //         "change_24h": "0.0239264900886327",
+        //         "funding_time": 1726819200000
+        //     }
         //
         object result = this.safeList(ticker, "result", new List<object>() {});
         object average = this.safeString2(ticker, "avg_price", "index_price");
@@ -2193,7 +2199,7 @@ public partial class bitmart : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "order_id": 2707217580
@@ -2397,6 +2403,7 @@ public partial class bitmart : Exchange
         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
         * @param {string} side 'buy' or 'sell'
@@ -2414,6 +2421,9 @@ public partial class bitmart : Exchange
         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
+        * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+        * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+        * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2422,6 +2432,10 @@ public partial class bitmart : Exchange
         object result = this.handleMarginModeAndParams("createOrder", parameters);
         object marginMode = this.safeString(result, 0);
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "trigger_price"});
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
         object isTriggerOrder = !isEqual(triggerPrice, null);
         object response = null;
         if (isTrue(getValue(market, "spot")))
@@ -2440,6 +2454,9 @@ public partial class bitmart : Exchange
             if (isTrue(isTriggerOrder))
             {
                 response = await this.privatePostContractPrivateSubmitPlanOrder(swapRequest);
+            } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+            {
+                response = await this.privatePostContractPrivateSubmitTpSlOrder(swapRequest);
             } else
             {
                 response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
@@ -2559,8 +2576,9 @@ public partial class bitmart : Exchange
         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
         * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market', 'limit' or 'trailing'
+        * @param {string} type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -2575,10 +2593,24 @@ public partial class bitmart : Exchange
         * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
         * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
         * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
+        * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+        * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+        * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
+        if (isTrue(isStopLoss))
+        {
+            type = "stop_loss";
+        } else if (isTrue(isTakeProfit))
+        {
+            type = "take_profit";
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "type", type },
@@ -2588,7 +2620,7 @@ public partial class bitmart : Exchange
         object mode = this.safeInteger(parameters, "mode"); // only for swap
         object isMarketOrder = isEqual(type, "market");
         object postOnly = null;
-        object reduceOnly = this.safeValue(parameters, "reduceOnly");
+        object reduceOnly = this.safeBool(parameters, "reduceOnly");
         object isExchangeSpecificPo = (isEqual(mode, 4));
         var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
@@ -2651,6 +2683,26 @@ public partial class bitmart : Exchange
                 }
             }
         }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+        {
+            reduceOnly = true;
+            ((IDictionary<string,object>)request)["price_type"] = this.safeInteger(parameters, "price_type", 1);
+            ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            if (isTrue(isStopLoss))
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopLossPrice);
+            } else
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, takeProfitPrice);
+            }
+        } else
+        {
+            ((IDictionary<string,object>)request)["open_type"] = marginMode;
+        }
         if (isTrue(isEqual(side, "buy")))
         {
             if (isTrue(reduceOnly))
@@ -2670,11 +2722,6 @@ public partial class bitmart : Exchange
                 ((IDictionary<string,object>)request)["side"] = 4; // sell open short
             }
         }
-        object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
-        marginMode = ((IList<object>)marginModeparametersVariable)[0];
-        parameters = ((IList<object>)marginModeparametersVariable)[1];
-        ((IDictionary<string,object>)request)["open_type"] = marginMode;
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -2682,7 +2729,7 @@ public partial class bitmart : Exchange
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
         object leverage = this.safeInteger(parameters, "leverage");
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "reduceOnly", "leverage", "trailingTriggerPrice", "trailingPercent", "triggerPrice", "stopPrice"});
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "postOnly", "reduceOnly", "leverage", "trailingTriggerPrice", "trailingPercent", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"});
         if (isTrue(!isEqual(leverage, null)))
         {
             ((IDictionary<string,object>)request)["leverage"] = this.numberToString(leverage);
@@ -2982,6 +3029,7 @@ public partial class bitmart : Exchange
         * @name bitmart#cancelAllOrders
         * @description cancel all open orders in a market
         * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+        * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
         * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
         * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
         * @param {string} symbol unified market symbol of the market to cancel orders in
@@ -3005,7 +3053,7 @@ public partial class bitmart : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "spot")))
         {
-            response = await this.privatePostSpotV1CancelOrders(this.extend(request, parameters));
+            response = await this.privatePostSpotV4CancelAll(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(isEqual(symbol, null)))
@@ -4921,6 +4969,110 @@ public partial class bitmart : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         });
+    }
+
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#editOrder
+        * @description edits an open order
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+        * @param {string} id order id
+        * @param {string} symbol unified symbol of the market to edit an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} [amount] how much you want to trade in units of the base currency
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+        * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+        * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+        * @param {string} [params.stopLoss.triggerPrice] *swap only* the price to trigger a preset stop-loss order
+        * @param {string} [params.takeProfit.triggerPrice] *swap only* the price to trigger a preset take-profit order
+        * @param {string} [params.clientOrderId] client order id of the order
+        * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+        * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " markets, only swap markets are supported")) ;
+        }
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "trigger_price"});
+        object stopLoss = this.safeDict(parameters, "stopLoss", new Dictionary<string, object>() {});
+        object takeProfit = this.safeDict(parameters, "takeProfit", new Dictionary<string, object>() {});
+        object presetStopLoss = this.safeString(stopLoss, "triggerPrice");
+        object presetTakeProfit = this.safeString(takeProfit, "triggerPrice");
+        object isTriggerOrder = !isEqual(triggerPrice, null);
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
+        object isPresetStopLoss = !isEqual(presetStopLoss, null);
+        object isPresetTakeProfit = !isEqual(presetTakeProfit, null);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            parameters = this.omit(parameters, "clientOrderId");
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)["order_id"] = id;
+        }
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"});
+        object response = null;
+        if (isTrue(isTrue(isTrue(isTriggerOrder) || isTrue(isStopLoss)) || isTrue(isTakeProfit)))
+        {
+            ((IDictionary<string,object>)request)["price_type"] = this.safeInteger(parameters, "price_type", 1);
+            if (isTrue(!isEqual(price, null)))
+            {
+                ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            }
+        }
+        if (isTrue(isTriggerOrder))
+        {
+            ((IDictionary<string,object>)request)["type"] = type;
+            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
+            response = await this.privatePostContractPrivateModifyPlanOrder(this.extend(request, parameters));
+        } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+        {
+            ((IDictionary<string,object>)request)["category"] = type;
+            if (isTrue(isStopLoss))
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopLossPrice);
+            } else
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, takeProfitPrice);
+            }
+            response = await this.privatePostContractPrivateModifyTpSlOrder(this.extend(request, parameters));
+        } else if (isTrue(isTrue(isPresetStopLoss) || isTrue(isPresetTakeProfit)))
+        {
+            if (isTrue(isPresetStopLoss))
+            {
+                ((IDictionary<string,object>)request)["preset_stop_loss_price_type"] = this.safeInteger(parameters, "price_type", 1);
+                ((IDictionary<string,object>)request)["preset_stop_loss_price"] = this.priceToPrecision(symbol, presetStopLoss);
+            } else
+            {
+                ((IDictionary<string,object>)request)["preset_take_profit_price_type"] = this.safeInteger(parameters, "price_type", 1);
+                ((IDictionary<string,object>)request)["preset_take_profit_price"] = this.priceToPrecision(symbol, presetTakeProfit);
+            }
+            response = await this.privatePostContractPrivateModifyPresetPlanOrder(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " editOrder() only supports trigger, stop loss and take profit orders")) ;
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
     }
 
     public override object nonce()

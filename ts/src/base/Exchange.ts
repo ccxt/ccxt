@@ -4,6 +4,7 @@
 import * as functions from './functions.js'
 const {
     isNode
+    , selfIsDefined
     , deepExtend
     , extend
     , clone
@@ -905,7 +906,7 @@ export default class Exchange {
                     }
                 }
             } else {
-                this.fetchImplementation = self.fetch
+                this.fetchImplementation = (selfIsDefined()) ? self.fetch: fetch
                 this.AbortError = DOMException
                 this.FetchError = TypeError
             }
@@ -1549,6 +1550,14 @@ export default class Exchange {
         x.length = length;
         rng.nextBytes(x);
         return Buffer.from (x).toString ('hex');
+    }
+
+    randNumber(size: number) {
+        let number = '';
+        for (let i = 0; i < size; i++) {
+            number += Math.floor(Math.random() * 10);
+        }
+        return parseInt(number, 10);
     }
 
     /* eslint-enable */
@@ -2459,7 +2468,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): object {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
@@ -2670,6 +2679,7 @@ export default class Exchange {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
+                'BRC20': { 'BRC20': 'BTC' },
             },
         };
     }
@@ -4179,7 +4189,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): LedgerEntry[] {
         let result = [];
         const arrayData = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
@@ -6728,8 +6738,19 @@ export default class Exchange {
                     break;
                 }
                 result = this.arrayConcat (result, response);
-                const last = this.safeValue (response, responseLength - 1);
-                cursorValue = this.safeValue (last['info'], cursorReceived);
+                const last = this.safeDict (response, responseLength - 1);
+                // cursorValue = this.safeValue (last['info'], cursorReceived);
+                cursorValue = undefined; // search for the cursor
+                for (let j = 0; j < responseLength; j++) {
+                    const index = responseLength - j - 1;
+                    const entry = this.safeDict (response, index);
+                    const info = this.safeDict (entry, 'info');
+                    const cursor = this.safeValue (info, cursorReceived);
+                    if (cursor !== undefined) {
+                        cursorValue = cursor;
+                        break;
+                    }
+                }
                 if (cursorValue === undefined) {
                     break;
                 }

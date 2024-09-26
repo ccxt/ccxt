@@ -1483,8 +1483,11 @@ class okx extends \ccxt\async\okx {
                         ),
                     ),
                 );
-                $message = $this->extend($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
+                // Only add $params['access'] to prevent sending custom parameters, such.
+                if (is_array($params) && array_key_exists('access', $params)) {
+                    $request['access'] = $params['access'];
+                }
+                $this->watch($url, $messageHash, $request, $messageHash);
             }
             return Async\await($future);
         }) ();
@@ -1660,7 +1663,7 @@ class okx extends \ccxt\async\okx {
                     'channel' => 'positions',
                     'instType' => 'ANY',
                 );
-                $args = array( $arg );
+                $args = array( $this->extend($arg, $params) );
                 $nonSymbolRequest = array(
                     'op' => 'subscribe',
                     'args' => $args,
@@ -2003,6 +2006,13 @@ class okx extends \ccxt\async\okx {
         }
     }
 
+    public function request_id() {
+        $ts = (string) $this->milliseconds();
+        $randomNumber = $this->rand_number(4);
+        $randomPart = (string) $randomNumber;
+        return $ts . $randomPart;
+    }
+
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -2020,7 +2030,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'op', 'batch-orders');
             $args = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -2092,7 +2102,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'op', 'amend-order');
             $args = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
@@ -2122,7 +2132,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
             $arg = array(
@@ -2162,7 +2172,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $args = array();
             for ($i = 0; $i < $idsLength; $i++) {
                 $arg = array(
@@ -2199,7 +2209,7 @@ class okx extends \ccxt\async\okx {
                 throw new BadRequest($this->id . 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
             }
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $request = array(
                 'id' => $messageHash,
                 'op' => 'mass-cancel',

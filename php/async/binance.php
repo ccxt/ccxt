@@ -1098,6 +1098,7 @@ class binance extends Exchange {
                         'repay-futures-negative-balance' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'listenKey' => 1, // 1
                         'asset-collection' => 3,
+                        'margin/repay-debt' => 0.4, // Weight(Order) => 0.4 => (1000 / (50 * 0.4)) * 60 = 3000
                     ),
                     'put' => array(
                         'listenKey' => 1, // 1
@@ -1206,6 +1207,7 @@ class binance extends Exchange {
             // exchange-specific options
             'options' => array(
                 'sandboxMode' => false,
+                'fetchMargins' => true,
                 'fetchMarkets' => array(
                     'spot', // allows CORS in browsers
                     'linear', // allows CORS in browsers
@@ -1214,6 +1216,7 @@ class binance extends Exchange {
                 ),
                 'fetchCurrencies' => true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
+                // 'repayCrossMarginMethod' => 'papiPostRepayLoan', // papiPostMarginRepayDebt
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType' => null, // 'linear', 'inverse'
@@ -2878,13 +2881,12 @@ class binance extends Exchange {
                 }
                 $fetchMarkets[] = $type;
             }
-            $fetchMargins = false;
+            $fetchMargins = $this->safe_bool($this->options, 'fetchMargins', false);
             for ($i = 0; $i < count($fetchMarkets); $i++) {
                 $marketType = $fetchMarkets[$i];
                 if ($marketType === 'spot') {
                     $promisesRaw[] = $this->publicGetExchangeInfo ($params);
-                    if ($this->check_required_credentials(false) && !$sandboxMode) {
-                        $fetchMargins = true;
+                    if ($fetchMargins && $this->check_required_credentials(false) && !$sandboxMode) {
                         $promisesRaw[] = $this->sapiGetMarginAllPairs ($params);
                         $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs ($params);
                     }
@@ -2906,7 +2908,7 @@ class binance extends Exchange {
                 $res = $this->safe_value($results, $i);
                 if ($fetchMargins && gettype($res) === 'array' && array_keys($res) === array_keys(array_keys($res))) {
                     $keysList = is_array($this->index_by($res, 'symbol')) ? array_keys($this->index_by($res, 'symbol')) : array();
-                    $length = ($this->options['crossMarginPairsData']);
+                    $length = count($this->options['crossMarginPairsData']);
                     // first one is the cross-margin promise
                     if ($length === 0) {
                         $this->options['crossMarginPairsData'] = $keysList;
@@ -6305,8 +6307,8 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrders', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
-            $params = $this->omit($params, array( 'stop', 'conditional', 'type' ));
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+            $params = $this->omit($params, array( 'stop', 'trigger', 'conditional', 'type' ));
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -6567,7 +6569,7 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_n($params, array( 'stop', 'conditional', 'trigger' ));
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
@@ -6582,7 +6584,7 @@ class binance extends Exchange {
             }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
-            $params = $this->omit($params, array( 'type', 'stop', 'conditional', 'trigger' ));
+            $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
             $response = null;
             if ($type === 'option') {
                 if ($since !== null) {
@@ -6657,8 +6659,8 @@ class binance extends Exchange {
             );
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_n($params, array( 'stop', 'conditional', 'trigger' ));
-            $params = $this->omit($params, array( 'stop', 'conditional', 'trigger' ));
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+            $params = $this->omit($params, array( 'stop', 'trigger', 'conditional' ));
             $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
             $orderIdRequest = $isPortfolioMarginConditional ? 'strategyId' : 'orderId';
             $request[$orderIdRequest] = $id;
@@ -6970,7 +6972,7 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelOrder', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -6992,7 +6994,7 @@ class binance extends Exchange {
                     $request['orderId'] = $id;
                 }
             }
-            $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional' ));
+            $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional' ));
             $response = null;
             if ($market['option']) {
                 $response = Async\await($this->eapiPrivateDeleteOrder ($this->extend($request, $params)));
@@ -7062,9 +7064,9 @@ class binance extends Exchange {
             );
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             $type = $this->safe_string($params, 'type', $market['type']);
-            $params = $this->omit($params, array( 'type', 'stop', 'conditional' ));
+            $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             $response = null;
@@ -11043,23 +11045,46 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+             * @param {string} $id the identification number of the ledger entry
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ledger-structure ledger structure~
+             */
             Async\await($this->load_markets());
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchLedgerEntry', null, $params);
-            $query = array(
-                'recordId' => $id,
-                'type' => $type,
-            );
             if ($type !== 'option') {
-                throw new BadRequest($this->id . ' fetchLedgerEntry () can only be used for $type option');
+                throw new BadRequest($this->id . ' fetchLedgerEntry() can only be used for $type option');
             }
-            return Async\await($this->fetch_ledger($code, null, null, $this->extend($query, $params)));
+            $this->check_required_argument('fetchLedgerEntry', $code, 'code');
+            $currency = $this->currency($code);
+            $request = array(
+                'recordId' => $id,
+                'currency' => $currency['id'],
+            );
+            $response = Async\await($this->eapiPrivateGetBill ($this->extend($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "id" => "1125899906845701870",
+            //             "asset" => "USDT",
+            //             "amount" => "-0.16518203",
+            //             "type" => "FEE",
+            //             "createDate" => 1676621042489
+            //         }
+            //     )
+            //
+            $first = $this->safe_dict($response, 0, $response);
+            return $this->parse_ledger_entry($first, $currency);
         }) ();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -11068,9 +11093,9 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
-             * @param {string} $code unified $currency $code
+             * @param {string} [$code] unified $currency $code
              * @param {int} [$since] timestamp in ms of the earliest ledger entry
-             * @param {int} [$limit] max number of ledger entrys to return
+             * @param {int} [$limit] max number of ledger entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -11158,7 +11183,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // options (eapi)
         //
@@ -11192,16 +11217,19 @@ class binance extends Exchange {
             $direction = 'in';
         }
         $currencyId = $this->safe_string($item, 'asset');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer_2($item, 'createDate', 'time');
         $type = $this->safe_string_2($item, 'type', 'incomeType');
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string_2($item, 'id', 'tranId'),
             'direction' => $direction,
             'account' => null,
             'referenceAccount' => null,
             'referenceId' => $this->safe_string($item, 'tradeId'),
             'type' => $this->parse_ledger_entry_type($type),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $code,
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -11209,8 +11237,7 @@ class binance extends Exchange {
             'after' => null,
             'status' => null,
             'fee' => null,
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -12018,10 +12045,13 @@ class binance extends Exchange {
              * repay borrowed margin and interest
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
+             * @param {string} [$params->repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+             * @param {string} [$params->specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -12034,18 +12064,39 @@ class binance extends Exchange {
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
             if ($isPortfolioMargin) {
-                $response = Async\await($this->papiPostRepayLoan ($this->extend($request, $params)));
+                $method = null;
+                list($method, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
+                if ($method === 'papiPostMarginRepayDebt') {
+                    $response = Async\await($this->papiPostMarginRepayDebt ($this->extend($request, $params)));
+                    //
+                    //     {
+                    //         "asset" => "USDC",
+                    //         "amount" => 10,
+                    //         "specifyRepayAssets" => null,
+                    //         "updateTime" => 1727170761267,
+                    //         "success" => true
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->papiPostRepayLoan ($this->extend($request, $params)));
+                    //
+                    //     {
+                    //         "tranId" => 108988250265,
+                    //         "clientTag":""
+                    //     }
+                    //
+                }
             } else {
                 $request['isIsolated'] = 'FALSE';
                 $request['type'] = 'REPAY';
                 $response = Async\await($this->sapiPostMarginBorrowRepay ($this->extend($request, $params)));
+                //
+                //     {
+                //         "tranId" => 108988250265,
+                //         "clientTag":""
+                //     }
+                //
             }
-            //
-            //     {
-            //         "tranId" => 108988250265,
-            //         "clientTag":""
-            //     }
-            //
             return $this->parse_margin_loan($response, $currency);
         }) ();
     }
@@ -12159,13 +12210,25 @@ class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
+        // repayCrossMargin alternative endpoint
+        //
+        //     {
+        //         "asset" => "USDC",
+        //         "amount" => 10,
+        //         "specifyRepayAssets" => null,
+        //         "updateTime" => 1727170761267,
+        //         "success" => true
+        //     }
+        //
+        $currencyId = $this->safe_string($info, 'asset');
+        $timestamp = $this->safe_integer($info, 'updateTime');
         return array(
             'id' => $this->safe_integer($info, 'tranId'),
-            'currency' => $this->safe_currency_code(null, $currency),
-            'amount' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($info, 'amount'),
             'symbol' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
     }

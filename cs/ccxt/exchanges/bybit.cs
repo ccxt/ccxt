@@ -32,6 +32,7 @@ public partial class bybit : Exchange
                 { "cancelOrdersForSymbols", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createConvertTrade", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
@@ -55,6 +56,10 @@ public partial class bybit : Exchange
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrder", true },
                 { "fetchClosedOrders", true },
+                { "fetchConvertCurrencies", true },
+                { "fetchConvertQuote", true },
+                { "fetchConvertTrade", true },
+                { "fetchConvertTradeHistory", true },
                 { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -90,7 +95,7 @@ public partial class bybit : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOption", true },
                 { "fetchOptionChain", true },
-                { "fetchOrder", false },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
@@ -299,6 +304,9 @@ public partial class bybit : Exchange
                         { "v5/account/contract-transaction-log", 1 },
                         { "v5/account/smp-group", 1 },
                         { "v5/account/mmp-state", 5 },
+                        { "v5/asset/exchange/query-coin-list", 0.5 },
+                        { "v5/asset/exchange/convert-result-query", 0.5 },
+                        { "v5/asset/exchange/query-convert-history", 0.5 },
                         { "v5/asset/exchange/order-record", 5 },
                         { "v5/asset/delivery-record", 5 },
                         { "v5/asset/settlement-record", 5 },
@@ -439,6 +447,8 @@ public partial class bybit : Exchange
                         { "v5/account/set-hedging-mode", 5 },
                         { "v5/account/mmp-modify", 5 },
                         { "v5/account/mmp-reset", 5 },
+                        { "v5/asset/exchange/quote-apply", 1 },
+                        { "v5/asset/exchange/convert-execute", 1 },
                         { "v5/asset/transfer/inter-transfer", 50 },
                         { "v5/asset/transfer/save-transfer-sub-member", 150 },
                         { "v5/asset/transfer/universal-transfer", 10 },
@@ -916,6 +926,7 @@ public partial class bybit : Exchange
                     { "3200300", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Not supported symbols", typeof(BadSymbol) },
                     { "Request timeout", typeof(RequestTimeout) },
                     { "unknown orderInfo", typeof(OrderNotFound) },
                     { "invalid api_key", typeof(AuthenticationError) },
@@ -1658,6 +1669,7 @@ public partial class bybit : Exchange
     {
         parameters = this.extend(parameters);
         ((IDictionary<string,object>)parameters)["limit"] = 1000; // minimize number of requests
+        object preLaunchMarkets = ((object)new List<object>() {});
         object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
         object response = null;
         if (isTrue(usePrivateInstrumentsInfo))
@@ -1665,7 +1677,12 @@ public partial class bybit : Exchange
             response = await this.privateGetV5MarketInstrumentsInfo(parameters);
         } else
         {
-            response = await this.publicGetV5MarketInstrumentsInfo(parameters);
+            object linearPromises = new List<object> {this.publicGetV5MarketInstrumentsInfo(parameters), this.publicGetV5MarketInstrumentsInfo(this.extend(parameters, new Dictionary<string, object>() {
+    { "status", "PreLaunch" },
+}))};
+            object promises = await promiseAll(linearPromises);
+            response = this.safeDict(promises, 0, new Dictionary<string, object>() {});
+            preLaunchMarkets = this.safeDict(promises, 1, new Dictionary<string, object>() {});
         }
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "list", new List<object>() {});
@@ -1738,6 +1755,9 @@ public partial class bybit : Exchange
         //         "time": 1672712495660
         //     }
         //
+        object preLaunchData = this.safeDict(preLaunchMarkets, "result", new Dictionary<string, object>() {});
+        object preLaunchMarketsList = this.safeList(preLaunchData, "list", new List<object>() {});
+        markets = this.arrayConcat(markets, preLaunchMarketsList);
         object result = new List<object>() {};
         object category = this.safeString(data, "category");
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
@@ -5159,16 +5179,99 @@ public partial class bybit : Exchange
         * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.acknowledged] to suppress the warning, set to true
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object res = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = this.safeBool(res, 1);
-        if (isTrue(enableUnifiedAccount))
+        await this.loadMarkets();
+        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
+        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
+        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
+        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
+        if (!isTrue(isUnifiedAccount))
         {
-            throw new NotSupported ((string)add(this.id, " fetchOrder() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrder or fetchClosedOrder")) ;
+            return await this.fetchOrderClassic(id, symbol, parameters);
         }
-        return await this.fetchOrderClassic(id, symbol, parameters);
+        object acknowledge = false;
+        var acknowledgeparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "acknowledged");
+        acknowledge = ((IList<object>)acknowledgeparametersVariable)[0];
+        parameters = ((IList<object>)acknowledgeparametersVariable)[1];
+        if (!isTrue(acknowledge))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder")) ;
+        }
+        object market = this.market(symbol);
+        object marketType = null;
+        var marketTypeparametersVariable = this.getBybitType("fetchOrder", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "orderId", id },
+            { "category", marketType },
+        };
+        object isTrigger = null;
+        var isTriggerparametersVariable = this.handleParamBool2(parameters, "trigger", "stop", false);
+        isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
+        parameters = ((IList<object>)isTriggerparametersVariable)[1];
+        if (isTrue(isTrigger))
+        {
+            ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
+        }
+        object response = await this.privateGetV5OrderRealtime(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "nextPageCursor": "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
+        //             "category": "spot",
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHUSDT",
+        //                     "orderType": "Limit",
+        //                     "orderLinkId": "1672217748277652",
+        //                     "orderId": "1321052653536515584",
+        //                     "cancelType": "UNKNOWN",
+        //                     "avgPrice": "",
+        //                     "stopOrderType": "tpslOrder",
+        //                     "lastPriceOnCreated": "",
+        //                     "orderStatus": "Cancelled",
+        //                     "takeProfit": "",
+        //                     "cumExecValue": "0",
+        //                     "triggerDirection": 0,
+        //                     "isLeverage": "0",
+        //                     "rejectReason": "",
+        //                     "price": "1000",
+        //                     "orderIv": "",
+        //                     "createdTime": "1672217748287",
+        //                     "tpTriggerBy": "",
+        //                     "positionIdx": 0,
+        //                     "timeInForce": "GTC",
+        //                     "leavesValue": "500",
+        //                     "updatedTime": "1672217748287",
+        //                     "side": "Buy",
+        //                     "triggerPrice": "1500",
+        //                     "cumExecFee": "0",
+        //                     "leavesQty": "0",
+        //                     "slTriggerBy": "",
+        //                     "closeOnTrigger": false,
+        //                     "cumExecQty": "0",
+        //                     "reduceOnly": false,
+        //                     "qty": "0.5",
+        //                     "stopLoss": "",
+        //                     "triggerBy": "1192.5"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672219526294
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object innerList = this.safeList(result, "list", new List<object>() {});
+        object order = this.safeDict(innerList, 0, new Dictionary<string, object>() {});
+        return this.parseOrder(order, market);
     }
 
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -6340,13 +6443,13 @@ public partial class bybit : Exchange
         /**
         * @method
         * @name bybit#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
         * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -6553,40 +6656,45 @@ public partial class bybit : Exchange
         //
         object currencyId = this.safeString2(item, "coin", "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object amount = this.safeString2(item, "amount", "change");
-        object after = this.safeString2(item, "wallet_balance", "cashBalance");
-        object direction = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "out" : "in";
+        currency = this.safeCurrency(currencyId, currency);
+        object amountString = this.safeString2(item, "amount", "change");
+        object afterString = this.safeString2(item, "wallet_balance", "cashBalance");
+        object direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
         object before = null;
-        if (isTrue(isTrue(!isEqual(after, null)) && isTrue(!isEqual(amount, null))))
+        object after = null;
+        object amount = null;
+        if (isTrue(isTrue(!isEqual(afterString, null)) && isTrue(!isEqual(amountString, null))))
         {
-            object difference = ((bool) isTrue((isEqual(direction, "out")))) ? amount : Precise.stringNeg(amount);
-            before = Precise.stringAdd(after, difference);
+            object difference = ((bool) isTrue((isEqual(direction, "out")))) ? amountString : Precise.stringNeg(amountString);
+            before = this.parseToNumeric(Precise.stringAdd(afterString, difference));
+            after = this.parseToNumeric(afterString);
+            amount = this.parseToNumeric(Precise.stringAbs(amountString));
         }
         object timestamp = this.parse8601(this.safeString(item, "exec_time"));
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger(item, "transactionTime");
         }
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object id = this.safeString(item, "id");
-        object referenceId = this.safeString(item, "tx_id");
-        return new Dictionary<string, object>() {
-            { "id", id },
-            { "currency", code },
-            { "account", this.safeString(item, "wallet_id") },
-            { "referenceAccount", null },
-            { "referenceId", referenceId },
-            { "status", null },
-            { "amount", this.parseNumber(Precise.stringAbs(amount)) },
-            { "before", this.parseNumber(before) },
-            { "after", this.parseNumber(after) },
-            { "fee", this.parseNumber(this.safeString(item, "fee")) },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
+            { "id", this.safeString(item, "id") },
             { "direction", direction },
+            { "account", this.safeString(item, "wallet_id") },
+            { "referenceId", this.safeString(item, "tx_id") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
+            { "currency", code },
+            { "amount", amount },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "type", type },
-            { "info", item },
-        };
+            { "before", before },
+            { "after", after },
+            { "status", "ok" },
+            { "fee", new Dictionary<string, object>() {
+                { "currency", code },
+                { "cost", this.safeNumber(item, "fee") },
+            } },
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -9499,6 +9607,392 @@ public partial class bybit : Exchange
         object rawPositions = this.safeList(result, "list");
         object positions = this.parsePositions(rawPositions, symbols, parameters);
         return this.filterBySinceLimit(positions, since, limit);
+    }
+
+    public async override Task<object> fetchConvertCurrencies(object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchConvertCurrencies
+        * @description fetches all available currencies that can be converted
+        * @see https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+        * @returns {object} an associative dictionary of currencies
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object accountType = null;
+        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
+        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
+        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
+        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
+        object accountTypeDefault = ((bool) isTrue(isUnifiedAccount)) ? "eb_convert_uta" : "eb_convert_spot";
+        var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchConvertCurrencies", "accountType", accountTypeDefault);
+        accountType = ((IList<object>)accountTypeparametersVariable)[0];
+        parameters = ((IList<object>)accountTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "accountType", accountType },
+        };
+        object response = await this.privateGetV5AssetExchangeQueryCoinList(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "ok",
+        //         "result": {
+        //             "coins": [
+        //                 {
+        //                     "coin": "MATIC",
+        //                     "fullName": "MATIC",
+        //                     "icon": "https://s1.bycsi.com/app/assets/token/0552ae79c535c3095fa18f7b377dd2e9.svg",
+        //                     "iconNight": "https://t1.bycsi.com/app/assets/token/f59301aef2d6ac2165c4c4603e672fb4.svg",
+        //                     "accuracyLength": 8,
+        //                     "coinType": "crypto",
+        //                     "balance": "0",
+        //                     "uBalance": "0",
+        //                     "timePeriod": 0,
+        //                     "singleFromMinLimit": "1.1",
+        //                     "singleFromMaxLimit": "20001",
+        //                     "singleToMinLimit": "0",
+        //                     "singleToMaxLimit": "0",
+        //                     "dailyFromMinLimit": "0",
+        //                     "dailyFromMaxLimit": "0",
+        //                     "dailyToMinLimit": "0",
+        //                     "dailyToMaxLimit": "0",
+        //                     "disableFrom": false,
+        //                     "disableTo": false
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1727256416250
+        //     }
+        //
+        object result = new Dictionary<string, object>() {};
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object coins = this.safeList(data, "coins", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        {
+            object entry = getValue(coins, i);
+            object id = this.safeString(entry, "coin");
+            object disableFrom = this.safeBool(entry, "disableFrom");
+            object disableTo = this.safeBool(entry, "disableTo");
+            object inactive = (isTrue(disableFrom) || isTrue(disableTo));
+            object code = this.safeCurrencyCode(id);
+            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "info", entry },
+                { "id", id },
+                { "code", code },
+                { "networks", null },
+                { "type", this.safeString(entry, "coinType") },
+                { "name", this.safeString(entry, "fullName") },
+                { "active", !isTrue(inactive) },
+                { "deposit", null },
+                { "withdraw", this.safeNumber(entry, "balance") },
+                { "fee", null },
+                { "precision", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(entry, "singleFromMinLimit") },
+                        { "max", this.safeNumber(entry, "singleFromMaxLimit") },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "created", null },
+            };
+        }
+        return result;
+    }
+
+    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchConvertQuote
+        * @description fetch a quote for converting from one currency to another
+        * @see https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object accountType = null;
+        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
+        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
+        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
+        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
+        object accountTypeDefault = ((bool) isTrue(isUnifiedAccount)) ? "eb_convert_uta" : "eb_convert_spot";
+        var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchConvertQuote", "accountType", accountTypeDefault);
+        accountType = ((IList<object>)accountTypeparametersVariable)[0];
+        parameters = ((IList<object>)accountTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "fromCoin", fromCode },
+            { "toCoin", toCode },
+            { "requestAmount", this.numberToString(amount) },
+            { "requestCoin", fromCode },
+            { "accountType", accountType },
+        };
+        object response = await this.privatePostV5AssetExchangeQuoteApply(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "ok",
+        //         "result": {
+        //             "quoteTxId": "1010020692439481682687668224",
+        //             "exchangeRate": "0.000015330836780000",
+        //             "fromCoin": "USDT",
+        //             "fromCoinType": "crypto",
+        //             "toCoin": "BTC",
+        //             "toCoinType": "crypto",
+        //             "fromAmount": "10",
+        //             "toAmount": "0.000153308367800000",
+        //             "expiredTime": "1727257413353",
+        //             "requestId": ""
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1727257398375
+        //     }
+        //
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object fromCurrencyId = this.safeString(data, "fromCoin", fromCode);
+        object fromCurrency = this.currency(fromCurrencyId);
+        object toCurrencyId = this.safeString(data, "toCoin", toCode);
+        object toCurrency = this.currency(toCurrencyId);
+        return this.parseConversion(data, fromCurrency, toCurrency);
+    }
+
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} amount how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "quoteTxId", id },
+        };
+        object response = await this.privatePostV5AssetExchangeConvertExecute(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "ok",
+        //         "result": {
+        //             "exchangeStatus": "processing",
+        //             "quoteTxId": "1010020692439483803499737088"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1727257904969
+        //     }
+        //
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchConvertTrade
+        * @description fetch the data for a conversion trade
+        * @see https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-result
+        * @param {string} id the id of the trade that you want to fetch
+        * @param {string} [code] the unified currency code of the conversion trade
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object accountType = null;
+        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
+        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
+        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
+        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
+        object accountTypeDefault = ((bool) isTrue(isUnifiedAccount)) ? "eb_convert_uta" : "eb_convert_spot";
+        var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchConvertQuote", "accountType", accountTypeDefault);
+        accountType = ((IList<object>)accountTypeparametersVariable)[0];
+        parameters = ((IList<object>)accountTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "quoteTxId", id },
+            { "accountType", accountType },
+        };
+        object response = await this.privateGetV5AssetExchangeConvertResultQuery(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "ok",
+        //         "result": {
+        //             "result": {
+        //                 "accountType": "eb_convert_uta",
+        //                 "exchangeTxId": "1010020692439483803499737088",
+        //                 "userId": "100406395",
+        //                 "fromCoin": "USDT",
+        //                 "fromCoinType": "crypto",
+        //                 "fromAmount": "10",
+        //                 "toCoin": "BTC",
+        //                 "toCoinType": "crypto",
+        //                 "toAmount": "0.00015344889",
+        //                 "exchangeStatus": "success",
+        //                 "extInfo": {},
+        //                 "convertRate": "0.000015344889",
+        //                 "createdAt": "1727257904726"
+        //             }
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1727258257216
+        //     }
+        //
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(data, "result", new Dictionary<string, object>() {});
+        object fromCurrencyId = this.safeString(result, "fromCoin");
+        object toCurrencyId = this.safeString(result, "toCoin");
+        object fromCurrency = null;
+        object toCurrency = null;
+        if (isTrue(!isEqual(fromCurrencyId, null)))
+        {
+            fromCurrency = this.currency(fromCurrencyId);
+        }
+        if (isTrue(!isEqual(toCurrencyId, null)))
+        {
+            toCurrency = this.currency(toCurrencyId);
+        }
+        return this.parseConversion(result, fromCurrency, toCurrency);
+    }
+
+    public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchConvertTradeHistory
+        * @description fetch the users history of conversion trades
+        * @see https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history
+        * @param {string} [code] the unified currency code
+        * @param {int} [since] the earliest time in ms to fetch conversions for
+        * @param {int} [limit] the maximum number of conversion structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+        * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.privateGetV5AssetExchangeQueryConvertHistory(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "ok",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "accountType": "eb_convert_uta",
+        //                     "exchangeTxId": "1010020692439483803499737088",
+        //                     "userId": "100406395",
+        //                     "fromCoin": "USDT",
+        //                     "fromCoinType": "crypto",
+        //                     "fromAmount": "10",
+        //                     "toCoin": "BTC",
+        //                     "toCoinType": "crypto",
+        //                     "toAmount": "0.00015344889",
+        //                     "exchangeStatus": "success",
+        //                     "extInfo": {},
+        //                     "convertRate": "0.000015344889",
+        //                     "createdAt": "1727257904726"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1727258761874
+        //     }
+        //
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object dataList = this.safeList(data, "list", new List<object>() {});
+        return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "quoteTxId": "1010020692439481682687668224",
+        //         "exchangeRate": "0.000015330836780000",
+        //         "fromCoin": "USDT",
+        //         "fromCoinType": "crypto",
+        //         "toCoin": "BTC",
+        //         "toCoinType": "crypto",
+        //         "fromAmount": "10",
+        //         "toAmount": "0.000153308367800000",
+        //         "expiredTime": "1727257413353",
+        //         "requestId": ""
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "exchangeStatus": "processing",
+        //         "quoteTxId": "1010020692439483803499737088"
+        //     }
+        //
+        // fetchConvertTrade, fetchConvertTradeHistory
+        //
+        //     {
+        //         "accountType": "eb_convert_uta",
+        //         "exchangeTxId": "1010020692439483803499737088",
+        //         "userId": "100406395",
+        //         "fromCoin": "USDT",
+        //         "fromCoinType": "crypto",
+        //         "fromAmount": "10",
+        //         "toCoin": "BTC",
+        //         "toCoinType": "crypto",
+        //         "toAmount": "0.00015344889",
+        //         "exchangeStatus": "success",
+        //         "extInfo": {},
+        //         "convertRate": "0.000015344889",
+        //         "createdAt": "1727257904726"
+        //     }
+        //
+        object timestamp = this.safeInteger2(conversion, "expiredTime", "createdAt");
+        object fromCoin = this.safeString(conversion, "fromCoin");
+        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        object to = this.safeString(conversion, "toCoin");
+        object toCode = this.safeCurrencyCode(to, toCurrency);
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString2(conversion, "quoteTxId", "exchangeTxId") },
+            { "fromCurrency", fromCode },
+            { "fromAmount", this.safeNumber(conversion, "fromAmount") },
+            { "toCurrency", toCode },
+            { "toAmount", this.safeNumber(conversion, "toAmount") },
+            { "price", null },
+            { "fee", null },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

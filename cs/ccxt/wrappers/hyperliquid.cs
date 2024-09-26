@@ -10,7 +10,7 @@ public partial class hyperliquid
     /// retrieves data on all spot markets for hyperliquid
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -40,7 +40,8 @@ public partial class hyperliquid
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -72,7 +73,7 @@ public partial class hyperliquid
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#info"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -99,7 +100,8 @@ public partial class hyperliquid
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -119,7 +121,7 @@ public partial class hyperliquid
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#info-1"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -490,7 +492,7 @@ public partial class hyperliquid
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-historical-funding-rates"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -799,7 +801,7 @@ public partial class hyperliquid
     /// fetch data on an open position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -825,7 +827,7 @@ public partial class hyperliquid
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-state"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -981,6 +983,12 @@ public partial class hyperliquid
     /// <remarks>
     /// <list type="table">
     /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : timestamp in ms of the earliest ledger entry
@@ -989,7 +997,7 @@ public partial class hyperliquid
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return
+    /// int : max number of ledger entries to return
     /// </description>
     /// </item>
     /// <item>
@@ -1007,12 +1015,12 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// fetch all deposits made to an account

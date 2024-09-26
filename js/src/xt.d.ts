@@ -1,5 +1,5 @@
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry } from './base/types.js';
 /**
  * @class xt
  * @augments Exchange
@@ -41,27 +41,8 @@ export default class xt extends Exchange {
     cancelOrders(ids: string[], symbol?: string, params?: {}): Promise<Order[]>;
     parseOrder(order: any, market?: any): Order;
     parseOrderStatus(status: any): string;
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntry(item: any, currency?: any): {
-        id: string;
-        direction: string;
-        account: any;
-        referenceId: any;
-        referenceAccount: any;
-        type: string;
-        currency: string;
-        amount: number;
-        timestamp: number;
-        datetime: string;
-        before: any;
-        after: number;
-        status: any;
-        fee: {
-            currency: any;
-            cost: any;
-        };
-        info: any;
-    };
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    parseLedgerEntry(item: any, currency?: any): LedgerEntry;
     parseLedgerEntryType(type: any): string;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;

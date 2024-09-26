@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2072,6 +2072,10 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2383,6 +2387,10 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2611,6 +2619,7 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2631,6 +2640,19 @@ export default class htx extends Exchange {
     }
 
     async fetchSpotOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name htx#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+         * @param {string} id order id
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
         await this.loadMarkets ();
         const request: Dict = {
             'order-id': id,
@@ -7905,7 +7927,7 @@ export default class htx extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "accountId": 10000001,
@@ -7919,54 +7941,51 @@ export default class htx extends Exchange {
         //         "transferee": 13496526
         //     }
         //
-        const id = this.safeString (item, 'transactId');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeNumber (item, 'transactAmt');
+        currency = this.safeCurrency (currencyId, currency);
+        const id = this.safeString (item, 'transactId');
         const transferType = this.safeString (item, 'transferType');
-        const type = this.parseLedgerEntryType (transferType);
-        const direction = this.safeString (item, 'direction');
         const timestamp = this.safeInteger (item, 'transactTime');
-        const datetime = this.iso8601 (timestamp);
         const account = this.safeString (item, 'accountId');
-        return {
+        return this.safeLedgerEntry ({
+            'info': item,
             'id': id,
-            'direction': direction,
+            'direction': this.safeString (item, 'direction'),
             'account': account,
             'referenceId': id,
             'referenceAccount': account,
-            'type': type,
+            'type': this.parseLedgerEntryType (transferType),
             'currency': code,
-            'amount': amount,
+            'amount': this.safeNumber (item, 'transactAmt'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'before': undefined,
             'after': undefined,
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency) as LedgerEntry;
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name htx#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 500);
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 500) as LedgerEntry[];
         }
         const accountId = await this.fetchAccountIdByType ('spot', undefined, undefined, params);
         let request: Dict = {

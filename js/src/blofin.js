@@ -1506,15 +1506,15 @@ export default class blofin extends Exchange {
         /**
          * @method
          * @name blofin#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://blofin.com/docs#get-funds-transfer-history
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -1650,29 +1650,27 @@ export default class blofin extends Exchange {
         return this.safeString(types, type, type);
     }
     parseLedgerEntry(item, currency = undefined) {
-        const id = this.safeString(item, 'transferId');
-        const referenceId = this.safeString(item, 'clientId');
-        const fromAccount = this.safeString(item, 'fromAccount');
-        const toAccount = this.safeString(item, 'toAccount');
-        const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
-        const code = this.safeCurrencyCode(this.safeString(item, 'currency'), currency);
-        const amountString = this.safeString(item, 'amount');
-        const amount = this.parseNumber(amountString);
+        const currencyId = this.safeString(item, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'ts');
-        const status = 'ok';
-        return {
-            'id': id,
+        return this.safeLedgerEntry({
             'info': item,
+            'id': this.safeString(item, 'transferId'),
+            'direction': undefined,
+            'account': undefined,
+            'referenceId': this.safeString(item, 'clientId'),
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
+            'currency': code,
+            'amount': this.safeNumber(item, 'amount'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'type': type,
-            'currency': code,
-            'amount': amount,
-            'clientId': referenceId,
-            'status': status,
-        };
+            'before': undefined,
+            'after': undefined,
+            'status': 'ok',
+            'fee': undefined,
+        }, currency);
     }
     parseIds(ids) {
         /**

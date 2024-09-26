@@ -458,6 +458,7 @@ public partial class bingx : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "SNOW", "Snowman" },
                 { "OMNI", "OmniCat" },
+                { "NAP", "$NAP" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
@@ -479,6 +480,9 @@ public partial class bingx : Exchange
                     { "USDC", "ERC20" },
                     { "BTC", "BTC" },
                     { "LTC", "LTC" },
+                } },
+                { "networks", new Dictionary<string, object>() {
+                    { "ARB", "ARBITRUM" },
                 } },
             } },
         });

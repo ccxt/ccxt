@@ -30,6 +30,7 @@ export default class mexc extends Exchange {
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): any;
     createSpotOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<Order>;
@@ -156,6 +157,8 @@ export default class mexc extends Exchange {
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Leverage>;
+    nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;
