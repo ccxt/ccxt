@@ -18,6 +18,7 @@ class coinone extends \ccxt\async\coinone {
                 'watchOrderBook' => true,
                 'watchOrders' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOHLCV' => false,
                 'watchTicker' => true,
                 'watchTickers' => false,
@@ -263,7 +264,7 @@ class coinone extends \ccxt\async\coinone {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -316,7 +317,7 @@ class coinone extends \ccxt\async\coinone {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "quote_currency" => "KRW",
@@ -407,7 +408,7 @@ class coinone extends \ccxt\async\coinone {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'request_type' => 'PING',
         );

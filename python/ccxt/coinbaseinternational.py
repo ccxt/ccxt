@@ -74,7 +74,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -92,7 +92,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchMyBuys': True,
                 'fetchMySells': True,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -111,6 +111,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchTrades': False,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'sandbox': True,
@@ -153,7 +154,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                             'instruments/{instrument}',
                             'instruments/{instrument}/quote',
                             'instruments/{instrument}/funding',
-                            '',
+                            'instruments/{instrument}/candles',
                         ],
                     },
                     'private': {
@@ -351,6 +352,75 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'info': account,
         }
 
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = 100, params={}) -> List[list]:
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch, default 100 max 10000
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000)
+        market = self.market(symbol)
+        request: dict = {
+            'instrument': market['id'],
+            'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
+        }
+        if since is not None:
+            request['start'] = self.iso8601(since)
+        else:
+            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument')
+        unitl = self.safe_integer(params, 'until')
+        if unitl is not None:
+            params = self.omit(params, 'until')
+            request['end'] = self.iso8601(unitl)
+        response = self.v1PublicGetInstrumentsInstrumentCandles(self.extend(request, params))
+        #
+        #   {
+        #       "aggregations": [
+        #         {
+        #           "start": "2024-04-23T00:00:00Z",
+        #           "open": "62884.4",
+        #           "high": "64710.6",
+        #           "low": "62884.4",
+        #           "close": "63508.4",
+        #           "volume": "3253.9983"
+        #         }
+        #       ]
+        #   }
+        #
+        candles = self.safe_list(response, 'aggregations', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+        #
+        #   {
+        #     "start": "2024-04-23T00:00:00Z",
+        #     "open": "62884.4",
+        #     "high": "64710.6",
+        #     "low": "62884.4",
+        #     "close": "63508.4",
+        #     "volume": "3253.9983"
+        #   }
+        #
+        return [
+            self.parse8601(self.safe_string_2(ohlcv, 'start', 'time')),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
+        ]
+
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
@@ -432,6 +502,160 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :see: https://docs.cdp.coinbase.com/intx/reference/gettransfers
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
+        self.load_markets()
+        request: dict = {
+            'type': 'FUNDING',
+        }
+        market: Market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        portfolios = None
+        portfolios, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'portfolios')
+        if portfolios is not None:
+            request['portfolios'] = portfolios
+        if since is not None:
+            request['time_from'] = self.iso8601(since)
+        if limit is not None:
+            request['result_limit'] = limit
+        else:
+            request['result_limit'] = 100
+        response = self.v1PrivateGetTransfers(self.extend(request, params))
+        fundings = self.safe_list(response, 'results', [])
+        return self.parse_incomes(fundings, market, since, limit)
+
+    def parse_income(self, income, market: Market = None):
+        #
+        # {
+        #     "amount":"0.0008",
+        #     "asset":"USDC",
+        #     "created_at":"2024-02-22T16:00:00Z",
+        #     "from_portfolio":{
+        #        "id":"13yuk1fs-1-0",
+        #        "name":"Eng Test Portfolio - 2",
+        #        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        #     },
+        #     "instrument_id":"149264164756389888",
+        #     "instrument_symbol":"ETH-PERP",
+        #     "position_id":"1xy4v51m-1-2",
+        #     "status":"PROCESSED",
+        #     "to_portfolio":{
+        #        "name":"CB_FUND"
+        #     },
+        #     "transfer_type":"FUNDING",
+        #     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        #     "updated_at":"2024-02-22T16:00:00Z"
+        # }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        market = self.safe_market(marketId, market, None, 'contract')
+        datetime = self.safe_integer(income, 'created_at')
+        timestamp = self.parse8601(datetime)
+        currencyId = self.safe_string(income, 'asset')
+        code = self.safe_currency_code(currencyId)
+        return {
+            'info': income,
+            'symbol': market['symbol'],
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(income, 'transfer_uuid'),
+            'amount': self.safe_number(income, 'amount'),
+            'rate': None,
+        }
+
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+        """
+        fetch a history of internal transfers made on an account
+        :see: https://docs.cdp.coinbase.com/intx/reference/gettransfers
+        :param str code: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of  transfers structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        """
+        self.load_markets()
+        request: dict = {
+            'type': 'INTERNAL',
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        portfolios = None
+        portfolios, params = self.handle_option_and_params(params, 'fetchTransfers', 'portfolios')
+        if portfolios is not None:
+            request['portfolios'] = portfolios
+        if since is not None:
+            request['time_from'] = self.iso8601(since)
+        if limit is not None:
+            request['result_limit'] = limit
+        else:
+            request['result_limit'] = 100
+        response = self.v1PrivateGetTransfers(self.extend(request, params))
+        transfers = self.safe_list(response, 'results', [])
+        return self.parse_transfers(transfers, currency, since, limit)
+
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
+        #
+        # {
+        #     "amount":"0.0008",
+        #     "asset":"USDC",
+        #     "created_at":"2024-02-22T16:00:00Z",
+        #     "from_portfolio":{
+        #        "id":"13yuk1fs-1-0",
+        #        "name":"Eng Test Portfolio - 2",
+        #        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        #     },
+        #     "instrument_id":"149264164756389888",
+        #     "instrument_symbol":"ETH-PERP",
+        #     "position_id":"1xy4v51m-1-2",
+        #     "status":"PROCESSED",
+        #     "to_portfolio":{
+        #        "name":"CB_FUND"
+        #     },
+        #     "transfer_type":"FUNDING",
+        #     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        #     "updated_at":"2024-02-22T16:00:00Z"
+        # }
+        #
+        datetime = self.safe_integer(transfer, 'created_at')
+        timestamp = self.parse8601(datetime)
+        currencyId = self.safe_string(transfer, 'asset')
+        code = self.safe_currency_code(currencyId)
+        fromPorfolio = self.safe_dict(transfer, 'from_portfolio', {})
+        fromId = self.safe_string(fromPorfolio, 'id')
+        toPorfolio = self.safe_dict(transfer, 'to_portfolio', {})
+        toId = self.safe_string(toPorfolio, 'id')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'transfer_uuid'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': code,
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
+        }
+
+    def parse_transfer_status(self, status: Str) -> Str:
+        statuses: dict = {
+            'FAILED': 'failed',
+            'PROCESSED': 'ok',
+            'NEW': 'pending',
+            'STARTED': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
 
     def create_deposit_address(self, code: str, params={}):
         """
@@ -530,11 +754,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currencyId = self.safe_string(network, 'asset_name')
         currencyCode = self.safe_currency_code(currencyId)
         networkId = self.safe_string(network, 'network_arn_id')
+        networkIdForCode = self.safe_string_n(network, ['network_name', 'display_name', 'network_arn_id'], '')
         return self.safe_network({
             'info': network,
             'id': networkId,
             'name': self.safe_string(network, 'display_name'),
-            'network': self.network_id_to_code(self.safe_string_n(network, ['network_name', 'display_name', 'network_arn_id'], ''), currencyCode),
+            'network': self.network_id_to_code(networkIdForCode, currencyCode),
             'active': None,
             'deposit': None,
             'withdraw': None,
@@ -571,7 +796,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.v1PrivatePostPortfoliosMargin(self.extend(request, params))
 
-    def fetch_deposits_withdrawals(self, code: str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :see: https://docs.cloud.coinbase.com/intx/reference/gettransfers
@@ -1542,7 +1767,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str params['clientOrderId']: client order id
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`

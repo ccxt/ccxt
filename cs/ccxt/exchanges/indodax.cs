@@ -867,15 +867,11 @@ public partial class indodax : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(!isEqual(type, "limit")))
-        {
-            throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
-        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -883,15 +879,55 @@ public partial class indodax : Exchange
             { "type", side },
             { "price", price },
         };
-        object currency = getValue(market, "baseId");
-        if (isTrue(isEqual(side, "buy")))
+        object priceIsRequired = false;
+        object quantityIsRequired = false;
+        if (isTrue(isEqual(type, "market")))
         {
-            ((IDictionary<string,object>)request)[(string)getValue(market, "quoteId")] = multiply(amount, price);
-        } else
+            if (isTrue(isEqual(side, "buy")))
+            {
+                object quoteAmount = null;
+                object cost = this.safeNumber(parameters, "cost");
+                parameters = this.omit(parameters, "cost");
+                if (isTrue(!isEqual(cost, null)))
+                {
+                    quoteAmount = this.costToPrecision(symbol, cost);
+                } else
+                {
+                    if (isTrue(isEqual(price, null)))
+                    {
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
+                    }
+                    object amountString = this.numberToString(amount);
+                    object priceString = this.numberToString(price);
+                    object costRequest = Precise.stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
+                }
+                ((IDictionary<string,object>)request)[(string)getValue(market, "quoteId")] = quoteAmount;
+            } else
+            {
+                quantityIsRequired = true;
+            }
+        } else if (isTrue(isEqual(type, "limit")))
         {
-            ((IDictionary<string,object>)request)[(string)getValue(market, "baseId")] = amount;
+            priceIsRequired = true;
+            quantityIsRequired = true;
+            if (isTrue(isEqual(side, "buy")))
+            {
+                ((IDictionary<string,object>)request)[(string)getValue(market, "quoteId")] = this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
+            }
         }
-        ((IDictionary<string,object>)request)[(string)currency] = amount;
+        if (isTrue(priceIsRequired))
+        {
+            if (isTrue(isEqual(price, null)))
+            {
+                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+            }
+            ((IDictionary<string,object>)request)["price"] = price;
+        }
+        if (isTrue(quantityIsRequired))
+        {
+            ((IDictionary<string,object>)request)[(string)getValue(market, "baseId")] = this.amountToPrecision(symbol, amount);
+        }
         object result = await this.privatePostTrade(this.extend(request, parameters));
         object data = this.safeValue(result, "return", new Dictionary<string, object>() {});
         object id = this.safeString(data, "order_id");

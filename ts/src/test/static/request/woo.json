@@ -28,7 +28,19 @@
                     10,
                     1
                 ],
-                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=10&order_price=1&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=10&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+            },
+            {
+                "description": "spot market buy using base amount",
+                "method": "createOrder",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.1
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_quantity=0.1&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
             },
             {
                 "description": "spot market sell",
@@ -105,6 +117,38 @@
                     }
                 ],
                 "output": "{\"activatedPrice\":\"50000\",\"algoType\":\"TRAILING_STOP\",\"callbackRate\":\"0.05\",\"quantity\":\"0.0001\",\"reduceOnly\":true,\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDT\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "Swap margine mode isolated order",
+                "method": "createOrder",
+                "url": "https://api.staging.woo.org/v1/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    50,
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&margin_mode=ISOLATED&order_price=50&order_quantity=0.2&order_type=LIMIT&side=BUY&symbol=PERP_LTC_USDT"
+            },
+            {
+                "description": "Swap margine mode cross order",
+                "method": "createOrder",
+                "url": "https://api.staging.woo.org/v1/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    50,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&margin_mode=CROSS&order_price=50&order_quantity=0.2&order_type=LIMIT&side=BUY&symbol=PERP_LTC_USDT"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -117,6 +161,18 @@
                     5
                 ],
                 "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=BUY&symbol=SPOT_LTC_USDT"
+            }
+        ],
+        "createMarketSellOrderWithCost":[
+            {
+                "description": "spot market sell with cost",
+                "method": "createMarketSellOrderWithCost",
+                "url": "https://api.woo.org/v1/order",
+                "input": [
+                  "LTC/USDT",
+                  5
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&order_amount=5&order_type=MARKET&side=SELL&symbol=SPOT_LTC_USDT"
             }
         ],
         "fetchOrders": [
@@ -248,12 +304,12 @@
         ],
         "setLeverage": [
             {
-                "description": "Set linear leverage",
+                "description": "Set linear leverage for spot margin market",
                 "method": "setLeverage",
                 "url": "https://api.woo.org/v1/client/leverage",
                 "input": [
                     5,
-                    "LTC/USDT:USDT"
+                    "LTC/USDT"
                 ],
                 "output": "leverage=5"
             }
@@ -576,6 +632,18 @@
                 ]
             }
         ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://api.woo.org/v1/funding_fee/history?size=1&symbol=PERP_LTC_USDT",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  1
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fundingRate",
@@ -610,6 +678,62 @@
                 "input": [
                   "12"
                 ]
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "Add margin with position side long",
+                "method": "addMargin",
+                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  0.2,
+                  {
+                    "position_side": "LONG"
+                  }
+                ],
+                "output": "action=ADD&adjust_amount=0.2&adjust_token=USDT&position_side=LONG&symbol=PERP_XRP_USDT"
+            },
+            {
+                "description": "Add margin with position side short",
+                "method": "addMargin",
+                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "input": [
+                    "XRP/USDT:USDT",
+                    0.2,
+                    {
+                        "position_side": "SHORT"
+                    }
+                ],
+                "output": "action=ADD&adjust_amount=0.2&adjust_token=USDT&position_side=SHORT&symbol=PERP_XRP_USDT"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Reduce margin with position side long",
+                "method": "reduceMargin",
+                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "input": [
+                    "XRP/USDT:USDT",
+                    0.2,
+                    {
+                        "position_side": "LONG"
+                    }
+                ],
+                "output": "action=REDUCE&adjust_amount=0.2&adjust_token=USDT&position_side=LONG&symbol=PERP_XRP_USDT"
+            },
+            {
+                "description": "Reduce margin with position side short",
+                "method": "reduceMargin",
+                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "input": [
+                    "XRP/USDT:USDT",
+                    0.2,
+                    {
+                        "position_side": "SHORT"
+                    }
+                ],
+                "output": "action=REDUCE&adjust_amount=0.2&adjust_token=USDT&position_side=SHORT&symbol=PERP_XRP_USDT"
             }
         ]
     }

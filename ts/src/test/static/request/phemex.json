@@ -176,6 +176,15 @@
         ],
         "fetchOrder": [
             {
+                "description": "spot",
+                "method": "fetchOrder",
+                "url": "https://api.phemex.com/api-data/spots/orders/by-order-id?symbol=sBTCUSDT&orderID=123",
+                "input": [
+                  "123",
+                  "BTC/USDT"
+                ]
+            },
+            {
                 "description": "usdt order",
                 "method": "fetchOrder",
                 "url": "https://testnet-api.phemex.com/api-data/g-futures/orders/by-order-id?symbol=LTCUSDT&orderID=a630814b-0b2c-4b84-86fe-62e18b4daba8",
@@ -187,11 +196,11 @@
         ],
         "fetchOrders": [
             {
-                "description": "Spot orders",
+                "description": "spot",
                 "method": "fetchOrders",
-                "url": "https://api.phemex.com/spot/orders?symbol=sLTCUSDT",
+                "url": "https://api.phemex.com/api-data/spots/orders?symbol=sBTCUSDT",
                 "input": [
-                    "LTC/USDT"
+                    "BTC/USDT"
                 ]
             },
             {

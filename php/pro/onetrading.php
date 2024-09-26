@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -21,6 +22,7 @@ class onetrading extends \ccxt\async\onetrading {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => false,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -983,9 +985,9 @@ class onetrading extends \ccxt\async\onetrading {
             $previousOrderArray = $this->filter_by_array($this->orders, 'id', $orderId, false);
             $previousOrder = $this->safe_value($previousOrderArray, 0, array());
             $symbol = $previousOrder['symbol'];
-            $filled = $this->safe_number($update, 'filled_amount');
+            $filled = $this->safe_string($update, 'filled_amount');
             $status = $this->parse_ws_order_status($updateType);
-            if ($updateType === 'ORDER_CLOSED' && $filled === 0) {
+            if ($updateType === 'ORDER_CLOSED' && Precise::string_eq($filled, '0')) {
                 $status = 'canceled';
             }
             $orderObject = array(

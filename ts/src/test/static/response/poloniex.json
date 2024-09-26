@@ -44,7 +44,7 @@
                         "price": 73189.21,
                         "amount": 0.026675,
                         "cost": 1952.32217675,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -158,6 +158,87 @@
                         73429.86,
                         13.769917
                     ]
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                  "LTC/USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "id": "345975213604921344",
+                    "clientOrderId": "",
+                    "symbol": "LTC_USDT",
+                    "state": "NEW",
+                    "accountType": "SPOT",
+                    "side": "BUY",
+                    "type": "LIMIT",
+                    "timeInForce": "GTC",
+                    "quantity": "0.1",
+                    "price": "55",
+                    "avgPrice": "0",
+                    "amount": "0",
+                    "filledQuantity": "0",
+                    "filledAmount": "0",
+                    "createTime": 1723453318832,
+                    "updateTime": 1723453318832,
+                    "orderSource": "API",
+                    "loan": false
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "345975213604921344",
+                      "clientOrderId": "",
+                      "symbol": "LTC_USDT",
+                      "state": "NEW",
+                      "accountType": "SPOT",
+                      "side": "BUY",
+                      "type": "LIMIT",
+                      "timeInForce": "GTC",
+                      "quantity": "0.1",
+                      "price": "55",
+                      "avgPrice": "0",
+                      "amount": "0",
+                      "filledQuantity": "0",
+                      "filledAmount": "0",
+                      "createTime": 1723453318832,
+                      "updateTime": 1723453318832,
+                      "orderSource": "API",
+                      "loan": false
+                    },
+                    "id": "345975213604921344",
+                    "clientOrderId": null,
+                    "timestamp": 1723453318832,
+                    "datetime": "2024-08-12T09:01:58.832Z",
+                    "lastTradeTimestamp": 1723453318832,
+                    "status": "open",
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 55,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.1,
+                    "filled": 0,
+                    "remaining": 0.1,
+                    "trades": [],
+                    "fee": null,
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
                 ]
             }
         ]

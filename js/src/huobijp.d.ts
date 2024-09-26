@@ -54,10 +54,10 @@ export default class huobijp extends Exchange {
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
+    parseCancelOrders(orders: any): any[];
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     currencyToPrecision(code: any, fee: any, networkCode?: any): string;
-    safeNetwork(networkId: any): string;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
         address: string;

@@ -23,6 +23,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOrderBook': True,
                 'watchBalance': True,
                 'watchOrders': True,
@@ -954,7 +955,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         :param bool [params.margin]: True for creating a margin order
@@ -1137,7 +1138,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         return message
 
     def handle_message(self, client: Client, message):
-        self.handle_error(client, message)
+        if self.handle_error(client, message):
+            return
         channel = self.safe_string_2(message, 'ch', 'method')
         if channel is not None:
             splitChannel = channel.split('/')
@@ -1206,11 +1208,22 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         error = self.safe_value(message, 'error')
         if error is not None:
-            code = self.safe_value(error, 'code')
-            errorMessage = self.safe_string(error, 'message')
-            description = self.safe_string(error, 'description')
-            feedback = self.id + ' ' + description
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
-            raise ExchangeError(feedback)  # unknown message
+            try:
+                code = self.safe_value(error, 'code')
+                errorMessage = self.safe_string(error, 'message')
+                description = self.safe_string(error, 'description')
+                feedback = self.id + ' ' + description
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+                raise ExchangeError(feedback)  # unknown message
+            except Exception as e:
+                if isinstance(e, AuthenticationError):
+                    messageHash = 'authenticated'
+                    client.reject(e, messageHash)
+                    if messageHash in client.subscriptions:
+                        del client.subscriptions[messageHash]
+                else:
+                    id = self.safe_string(message, 'id')
+                    client.reject(e, id)
+                return True
         return None

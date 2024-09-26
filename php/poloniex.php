@@ -95,7 +95,7 @@ class poloniex extends Exchange {
                     'rest' => 'https://sand-spot-api-gateway.poloniex.com',
                 ),
                 'www' => 'https://www.poloniex.com',
-                'doc' => 'https://docs.poloniex.com',
+                'doc' => 'https://api-docs.poloniex.com/spot/',
                 'fees' => 'https://poloniex.com/fees',
                 'referral' => 'https://poloniex.com/signup?c=UBFZJRPJ',
             ),
@@ -341,6 +341,7 @@ class poloniex extends Exchange {
                     '21350' => '\\ccxt\\InvalidOrder', // Amount must be greater than 1 USDT
                     '21355' => '\\ccxt\\ExchangeError', // Interval between startTime and endTime in trade/order history has exceeded 7 day limit
                     '21356' => '\\ccxt\\BadRequest', // Order size would cause too much price movement. Reduce order size.
+                    '21721' => '\\ccxt\\InsufficientFunds',
                     '24101' => '\\ccxt\\BadSymbol', // Invalid symbol
                     '24102' => '\\ccxt\\InvalidOrder', // Invalid K-line type
                     '24103' => '\\ccxt\\InvalidOrder', // Invalid endTime
@@ -409,7 +410,7 @@ class poloniex extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @see https://docs.poloniex.com/#public-endpoints-$market-data-candles
+         * @see https://api-docs.poloniex.com/spot/api/public/market-data#candles
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -474,7 +475,7 @@ class poloniex extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for poloniex
-         * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
+         * @see https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -565,7 +566,7 @@ class poloniex extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://docs.poloniex.com/#public-endpoints-reference-data-system-timestamp
+         * @see https://api-docs.poloniex.com/spot/api/public/reference-data#system-timestamp
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -632,7 +633,7 @@ class poloniex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
+         * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -670,7 +671,7 @@ class poloniex extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
-         * @see https://docs.poloniex.com/#public-endpoints-reference-data-$currency-information
+         * @see https://api-docs.poloniex.com/spot/api/public/reference-data#$currency-information
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -807,7 +808,7 @@ class poloniex extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @see https://docs.poloniex.com/#public-endpoints-$market-data-ticker
+         * @see https://api-docs.poloniex.com/spot/api/public/market-data#ticker
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -938,7 +939,7 @@ class poloniex extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
-         * @see https://docs.poloniex.com/#public-endpoints-$market-data-$trades
+         * @see https://api-docs.poloniex.com/spot/api/public/market-data#$trades
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -973,7 +974,7 @@ class poloniex extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
-         * @see https://docs.poloniex.com/#authenticated-endpoints-trades-trade-history
+         * @see https://api-docs.poloniex.com/spot/api/private/trade#trade-history
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1101,8 +1102,10 @@ class poloniex extends Exchange {
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
         $resultingTrades = $this->safe_value($order, 'resultingTrades');
-        if (gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades))) {
-            $resultingTrades = $this->safe_value($resultingTrades, $this->safe_string($market, 'id', $marketId));
+        if ($resultingTrades !== null) {
+            if (gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades))) {
+                $resultingTrades = $this->safe_value($resultingTrades, $this->safe_string($market, 'id', $marketId));
+            }
         }
         $price = $this->safe_string_2($order, 'price', 'rate');
         $amount = $this->safe_string($order, 'quantity');
@@ -1186,8 +1189,8 @@ class poloniex extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
-         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
+         * @see https://api-docs.poloniex.com/spot/api/private/order#open-orders
+         * @see https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -1243,13 +1246,13 @@ class poloniex extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  // trigger orders
+         * @see https://api-docs.poloniex.com/spot/api/private/order#create-order
+         * @see https://api-docs.poloniex.com/spot/api/private/smart-order#create-order  // trigger orders
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] *spot only* The $price at which a trigger order is triggered at
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
@@ -1282,7 +1285,8 @@ class poloniex extends Exchange {
         //     }
         //
         $response = $this->extend($response, array(
-            'type' => $side,
+            'type' => $type,
+            'side' => $side,
         ));
         return $this->parse_order($response, $market);
     }
@@ -1341,14 +1345,14 @@ class poloniex extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
+         * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-replace-order
+         * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-replace-order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1377,7 +1381,8 @@ class poloniex extends Exchange {
         //     }
         //
         $response = $this->extend($response, array(
-            'type' => $side,
+            'side' => $side,
+            'type' => $type,
         ));
         return $this->parse_order($response, $market);
     }
@@ -1387,8 +1392,8 @@ class poloniex extends Exchange {
         // @method
         // @name poloniex#cancelOrder
         // @description cancels an open order
-        // @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-$id
-        // @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-order-by-$id  // trigger orders
+        // @see https://api-docs.poloniex.com/spot/api/private/order#cancel-order-by-$id
+        // @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-order-by-$id  // trigger orders
         // @param {string} $id order $id
         // @param {string} $symbol unified $symbol of the market the order was made in
         // @param {object} [$params] extra parameters specific to the exchange API endpoint
@@ -1425,8 +1430,8 @@ class poloniex extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
-         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  // trigger orders
+         * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
+         * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if canceling trigger orders
@@ -1475,8 +1480,8 @@ class poloniex extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an $order by it's $id
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-$order-details
-         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
+         * @see https://api-docs.poloniex.com/spot/api/private/order#$order-details
+         * @see https://api-docs.poloniex.com/spot/api/private/smart-$order#open-orders  // trigger orders
          * @param {string} $id $order $id
          * @param {string} $symbol unified market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1533,7 +1538,7 @@ class poloniex extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-$trades-trades-by-order-$id
+         * @see https://api-docs.poloniex.com/spot/api/private/trade#$trades-by-order-$id
          * @param {string} $id order $id
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1595,7 +1600,7 @@ class poloniex extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
+         * @see https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -1626,7 +1631,7 @@ class poloniex extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
-         * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info
+         * @see https://api-docs.poloniex.com/spot/api/private/account#fee-info
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
@@ -1658,7 +1663,7 @@ class poloniex extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.poloniex.com/#public-endpoints-$market-data-order-book
+         * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum $amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1714,7 +1719,7 @@ class poloniex extends Exchange {
     public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit $address
-         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
+         * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1763,7 +1768,7 @@ class poloniex extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
-         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses
+         * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1812,7 +1817,7 @@ class poloniex extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
-         * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer
+         * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
@@ -1862,7 +1867,7 @@ class poloniex extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-$currency
+         * @see https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-$currency
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -1987,7 +1992,7 @@ class poloniex extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of $deposits and $withdrawals
-         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
+         * @see https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -2011,7 +2016,7 @@ class poloniex extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all $withdrawals made from an account
-         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
+         * @see https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
          * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
@@ -2031,7 +2036,7 @@ class poloniex extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
-         * @see https://docs.poloniex.com/#public-endpoints-reference-$data-currency-information
+         * @see https://api-docs.poloniex.com/spot/api/public/reference-$data#currency-information
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
@@ -2157,7 +2162,7 @@ class poloniex extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all $deposits made to an account
-         * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
+         * @see https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch $deposits for
          * @param {int} [$limit] the maximum number of $deposits structures to retrieve

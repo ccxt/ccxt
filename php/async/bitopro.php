@@ -1015,7 +1015,7 @@ class bitopro extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -1100,6 +1100,23 @@ class bitopro extends Exchange {
         }) ();
     }
 
+    public function parse_cancel_orders($data) {
+        $dataKeys = is_array($data) ? array_keys($data) : array();
+        $orders = array();
+        for ($i = 0; $i < count($dataKeys); $i++) {
+            $marketId = $dataKeys[$i];
+            $orderIds = $data[$marketId];
+            for ($j = 0; $j < count($orderIds); $j++) {
+                $orders[] = $this->safe_order(array(
+                    'info' => $orderIds[$j],
+                    'id' => $orderIds[$j],
+                    'symbol' => $this->safe_symbol($marketId),
+                ));
+            }
+        }
+        return $orders;
+    }
+
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
@@ -1129,7 +1146,8 @@ class bitopro extends Exchange {
             //         }
             //     }
             //
-            return $response;
+            $data = $this->safe_dict($response, 'data');
+            return $this->parse_cancel_orders($data);
         }) ();
     }
 
@@ -1154,7 +1172,7 @@ class bitopro extends Exchange {
             } else {
                 $response = Async\await($this->privateDeleteOrdersAll ($this->extend($request, $params)));
             }
-            $result = $this->safe_value($response, 'data', array());
+            $data = $this->safe_value($response, 'data', array());
             //
             //     {
             //         "data":{
@@ -1165,7 +1183,7 @@ class bitopro extends Exchange {
             //         }
             //     }
             //
-            return $result;
+            return $this->parse_cancel_orders($data);
         }) ();
     }
 
@@ -1174,6 +1192,7 @@ class bitopro extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

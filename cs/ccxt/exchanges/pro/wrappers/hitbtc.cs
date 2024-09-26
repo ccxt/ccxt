@@ -111,30 +111,19 @@ public partial class hitbtc
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#subscribe-to-candles"/>  <br/>
+    /// See <see href="https://doc.xt.com/#websocket_publicsymbolKline"/>  <br/>
+    /// See <see href="https://doc.xt.com/#futures_market_websocket_v2symbolKline"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>timeframe</term>
-    /// <description>
-    /// string : the length of time each candle represents
-    /// </description>
-    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : not used by hitbtc watchOHLCV
+    /// int : not used by xt watchOHLCV
     /// </description>
     /// </item>
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : 0 – 1000, default value = 0 (no history returned)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
+    /// int : not used by xt watchOHLCV
     /// </description>
     /// </item>
     /// </list>

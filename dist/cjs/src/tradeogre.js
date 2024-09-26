@@ -77,7 +77,6 @@ class tradeogre extends tradeogre$1 {
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
-                'fetchPermissions': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -215,7 +214,7 @@ class tradeogre extends tradeogre$1 {
                 'inverse': undefined,
                 'contractSize': undefined,
                 'taker': this.fees['trading']['taker'],
-                'maker': this.fees['trading']['taker'],
+                'maker': this.fees['trading']['maker'],
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -452,7 +451,7 @@ class tradeogre extends tradeogre$1 {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

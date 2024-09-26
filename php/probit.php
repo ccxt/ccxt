@@ -177,7 +177,7 @@ class probit extends Exchange {
                     'RATE_LIMIT_EXCEEDED' => '\\ccxt\\RateLimitExceeded', // You are sending requests too frequently. Please try it later.
                     'MARKET_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable', // Market is closed today
                     'INVALID_MARKET' => '\\ccxt\\BadSymbol', // Requested market is not exist
-                    'MARKET_CLOSED' => '\\ccxt\\BadSymbol', // array("errorCode":"MARKET_CLOSED")
+                    'MARKET_CLOSED' => '\\ccxt\\MarketClosed', // array("errorCode":"MARKET_CLOSED")
                     'MARKET_NOT_FOUND' => '\\ccxt\\BadSymbol', // array("errorCode":"MARKET_NOT_FOUND","message":"8e2b8496-0a1e-5beb-b990-a205b902eabe","details":array())
                     'INVALID_CURRENCY' => '\\ccxt\\BadRequest', // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS' => '\\ccxt\\DDoSProtection', // Too many open orders
@@ -1059,6 +1059,7 @@ class probit extends Exchange {
         /**
          * @see https://docs-en.probit.com/reference/order-3
          * fetches information on an $order made by the user
+         * @param {string} $id the $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -1171,7 +1172,7 @@ class probit extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
@@ -1810,11 +1811,16 @@ class probit extends Exchange {
         }
         if (is_array($response) && array_key_exists('errorCode', $response)) {
             $errorCode = $this->safe_string($response, 'errorCode');
-            $message = $this->safe_string($response, 'message');
             if ($errorCode !== null) {
-                $feedback = $this->id . ' ' . $body;
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-                $this->throw_broadly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                $errMessage = $this->safe_string($response, 'message', '');
+                $details = $this->safe_value($response, 'details');
+                $feedback = $this->id . ' ' . $errorCode . ' ' . $errMessage . ' ' . $this->json($details);
+                if (is_array($this->exceptions) && array_key_exists('exact', $this->exceptions)) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                }
+                if (is_array($this->exceptions) && array_key_exists('broad', $this->exceptions)) {
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $errMessage, $feedback);
+                }
                 throw new ExchangeError($feedback);
             }
         }

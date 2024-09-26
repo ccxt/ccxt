@@ -741,7 +741,7 @@ class btcalpha extends btcalpha$1 {
          * @param {string} type 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -794,6 +794,7 @@ class btcalpha extends btcalpha$1 {
          * @name btcalpha#fetchOrder
          * @see https://btc-alpha.github.io/api-docs/#retrieve-single-order
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol not used by btcalpha fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -929,21 +930,13 @@ class btcalpha extends btcalpha$1 {
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         //
         const error = this.safeString(response, 'error');
-        const feedback = this.id + ' ' + body;
         if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
+            throw new errors.ExchangeError(feedback); // unknown error
         }
-        if (code === 401 || code === 403) {
-            throw new errors.AuthenticationError(feedback);
-        }
-        else if (code === 429) {
-            throw new errors.DDoSProtection(feedback);
-        }
-        if (code < 400) {
-            return undefined;
-        }
-        throw new errors.ExchangeError(feedback);
+        return undefined;
     }
 }
 

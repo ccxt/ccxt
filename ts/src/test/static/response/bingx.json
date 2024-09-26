@@ -1091,14 +1091,12 @@
                         "cost": 65.2965,
                         "fee": {
                             "cost": 0.0326,
-                            "currency": "USDT",
-                            "rate": null
+                            "currency": "USDT"
                         },
                         "fees": [
                             {
                                 "cost": 0.0326,
-                                "currency": "USDT",
-                                "rate": null
+                                "currency": "USDT"
                             }
                         ]
                     }
@@ -1162,14 +1160,12 @@
                         "cost": 7.5562000000000005,
                         "fee": {
                             "cost": 0.0001,
-                            "currency": "LTC",
-                            "rate": null
+                            "currency": "LTC"
                         },
                         "fees": [
                             {
                                 "cost": 0.0001,
-                                "currency": "LTC",
-                                "rate": null
+                                "currency": "LTC"
                             }
                         ]
                     }
@@ -1408,18 +1404,8 @@
                         "price": 73239.12,
                         "amount": 0.09624,
                         "cost": 7048.5329088,
-                        "fee": {
-                            "cost": null,
-                            "currency": null,
-                            "rate": null
-                        },
-                        "fees": [
-                            {
-                                "cost": null,
-                                "currency": null,
-                                "rate": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     }
                 ]
             }
@@ -1538,7 +1524,7 @@
                   "previousClose": null,
                   "change": -392.1,
                   "percentage": -0.56,
-                  "average": 70134.95,
+                  "average": 70134.9,
                   "baseVolume": 74183.8679,
                   "quoteVolume": 5237383426.37,
                   "info": {
@@ -1958,7 +1944,7 @@
                     "percentage": null,
                     "contracts": 0.1,
                     "contractSize": 1,
-                    "markPrice": null,
+                    "markPrice": 95.62,
                     "lastPrice": null,
                     "side": "long",
                     "hedged": null,

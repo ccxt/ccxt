@@ -125,8 +125,8 @@ public partial class blockchaincom : Exchange
                     { "tierBased", true },
                     { "percentage", true },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0022")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0011")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0.0006")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0007000000000000001")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0045")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0011")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0.0006")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0017")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0")}} },
                     } },
                 } },
             } },
@@ -188,7 +188,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchMarkets
         * @description retrieves data on all markets for blockchaincom
-        * @see https://api.blockchain.com/v3/#/unauthenticated/getSymbols
+        * @see https://api.blockchain.com/v3/#getsymbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -325,7 +325,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://api.blockchain.com/v3/#/unauthenticated/getL3OrderBook
+        * @see https://api.blockchain.com/v3/#getl3orderbook
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -341,7 +341,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchL3OrderBook
         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://api.blockchain.com/v3/#/unauthenticated/getL3OrderBook
+        * @see https://api.blockchain.com/v3/#getl3orderbook
         * @param {string} symbol unified market symbol
         * @param {int} [limit] max number of orders to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -422,7 +422,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://api.blockchain.com/v3/#/unauthenticated/getTickerBySymbol
+        * @see https://api.blockchain.com/v3/#gettickerbysymbol
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -443,7 +443,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://api.blockchain.com/v3/#/unauthenticated/getTickers
+        * @see https://api.blockchain.com/v3/#gettickers
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -531,12 +531,12 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#createOrder
         * @description create a trade order
-        * @see https://api.blockchain.com/v3/#/trading/createOrder
+        * @see https://api.blockchain.com/v3/#createorder
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -601,7 +601,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#cancelOrder
         * @description cancels an open order
-        * @see https://api.blockchain.com/v3/#/trading/deleteOrder
+        * @see https://api.blockchain.com/v3/#deleteorder
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -654,7 +654,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchTradingFees
         * @description fetch the trading fees for multiple markets
-        * @see https://api.blockchain.com/v3/#/trading/getFees
+        * @see https://api.blockchain.com/v3/#getfees
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
@@ -690,7 +690,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchCanceledOrders
         * @description fetches information on multiple canceled orders made by the user
-        * @see https://api.blockchain.com/v3/#/trading/getOrders
+        * @see https://api.blockchain.com/v3/#getorders
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] max number of orders to return, default is undefined
@@ -708,7 +708,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
-        * @see https://api.blockchain.com/v3/#/trading/getOrders
+        * @see https://api.blockchain.com/v3/#getorders
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -726,7 +726,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchOpenOrders
         * @description fetch all unfilled currently open orders
-        * @see https://api.blockchain.com/v3/#/trading/getOrders
+        * @see https://api.blockchain.com/v3/#getorders
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -814,7 +814,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchMyTrades
         * @description fetch all trades made by the user
-        * @see https://api.blockchain.com/v3/#/trading/getFills
+        * @see https://api.blockchain.com/v3/#getfills
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -844,7 +844,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
-        * @see https://api.blockchain.com/v3/#/payments/getDepositAddress
+        * @see https://api.blockchain.com/v3/#getdepositaddress
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -974,7 +974,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#withdraw
         * @description make a withdrawal
-        * @see https://api.blockchain.com/v3/#/payments/createWithdrawal
+        * @see https://api.blockchain.com/v3/#createwithdrawal
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
         * @param {string} address the address to withdraw to
@@ -1012,7 +1012,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchWithdrawals
         * @description fetch all withdrawals made from an account
-        * @see https://api.blockchain.com/v3/#/payments/getWithdrawals
+        * @see https://api.blockchain.com/v3/#getwithdrawals
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1041,7 +1041,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchWithdrawal
         * @description fetch data on a currency withdrawal via the withdrawal id
-        * @see https://api.blockchain.com/v3/#/payments/getWithdrawalById
+        * @see https://api.blockchain.com/v3/#getwithdrawalbyid
         * @param {string} id withdrawal id
         * @param {string} code not used by blockchaincom.fetchWithdrawal
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1062,7 +1062,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchDeposits
         * @description fetch all deposits made to an account
-        * @see https://api.blockchain.com/v3/#/payments/getDeposits
+        * @see https://api.blockchain.com/v3/#getdeposits
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch deposits for
         * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1091,7 +1091,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchDeposit
         * @description fetch information on a deposit
-        * @see https://api.blockchain.com/v3/#/payments/getDepositById
+        * @see https://api.blockchain.com/v3/#getdepositbyid
         * @param {string} id deposit id
         * @param {string} code not used by blockchaincom fetchDeposit ()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1113,7 +1113,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://api.blockchain.com/v3/#/payments/getAccounts
+        * @see https://api.blockchain.com/v3/#getaccounts
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -1167,7 +1167,8 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#fetchOrder
         * @description fetches information on an order made by the user
-        * @see https://api.blockchain.com/v3/#/trading/getOrderById
+        * @see https://api.blockchain.com/v3/#getorderbyid
+        * @param {string} id the order id
         * @param {string} symbol not used by blockchaincom fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

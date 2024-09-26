@@ -554,7 +554,7 @@ public partial class bitflyer : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -598,7 +598,13 @@ public partial class bitflyer : Exchange
             { "product_code", this.marketId(symbol) },
             { "child_order_acceptance_id", id },
         };
-        return await this.privatePostCancelchildorder(this.extend(request, parameters));
+        object response = await this.privatePostCancelchildorder(this.extend(request, parameters));
+        //
+        //    200 OK.
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public virtual object parseOrderStatus(object status)
@@ -745,6 +751,7 @@ public partial class bitflyer : Exchange
         * @name bitflyer#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1135,11 +1142,11 @@ public partial class bitflyer : Exchange
         object feedback = add(add(this.id, " "), body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         object errorMessage = this.safeString(response, "error_message");
-        object statusCode = this.safeNumber(response, "status");
+        object statusCode = this.safeInteger(response, "status");
         if (isTrue(!isEqual(errorMessage, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), statusCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

@@ -1308,7 +1308,7 @@ class wavesexchange extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of $base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopPrice] The $price at which a stop order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1327,7 +1327,8 @@ class wavesexchange extends Exchange {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders to determine the max $price for buy and the min $price for sell');
             }
             $timestamp = $this->milliseconds();
-            $defaultExpiryDelta = $this->safe_integer($this->options, 'createOrderDefaultExpiry', 2419200000);
+            $defaultExpiryDelta = null;
+            list($defaultExpiryDelta, $params) = $this->handle_option_and_params($params, 'createOrder', 'defaultExpiry', $this->safe_integer($this->options, 'createOrderDefaultExpiry', 2419200000));
             $expiration = $this->sum($timestamp, $defaultExpiryDelta);
             $matcherFees = Async\await($this->get_fees_for_asset($symbol, $side, $amount, $price));
             // {
@@ -1473,11 +1474,11 @@ class wavesexchange extends Exchange {
             //     }
             //
             if ($isMarketOrder) {
-                $response = Async\await($this->matcherPostMatcherOrderbookMarket ($body));
+                $response = Async\await($this->matcherPostMatcherOrderbookMarket ($this->extend($body, $params)));
                 $value = $this->safe_dict($response, 'message');
                 return $this->parse_order($value, $market);
             } else {
-                $response = Async\await($this->matcherPostMatcherOrderbook ($body));
+                $response = Async\await($this->matcherPostMatcherOrderbook ($this->extend($body, $params)));
                 $value = $this->safe_dict($response, 'message');
                 return $this->parse_order($value, $market);
             }

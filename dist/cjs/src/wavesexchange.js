@@ -1280,7 +1280,7 @@ class wavesexchange extends wavesexchange$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a stop order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1299,7 +1299,8 @@ class wavesexchange extends wavesexchange$1 {
             throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
         }
         const timestamp = this.milliseconds();
-        const defaultExpiryDelta = this.safeInteger(this.options, 'createOrderDefaultExpiry', 2419200000);
+        let defaultExpiryDelta = undefined;
+        [defaultExpiryDelta, params] = this.handleOptionAndParams(params, 'createOrder', 'defaultExpiry', this.safeInteger(this.options, 'createOrderDefaultExpiry', 2419200000));
         const expiration = this.sum(timestamp, defaultExpiryDelta);
         const matcherFees = await this.getFeesForAsset(symbol, side, amount, price);
         // {
@@ -1447,12 +1448,12 @@ class wavesexchange extends wavesexchange$1 {
         //     }
         //
         if (isMarketOrder) {
-            const response = await this.matcherPostMatcherOrderbookMarket(body);
+            const response = await this.matcherPostMatcherOrderbookMarket(this.extend(body, params));
             const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
         else {
-            const response = await this.matcherPostMatcherOrderbook(body);
+            const response = await this.matcherPostMatcherOrderbook(this.extend(body, params));
             const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }

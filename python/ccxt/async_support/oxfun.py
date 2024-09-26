@@ -1969,7 +1969,7 @@ class oxfun(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://docs.bitflex.com/spot#withdraw
+        :see: https://docs.ox.fun/?json#post-v3-withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2141,7 +2141,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str type: 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.clientOrderId]: a unique id for the order
         :param int [params.timestamp]: in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
@@ -2327,7 +2327,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str type: 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.clientOrderId]: a unique id for the order
         :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders

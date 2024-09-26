@@ -735,7 +735,7 @@ class timex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market $orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market $orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
@@ -863,12 +863,13 @@ class timex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
-        return $this->cancel_orders(array( $id ), $symbol, $params);
+        $orders = $this->cancel_orders(array( $id ), $symbol, $params);
+        return $this->safe_dict($orders, 0);
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
-         * cancel multiple orders
+         * cancel multiple $orders
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified market $symbol, default is null
@@ -904,7 +905,22 @@ class timex extends Exchange {
         //         ),
         //         "unchangedOrders" => array( "string" ),
         //     }
-        return $response;
+        //
+        $changedOrders = $this->safe_list($response, 'changedOrders', array());
+        $unchangedOrders = $this->safe_list($response, 'unchangedOrders', array());
+        $orders = array();
+        for ($i = 0; $i < count($changedOrders); $i++) {
+            $newOrder = $this->safe_dict($changedOrders[$i], 'newOrder');
+            $orders[] = $this->parse_order($newOrder);
+        }
+        for ($i = 0; $i < count($unchangedOrders); $i++) {
+            $orders[] = $this->safe_order(array(
+                'info' => $unchangedOrders[$i],
+                'id' => $unchangedOrders[$i],
+                'status' => 'unchanged',
+            ));
+        }
+        return $orders;
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

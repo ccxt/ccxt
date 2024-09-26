@@ -23,6 +23,7 @@ before_install:
 - pip install twine # used to publish python package
 - pip install pyopenssl aiohttp # used to run real-time tests
 - pip install typing-extensions # required by python <3.11
+- pip install psutil # used for python ws base test
 - php -i | grep php.ini
 - composer install
 - sudo apt update

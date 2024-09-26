@@ -21,6 +21,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOrderBook' => true,
                 'watchBalance' => true,
                 'watchOrders' => true,
@@ -1033,7 +1034,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
              * @param {bool} [$params->margin] true for creating a margin order
@@ -1239,7 +1240,9 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function handle_message(Client $client, $message) {
-        $this->handle_error($client, $message);
+        if ($this->handle_error($client, $message)) {
+            return;
+        }
         $channel = $this->safe_string_2($message, 'ch', 'method');
         if ($channel !== null) {
             $splitChannel = explode('/', $channel);
@@ -1313,18 +1316,32 @@ class hitbtc extends \ccxt\async\hitbtc {
         //          $message => 'Insufficient funds',
         //          $description => 'Check that the funds are sufficient, given commissions'
         //        ),
-        //        id => 1700228604325
+        //        $id => 1700228604325
         //    }
         //
         $error = $this->safe_value($message, 'error');
         if ($error !== null) {
-            $code = $this->safe_value($error, 'code');
-            $errorMessage = $this->safe_string($error, 'message');
-            $description = $this->safe_string($error, 'description');
-            $feedback = $this->id . ' ' . $description;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            try {
+                $code = $this->safe_value($error, 'code');
+                $errorMessage = $this->safe_string($error, 'message');
+                $description = $this->safe_string($error, 'description');
+                $feedback = $this->id . ' ' . $description;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+                throw new ExchangeError($feedback); // unknown $message
+            } catch (Exception $e) {
+                if ($e instanceof AuthenticationError) {
+                    $messageHash = 'authenticated';
+                    $client->reject ($e, $messageHash);
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                        unset($client->subscriptions[$messageHash]);
+                    }
+                } else {
+                    $id = $this->safe_string($message, 'id');
+                    $client->reject ($e, $id);
+                }
+                return true;
+            }
         }
         return null;
     }

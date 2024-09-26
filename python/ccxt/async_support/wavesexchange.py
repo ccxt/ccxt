@@ -1221,7 +1221,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: The price at which a stop order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1239,7 +1239,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         if (isMarketOrder) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell')
         timestamp = self.milliseconds()
-        defaultExpiryDelta = self.safe_integer(self.options, 'createOrderDefaultExpiry', 2419200000)
+        defaultExpiryDelta = None
+        defaultExpiryDelta, params = self.handle_option_and_params(params, 'createOrder', 'defaultExpiry', self.safe_integer(self.options, 'createOrderDefaultExpiry', 2419200000))
         expiration = self.sum(timestamp, defaultExpiryDelta)
         matcherFees = await self.get_fees_for_asset(symbol, side, amount, price)
         # {
@@ -1374,11 +1375,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         #     }
         #
         if isMarketOrder:
-            response = await self.matcherPostMatcherOrderbookMarket(body)
+            response = await self.matcherPostMatcherOrderbookMarket(self.extend(body, params))
             value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
         else:
-            response = await self.matcherPostMatcherOrderbook(body)
+            response = await self.matcherPostMatcherOrderbook(self.extend(body, params))
             value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
 

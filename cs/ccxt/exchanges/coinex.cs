@@ -1178,7 +1178,10 @@ public partial class coinex : Exchange
         //         "side": "buy",
         //         "order_id": 136915589622,
         //         "price": "64376",
-        //         "amount": "0.0001"
+        //         "amount": "0.0001",
+        //         "role": "taker",
+        //         "fee": "0.0299",
+        //         "fee_ccy": "USDT"
         //     }
         //
         object timestamp = this.safeInteger(trade, "created_at");
@@ -1189,6 +1192,17 @@ public partial class coinex : Exchange
         }
         object marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
+        object feeCostString = this.safeString(trade, "fee");
+        object fee = null;
+        if (isTrue(!isEqual(feeCostString, null)))
+        {
+            object feeCurrencyId = this.safeString(trade, "fee_ccy");
+            object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            fee = new Dictionary<string, object>() {
+                { "cost", feeCostString },
+                { "currency", feeCurrencyCode },
+            };
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -1198,11 +1212,11 @@ public partial class coinex : Exchange
             { "order", this.safeString(trade, "order_id") },
             { "type", null },
             { "side", this.safeString(trade, "side") },
-            { "takerOrMaker", null },
+            { "takerOrMaker", this.safeString(trade, "role") },
             { "price", this.safeString(trade, "price") },
             { "amount", this.safeString(trade, "amount") },
             { "cost", this.safeString(trade, "deal_money") },
-            { "fee", null },
+            { "fee", fee },
         }, market);
     }
 
@@ -2087,7 +2101,7 @@ public partial class coinex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] price to trigger stop orders
         * @param {float} [params.stopLossPrice] price to trigger stop loss orders
@@ -2353,7 +2367,7 @@ public partial class coinex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price to trigger stop orders
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2855,30 +2869,9 @@ public partial class coinex : Exchange
         object fillResponseFromRequest = this.safeBool(options, "fillResponseFromRequest", true);
         if (isTrue(fillResponseFromRequest))
         {
-            ((IDictionary<string,object>)depositAddress)["network"] = this.safeNetworkCode(network, currency);
+            ((IDictionary<string,object>)depositAddress)["network"] = ((string)this.networkIdToCode(network, currency)).ToUpper();
         }
         return depositAddress;
-    }
-
-    public virtual object safeNetwork(object networkId, object currency = null)
-    {
-        object networks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
-        object networksCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
-        object networksCodesLength = getArrayLength(networksCodes);
-        if (isTrue(isTrue(isEqual(networkId, null)) && isTrue(isEqual(networksCodesLength, 1))))
-        {
-            return getValue(networks, getValue(networksCodes, 0));
-        }
-        return new Dictionary<string, object>() {
-            { "id", networkId },
-            { "network", ((bool) isTrue((isEqual(networkId, null)))) ? null : ((string)networkId).ToUpper() },
-        };
-    }
-
-    public virtual object safeNetworkCode(object networkId, object currency = null)
-    {
-        object network = this.safeNetwork(networkId, currency);
-        return getValue(network, "network");
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

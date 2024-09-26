@@ -346,6 +346,11 @@ public partial class xt : Exchange
         return await this.callAsync ("privateSpotPostBalanceAccountTransfer",parameters);
     }
 
+    public async Task<object> privateSpotPostWsToken (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotPostWsToken",parameters);
+    }
+
     public async Task<object> privateSpotDeleteBatchOrder (object parameters = null)
     {
         return await this.callAsync ("privateSpotDeleteBatchOrder",parameters);

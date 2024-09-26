@@ -766,7 +766,7 @@ public partial class hitbtc
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -820,6 +820,22 @@ public partial class hitbtc
         var res = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
+    /// <summary>
+    /// fetches margin mode of the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api.hitbtc.com/#get-margin-position-parameters"/>  <br/>
+    /// See <see href="https://api.hitbtc.com/#get-futures-position-parameters"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
     public async Task<MarginModes> FetchMarginModes(List<string> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginModes(symbols, parameters);

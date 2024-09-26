@@ -471,8 +471,8 @@ public partial class alpaca : Exchange
         //       }
         //   }
         //
-        object orderbooks = this.safeValue(response, "orderbooks", new Dictionary<string, object>() {});
-        object rawOrderbook = this.safeValue(orderbooks, id, new Dictionary<string, object>() {});
+        object orderbooks = this.safeDict(response, "orderbooks", new Dictionary<string, object>() {});
+        object rawOrderbook = this.safeDict(orderbooks, id, new Dictionary<string, object>() {});
         object timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
         return this.parseOrderBook(rawOrderbook, getValue(market, "symbol"), timestamp, "b", "a", "p", "s");
     }
@@ -609,7 +609,7 @@ public partial class alpaca : Exchange
         * @param {string} type 'market', 'limit' or 'stop_limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -740,7 +740,9 @@ public partial class alpaca : Exchange
             return this.parseOrders(response, null);
         } else
         {
-            return response;
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
         }
     }
 
@@ -751,6 +753,7 @@ public partial class alpaca : Exchange
         * @name alpaca#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.alpaca.markets/reference/getorderbyorderid
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1057,6 +1060,7 @@ public partial class alpaca : Exchange
         headers = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
         if (isTrue(isEqual(getValue(api, 1), "private")))
         {
+            this.checkRequiredCredentials();
             ((IDictionary<string,object>)headers)["APCA-API-KEY-ID"] = this.apiKey;
             ((IDictionary<string,object>)headers)["APCA-API-SECRET-KEY"] = this.secret;
         }

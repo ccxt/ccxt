@@ -46,16 +46,21 @@ export interface TradingFeeInterface {
 
 export type Fee = FeeInterface | undefined
 
+export interface MarketMarginModes {
+    isolated: boolean;
+    cross: boolean;
+}
+
 export interface MarketInterface {
-    id: string;
+    id: Str;
     numericId?: Num;
-    uppercaseId?: string;
-    lowercaseId?: string;
+    uppercaseId?: Str;
+    lowercaseId?: Str;
     symbol: string;
-    base: string;
-    quote: string;
-    baseId: string;
-    quoteId: string;
+    base: Str;
+    quote: Str;
+    baseId: Str;
+    quoteId: Str;
     active: Bool;
     type: MarketType;
     subType?: SubType;
@@ -77,14 +82,15 @@ export interface MarketInterface {
     optionType: Str;
     taker?: Num
     maker?: Num
-    percentage?: boolean | undefined;
-    tierBased?: boolean | undefined;
-    feeSide?: string | undefined;
+    percentage?: Bool;
+    tierBased?: Bool;
+    feeSide?: Str;
     precision: {
         amount: Num
         price: Num
         cost?: Num
     };
+    marginModes?: MarketMarginModes;
     limits: {
         amount?: MinMax,
         cost?: MinMax,
@@ -351,8 +357,8 @@ export interface LeverageTier {
 }
 
 export interface LedgerEntry {
-    id?: Str;
     info: any;
+    id?: Str;
     timestamp?: number;
     datetime?: Str;
     direction?: Str;
@@ -579,9 +585,6 @@ export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
 }
 
 export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
-}
-
-export interface TransferEntries extends Dictionary<TransferEntry> {
 }
 
 export interface LeverageTiers extends Dictionary<LeverageTier[]> {

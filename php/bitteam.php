@@ -970,7 +970,7 @@ class bitteam extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
@@ -1920,7 +1920,6 @@ class bitteam extends Exchange {
         $fee = array(
             'currency' => $this->safe_currency_code($feeCurrencyId),
             'cost' => $feeCost,
-            'rate' => null,
         );
         $intTs = $this->parse_to_int($timestamp);
         return $this->safe_trade(array(

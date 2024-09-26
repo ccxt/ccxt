@@ -962,7 +962,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -1886,7 +1886,6 @@ class bitteam(Exchange, ImplicitAPI):
         fee = {
             'currency': self.safe_currency_code(feeCurrencyId),
             'cost': feeCost,
-            'rate': None,
         }
         intTs = self.parse_to_int(timestamp)
         return self.safe_trade({

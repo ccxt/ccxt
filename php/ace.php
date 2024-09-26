@@ -197,10 +197,23 @@ class ace extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        $baseId = $this->safe_string($market, 'base');
-        $base = $this->safe_currency_code($baseId);
-        $quoteId = $this->safe_string($market, 'quote');
-        $quote = $this->safe_currency_code($quoteId);
+        //
+        //     {
+        //         "symbol" => "ADA/TWD",
+        //         "base" => "ADA",
+        //         "baseCurrencyId" => "122",
+        //         "quote" => "TWD",
+        //         "quoteCurrencyId" => "1",
+        //         "basePrecision" => "2",
+        //         "quotePrecision" => "3",
+        //         "minLimitBaseAmount" => "1.0",
+        //         "maxLimitBaseAmount" => "150000.0"
+        //     }
+        //
+        $baseId = $this->safe_string($market, 'baseCurrencyId');
+        $base = $this->safe_currency_code($this->safe_string($market, 'base'));
+        $quoteId = $this->safe_string($market, 'quoteCurrencyId');
+        $quote = $this->safe_currency_code($this->safe_string($market, 'quote'));
         $symbol = $base . '/' . $quote;
         return array(
             'id' => $this->safe_string($market, 'symbol'),
@@ -300,7 +313,7 @@ class ace extends Exchange {
         $market = $this->market($symbol);
         $response = $this->publicGetOapiV2ListTradePrice ($params);
         $marketId = $market['id'];
-        $ticker = $this->safe_value($response, $marketId, array());
+        $ticker = $this->safe_dict($response, $marketId, array());
         //
         //     {
         //         "BTC/USDT":{
@@ -337,7 +350,7 @@ class ace extends Exchange {
         for ($i = 0; $i < count($pairs); $i++) {
             $marketId = $pairs[$i];
             $market = $this->safe_market($marketId);
-            $rawTicker = $this->safe_value($response, $marketId);
+            $rawTicker = $this->safe_dict($response, $marketId, array());
             $ticker = $this->parse_ticker($rawTicker, $market);
             $tickers[] = $ticker;
         }
@@ -459,7 +472,7 @@ class ace extends Exchange {
             $request['startTime'] = $since;
         }
         $response = $this->privatePostV2KlineGetKline ($this->extend($request, $params));
-        $data = $this->safe_value($response, 'attachment', array());
+        $data = $this->safe_list($response, 'attachment', array());
         //
         //     {
         //         "attachment":array(
@@ -541,9 +554,9 @@ class ace extends Exchange {
                     $timestamp = $timestamp - 28800000; // 8 hours
                 }
             }
-            $orderSide = $this->safe_number($order, 'buyOrSell');
+            $orderSide = $this->safe_string($order, 'buyOrSell');
             if ($orderSide !== null) {
-                $side = ($orderSide === 1) ? 'buy' : 'sell';
+                $side = ($orderSide === '1') ? 'buy' : 'sell';
             }
             $amount = $this->safe_string($order, 'num');
             $price = $this->safe_string($order, 'price');
@@ -552,9 +565,9 @@ class ace extends Exchange {
             if ($quoteId !== null && $baseId !== null) {
                 $symbol = $baseId . '/' . $quoteId;
             }
-            $orderType = $this->safe_number($order, 'type');
+            $orderType = $this->safe_string($order, 'type');
             if ($orderType !== null) {
-                $type = ($orderType === 1) ? 'limit' : 'market';
+                $type = ($orderType === '1') ? 'limit' : 'market';
             }
             $filled = $this->safe_string($order, 'tradeNum');
             $remaining = $this->safe_string($order, 'remainNum');
@@ -594,7 +607,7 @@ class ace extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -654,6 +667,7 @@ class ace extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -713,7 +727,7 @@ class ace extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->privatePostV2OrderGetOrderList ($this->extend($request, $params));
-        $orders = $this->safe_value($response, 'attachment');
+        $orders = $this->safe_list($response, 'attachment');
         //
         //     {
         //         "attachment" => array(
@@ -876,7 +890,7 @@ class ace extends Exchange {
         //         "status" => 200
         //     }
         //
-        $data = $this->safe_value($response, 'attachment');
+        $data = $this->safe_dict($response, 'attachment');
         $trades = $this->safe_list($data, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -978,7 +992,7 @@ class ace extends Exchange {
          */
         $this->load_markets();
         $response = $this->privatePostV2CoinCustomerAccount ($params);
-        $balances = $this->safe_value($response, 'attachment', array());
+        $balances = $this->safe_list($response, 'attachment', array());
         //
         //     {
         //         "attachment":array(
@@ -1014,7 +1028,13 @@ class ace extends Exchange {
             ), $params);
             $sortedData = $this->keysort($data);
             $values = is_array($sortedData) ? array_values($sortedData) : array();
-            $auth .= implode('', $values);
+            $stringifiedValues = array();
+            for ($i = 0; $i < count($values); $i++) {
+                $value = $values[$i];
+                $strValue = (string) $value;
+                $stringifiedValues[] = $strValue;
+            }
+            $auth .= implode('', $stringifiedValues);
             $signature = $this->hash($this->encode($auth), 'sha256', 'hex');
             $data['signKey'] = $signature;
             $headers = array(

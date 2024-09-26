@@ -11,7 +11,7 @@ import errors from "../js/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
 import Exchange from '../js/src/base/Exchange.js'
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
 import { pathToFileURL } from 'url'
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import { platform } from 'process'
@@ -31,6 +31,15 @@ const exchangeIds = exchanges.ids;
 const exchangesWsIds = exchanges.ws;
 
 let __dirname = new URL('.', import.meta.url).pathname;
+
+function overwriteSafe (path, content) {
+    try {
+        overwriteFile (path, content);
+    } catch {
+        checkCreateFolder (path);
+        writeFile (path, content);
+    }
+}
 
 // this is necessary because for some reason
 // pathname keeps the first '/' for windows paths
@@ -109,6 +118,8 @@ class Transpiler {
             [ /\.parsePositionRisk /g, '.parse_position_risk'],
             [ /\.parseTimeInForce /g, '.parse_time_in_force'],
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
+            [ /\.describeData /g, '.describe_data'],
+            [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
@@ -205,6 +216,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise.string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise.string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise.string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise.string_or' ],
             [ /\.padEnd\s/g, '.ljust'],
             [ /\.padStart\s/g, '.rjust' ],
 
@@ -296,7 +308,7 @@ class Transpiler {
             [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
             [ /(?<=[^\s#]) \]/g, ']' ],    // PEP8 E202 remove whitespaces before right ] square bracket
             [ /(?<=[^\s#]) \}/g, '}' ],    // PEP8 E202 remove whitespaces before right } bracket
-            [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+            [ /([^a-z\_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\!\=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
@@ -437,6 +449,7 @@ class Transpiler {
             [ /Precise\.stringGe\s/g, 'Precise::string_ge' ],
             [ /Precise\.stringLt\s/g, 'Precise::string_lt' ],
             [ /Precise\.stringLe\s/g, 'Precise::string_le' ],
+            [ /Precise\.stringOr\s/g, 'Precise::string_or' ],
             [ /(\w+)\.padEnd\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_RIGHT)' ],
             [ /(\w+)\.padStart\s*\(([^,]+),\s*([^)]+)\)/g, 'str_pad($1, $2, $3, STR_PAD_LEFT)' ],
 
@@ -449,7 +462,7 @@ class Transpiler {
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
             [ /([^'])\{\}/g, '$1array()' ],
-            [ /([^'])\[\]/g, '$1array()' ],
+            [ /([^'])\[\](?!')/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep on the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
@@ -776,6 +789,7 @@ class Transpiler {
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
+            'LedgerEntry': /-> LedgerEntry:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
             'LeverageTier': /-> (?:List\[)?LeverageTier/,
@@ -786,6 +800,7 @@ class Transpiler {
             'MarginModification': /-> MarginModification:/,
             'Market': /(-> Market:|: Market)/,
             'MarketInterface': /-> MarketInterface:/,
+            'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
             'Num': /: (?:List\[)?Num =/,
             'Option': /-> Option:/,
@@ -809,7 +824,6 @@ class Transpiler {
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
             'TransferEntry': /-> TransferEntry:/,
-            'TransferEntries': /-> TransferEntries:/,
         }
         const matches = []
         let match
@@ -1264,7 +1278,7 @@ class Transpiler {
             const sortedExchangeCapabilities = this.sortExchangeCapabilities (contents)
             if (sortedExchangeCapabilities) {
                 contents = sortedExchangeCapabilities
-                overwriteFile (tsPath, contents)
+                overwriteSafe (tsPath, contents)
             }
 
             let tsMtime = fs.statSync (tsPath).mtime.getTime ();
@@ -1296,7 +1310,7 @@ class Transpiler {
                 ].forEach (([ folder, filename, code ]) => {
                     if (folder) {
                         const qualifiedPath = path.join (folder, filename)
-                        overwriteFile (qualifiedPath, code)
+                        overwriteSafe (qualifiedPath, code)
                         // fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
                         // this line makes it impossible to detect if the files were properly transpiled or not (to avoid stale files)
                     }
@@ -1462,7 +1476,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1785,129 +1799,12 @@ class Transpiler {
         }
     }
 
-    //-----------------------------------------------------------------------------
-
-    transpileDateTimeTests () {
-        const jsFile = './ts/src/test/base/functions/test.datetime.ts'
-        const pyFile = './python/ccxt/test/base/test_datetime.py'
-        const phpFile = './php/test/base/test_datetime.php'
-
-        log.magenta ('Transpiling from', jsFile.yellow)
-
-        let js = fs.readFileSync (jsFile).toString ()
-
-        js = this.regexAll (js, [
-            [ /[^\n]+from[^\n]+\n/g, '' ],
-            [ /^export default[^\n]+\n/g, '' ],
-            [/^\/\*.*\s+/mg, ''],
-            [/^const\s+{.*}\s+=.*$/gm, ''],
-        ])
-
-        let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-
-        // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
-
-        const pythonHeader = [
-            "",
-            "import ccxt  # noqa: F402",
-            "from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401",
-            "",
-            "# ----------------------------------------------------------------------------",
-            "",
-            "",
-        ].join ("\n")
-
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
-        const php = this.getPHPPreamble (true, 3) + phpBody
-
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
-
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
-    }
-
-    //-------------------------------------------------------------------------
-
-    transpilePrecisionTests () {
-
-        const jsFile = './ts/src/test/base/functions/test.number.ts'
-        const pyFile = './python/ccxt/test/base/test_number.py'
-        const phpFile = './php/test/base/test_number.php'
-
-        log.magenta ('Transpiling from', jsFile.yellow)
-
-        let js = fs.readFileSync (jsFile).toString ()
-
-        js = this.regexAll (js, [
-            [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+from[^\n]+\n/g, '' ],
-            [ /^export default[^\n]+\n/g, '' ],
-            [/^const\s+{.*}\s+=.*$/gm, ''],
-            [ /decimalToPrecision/g, 'decimal_to_precision' ],
-            [ /numberToString/g, 'number_to_string' ],
-        ])
-
-        let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-
-        const pythonHeader = [
-            "",
-            "from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa F401",
-            "from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401",
-            "from ccxt.base.decimal_to_precision import ROUND                 # noqa F401",
-            "from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa F401",
-            "from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401",
-            "from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa F401",
-            "from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401",
-            "from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401",
-            "from ccxt.base.decimal_to_precision import number_to_string      # noqa F401",
-            "from ccxt.base.exchange import Exchange                          # noqa F401",
-            "from ccxt.base.precise import Precise                            # noqa F401",
-            "",
-            "",
-        ].join ("\n")
-
-        const phpHeader = [
-            "",
-            "include_once (__DIR__.'/../fail_on_all_errors.php');",
-            "",
-            "// testDecimalToPrecisionErrorHandling",
-            "//",
-            "// $this->expectException ('ccxt\\\\BaseError');",
-            "// $this->expectExceptionMessageRegExp ('/Negative precision is not yet supported/');",
-            "// Exchange::decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES);",
-            "//",
-            "// $this->expectException ('ccxt\\\\BaseError');",
-            "// $this->expectExceptionMessageRegExp ('/Invalid number/');",
-            "// Exchange::decimalToPrecision ('foo');",
-            "",
-            "// ----------------------------------------------------------------------------",
-            "",
-            "function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {",
-            "    return Exchange::decimal_to_precision ($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);",
-            "}",
-            "function number_to_string ($x) {",
-            "    return Exchange::number_to_string ($x);",
-            "}",
-            "",
-        ].join ("\n")
-
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body
-        const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
-
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
-
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
-    }
-
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
-        const jsFile = './ts/src/test/base/functions/test.crypto.ts' // using ts version to avoid formatting issues
-        const pyFile = './python/ccxt/test/base/test_crypto.py'
-        const phpFile = './php/test/base/test_crypto.php'
+        const jsFile = './ts/src/test/base/test.cryptography.ts' // using ts version to avoid formatting issues
+        const pyFile = './python/ccxt/test/base/test_cryptography.py'
+        const phpFile = './php/test/base/test_cryptography.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
         let js = fs.readFileSync (jsFile).toString ()
@@ -1917,10 +1814,16 @@ class Transpiler {
             [ /[^\n]+from[^\n]+\n/g, '' ],
             [ /^export default[^\n]+\n/g, '' ],
             [/^const\s+{.*}\s+=.*$/gm, ''],
-            [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
+            [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
+            [ /(export default .*)/g, '' ],
+            [ /testCryptography/g, 'test_cryptography' ],
         ])
 
         let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+
+        python2Body = this.regexAll (python2Body, [
+            [ /function (\w+)\(\) \{/g, 'def $1():' ],
+        ])
 
         const pythonHeader = [
             "",
@@ -1976,10 +1879,6 @@ class Transpiler {
             "function rsa(...$arg) {",
             "    return Exchange::rsa(...$arg);",
             "}",
-            "",
-            "function equals($a, $b) {",
-            "    return $a === $b;",
-            "}",
         ].join ("\n")
 
         const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
@@ -1988,8 +1887,8 @@ class Transpiler {
         log.magenta ('→', pyFile.yellow)
         log.magenta ('→', phpFile.yellow)
 
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
+        overwriteSafe (pyFile, python)
+        overwriteSafe (phpFile, php)
     }
 
     // ============================================================================
@@ -2021,21 +1920,21 @@ class Transpiler {
     transpileExchangeTests () {
 
         this.transpileMainTests ({
-            'tsFile': './ts/src/test/test.ts',
-            'pyFileAsync': './python/ccxt/test/test_async.py',
-            'phpFileAsync': './php/test/test_async.php',
-            'pyFileSync': './python/ccxt/test/test_sync.py',
-            'phpFileSync': './php/test/test_sync.php',
-            'jsFile': './js/test/test.js',
+            'tsFile': './ts/src/test/tests.ts',
+            'pyFileAsync': './python/ccxt/test/tests_async.py',
+            'phpFileAsync': './php/test/tests_async.php',
+            'pyFileSync': './python/ccxt/test/tests_sync.py',
+            'phpFileSync': './php/test/tests_sync.php',
+            'jsFile': './js/test/tests.js',
         });
 
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
             py: './python/ccxt/test/',
-            pyBase: './python/ccxt/test/base/',
+            pyBase: './python/ccxt/test/exchange/base/',
             php: './php/test/',
-            phpBase: './php/test/base/',
+            phpBase: './php/test/exchange/base/',
         };
 
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2063,20 +1962,52 @@ class Transpiler {
                 base: false,
                 name: testName,
                 tsFile: baseFolders.ts + testName + '.ts',
-                pyFileSync: baseFolders.py + 'sync/' + unCamelCasedFileName + '.py',
-                pyFileAsync: baseFolders.py + 'async/' + unCamelCasedFileName + '.py',
-                phpFileSync: baseFolders.php + 'sync/' + unCamelCasedFileName + '.php',
-                phpFileAsync: baseFolders.php + 'async/' + unCamelCasedFileName + '.php',
+                pyFileSync: baseFolders.py + 'exchange/sync/' + unCamelCasedFileName + '.py',
+                pyFileAsync: baseFolders.py + 'exchange/async/' + unCamelCasedFileName + '.py',
+                phpFileSync: baseFolders.php + 'exchange/sync/' + unCamelCasedFileName + '.php',
+                phpFileAsync: baseFolders.php + 'exchange/async/' + unCamelCasedFileName + '.php',
             };
             tests.push(test);
         }
         this.transpileAndSaveExchangeTests (tests);
     }
 
+    baseFunctionalitiesTests () {
+
+        const baseFolders = {
+            ts: './ts/src/test/base/',
+            py: './python/ccxt/test/base/',
+            php: './php/test/base/',
+        };
+
+        let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+
+        const tests = [];
+
+        for (const testName of baseFunctionTests) {
+            const unCamelCasedFileName = this.uncamelcaseName(testName);
+            const tsFile = baseFolders.ts + testName + '.ts';
+            const tsContent = fs.readFileSync(tsFile).toString();
+            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+                continue;
+            }
+            const test = {
+                base: true,
+                name: testName,
+                tsFile: tsFile,
+                pyFileSync: baseFolders.py + unCamelCasedFileName + '.py',
+                phpFileSync: baseFolders.php + unCamelCasedFileName + '.php',
+            };
+            tests.push(test);
+        }
+        this.transpileAndSaveExchangeTests (tests);
+    }
+
+
     createBaseInitFile (pyPath, tests) {
         const finalPath = pyPath + '__init__.py';
         const fileNames = tests.filter(t => t !== 'test.sharedMethods').map(test => this.uncamelcaseName(test));
-        const importNames = fileNames.map(testName => `from ccxt.test.base.${testName} import ${testName} # noqa E402`)
+        const importNames = fileNames.map(testName => `from ccxt.test.exchange.base.${testName} import ${testName} # noqa E402`)
         const baseContent = [
             '',
             this.getPythonGenerated(),
@@ -2084,7 +2015,7 @@ class Transpiler {
         ].join('\n');
 
         log.magenta ('→', finalPath)
-        overwriteFile (finalPath, baseContent)
+        overwriteSafe (finalPath, baseContent)
     }
 
     transpileMainTests (files) {
@@ -2103,10 +2034,7 @@ class Transpiler {
             }));
         };
 
-        const commentStartLine = '***** AUTO-TRANSPILER-START *****';
-        const commentEndLine = '***** AUTO-TRANSPILER-END *****';
-
-        const mainContent = ts.split (commentStartLine)[1].split (commentEndLine)[0];
+        const mainContent = ts;
         // let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
         const parserConfig = {
             'verbose': false,
@@ -2140,35 +2068,49 @@ class Transpiler {
             // remove async ccxt import
             replace (/from ccxt\.async_support(.*)/g, '').
             // add one more newline before function
-            replace (/^(async def|def) (\w)/gs, '\n$1 $2')
-        const existinPythonBody = fs.readFileSync (files.pyFileAsync).toString ();
-        let newPython = existinPythonBody.split(commentStartLine)[0] + commentStartLine + '\n' + python3 + '\n# ' + commentEndLine + existinPythonBody.split(commentEndLine)[1];
+            replace (/^(async def|def) (\w)/gs, '\n$1 $2').
+            // camelCase walletAddress and privateKey
+            replace(/\.wallet_address/g, '.walletAddress').
+            replace(/\.private_key/g, '.privateKey').
+            replace(/\.api_key/g, '.apiKey');
+        
+        let pythonImports = transpilerResult[2].imports.filter(x=>x.path.includes('./tests.helpers.js'));
+        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass') ? x.name : unCamelCase(x.name));
+        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
+        let newPython = impHelper + python3;
         newPython = snakeCaseFunctions (newPython);
-        overwriteFile (files.pyFileAsync, newPython);
+        overwriteSafe (files.pyFileAsync, newPython);
         this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
         // remove 4 extra newlines
         let existingPythonWN = fs.readFileSync (files.pyFileSync).toString ();
         existingPythonWN = existingPythonWN.replace (/(\n){4}/g, '\n\n');
-        overwriteFile (files.pyFileSync, existingPythonWN);
+        overwriteSafe (files.pyFileSync, existingPythonWN);
 
 
         // ########### PHP ###########
-        
-        const existinPhpBody = fs.readFileSync (files.phpFileAsync).toString ();
         const phpReform = (cont) => {
-            const partBeforClass =  existinPhpBody.split(commentStartLine)[0] + commentStartLine + '\n';
-            const partAfterClass = '\n' + '// ' + commentEndLine + existinPhpBody.split(commentEndLine)[1]
-            let newContent = partBeforClass + cont + partAfterClass;
-            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '');
+            // add exceptions
+            let exceptions = '';
+            for (const eType of Object.keys(errors)) {
+                if (cont.includes (' ' + eType)) {
+                    exceptions += `use ccxt\\${eType};\n`;
+                }
+            }
+            let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
+            let newContent = head + cont;
+            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+            replace(/\->wallet_address/g, '->walletAddress').
+            replace(/\->private_key/g, '->privateKey').
+            replace(/\->api_key/g, '->apiKey');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
             return newContent;
         }
         let bodyPhpAsync = phpReform (phpAsync);
-        overwriteFile (files.phpFileAsync, bodyPhpAsync);
+        overwriteSafe (files.phpFileAsync, bodyPhpAsync);
         let bodyPhpSync = phpReform (php);
         bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
-        overwriteFile (files.phpFileSync, bodyPhpSync);
+        overwriteSafe (files.phpFileSync, bodyPhpSync);
     }
 
     // ============================================================================
@@ -2241,6 +2183,8 @@ class Transpiler {
 
         let allFiles = await this.readFilesAsync (tests.map(t => t.tsFile));
 
+        const needsEquals = allFiles.map(file => file.includes('function equals'));
+
         // apply regex to every file
         allFiles = allFiles.map( file => this.regexAll (file, [
             [ /\'use strict\';?\s+/g, '' ],
@@ -2273,14 +2217,16 @@ class Transpiler {
                 replace (/\$exchange\[\$method\]/g, '$exchange->$method').
                 replace (/\$test_shared_methods\->/g, '').
                 replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
-                replace (/Precise\->/g, 'Precise::');
+                replace (/Precise\->/g, 'Precise::').
+                replace (/function equals(.*?)\{/g, '').
+                replace (/\$ccxt->/g, '\\ccxt\\');
             str = this.phpReplaceException (str);
             return exchangeCamelCaseProps(str);
         }
 
         const fileSaveFunc = (path, content) => {
             log.magenta ('→', path);
-            overwriteFile (path, content);
+            overwriteSafe (path, content);
         };
 
         for (let i = 0; i < flatResult.length; i++) {
@@ -2291,6 +2237,7 @@ class Transpiler {
             let phpSync = phpFixes(result[1].content);
             let pythonSync = pyFixes (result[2].content, true);
             let pythonAsync = pyFixes (result[3].content);
+            const usesEqualsFunction = needsEquals[i];
             if (tests.base) {
                 phpAsync = '';
                 pythonAsync = '';
@@ -2300,7 +2247,6 @@ class Transpiler {
 
             const usesPrecise = imports.find(x => x.name.includes('Precise'));
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
-            const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
             const usesAsyncio = pythonAsync.indexOf ('asyncio.') >= 0;
 
@@ -2332,9 +2278,16 @@ class Transpiler {
             phpHeaderAsync.push ('use React\\Async;');
             phpHeaderAsync.push ('use React\\Promise;');
 
-            if (usesTickSize) {
-                pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
-                pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402')
+            const decimalProps = [ 'DECIMAL_PLACES', 'TICK_SIZE', 'NO_PADDING', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'SIGNIFICANT_DIGITS', 'PAD_WITH_ZERO', 'decimal_to_precision', 'number_to_string' ];
+            for (const propName of decimalProps) {
+                if (pythonAsync.includes (propName)) {
+                    pythonHeaderSync.push ('from ccxt.base.decimal_to_precision import ' + propName + '  # noqa E402')
+                    pythonHeaderAsync.push ('from ccxt.base.decimal_to_precision import ' + propName + '  # noqa E402')
+                }
+            }
+            if (pythonAsync.match (/\sccxt\./)) {
+                pythonHeaderSync.push ('import ccxt  # noqa: F402')
+                pythonHeaderAsync.push ('import ccxt  # noqa: F402')
             }
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
@@ -2368,23 +2321,27 @@ class Transpiler {
                 const snake_case = unCamelCase(subTestName);
                 const isSharedMethodsImport = subTestName.includes ('SharedMethods');
                 const isSameDirImport = tests.find(t => t.name === subTestName);
-                const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/base/';
-                let pySuffix = isSameDirImport ? '' : '.base';
+                const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/exchange/base/';
+                let pySuffix = isSameDirImport ? '' : '.exchange.base';
 
                 if (isSharedMethodsImport) {
-                    pythonHeaderAsync.push (`from ccxt.test.base import test_shared_methods  # noqa E402`)
-                    pythonHeaderSync.push (`from ccxt.test.base import test_shared_methods  # noqa E402`)
+                    pythonHeaderAsync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
+                    pythonHeaderSync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
 
                     // php
                     if (!test.base) {
-                        phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';`)
+                        phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
                     } else {
-                        phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';`)
+                        phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';`)
                     }
                 } else {
                     if (test.base) {
                         phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
-                        pythonHeaderSync.push (`from ccxt.test.base.${snake_case} import ${snake_case}  # noqa E402`)
+                        if (test.tsFile.includes('Exchange/base')) {
+                            pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
+                        } else {
+                            pythonHeaderSync.push (`from ccxt.test.base.${snake_case} import ${snake_case}  # noqa E402`)
+                        }
                     } else {
                         phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)
                         phpHeaderAsync.push (`include_once ${phpPrefix}${snake_case}.php';`)
@@ -2393,6 +2350,16 @@ class Transpiler {
                         pythonHeaderAsync.push (`from ccxt.test${pySuffix} import ${snake_case}  # noqa E402`)
                     }
                 }
+            }
+
+            if (usesEqualsFunction) {
+                const pyEquals = [
+                    "",
+                    "def equals(a, b):",
+                    "    return a == b",
+                ].join('\n')
+                pythonHeaderSync.push(pyEquals);
+                pythonHeaderAsync.push(pyEquals);
             }
 
 
@@ -2407,14 +2374,14 @@ class Transpiler {
             test.pyFileAsyncContent = test.pythonPreambleAsync + pythonAsync;
 
             if (!test.base) {
-                fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
-                fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
+                if (test.phpFileAsync) fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
+                if (test.pyFileAsync) fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
             }
             if (test.phpFileSync) {
-                fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
+                if (test.phpFileSync) fileSaveFunc (test.phpFileSync, test.phpFileSyncContent);
             }
             if (test.pyFileSync) {
-                fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
+                if (test.pyFileSync) fileSaveFunc (test.pyFileSync, test.pyFileSyncContent);
             }
         }
     }
@@ -2423,8 +2390,8 @@ class Transpiler {
 
     transpileTests () {
 
-        this.transpilePrecisionTests ()
-        this.transpileDateTimeTests ()
+        this.baseFunctionalitiesTests ();
+
         this.transpileCryptoTests ()
 
         this.transpileExchangeTests ()
@@ -2598,8 +2565,8 @@ class Transpiler {
                     finalPyHeaders += '\n\n'
                 }
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
-                overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
+                overwriteSafe (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
+                overwriteSafe (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
     }
@@ -2627,7 +2594,7 @@ class Transpiler {
                     this.getJsPreamble(),
                     content
                 ].join ("\n")
-                overwriteFile (jsFilePath, contents)
+                overwriteSafe (jsFilePath, contents)
             }
         })
         log.bright.yellow ('Added JS preamble to all ', jsFiles.length + ' files.')
@@ -2736,7 +2703,7 @@ if (isMainEntry(import.meta.url)) {
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
-        transpiler.transpileErrorHierarchy ({ tsFilename })
+        transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds, undefined, force)
     } else {

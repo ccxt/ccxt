@@ -16,6 +16,7 @@ public partial class independentreserve : ccxt.independentreserve
                 { "watchTicker", false },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", false },
                 { "watchOrders", false },
                 { "watchOrderBook", true },
@@ -27,7 +28,9 @@ public partial class independentreserve : ccxt.independentreserve
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "checksum", false },
+                { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {} },
@@ -213,7 +216,7 @@ public partial class independentreserve : ccxt.independentreserve
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         }
-        object checksum = this.safeBool(this.options, "checksum", true);
+        object checksum = this.handleOption("watchOrderBook", "checksum", true);
         if (isTrue(isTrue(checksum) && isTrue(receivedSnapshot)))
         {
             object storedAsks = getValue(orderbook, "asks");
@@ -239,7 +242,7 @@ public partial class independentreserve : ccxt.independentreserve
             object responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
             {
-                var error = new InvalidNonce(add(this.id, " invalid checksum"));
+                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
 
 
                 ((WebSocketClient)client).reject(error, messageHash);

@@ -100,6 +100,11 @@ public partial class yobit
         var res = await this.fetchOrderBooks(symbols, limit, parameters);
         return ((Dictionary<string, OrderBook>)res);
     }
+    public async Task<Tickers> FetchTickersHelper(string idsString, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickersHelper(idsString, parameters);
+        return new Tickers(res);
+    }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
@@ -110,6 +115,12 @@ public partial class yobit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.all</term>
+    /// <description>
+    /// object : you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
     /// </description>
     /// </item>
     /// </list>
@@ -203,7 +214,7 @@ public partial class yobit
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>

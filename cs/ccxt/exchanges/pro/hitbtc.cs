@@ -15,6 +15,7 @@ public partial class hitbtc : ccxt.hitbtc
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchOrderBook", true },
                 { "watchBalance", true },
                 { "watchOrders", true },
@@ -1085,7 +1086,7 @@ public partial class hitbtc : ccxt.hitbtc
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         * @param {bool} [params.margin] true for creating a margin order
@@ -1337,7 +1338,10 @@ public partial class hitbtc : ccxt.hitbtc
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        this.handleError(client as WebSocketClient, message);
+        if (isTrue(this.handleError(client as WebSocketClient, message)))
+        {
+            return;
+        }
         object channel = this.safeString2(message, "ch", "method");
         if (isTrue(!isEqual(channel, null)))
         {
@@ -1429,13 +1433,32 @@ public partial class hitbtc : ccxt.hitbtc
         object error = this.safeValue(message, "error");
         if (isTrue(!isEqual(error, null)))
         {
-            object code = this.safeValue(error, "code");
-            object errorMessage = this.safeString(error, "message");
-            object description = this.safeString(error, "description");
-            object feedback = add(add(this.id, " "), description);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
-            throw new ExchangeError ((string)feedback) ;
+            try
+            {
+                object code = this.safeValue(error, "code");
+                object errorMessage = this.safeString(error, "message");
+                object description = this.safeString(error, "description");
+                object feedback = add(add(this.id, " "), description);
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            } catch(Exception e)
+            {
+                if (isTrue(e is AuthenticationError))
+                {
+                    object messageHash = "authenticated";
+                    ((WebSocketClient)client).reject(e, messageHash);
+                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                    {
+
+                    }
+                } else
+                {
+                    object id = this.safeString(message, "id");
+                    ((WebSocketClient)client).reject(e, id);
+                }
+                return true;
+            }
         }
         return null;
     }

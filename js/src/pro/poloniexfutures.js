@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class poloniexfutures extends poloniexfuturesRest {
@@ -28,6 +28,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': true,
                 'watchOrders': true,
                 'watchMyTrades': false,
@@ -52,6 +53,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                     'method': '/contractMarket/level2',
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'streamLimit': 5,
                 'streamBySubscriptionsHash': {},
@@ -241,7 +243,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
+         * @see https://api-docs.poloniex.com/futures/websocket/public#get-real-time-symbol-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -256,7 +258,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
+         * @see https://api-docs.poloniex.com/futures/websocket/public#full-matching-engine-datalevel-3
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -279,7 +281,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://futures-docs.poloniex.com/#level-2-market-data
+         * @see https://api-docs.poloniex.com/futures/websocket/public#level-2-market-data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] not used by poloniexfutures watchOrderBook
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -309,7 +311,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchOrders
          * @description watches information on multiple orders made by the user
-         * @see https://futures-docs.poloniex.com/#private-messages
+         * @see https://api-docs.poloniex.com/futures/websocket/user-messages#private-messages
          * @param {string} symbol filter by unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -336,7 +338,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://futures-docs.poloniex.com/#account-balance-events
+         * @see https://api-docs.poloniex.com/futures/websocket/user-messages#account-balance-events
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -860,7 +862,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
             return;
         }
         if (nonce !== lastSequence) {
-            throw new InvalidNonce(this.id + ' watchOrderBook received an out-of-order nonce');
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(''));
+            }
         }
         const changes = this.safeList(delta, 'changes');
         for (let i = 0; i < changes.length; i++) {

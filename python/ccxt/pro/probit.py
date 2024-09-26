@@ -22,6 +22,7 @@ class probit(ccxt.async_support.probit):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -51,8 +52,6 @@ class probit(ccxt.async_support.probit):
                 },
             },
             'streaming': {
-            },
-            'exceptions': {
             },
         })
 
@@ -219,6 +218,7 @@ class probit(ccxt.async_support.probit):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of trades associated with the user
+        :see: https://docs-en.probit.com/reference/trade_history
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -467,8 +467,12 @@ class probit(ccxt.async_support.probit):
         code = self.safe_string(message, 'errorCode')
         errMessage = self.safe_string(message, 'message', '')
         details = self.safe_value(message, 'details')
-        # todo - raise properly here
-        raise ExchangeError(self.id + ' ' + code + ' ' + errMessage + ' ' + self.json(details))
+        feedback = self.id + ' ' + code + ' ' + errMessage + ' ' + self.json(details)
+        if 'exact' in self.exceptions:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+        if 'broad' in self.exceptions:
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errMessage, feedback)
+        raise ExchangeError(feedback)
 
     def handle_authenticate(self, client: Client, message):
         #

@@ -16,6 +16,7 @@ public partial class probit : ccxt.probit
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -45,7 +46,6 @@ public partial class probit : ccxt.probit
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {} },
-            { "exceptions", new Dictionary<string, object>() {} },
         });
     }
 
@@ -252,6 +252,7 @@ public partial class probit : ccxt.probit
         * @method
         * @name probit#watchMyTrades
         * @description get the list of trades associated with the user
+        * @see https://docs-en.probit.com/reference/trade_history
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -566,7 +567,16 @@ public partial class probit : ccxt.probit
         object code = this.safeString(message, "errorCode");
         object errMessage = this.safeString(message, "message", "");
         object details = this.safeValue(message, "details");
-        throw new ExchangeError ((string)add(add(add(add(add(add(this.id, " "), code), " "), errMessage), " "), this.json(details))) ;
+        object feedback = add(add(add(add(add(add(this.id, " "), code), " "), errMessage), " "), this.json(details));
+        if (isTrue(inOp(this.exceptions, "exact")))
+        {
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+        }
+        if (isTrue(inOp(this.exceptions, "broad")))
+        {
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errMessage, feedback);
+        }
+        throw new ExchangeError ((string)feedback) ;
     }
 
     public virtual void handleAuthenticate(WebSocketClient client, object message)

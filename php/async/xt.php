@@ -32,7 +32,7 @@ class xt extends Exchange {
             'rateLimit' => 100,
             'version' => 'v4',
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -227,6 +227,7 @@ class xt extends Exchange {
                             'withdraw' => 1,
                             'balance/transfer' => 1,
                             'balance/account/transfer' => 1,
+                            'ws-token' => 1,
                         ),
                         'delete' => array(
                             'batch-order' => 1,
@@ -836,7 +837,7 @@ class xt extends Exchange {
                     'name' => $this->safe_string($entry, 'fullName'),
                     'active' => $active,
                     'fee' => $this->parse_number($minWithdrawFeeString),
-                    'precision' => null,
+                    'precision' => $minPrecision,
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
                     'networks' => $networks,
@@ -1153,12 +1154,14 @@ class xt extends Exchange {
         $maxCost = null;
         $minPrice = null;
         $maxPrice = null;
+        $amountPrecision = null;
         for ($i = 0; $i < count($filters); $i++) {
             $entry = $filters[$i];
             $filter = $this->safe_string($entry, 'filter');
             if ($filter === 'QUANTITY') {
                 $minAmount = $this->safe_number($entry, 'min');
                 $maxAmount = $this->safe_number($entry, 'max');
+                $amountPrecision = $this->safe_number($entry, 'tickSize');
             }
             if ($filter === 'QUOTE_QTY') {
                 $minCost = $this->safe_number($entry, 'min');
@@ -1167,6 +1170,9 @@ class xt extends Exchange {
                 $minPrice = $this->safe_number($entry, 'min');
                 $maxPrice = $this->safe_number($entry, 'max');
             }
+        }
+        if ($amountPrecision === null) {
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision')));
         }
         $underlyingType = $this->safe_string($market, 'underlyingType');
         $linear = null;
@@ -1247,7 +1253,7 @@ class xt extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
-                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision'))),
+                'amount' => $amountPrecision,
                 'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseCoinPrecision'))),
                 'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteCoinPrecision'))),
             ),
@@ -1387,7 +1393,7 @@ class xt extends Exchange {
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
             $this->safe_number($ohlcv, 'c'),
-            $this->safe_number_2($ohlcv, $volumeIndex, 'v'),
+            $this->safe_number_2($ohlcv, 'q', $volumeIndex),
         );
     }
 
@@ -1474,9 +1480,13 @@ class xt extends Exchange {
             $orderBook = $this->safe_value($response, 'result', array());
             $timestamp = $this->safe_integer_2($orderBook, 'timestamp', 't');
             if ($market['spot']) {
-                return $this->parse_order_book($orderBook, $symbol, $timestamp);
+                $ob = $this->parse_order_book($orderBook, $symbol, $timestamp);
+                $ob['nonce'] = $this->safe_integer($orderBook, 'lastUpdateId');
+                return $ob;
             }
-            return $this->parse_order_book($orderBook, $symbol, $timestamp, 'b', 'a');
+            $swapOb = $this->parse_order_book($orderBook, $symbol, $timestamp, 'b', 'a');
+            $swapOb['nonce'] = $this->safe_integer_2($orderBook, 'u', 'lastUpdateId');
+            return $swapOb;
         }) ();
     }
 
@@ -1737,8 +1747,9 @@ class xt extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 's');
         $marketType = ($market !== null) ? $market['type'] : null;
+        $hasSpotKeys = (is_array($ticker) && array_key_exists('cv', $ticker)) || (is_array($ticker) && array_key_exists('aq', $ticker));
         if ($marketType === null) {
-            $marketType = (is_array($ticker) && array_key_exists('cv', $ticker)) || (is_array($ticker) && array_key_exists('aq', $ticker)) ? 'spot' : 'contract';
+            $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
         $market = $this->safe_market($marketId, $market, '_', $marketType);
         $symbol = $market['symbol'];
@@ -1964,6 +1975,29 @@ class xt extends Exchange {
         //         "b" => true
         //     }
         //
+        // spot => watchMyTrades
+        //
+        //    {
+        //        "s" => "btc_usdt",                // symbol
+        //        "t" => 1656043204763,             // time
+        //        "i" => "6316559590087251233",     // tradeId
+        //        "oi" => "6216559590087220004",    // orderId
+        //        "p" => "30000",                   // $trade price
+        //        "q" => "3",                       // qty $quantity
+        //        "v" => "90000"                    // volume $trade $amount
+        //    }
+        //
+        // spot => watchTrades
+        //
+        //    {
+        //        s => 'btc_usdt',
+        //        i => '228825383103928709',
+        //        t => 1684258222702,
+        //        p => '27003.65',
+        //        q => '0.000796',
+        //        b => true
+        //    }
+        //
         // swap and future => fetchTrades
         //
         //     {
@@ -2008,10 +2042,39 @@ class xt extends Exchange {
         //         "takerMaker" => "TAKER"
         //     }
         //
+        // contract watchMyTrades
+        //
+        //    {
+        //        "symbol" => 'btc_usdt',
+        //        "orderSide" => 'SELL',
+        //        "positionSide" => 'LONG',
+        //        "orderId" => '231485367663419328',
+        //        "price" => '27152.7',
+        //        "quantity" => '33',
+        //        "marginUnfrozen" => '2.85318000',
+        //        "timestamp" => 1684892412565
+        //    }
+        //
+        // watchMyTrades (ws, swap)
+        //
+        //    {
+        //        'fee' => '0.04080840',
+        //        'isMaker' => False,
+        //        'marginUnfrozen' => '0.75711984',
+        //        'orderId' => '376172779053188416',
+        //        'orderSide' => 'BUY',
+        //        'positionSide' => 'LONG',
+        //        'price' => '3400.70',
+        //        'quantity' => '2',
+        //        'symbol' => 'eth_usdt',
+        //        'timestamp' => 1719388579622
+        //    }
+        //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $marketType = ($market !== null) ? $market['type'] : null;
+        $hasSpotKeys = (is_array($trade) && array_key_exists('b', $trade)) || (is_array($trade) && array_key_exists('bizType', $trade)) || (is_array($trade) && array_key_exists('oi', $trade));
         if ($marketType === null) {
-            $marketType = (is_array($trade) && array_key_exists('b', $trade)) || (is_array($trade) && array_key_exists('bizType', $trade)) ? 'spot' : 'contract';
+            $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
         $market = $this->safe_market($marketId, $market, '_', $marketType);
         $bidOrAsk = $this->safe_string($trade, 'm');
@@ -2020,9 +2083,16 @@ class xt extends Exchange {
             $side = ($bidOrAsk === 'BID') ? 'buy' : 'sell';
         }
         $buyerMaker = $this->safe_value($trade, 'b');
+        if ($buyerMaker !== null) {
+            $side = 'buy';
+        }
         $takerOrMaker = $this->safe_string_lower($trade, 'takerMaker');
         if ($buyerMaker !== null) {
             $takerOrMaker = $buyerMaker ? 'maker' : 'taker';
+        }
+        $isMaker = $this->safe_bool($trade, 'isMaker');
+        if ($isMaker !== null) {
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $timestamp = $this->safe_integer_n($trade, array( 't', 'time', 'timestamp' ));
         $quantity = $this->safe_string_2($trade, 'q', 'quantity');
@@ -2042,7 +2112,7 @@ class xt extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
-            'order' => $this->safe_string($trade, 'orderId'),
+            'order' => $this->safe_string_2($trade, 'orderId', 'oi'),
             'type' => $this->safe_string_lower($trade, 'orderType'),
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
@@ -2052,7 +2122,6 @@ class xt extends Exchange {
             'fee' => array(
                 'currency' => $this->safe_currency_code($this->safe_string_2($trade, 'feeCurrency', 'feeCoin')),
                 'cost' => $this->safe_string($trade, 'fee'),
-                'rate' => null,
             ),
         ), $market);
     }
@@ -3428,7 +3497,7 @@ class xt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -3492,7 +3561,7 @@ class xt extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null): array {
         //
         //     {
         //         "id" => "207260567109387524",
@@ -3508,8 +3577,10 @@ class xt extends Exchange {
         $side = $this->safe_string($item, 'side');
         $direction = ($side === 'ADD') ? 'in' : 'out';
         $currencyId = $this->safe_string($item, 'coin');
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'createdTime');
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string($item, 'id'),
             'direction' => $direction,
             'account' => null,
@@ -3527,8 +3598,7 @@ class xt extends Exchange {
                 'currency' => null,
                 'cost' => null,
             ),
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -4710,7 +4780,7 @@ class xt extends Exchange {
                     $body['media'] = $id;
                 }
             }
-            $isUndefinedBody = (($method === 'GET') || ($path === 'order/{orderId}'));
+            $isUndefinedBody = (($method === 'GET') || ($path === 'order/{orderId}') || ($path === 'ws-token'));
             $body = $isUndefinedBody ? null : $this->json($body);
             $payloadString = null;
             if (($endpoint === 'spot') || ($endpoint === 'user')) {
@@ -4718,7 +4788,7 @@ class xt extends Exchange {
                 if ($isUndefinedBody) {
                     if ($urlencoded) {
                         $url .= '?' . $urlencoded;
-                        $payloadString .= '#' . $method . '#' . $payload . '#' . $urlencoded;
+                        $payloadString .= '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
                     } else {
                         $payloadString .= '#' . $method . '#' . $payload;
                     }

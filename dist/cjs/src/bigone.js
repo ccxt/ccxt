@@ -20,7 +20,7 @@ class bigone extends bigone$1 {
             'name': 'BigONE',
             'countries': ['CN'],
             'version': 'v3',
-            'rateLimit': 1200,
+            'rateLimit': 20,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -1460,7 +1460,7 @@ class bigone extends bigone$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -1621,7 +1621,27 @@ class bigone extends bigone$1 {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict(response, 'data', {});
+        const cancelled = this.safeList(data, 'cancelled', []);
+        const failed = this.safeList(data, 'failed', []);
+        const result = [];
+        for (let i = 0; i < cancelled.length; i++) {
+            const orderId = cancelled[i];
+            result.push(this.safeOrder({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < failed.length; i++) {
+            const orderId = failed[i];
+            result.push(this.safeOrder({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }));
+        }
+        return result;
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1629,6 +1649,7 @@ class bigone extends bigone$1 {
          * @name bigone#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://open.big.one/docs/spot_orders.html#get-one-order
+         * @param {string} id the order id
          * @param {string} symbol not used by bigone fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

@@ -79,17 +79,17 @@ export default class krakenfutures extends krakenfuturesRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'challenge';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const request: Dict = {
                 'event': 'challenge',
                 'api_key': this.apiKey,
             };
             const message = this.extend (request, params);
-            future = await this.watch (url, messageHash, message, messageHash);
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -1600,7 +1600,8 @@ export default class krakenfutures extends krakenfuturesRest {
             const signature = this.hmac (hashedChallenge, base64Secret, sha512, 'base64');
             this.options['challenge'] = challenge;
             this.options['signedChallenge'] = signature;
-            client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, messageHash);
+            future.resolve (true);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
             client.reject (error, messageHash);

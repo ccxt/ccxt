@@ -203,10 +203,23 @@ class ace(Exchange, ImplicitAPI):
         return self.parse_markets(response)
 
     def parse_market(self, market: dict) -> Market:
-        baseId = self.safe_string(market, 'base')
-        base = self.safe_currency_code(baseId)
-        quoteId = self.safe_string(market, 'quote')
-        quote = self.safe_currency_code(quoteId)
+        #
+        #     {
+        #         "symbol": "ADA/TWD",
+        #         "base": "ADA",
+        #         "baseCurrencyId": "122",
+        #         "quote": "TWD",
+        #         "quoteCurrencyId": "1",
+        #         "basePrecision": "2",
+        #         "quotePrecision": "3",
+        #         "minLimitBaseAmount": "1.0",
+        #         "maxLimitBaseAmount": "150000.0"
+        #     }
+        #
+        baseId = self.safe_string(market, 'baseCurrencyId')
+        base = self.safe_currency_code(self.safe_string(market, 'base'))
+        quoteId = self.safe_string(market, 'quoteCurrencyId')
+        quote = self.safe_currency_code(self.safe_string(market, 'quote'))
         symbol = base + '/' + quote
         return {
             'id': self.safe_string(market, 'symbol'),
@@ -304,7 +317,7 @@ class ace(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = self.publicGetOapiV2ListTradePrice(params)
         marketId = market['id']
-        ticker = self.safe_value(response, marketId, {})
+        ticker = self.safe_dict(response, marketId, {})
         #
         #     {
         #         "BTC/USDT":{
@@ -340,7 +353,7 @@ class ace(Exchange, ImplicitAPI):
         for i in range(0, len(pairs)):
             marketId = pairs[i]
             market = self.safe_market(marketId)
-            rawTicker = self.safe_value(response, marketId)
+            rawTicker = self.safe_dict(response, marketId, {})
             ticker = self.parse_ticker(rawTicker, market)
             tickers.append(ticker)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
@@ -454,7 +467,7 @@ class ace(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         response = self.privatePostV2KlineGetKline(self.extend(request, params))
-        data = self.safe_value(response, 'attachment', [])
+        data = self.safe_list(response, 'attachment', [])
         #
         #     {
         #         "attachment":[
@@ -533,18 +546,18 @@ class ace(Exchange, ImplicitAPI):
                 if dateTime is not None:
                     timestamp = self.parse8601(dateTime)
                     timestamp = timestamp - 28800000  # 8 hours
-            orderSide = self.safe_number(order, 'buyOrSell')
+            orderSide = self.safe_string(order, 'buyOrSell')
             if orderSide is not None:
-                side = 'buy' if (orderSide == 1) else 'sell'
+                side = 'buy' if (orderSide == '1') else 'sell'
             amount = self.safe_string(order, 'num')
             price = self.safe_string(order, 'price')
             quoteId = self.safe_string(order, 'quoteCurrencyName')
             baseId = self.safe_string(order, 'baseCurrencyName')
             if quoteId is not None and baseId is not None:
                 symbol = baseId + '/' + quoteId
-            orderType = self.safe_number(order, 'type')
+            orderType = self.safe_string(order, 'type')
             if orderType is not None:
-                type = 'limit' if (orderType == 1) else 'market'
+                type = 'limit' if (orderType == '1') else 'market'
             filled = self.safe_string(order, 'tradeNum')
             remaining = self.safe_string(order, 'remainNum')
             status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -581,7 +594,7 @@ class ace(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -638,6 +651,7 @@ class ace(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -694,7 +708,7 @@ class ace(Exchange, ImplicitAPI):
         if limit is not None:
             request['size'] = limit
         response = self.privatePostV2OrderGetOrderList(self.extend(request, params))
-        orders = self.safe_value(response, 'attachment')
+        orders = self.safe_list(response, 'attachment')
         #
         #     {
         #         "attachment": [
@@ -851,7 +865,7 @@ class ace(Exchange, ImplicitAPI):
         #         "status": 200
         #     }
         #
-        data = self.safe_value(response, 'attachment')
+        data = self.safe_dict(response, 'attachment')
         trades = self.safe_list(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
@@ -947,7 +961,7 @@ class ace(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.privatePostV2CoinCustomerAccount(params)
-        balances = self.safe_value(response, 'attachment', [])
+        balances = self.safe_list(response, 'attachment', [])
         #
         #     {
         #         "attachment":[
@@ -981,7 +995,12 @@ class ace(Exchange, ImplicitAPI):
             }, params)
             sortedData = self.keysort(data)
             values = list(sortedData.values())
-            auth += ''.join(values)
+            stringifiedValues = []
+            for i in range(0, len(values)):
+                value = values[i]
+                strValue = str(value)
+                stringifiedValues.append(strValue)
+            auth += ''.join(stringifiedValues)
             signature = self.hash(self.encode(auth), 'sha256', 'hex')
             data['signKey'] = signature
             headers = {

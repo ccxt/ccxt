@@ -1296,8 +1296,10 @@ public partial class hitbtc : Exchange
     public virtual object parseTransactionStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "CREATED", "pending" },
             { "PENDING", "pending" },
             { "FAILED", "failed" },
+            { "ROLLED_BACK", "failed" },
             { "SUCCESS", "ok" },
         };
         return this.safeString(statuses, status, status);
@@ -2300,7 +2302,7 @@ public partial class hitbtc : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         * @param {bool} [params.margin] true for creating a margin order
@@ -2554,7 +2556,7 @@ public partial class hitbtc : Exchange
     {
         /**
         * @method
-        * @name hitbtc#fetchMarginMode
+        * @name hitbtc#fetchMarginModes
         * @description fetches margin mode of the user
         * @see https://api.hitbtc.com/#get-margin-position-parameters
         * @see https://api.hitbtc.com/#get-futures-position-parameters

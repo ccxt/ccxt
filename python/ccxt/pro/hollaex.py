@@ -28,6 +28,7 @@ class hollaex(ccxt.async_support.hollaex):
                 'watchTicker': False,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
             },
             'urls': {
                 'api': {
@@ -170,7 +171,7 @@ class hollaex(ccxt.async_support.hollaex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'usertrade'
@@ -546,7 +547,7 @@ class hollaex(ccxt.async_support.hollaex):
         if method is not None:
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # hollaex does not support built-in ws protocol-level ping-pong
         return {'op': 'ping'}
 

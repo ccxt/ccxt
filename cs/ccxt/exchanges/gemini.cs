@@ -161,6 +161,7 @@ public partial class gemini : Exchange
                         { "v1/account/create", 1 },
                         { "v1/account/list", 1 },
                         { "v1/heartbeat", 1 },
+                        { "v1/roles", 1 },
                     } },
                 } },
             } },
@@ -869,8 +870,11 @@ public partial class gemini : Exchange
     public async virtual Task<object> fetchTickerV1AndV2(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object tickerA = await this.fetchTickerV1(symbol, parameters);
-        object tickerB = await this.fetchTickerV2(symbol, parameters);
+        object tickerPromiseA = this.fetchTickerV1(symbol, parameters);
+        object tickerPromiseB = this.fetchTickerV2(symbol, parameters);
+        var tickerAtickerBVariable = await promiseAll(new List<object>() {tickerPromiseA, tickerPromiseB});
+        var tickerA = ((IList<object>) tickerAtickerBVariable)[0];
+        var tickerB = ((IList<object>) tickerAtickerBVariable)[1];
         return this.deepExtend(tickerA, new Dictionary<string, object>() {
             { "open", getValue(tickerB, "open") },
             { "high", getValue(tickerB, "high") },
@@ -1523,7 +1527,7 @@ public partial class gemini : Exchange
         * @param {string} type must be 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */

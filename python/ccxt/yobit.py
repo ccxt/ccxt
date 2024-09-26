@@ -248,6 +248,7 @@ class yobit(Exchange, ImplicitAPI):
                 'XIN': 'XINCoin',
                 'XMT': 'SummitCoin',
                 'XRA': 'Ratecoin',
+                'BCHN': 'BSV',
             },
             'options': {
                 'maxUrlLength': 2048,
@@ -541,31 +542,7 @@ class yobit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
-        """
-        :see: https://yobit.net/en/api
-        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
-        """
-        if symbols is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires "symbols" argument')
-        self.load_markets()
-        symbols = self.market_symbols(symbols)
-        ids = None
-        if symbols is None:
-            ids = self.ids
-        else:
-            ids = self.market_ids(symbols)
-        idsLength = len(ids)
-        idsString = '-'.join(ids)
-        maxLength = self.safe_integer(self.options, 'maxUrlLength', 2048)
-        # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-        lenghtOfBaseUrl = 30  # the url including api-base and endpoint dir is 30 chars
-        actualLength = len(idsString) + lenghtOfBaseUrl
-        if actualLength > maxLength:
-            raise ArgumentsRequired(self.id + ' fetchTickers() is being requested for ' + str(idsLength) + ' markets(which has an URL length of ' + str(actualLength) + ' characters), but it exceedes max URL length(' + str(maxLength) + '), please pass limisted symbols array to fetchTickers to fit in one request')
+    def fetch_tickers_helper(self, idsString: str, params={}) -> Tickers:
         request: dict = {
             'pair': idsString,
         }
@@ -578,7 +555,53 @@ class yobit(Exchange, ImplicitAPI):
             market = self.safe_market(id)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        return result
+
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://yobit.net/en/api
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.all]: you can set to `true` for convenience to fetch all tickers from self exchange by sending multiple requests
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        allSymbols = None
+        allSymbols, params = self.handle_param_bool(params, 'all', False)
+        if symbols is None and not allSymbols:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires "symbols" argument or use `params["all"] = True` to send multiple requests for all markets')
+        self.load_markets()
+        promises = []
+        maxLength = self.safe_integer(self.options, 'maxUrlLength', 2048)
+        # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        lenghtOfBaseUrl = 40  # safe space for the url including api-base and endpoint dir is 30 chars
+        if allSymbols:
+            symbols = self.symbols
+            ids = ''
+            for i in range(0, len(self.ids)):
+                id = self.ids[i]
+                prefix = '' if (ids == '') else '-'
+                ids += prefix + id
+                if len(ids) > maxLength:
+                    promises.append(self.fetch_tickers_helper(ids, params))
+                    ids = ''
+            if ids != '':
+                promises.append(self.fetch_tickers_helper(ids, params))
+        else:
+            symbols = self.market_symbols(symbols)
+            ids = self.market_ids(symbols)
+            idsLength: number = len(ids)
+            idsString = '-'.join(ids)
+            actualLength = len(idsString) + lenghtOfBaseUrl
+            if actualLength > maxLength:
+                raise ArgumentsRequired(self.id + ' fetchTickers() is being requested for ' + str(idsLength) + ' markets(which has an URL length of ' + str(actualLength) + ' characters), but it exceedes max URL length(' + str(maxLength) + '), please pass limisted symbols array to fetchTickers to fit in one request')
+            promises.append(self.fetch_tickers_helper(idsString, params))
+        resultAll = promises
+        finalResult = {}
+        for i in range(0, len(resultAll)):
+            result = self.filter_by_array_tickers(resultAll[i], 'symbol', symbols)
+            finalResult = self.extend(finalResult, result)
+        return finalResult
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -760,7 +783,7 @@ class yobit(Exchange, ImplicitAPI):
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

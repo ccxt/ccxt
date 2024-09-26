@@ -11,6 +11,7 @@ declare class Precise {
     sub(other: Precise): Precise;
     abs(): Precise;
     neg(): Precise;
+    or(other: Precise): Precise;
     min(other: Precise): Precise;
     max(other: Precise): Precise;
     gt(other: Precise): boolean;
@@ -27,6 +28,7 @@ declare class Precise {
     static stringAbs(string: Str): string;
     static stringNeg(string: Str): string;
     static stringMod(string1: Str, string2: Str): string;
+    static stringOr(string1: Str, string2: Str): string;
     static stringEquals(string1: Str, string2: Str): boolean;
     static stringEq(string1: Str, string2: Str): boolean;
     static stringMin(string1: Str, string2: Str): string;

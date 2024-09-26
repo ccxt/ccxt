@@ -565,11 +565,11 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        ids = self.publicGetSymbols()
+        idsPromise = self.publicGetSymbols()
         #
         #     ["btcusd", "ltcusd", "ltcbtc"]
         #
-        details = self.publicGetSymbolsDetails()
+        detailsPromise = self.publicGetSymbolsDetails()
         #
         #     [
         #         {
@@ -584,6 +584,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
+        ids, details = [idsPromise, detailsPromise]
         result = []
         for i in range(0, len(details)):
             market = details[i]
@@ -832,7 +833,7 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -841,7 +842,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         result: dict = {}
         for i in range(0, len(response)):
-            ticker = self.parse_ticker({'result': response[i]})
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -1049,7 +1050,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1111,17 +1112,51 @@ class bitfinex(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': int(id),
         }
-        return self.privatePostOrderCancel(self.extend(request, params))
+        response = self.privatePostOrderCancel(self.extend(request, params))
+        #
+        #    {
+        #        id: '161236928925',
+        #        cid: '1720172026812',
+        #        cid_date: '2024-07-05',
+        #        gid: null,
+        #        symbol: 'adaust',
+        #        exchange: 'bitfinex',
+        #        price: '0.33',
+        #        avg_execution_price: '0.0',
+        #        side: 'buy',
+        #        type: 'exchange limit',
+        #        timestamp: '1720172026.813',
+        #        is_live: True,
+        #        is_cancelled: False,
+        #        is_hidden: False,
+        #        oco_order: null,
+        #        was_forced: False,
+        #        original_amount: '10.0',
+        #        remaining_amount: '10.0',
+        #        executed_amount: '0.0',
+        #        src: 'api',
+        #        meta: {}
+        #    }
+        #
+        return self.parse_order(response)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str symbol: not used by bitfinex cancelAllOrders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from exchange
         """
-        return self.privatePostOrderCancelAll(params)
+        response = self.privatePostOrderCancelAll(params)
+        #
+        #    {result: 'Submitting 1 order cancellations.'}
+        #
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1238,6 +1273,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+        :param str id: the order id
         :param str symbol: not used by bitfinex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1522,7 +1558,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         response = self.safe_value(responses, 0, {})
-        id = self.safe_number(response, 'withdrawal_id')
+        id = self.safe_integer(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:
@@ -1560,7 +1596,7 @@ class bitfinex(Exchange, ImplicitAPI):
         return response
 
     def nonce(self):
-        return self.milliseconds()
+        return self.microseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)

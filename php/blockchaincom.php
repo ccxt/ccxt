@@ -132,9 +132,9 @@ class blockchaincom extends Exchange {
                     'percentage' => true,
                     'tiers' => array(
                         'taker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
-                            array( $this->parse_number('10000'), $this->parse_number('0.0022') ),
-                            array( $this->parse_number('50000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0045') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0035') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0018') ),
                             array( $this->parse_number('100000'), $this->parse_number('0.0018') ),
                             array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
                             array( $this->parse_number('1000000'), $this->parse_number('0.0018') ),
@@ -146,11 +146,11 @@ class blockchaincom extends Exchange {
                             array( $this->parse_number('1000000000'), $this->parse_number('0.0006') ),
                         ),
                         'maker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
-                            array( $this->parse_number('10000'), $this->parse_number('0.0012') ),
-                            array( $this->parse_number('50000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0017') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0015') ),
                             array( $this->parse_number('100000'), $this->parse_number('0.0008') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0007000000000000001') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0007') ),
                             array( $this->parse_number('1000000'), $this->parse_number('0.0006') ),
                             array( $this->parse_number('2500000'), $this->parse_number('0.0005') ),
                             array( $this->parse_number('5000000'), $this->parse_number('0.0004') ),
@@ -223,7 +223,7 @@ class blockchaincom extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for blockchaincom
-         * @see https://api.blockchain.com/v3/#/unauthenticated/getSymbols
+         * @see https://api.blockchain.com/v3/#getsymbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
@@ -351,7 +351,7 @@ class blockchaincom extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://api.blockchain.com/v3/#/unauthenticated/getL3OrderBook
+         * @see https://api.blockchain.com/v3/#getl3orderbook
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -363,7 +363,7 @@ class blockchaincom extends Exchange {
     public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://api.blockchain.com/v3/#/unauthenticated/getL3OrderBook
+         * @see https://api.blockchain.com/v3/#getl3orderbook
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$limit] max number of orders to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -435,7 +435,7 @@ class blockchaincom extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @see https://api.blockchain.com/v3/#/unauthenticated/getTickerBySymbol
+         * @see https://api.blockchain.com/v3/#gettickerbysymbol
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -452,7 +452,7 @@ class blockchaincom extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://api.blockchain.com/v3/#/unauthenticated/getTickers
+         * @see https://api.blockchain.com/v3/#gettickers
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -534,12 +534,12 @@ class blockchaincom extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @see https://api.blockchain.com/v3/#/trading/createOrder
+         * @see https://api.blockchain.com/v3/#createorder
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -595,7 +595,7 @@ class blockchaincom extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
-         * @see https://api.blockchain.com/v3/#/trading/deleteOrder
+         * @see https://api.blockchain.com/v3/#deleteorder
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -643,7 +643,7 @@ class blockchaincom extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
-         * @see https://api.blockchain.com/v3/#/trading/getFees
+         * @see https://api.blockchain.com/v3/#getfees
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
@@ -674,7 +674,7 @@ class blockchaincom extends Exchange {
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
-         * @see https://api.blockchain.com/v3/#/trading/getOrders
+         * @see https://api.blockchain.com/v3/#getorders
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] max number of orders to return, default is null
@@ -688,7 +688,7 @@ class blockchaincom extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
-         * @see https://api.blockchain.com/v3/#/trading/getOrders
+         * @see https://api.blockchain.com/v3/#getorders
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -702,7 +702,7 @@ class blockchaincom extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
-         * @see https://api.blockchain.com/v3/#/trading/getOrders
+         * @see https://api.blockchain.com/v3/#getorders
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -780,7 +780,7 @@ class blockchaincom extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
-         * @see https://api.blockchain.com/v3/#/trading/getFills
+         * @see https://api.blockchain.com/v3/#getfills
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -804,7 +804,7 @@ class blockchaincom extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
-         * @see https://api.blockchain.com/v3/#/payments/getDepositAddress
+         * @see https://api.blockchain.com/v3/#getdepositaddress
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -918,7 +918,7 @@ class blockchaincom extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @see https://api.blockchain.com/v3/#/payments/createWithdrawal
+         * @see https://api.blockchain.com/v3/#createwithdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -952,7 +952,7 @@ class blockchaincom extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
-         * @see https://api.blockchain.com/v3/#/payments/getWithdrawals
+         * @see https://api.blockchain.com/v3/#getwithdrawals
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -978,7 +978,7 @@ class blockchaincom extends Exchange {
     public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch data on a currency withdrawal via the withdrawal $id
-         * @see https://api.blockchain.com/v3/#/payments/getWithdrawalById
+         * @see https://api.blockchain.com/v3/#getwithdrawalbyid
          * @param {string} $id withdrawal $id
          * @param {string} $code not used by blockchaincom.fetchWithdrawal
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -995,7 +995,7 @@ class blockchaincom extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
-         * @see https://api.blockchain.com/v3/#/payments/getDeposits
+         * @see https://api.blockchain.com/v3/#getdeposits
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -1021,7 +1021,7 @@ class blockchaincom extends Exchange {
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a $deposit
-         * @see https://api.blockchain.com/v3/#/payments/getDepositById
+         * @see https://api.blockchain.com/v3/#getdepositbyid
          * @param {string} $id $deposit $id
          * @param {string} $code not used by blockchaincom fetchDeposit ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1039,7 +1039,7 @@ class blockchaincom extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://api.blockchain.com/v3/#/payments/getAccounts
+         * @see https://api.blockchain.com/v3/#getaccounts
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -1085,7 +1085,8 @@ class blockchaincom extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @see https://api.blockchain.com/v3/#/trading/getOrderById
+         * @see https://api.blockchain.com/v3/#getorderbyid
+         * @param {string} $id the order $id
          * @param {string} $symbol not used by blockchaincom fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

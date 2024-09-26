@@ -14,7 +14,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -161,16 +160,18 @@ class btcmarkets(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '3': InvalidOrder,
-                '6': DDoSProtection,
-                'InsufficientFund': InsufficientFunds,
-                'InvalidPrice': InvalidOrder,
-                'InvalidAmount': InvalidOrder,
-                'MissingArgument': InvalidOrder,
-                'OrderAlreadyCancelled': InvalidOrder,
-                'OrderNotFound': OrderNotFound,
-                'OrderStatusIsFinal': InvalidOrder,
-                'InvalidPaginationParameter': BadRequest,
+                'exact': {
+                    'InsufficientFund': InsufficientFunds,
+                    'InvalidPrice': InvalidOrder,
+                    'InvalidAmount': InvalidOrder,
+                    'MissingArgument': BadRequest,
+                    'OrderAlreadyCancelled': InvalidOrder,
+                    'OrderNotFound': OrderNotFound,
+                    'OrderStatusIsFinal': InvalidOrder,
+                    'InvalidPaginationParameter': BadRequest,
+                },
+                'broad': {
+                },
             },
             'fees': {
                 'percentage': True,
@@ -370,7 +371,8 @@ class btcmarkets(Exchange, ImplicitAPI):
         #             "minOrderAmount":"0.00007",
         #             "maxOrderAmount":"1000000",
         #             "amountDecimals":"8",
-        #             "priceDecimals":"2"
+        #             "priceDecimals":"2",
+        #             "status": "Online"
         #         }
         #     ]
         #
@@ -387,6 +389,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
         minAmount = self.safe_number(market, 'minOrderAmount')
         maxAmount = self.safe_number(market, 'maxOrderAmount')
+        status = self.safe_string(market, 'status')
         minPrice = None
         if quote == 'AUD':
             minPrice = pricePrecision
@@ -405,7 +408,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'swap': False,
             'future': False,
             'option': False,
-            'active': None,
+            'active': (status == 'Online'),
             'contract': False,
             'linear': None,
             'inverse': None,
@@ -760,7 +763,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1015,6 +1018,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.btcmarkets.net/v3/#operation/getOrderById
+        :param str id: the order id
         :param str symbol: not used by btcmarkets fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1204,18 +1208,16 @@ class btcmarkets(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
-        if 'success' in response:
-            if not response['success']:
-                error = self.safe_string(response, 'errorCode')
-                feedback = self.id + ' ' + body
-                self.throw_exactly_matched_exception(self.exceptions, error, feedback)
-                raise ExchangeError(feedback)
-        # v3 api errors
-        if code >= 400:
-            errorCode = self.safe_string(response, 'code')
-            message = self.safe_string(response, 'message')
+        #
+        #     {"code":"UnAuthorized","message":"invalid access token"}
+        #     {"code":"MarketNotFound","message":"invalid marketId"}
+        #
+        errorCode = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'message')
+        if errorCode is not None:
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
-            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
-            raise ExchangeError(feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)  # unknown message
         return None

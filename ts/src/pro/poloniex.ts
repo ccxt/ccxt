@@ -20,6 +20,7 @@ export default class poloniex extends poloniexRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchBalance': true,
                 'watchStatus': false,
                 'watchOrders': true,
@@ -81,7 +82,7 @@ export default class poloniex extends poloniexRest {
          * @ignore
          * @method
          * @description authenticates the user to access private web socket channels
-         * @see https://docs.poloniex.com/#authenticated-channels-market-data-authentication
+         * @see https://api-docs.poloniex.com/spot/websocket/authentication
          * @returns {object} response from exchange
          */
         this.checkRequiredCredentials ();
@@ -189,13 +190,13 @@ export default class poloniex extends poloniexRest {
         /**
          * @method
          * @name poloniex#createOrderWs
-         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
+         * @see https://api-docs.poloniex.com/spot/websocket/trade-request#create-order
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @param {string} [params.timeInForce] GTC (default), IOC, FOK
          * @param {string} [params.clientOrderId] Maximum 64-character length.*
@@ -256,7 +257,7 @@ export default class poloniex extends poloniexRest {
         /**
          * @method
          * @name poloniex#cancelOrderWs
-         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+         * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
          * @description cancel multiple orders
          * @param {string} id order id
          * @param {string} [symbol] unified market symbol
@@ -276,7 +277,7 @@ export default class poloniex extends poloniexRest {
         /**
          * @method
          * @name poloniex#cancelOrdersWs
-         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+         * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
          * @description cancel multiple orders
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
@@ -296,7 +297,7 @@ export default class poloniex extends poloniexRest {
         /**
          * @method
          * @name poloniex#cancelAllOrdersWs
-         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
+         * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
          * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
@@ -335,7 +336,7 @@ export default class poloniex extends poloniexRest {
          * @method
          * @name poloniex#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.poloniex.com/#public-channels-market-data-candlesticks
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -361,7 +362,7 @@ export default class poloniex extends poloniexRest {
          * @method
          * @name poloniex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.poloniex.com/#public-channels-market-data-ticker
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -377,7 +378,7 @@ export default class poloniex extends poloniexRest {
          * @method
          * @name poloniex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.poloniex.com/#public-channels-market-data-ticker
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -397,19 +398,52 @@ export default class poloniex extends poloniexRest {
          * @method
          * @name poloniex#watchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.poloniex.com/#public-channels-market-data-trades
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name poloniex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
         await this.loadMarkets ();
-        symbol = this.symbol (symbol);
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const name = 'trades';
-        const trades = await this.subscribe (name, name, false, [ symbol ], params);
+        const url = this.urls['api']['ws']['public'];
+        const marketIds = this.marketIds (symbols);
+        const subscribe: Dict = {
+            'event': 'subscribe',
+            'channel': [
+                name,
+            ],
+            'symbols': marketIds,
+        };
+        const request = this.extend (subscribe, params);
+        const messageHashes = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                messageHashes.push (name + '::' + symbols[i]);
+            }
+        }
+        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -419,7 +453,7 @@ export default class poloniex extends poloniexRest {
          * @method
          * @name poloniex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.poloniex.com/#public-channels-market-data-book-level-2
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] not used by poloniex watchOrderBook
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -438,7 +472,7 @@ export default class poloniex extends poloniexRest {
          * @method
          * @name poloniex#watchOrders
          * @description watches information on multiple orders made by the user
-         * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+         * @see https://api-docs.poloniex.com/spot/websocket/order
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] not used by poloniex watchOrders
          * @param {int} [limit] not used by poloniex watchOrders
@@ -464,7 +498,7 @@ export default class poloniex extends poloniexRest {
          * @method
          * @name poloniex#watchMyTrades
          * @description watches information on multiple trades made by the user using orders stream
-         * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+         * @see https://api-docs.poloniex.com/spot/websocket/order
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] not used by poloniex watchMyTrades
          * @param {int} [limit] not used by poloniex watchMyTrades
@@ -491,7 +525,7 @@ export default class poloniex extends poloniexRest {
          * @method
          * @name poloniex#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
+         * @see https://api-docs.poloniex.com/spot/websocket/balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1202,14 +1236,7 @@ export default class poloniex extends poloniexRest {
         if (type === 'auth') {
             this.handleAuthenticate (client, message);
         } else if (type === undefined) {
-            const data = this.safeValue (message, 'data');
-            const item = this.safeValue (data, 0);
-            const orderId = this.safeString (item, 'orderId');
-            if (orderId === '0') {
-                this.handleErrorMessage (client, item);
-            } else {
-                this.handleOrderRequest (client, message);
-            }
+            this.handleOrderRequest (client, message);
         } else {
             const data = this.safeValue (message, 'data', []);
             const dataLength = data.length;
@@ -1237,12 +1264,43 @@ export default class poloniex extends poloniexRest {
         //       "event": "error",
         //       "message": "Platform in maintenance mode"
         //    }
+        //    {
+        //       "id":"1722386782048",
+        //       "data":[
+        //          {
+        //             "orderId":0,
+        //             "clientOrderId":null,
+        //             "message":"available insufficient",
+        //             "code":21721
+        //          }
+        //       ]
+        //    }
         //
+        const id = this.safeString (message, 'id');
         const event = this.safeString (message, 'event');
-        const orderId = this.safeString (message, 'orderId');
+        const data = this.safeList (message, 'data');
+        const first = this.safeDict (data, 0);
+        const orderId = this.safeString (first, 'orderId');
         if ((event === 'error') || (orderId === '0')) {
-            const error = this.safeString (message, 'message');
-            throw new ExchangeError (this.id + ' error: ' + this.json (error));
+            try {
+                const error = this.safeString (first, 'message');
+                const code = this.safeString (first, 'code');
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+                throw new ExchangeError (feedback);
+            } catch (e) {
+                if (e instanceof AuthenticationError) {
+                    const messageHash = 'authenticated';
+                    client.reject (e, messageHash);
+                    if (messageHash in client.subscriptions) {
+                        delete client.subscriptions[messageHash];
+                    }
+                } else {
+                    client.reject (e, id);
+                }
+                return true;
+            }
         }
         return false;
     }
@@ -1271,7 +1329,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'event': 'ping',
         };

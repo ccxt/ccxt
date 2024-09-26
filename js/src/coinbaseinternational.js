@@ -68,7 +68,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -86,7 +86,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchMyBuys': true,
                 'fetchMySells': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -105,6 +105,7 @@ export default class coinbaseinternational extends Exchange {
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': true,
@@ -147,7 +148,7 @@ export default class coinbaseinternational extends Exchange {
                             'instruments/{instrument}',
                             'instruments/{instrument}/quote',
                             'instruments/{instrument}/funding',
-                            '',
+                            'instruments/{instrument}/candles',
                         ],
                     },
                     'private': {
@@ -355,6 +356,81 @@ export default class coinbaseinternational extends Exchange {
             'info': account,
         };
     }
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
+        /**
+         * @method
+         * @name coinbaseinternational#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         */
+        await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000);
+        }
+        const market = this.market(symbol);
+        const request = {
+            'instrument': market['id'],
+            'granularity': this.safeString(this.timeframes, timeframe, timeframe),
+        };
+        if (since !== undefined) {
+            request['start'] = this.iso8601(since);
+        }
+        else {
+            throw new ArgumentsRequired(this.id + ' fetchOHLCV() requires a since argument');
+        }
+        const unitl = this.safeInteger(params, 'until');
+        if (unitl !== undefined) {
+            params = this.omit(params, 'until');
+            request['end'] = this.iso8601(unitl);
+        }
+        const response = await this.v1PublicGetInstrumentsInstrumentCandles(this.extend(request, params));
+        //
+        //   {
+        //       "aggregations": [
+        //         {
+        //           "start": "2024-04-23T00:00:00Z",
+        //           "open": "62884.4",
+        //           "high": "64710.6",
+        //           "low": "62884.4",
+        //           "close": "63508.4",
+        //           "volume": "3253.9983"
+        //         }
+        //       ]
+        //   }
+        //
+        const candles = this.safeList(response, 'aggregations', []);
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
+    }
+    parseOHLCV(ohlcv, market = undefined) {
+        //
+        //   {
+        //     "start": "2024-04-23T00:00:00Z",
+        //     "open": "62884.4",
+        //     "high": "64710.6",
+        //     "low": "62884.4",
+        //     "close": "63508.4",
+        //     "volume": "3253.9983"
+        //   }
+        //
+        return [
+            this.parse8601(this.safeString2(ohlcv, 'start', 'time')),
+            this.safeNumber(ohlcv, 'open'),
+            this.safeNumber(ohlcv, 'high'),
+            this.safeNumber(ohlcv, 'low'),
+            this.safeNumber(ohlcv, 'close'),
+            this.safeNumber(ohlcv, 'volume'),
+        ];
+    }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -441,6 +517,174 @@ export default class coinbaseinternational extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbaseinternational#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch funding history for
+         * @param {int} [limit] the maximum number of funding history structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'type': 'FUNDING',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let portfolios = undefined;
+        [portfolios, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'portfolios');
+        if (portfolios !== undefined) {
+            request['portfolios'] = portfolios;
+        }
+        if (since !== undefined) {
+            request['time_from'] = this.iso8601(since);
+        }
+        if (limit !== undefined) {
+            request['result_limit'] = limit;
+        }
+        else {
+            request['result_limit'] = 100;
+        }
+        const response = await this.v1PrivateGetTransfers(this.extend(request, params));
+        const fundings = this.safeList(response, 'results', []);
+        return this.parseIncomes(fundings, market, since, limit);
+    }
+    parseIncome(income, market = undefined) {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":{
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     },
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":{
+        //        "name":"CB_FUND"
+        //     },
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        const marketId = this.safeString(income, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, 'contract');
+        const datetime = this.safeInteger(income, 'created_at');
+        const timestamp = this.parse8601(datetime);
+        const currencyId = this.safeString(income, 'asset');
+        const code = this.safeCurrencyCode(currencyId);
+        return {
+            'info': income,
+            'symbol': market['symbol'],
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'id': this.safeString(income, 'transfer_uuid'),
+            'amount': this.safeNumber(income, 'amount'),
+            'rate': undefined,
+        };
+    }
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbaseinternational#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'type': 'INTERNAL',
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
+        let portfolios = undefined;
+        [portfolios, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'portfolios');
+        if (portfolios !== undefined) {
+            request['portfolios'] = portfolios;
+        }
+        if (since !== undefined) {
+            request['time_from'] = this.iso8601(since);
+        }
+        if (limit !== undefined) {
+            request['result_limit'] = limit;
+        }
+        else {
+            request['result_limit'] = 100;
+        }
+        const response = await this.v1PrivateGetTransfers(this.extend(request, params));
+        const transfers = this.safeList(response, 'results', []);
+        return this.parseTransfers(transfers, currency, since, limit);
+    }
+    parseTransfer(transfer, currency = undefined) {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":{
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     },
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":{
+        //        "name":"CB_FUND"
+        //     },
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        const datetime = this.safeInteger(transfer, 'created_at');
+        const timestamp = this.parse8601(datetime);
+        const currencyId = this.safeString(transfer, 'asset');
+        const code = this.safeCurrencyCode(currencyId);
+        const fromPorfolio = this.safeDict(transfer, 'from_portfolio', {});
+        const fromId = this.safeString(fromPorfolio, 'id');
+        const toPorfolio = this.safeDict(transfer, 'to_portfolio', {});
+        const toId = this.safeString(toPorfolio, 'id');
+        return {
+            'info': transfer,
+            'id': this.safeString(transfer, 'transfer_uuid'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'currency': code,
+            'amount': this.safeNumber(transfer, 'amount'),
+            'fromAccount': fromId,
+            'toAccount': toId,
+            'status': this.parseTransferStatus(this.safeString(transfer, 'status')),
+        };
+    }
+    parseTransferStatus(status) {
+        const statuses = {
+            'FAILED': 'failed',
+            'PROCESSED': 'ok',
+            'NEW': 'pending',
+            'STARTED': 'pending',
+        };
+        return this.safeString(statuses, status, status);
     }
     async createDepositAddress(code, params = {}) {
         /**
@@ -561,11 +805,12 @@ export default class coinbaseinternational extends Exchange {
         const currencyId = this.safeString(network, 'asset_name');
         const currencyCode = this.safeCurrencyCode(currencyId);
         const networkId = this.safeString(network, 'network_arn_id');
+        const networkIdForCode = this.safeStringN(network, ['network_name', 'display_name', 'network_arn_id'], '');
         return this.safeNetwork({
             'info': network,
             'id': networkId,
             'name': this.safeString(network, 'display_name'),
-            'network': this.networkIdToCode(this.safeStringN(network, ['network_name', 'display_name', 'network_arn_id'], ''), currencyCode),
+            'network': this.networkIdToCode(networkIdForCode, currencyCode),
             'active': undefined,
             'deposit': undefined,
             'withdraw': undefined,
@@ -1631,7 +1876,7 @@ export default class coinbaseinternational extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} params.clientOrderId client order id
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

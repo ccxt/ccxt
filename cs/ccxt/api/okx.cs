@@ -396,6 +396,11 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetCopytradingPublicSubpositionsHistory",parameters);
     }
 
+    public async Task<object> publicGetSupportAnnouncementsTypes (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSupportAnnouncementsTypes",parameters);
+    }
+
     public async Task<object> privateGetRfqCounterparties (object parameters = null)
     {
         return await this.callAsync ("privateGetRfqCounterparties",parameters);
@@ -634,6 +639,11 @@ public partial class okx : Exchange
     public async Task<object> privateGetAccountBillsArchive (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountBillsArchive",parameters);
+    }
+
+    public async Task<object> privateGetAccountBillsHistoryArchive (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountBillsHistoryArchive",parameters);
     }
 
     public async Task<object> privateGetAccountConfig (object parameters = null)
@@ -1036,6 +1046,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetUsersPartnerIfRebate",parameters);
     }
 
+    public async Task<object> privateGetSupportAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSupportAnnouncements",parameters);
+    }
+
     public async Task<object> privatePostRfqCreateRfq (object parameters = null)
     {
         return await this.callAsync ("privatePostRfqCreateRfq",parameters);
@@ -1114,6 +1129,11 @@ public partial class okx : Exchange
     public async Task<object> privatePostSprdAmendOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostSprdAmendOrder",parameters);
+    }
+
+    public async Task<object> privatePostSprdCancelAllAfter (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSprdCancelAllAfter",parameters);
     }
 
     public async Task<object> privatePostTradeOrder (object parameters = null)
@@ -1329,6 +1349,11 @@ public partial class okx : Exchange
     public async Task<object> privatePostAccountFixedLoanRepayBorrowingOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountFixedLoanRepayBorrowingOrder",parameters);
+    }
+
+    public async Task<object> privatePostAccountBillsHistoryArchive (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountBillsHistoryArchive",parameters);
     }
 
     public async Task<object> privatePostUsersSubaccountModifyApikey (object parameters = null)

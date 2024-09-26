@@ -530,7 +530,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -566,7 +566,13 @@ class bitflyer(Exchange, ImplicitAPI):
             'product_code': self.market_id(symbol),
             'child_order_acceptance_id': id,
         }
-        return self.privatePostCancelchildorder(self.extend(request, params))
+        response = self.privatePostCancelchildorder(self.extend(request, params))
+        #
+        #    200 OK.
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
@@ -681,6 +687,7 @@ class bitflyer(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -988,8 +995,8 @@ class bitflyer(Exchange, ImplicitAPI):
         feedback = self.id + ' ' + body
         # i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         errorMessage = self.safe_string(response, 'error_message')
-        statusCode = self.safe_number(response, 'status')
+        statusCode = self.safe_integer(response, 'status')
         if errorMessage is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], statusCode, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+            raise ExchangeError(feedback)
         return None

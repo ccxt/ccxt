@@ -76,7 +76,6 @@ class tradeogre extends Exchange {
                 'fetchOrderBooks' => false,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
-                'fetchPermissions' => false,
                 'fetchPosition' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
@@ -215,7 +214,7 @@ class tradeogre extends Exchange {
                 'inverse' => null,
                 'contractSize' => null,
                 'taker' => $this->fees['trading']['taker'],
-                'maker' => $this->fees['trading']['taker'],
+                'maker' => $this->fees['trading']['maker'],
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -451,7 +450,7 @@ class tradeogre extends Exchange {
          * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
+         * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */

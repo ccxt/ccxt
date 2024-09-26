@@ -1210,7 +1210,10 @@ class coinex extends coinex$1 {
         //         "side": "buy",
         //         "order_id": 136915589622,
         //         "price": "64376",
-        //         "amount": "0.0001"
+        //         "amount": "0.0001",
+        //         "role": "taker",
+        //         "fee": "0.0299",
+        //         "fee_ccy": "USDT"
         //     }
         //
         const timestamp = this.safeInteger(trade, 'created_at');
@@ -1220,6 +1223,16 @@ class coinex extends coinex$1 {
         }
         const marketId = this.safeString(trade, 'market');
         market = this.safeMarket(marketId, market, undefined, defaultType);
+        const feeCostString = this.safeString(trade, 'fee');
+        let fee = undefined;
+        if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString(trade, 'fee_ccy');
+            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
+            };
+        }
         return this.safeTrade({
             'info': trade,
             'timestamp': timestamp,
@@ -1229,11 +1242,11 @@ class coinex extends coinex$1 {
             'order': this.safeString(trade, 'order_id'),
             'type': undefined,
             'side': this.safeString(trade, 'side'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': this.safeString(trade, 'role'),
             'price': this.safeString(trade, 'price'),
             'amount': this.safeString(trade, 'amount'),
             'cost': this.safeString(trade, 'deal_money'),
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -2111,7 +2124,7 @@ class coinex extends coinex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] price to trigger stop orders
          * @param {float} [params.stopLossPrice] price to trigger stop loss orders
@@ -2748,7 +2761,7 @@ class coinex extends coinex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price to trigger stop orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3766,25 +3779,9 @@ class coinex extends coinex$1 {
         const options = this.safeDict(this.options, 'fetchDepositAddress', {});
         const fillResponseFromRequest = this.safeBool(options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
-            depositAddress['network'] = this.safeNetworkCode(network, currency);
+            depositAddress['network'] = this.networkIdToCode(network, currency).toUpperCase();
         }
         return depositAddress;
-    }
-    safeNetwork(networkId, currency = undefined) {
-        const networks = this.safeValue(currency, 'networks', {});
-        const networksCodes = Object.keys(networks);
-        const networksCodesLength = networksCodes.length;
-        if (networkId === undefined && networksCodesLength === 1) {
-            return networks[networksCodes[0]];
-        }
-        return {
-            'id': networkId,
-            'network': (networkId === undefined) ? undefined : networkId.toUpperCase(),
-        };
-    }
-    safeNetworkCode(networkId, currency = undefined) {
-        const network = this.safeNetwork(networkId, currency);
-        return network['network'];
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //

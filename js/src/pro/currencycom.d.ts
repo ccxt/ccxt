@@ -3,7 +3,7 @@ import type { Int, OrderBook, Trade, Ticker, OHLCV, Balances } from '../base/typ
 import Client from '../base/ws/Client.js';
 export default class currencycom extends currencycomRest {
     describe(): any;
-    ping(client: any): {
+    ping(client: Client): {
         destination: string;
         correlationId: any;
         payload: {};

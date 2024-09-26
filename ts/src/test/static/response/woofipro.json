@@ -385,7 +385,7 @@
                         "order": null,
                         "takerOrMaker": null,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "symbol": "PERP_BTC_USDC",
                             "side": "SELL",

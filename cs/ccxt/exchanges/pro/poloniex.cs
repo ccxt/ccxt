@@ -17,6 +17,7 @@ public partial class poloniex : ccxt.poloniex
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", true },
                 { "watchBalance", true },
                 { "watchStatus", false },
                 { "watchOrders", true },
@@ -79,7 +80,7 @@ public partial class poloniex : ccxt.poloniex
         * @ignore
         * @method
         * @description authenticates the user to access private web socket channels
-        * @see https://docs.poloniex.com/#authenticated-channels-market-data-authentication
+        * @see https://api-docs.poloniex.com/spot/websocket/authentication
         * @returns {object} response from exchange
         */
         parameters ??= new Dictionary<string, object>();
@@ -195,13 +196,13 @@ public partial class poloniex : ccxt.poloniex
         /**
         * @method
         * @name poloniex#createOrderWs
-        * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
+        * @see https://api-docs.poloniex.com/spot/websocket/trade-request#create-order
         * @description create a trade order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the poloniex api endpoint
         * @param {string} [params.timeInForce] GTC (default), IOC, FOK
         * @param {string} [params.clientOrderId] Maximum 64-character length.*
@@ -275,7 +276,7 @@ public partial class poloniex : ccxt.poloniex
         /**
         * @method
         * @name poloniex#cancelOrderWs
-        * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+        * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
         * @description cancel multiple orders
         * @param {string} id order id
         * @param {string} [symbol] unified market symbol
@@ -298,7 +299,7 @@ public partial class poloniex : ccxt.poloniex
         /**
         * @method
         * @name poloniex#cancelOrdersWs
-        * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+        * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
         * @description cancel multiple orders
         * @param {string[]} ids order ids
         * @param {string} symbol unified market symbol, default is undefined
@@ -320,7 +321,7 @@ public partial class poloniex : ccxt.poloniex
         /**
         * @method
         * @name poloniex#cancelAllOrdersWs
-        * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
+        * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
         * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the poloniex api endpoint
@@ -363,7 +364,7 @@ public partial class poloniex : ccxt.poloniex
         * @method
         * @name poloniex#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.poloniex.com/#public-channels-market-data-candlesticks
+        * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -394,7 +395,7 @@ public partial class poloniex : ccxt.poloniex
         * @method
         * @name poloniex#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.poloniex.com/#public-channels-market-data-ticker
+        * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -412,7 +413,7 @@ public partial class poloniex : ccxt.poloniex
         * @method
         * @name poloniex#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.poloniex.com/#public-channels-market-data-ticker
+        * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -435,7 +436,7 @@ public partial class poloniex : ccxt.poloniex
         * @method
         * @name poloniex#watchTrades
         * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.poloniex.com/#public-channels-market-data-trades
+        * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -443,13 +444,48 @@ public partial class poloniex : ccxt.poloniex
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name poloniex#watchTradesForSymbols
+        * @description get the list of most recent trades for a list of symbols
+        * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbol = this.symbol(symbol);
+        symbols = this.marketSymbols(symbols, null, false, true, true);
         object name = "trades";
-        object trades = await this.subscribe(name, name, false, new List<object>() {symbol}, parameters);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object marketIds = this.marketIds(symbols);
+        object subscribe = new Dictionary<string, object>() {
+            { "event", "subscribe" },
+            { "channel", new List<object>() {name} },
+            { "symbols", marketIds },
+        };
+        object request = this.extend(subscribe, parameters);
+        object messageHashes = new List<object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(symbols, i)));
+            }
+        }
+        object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            object first = this.safeValue(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
@@ -460,7 +496,7 @@ public partial class poloniex : ccxt.poloniex
         * @method
         * @name poloniex#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.poloniex.com/#public-channels-market-data-book-level-2
+        * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] not used by poloniex watchOrderBook
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -483,7 +519,7 @@ public partial class poloniex : ccxt.poloniex
         * @method
         * @name poloniex#watchOrders
         * @description watches information on multiple orders made by the user
-        * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+        * @see https://api-docs.poloniex.com/spot/websocket/order
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] not used by poloniex watchOrders
         * @param {int} [limit] not used by poloniex watchOrders
@@ -513,7 +549,7 @@ public partial class poloniex : ccxt.poloniex
         * @method
         * @name poloniex#watchMyTrades
         * @description watches information on multiple trades made by the user using orders stream
-        * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+        * @see https://api-docs.poloniex.com/spot/websocket/order
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] not used by poloniex watchMyTrades
         * @param {int} [limit] not used by poloniex watchMyTrades
@@ -544,7 +580,7 @@ public partial class poloniex : ccxt.poloniex
         * @method
         * @name poloniex#watchBalance
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
+        * @see https://api-docs.poloniex.com/spot/websocket/balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -1299,16 +1335,7 @@ public partial class poloniex : ccxt.poloniex
             this.handleAuthenticate(client as WebSocketClient, message);
         } else if (isTrue(isEqual(type, null)))
         {
-            object data = this.safeValue(message, "data");
-            object item = this.safeValue(data, 0);
-            object orderId = this.safeString(item, "orderId");
-            if (isTrue(isEqual(orderId, "0")))
-            {
-                this.handleErrorMessage(client as WebSocketClient, item);
-            } else
-            {
-                this.handleOrderRequest(client as WebSocketClient, message);
-            }
+            this.handleOrderRequest(client as WebSocketClient, message);
         } else
         {
             object data = this.safeValue(message, "data", new List<object>() {});
@@ -1339,13 +1366,49 @@ public partial class poloniex : ccxt.poloniex
         //       "event": "error",
         //       "message": "Platform in maintenance mode"
         //    }
+        //    {
+        //       "id":"1722386782048",
+        //       "data":[
+        //          {
+        //             "orderId":0,
+        //             "clientOrderId":null,
+        //             "message":"available insufficient",
+        //             "code":21721
+        //          }
+        //       ]
+        //    }
         //
+        object id = this.safeString(message, "id");
         object eventVar = this.safeString(message, "event");
-        object orderId = this.safeString(message, "orderId");
+        object data = this.safeList(message, "data");
+        object first = this.safeDict(data, 0);
+        object orderId = this.safeString(first, "orderId");
         if (isTrue(isTrue((isEqual(eventVar, "error"))) || isTrue((isEqual(orderId, "0")))))
         {
-            object error = this.safeString(message, "message");
-            throw new ExchangeError ((string)add(add(this.id, " error: "), this.json(error))) ;
+            try
+            {
+                object error = this.safeString(first, "message");
+                object code = this.safeString(first, "code");
+                object feedback = add(add(this.id, " "), this.json(message));
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            } catch(Exception e)
+            {
+                if (isTrue(e is AuthenticationError))
+                {
+                    object messageHash = "authenticated";
+                    ((WebSocketClient)client).reject(e, messageHash);
+                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                    {
+
+                    }
+                } else
+                {
+                    ((WebSocketClient)client).reject(e, id);
+                }
+                return true;
+            }
         }
         return false;
     }

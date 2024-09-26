@@ -11,13 +11,13 @@ class Helper
 {
     public static Dictionary<string, object> GetInfo(object data2)
     {
-        var data = (Dictionary<string, object>)data2;
+        var data = (IDictionary<string, object>)data2;
         if (data.ContainsKey("info"))
         {
             var info = data["info"];
             if (info is IDictionary<string, object>)
             {
-                return (Dictionary<string, object>)info;
+                return new Dictionary<string, object>(info as IDictionary<string, object>);
             }
             else if (info is IList<object>)
             {
@@ -28,6 +28,29 @@ class Helper
         }
         return null;
 
+    }
+
+    public static Dictionary<string, Dictionary<string, List<OHLCV>>> ConvertToDictionaryOHLCVList(object data2)
+    {
+
+        var data = data2 as Dictionary<string, object>;
+        var result = new Dictionary<string, Dictionary<string, List<OHLCV>>>();
+        foreach (var symbol in data.Keys)
+        {
+            var symbolOHLCV = data[symbol] as Dictionary<string, object>;
+            var timeframeOHLCV = new Dictionary<string, List<OHLCV>>();
+            foreach (var timeframe in symbolOHLCV.Keys)
+            {
+                var ohlcvList = new List<OHLCV>();
+                foreach (var ohlcv in symbolOHLCV[timeframe] as List<object>)
+                {
+                    ohlcvList.Add(new OHLCV(ohlcv));
+                }
+                timeframeOHLCV.Add(timeframe, ohlcvList);
+            }
+            result.Add(symbol, timeframeOHLCV);
+        }
+        return result;
     }
 }
 
@@ -41,6 +64,17 @@ public struct Precision
         var precision = (Dictionary<string, object>)precision2;
         amount = Exchange.SafeFloat(precision, "amount");
         price = Exchange.SafeFloat(precision, "price");
+    }
+}
+public struct MarketMarginModes
+{
+    public bool? cross;
+    public bool? isolated;
+    public MarketMarginModes(object marginModes2)
+    {
+        var marginModes = (Dictionary<string, object>)marginModes2;
+        cross = Exchange.SafeBool(marginModes, "cross");
+        isolated = Exchange.SafeBool(marginModes, "isolated");
     }
 }
 
@@ -153,6 +187,7 @@ public struct Market
     public string? feeSide;
 
     public Precision? precision;
+    public MarketMarginModes? marginModes;
 
     public Limits? limits;
     public Dictionary<string, object> info;
@@ -194,6 +229,7 @@ public struct Market
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
+        marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
     }
 }
 
@@ -642,6 +678,8 @@ public struct OHLCVC
         cost = Exchange.SafeFloat(ohlcv, 6);
     }
 }
+
+
 
 public struct Balance
 {
@@ -1569,7 +1607,7 @@ public struct CurrencyLimits
     {
         var currencyLimits = (Dictionary<string, object>)currencyLimits2;
         amount = currencyLimits.ContainsKey("amount") ? new MinMax(currencyLimits["amount"]) : null;
-        withdraw = currencyLimits.ContainsKey("amount") ? new MinMax(currencyLimits["amount"]) : null;
+        withdraw = currencyLimits.ContainsKey("withdraw") ? new MinMax(currencyLimits["withdraw"]) : null;
     }
 }
 
@@ -1816,14 +1854,14 @@ public struct OptionChain
 
     public OptionChain(object optionchains2)
     {
-        var marginModes = (Dictionary<string, object>)optionchains2;
+        var optionChains = (Dictionary<string, object>)optionchains2;
 
-        info = Helper.GetInfo(marginModes);
+        info = Helper.GetInfo(optionChains);
         this.chains = new Dictionary<string, Option>();
-        foreach (var marginMode in marginModes)
+        foreach (var optionChain in optionChains)
         {
-            if (marginMode.Key != "info")
-                this.chains.Add(marginMode.Key, new Option(marginMode.Value));
+            if (optionChain.Key != "info")
+                this.chains.Add(optionChain.Key, new Option(optionChain.Value));
         }
     }
 
@@ -1844,45 +1882,6 @@ public struct OptionChain
         set
         {
             chains[key] = value;
-        }
-    }
-}
-
-public struct TransferEntries
-{
-    public Dictionary<string, object> info;
-    public Dictionary<string, TransferEntry> transferEntries;
-
-    public TransferEntries(object transferEntries2)
-    {
-        var transferEntries = (Dictionary<string, object>)transferEntries2;
-
-        info = Helper.GetInfo(transferEntries);
-        this.transferEntries = new Dictionary<string, TransferEntry>();
-        foreach (var transferEntry in transferEntries)
-        {
-            if (transferEntry.Key != "info")
-                this.transferEntries.Add(transferEntry.Key, new TransferEntry(transferEntry.Value));
-        }
-    }
-
-    // Indexer
-    public TransferEntry this[string key]
-    {
-        get
-        {
-            if (transferEntries.ContainsKey(key))
-            {
-                return transferEntries[key];
-            }
-            else
-            {
-                throw new KeyNotFoundException($"The key '{key}' was not found in the transferEntries.");
-            }
-        }
-        set
-        {
-            transferEntries[key] = value;
         }
     }
 }

@@ -964,7 +964,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1038,6 +1038,20 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
+    def parse_cancel_orders(self, data):
+        dataKeys = list(data.keys())
+        orders = []
+        for i in range(0, len(dataKeys)):
+            marketId = dataKeys[i]
+            orderIds = data[marketId]
+            for j in range(0, len(orderIds)):
+                orders.append(self.safe_order({
+                    'info': orderIds[j],
+                    'id': orderIds[j],
+                    'symbol': self.safe_symbol(marketId),
+                }))
+        return orders
+
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
@@ -1065,7 +1079,8 @@ class bitopro(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        data = self.safe_dict(response, 'data')
+        return self.parse_cancel_orders(data)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1086,7 +1101,7 @@ class bitopro(Exchange, ImplicitAPI):
             response = await self.privateDeleteOrdersPair(self.extend(request, params))
         else:
             response = await self.privateDeleteOrdersAll(self.extend(request, params))
-        result = self.safe_value(response, 'data', {})
+        data = self.safe_value(response, 'data', {})
         #
         #     {
         #         "data":{
@@ -1097,12 +1112,13 @@ class bitopro(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return result
+        return self.parse_cancel_orders(data)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

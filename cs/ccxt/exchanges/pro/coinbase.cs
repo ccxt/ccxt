@@ -784,6 +784,27 @@ public partial class coinbase : ccxt.coinbase
         return message;
     }
 
+    public virtual object handleHeartbeats(WebSocketClient client, object message)
+    {
+        // although the subscription takes a product_ids parameter (i.e. symbol),
+        // there is no (clear) way of mapping the message back to the symbol.
+        //
+        //     {
+        //         "channel": "heartbeats",
+        //         "client_id": "",
+        //         "timestamp": "2023-06-23T20:31:26.122969572Z",
+        //         "sequence_num": 0,
+        //         "events": [
+        //           {
+        //               "current_time": "2023-06-23 20:31:56.121961769 +0000 UTC m=+91717.525857105",
+        //               "heartbeat_counter": "3049"
+        //           }
+        //         ]
+        //     }
+        //
+        return message;
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         object channel = this.safeString(message, "channel");
@@ -794,6 +815,7 @@ public partial class coinbase : ccxt.coinbase
             { "market_trades", this.handleTrade },
             { "user", this.handleOrder },
             { "l2_data", this.handleOrderBook },
+            { "heartbeats", this.handleHeartbeats },
         };
         object type = this.safeString(message, "type");
         if (isTrue(isEqual(type, "error")))
@@ -802,6 +824,9 @@ public partial class coinbase : ccxt.coinbase
             throw new ExchangeError ((string)errorMessage) ;
         }
         object method = this.safeValue(methods, channel);
-        DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+        if (isTrue(method))
+        {
+            DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+        }
     }
 }

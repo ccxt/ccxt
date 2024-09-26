@@ -31,9 +31,11 @@ public class Tests
     public static bool sandbox = false;
     public static bool privateTests = false;
     public static bool privateOnly = false;
-    public static bool baseTests = false;
-    public static bool cacheTests = false;
-    public static bool orderBookTests = false;
+    public static bool isWs = false;
+    public static bool isBaseTests = false;
+    public static bool isExchangeTests = false;
+    public static bool isReqResTests = false;
+    public static bool isAllTest = false;
     public static bool info = false;
     public static bool debug = false;
     public static bool raceCondition = false;
@@ -44,17 +46,19 @@ public class Tests
 
     static void InitOptions(string[] args)
     {
-        var isBase = args.Contains("--base");
-        baseTests = isBase;
-        cacheTests = args.Contains("--cache");
-        orderBookTests = args.Contains("--orderbook");
+        isWs = args.Contains("--ws");
+        isBaseTests = args.Contains("--baseTests");
+        isExchangeTests = args.Contains("--exchangeTests");
+        isReqResTests =  args.Contains("--requestTests") || args.Contains("--responseTests");
+        isAllTest = !isReqResTests && !isBaseTests && !isExchangeTests; // if neither was chosen
+
         raceCondition = args.Contains("--race");
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
         {
             exchangeId = argsWithoutOptions[0];
         }
-        else if (false && !baseTests)
+        else if (false && !isBaseTests)
         {
             throw new Exception("Exchange name is required");
         }
@@ -101,23 +105,18 @@ public class Tests
         ReadConfig();
         InitOptions(args);
 
-        if (baseTests)
+        if (isBaseTests)
         {
-            RunBaseTests();
-            return;
-        }
-
-
-        if (cacheTests)
-        {
-            RunCacheTests();
-            return;
-        }
-
-        if (orderBookTests)
-        {
-            OrderBookTests();
-            return;
+            if (isWs)
+            {
+                WsCacheTests();
+                WsOrderBookTests();
+            }
+            else 
+            {
+                RestBaseTests();
+            }
+            Helper.Green(" [C#] base tests passed");
         }
 
         if (raceCondition)
@@ -126,29 +125,42 @@ public class Tests
             return;
         }
 
-        var testClass = new testMainClass();
-        testClass.init(exchangeId, symbol, methodName).Wait();
+        if (isExchangeTests || isReqResTests || isAllTest) {
+            var testClass = new testMainClass();
+            testClass.init(exchangeId, symbol, methodName).Wait();
+        }
     }
 
-    static void RunBaseTests()
+    static void RestBaseTests()
     {
-        tests.PrecisionTests();
-        Helper.Green(" [C#] Precision tests passed");
-        tests.DateTimeTests();
-        Helper.Green(" [C#] Datetime tests passed");
-        tests.CryptoTests();
+        tests.testCryptography();
         Helper.Green(" [C#] Crypto tests passed");
+        // run auto-transpiled tests (all of them start by 'testFunction')
+        RunAutoTranspiledBaseTests (tests);
     }
 
-    static void RunCacheTests()
+    static void RunAutoTranspiledBaseTests(object testsInstance) {
+        MethodInfo[] methods = testsInstance.GetType()
+                        .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                        .Where(m => m.Name.StartsWith("test") && m.ReturnType == typeof(void))
+                        .ToArray();
+        // 2. Invoke Each Method
+        foreach (MethodInfo method in methods)
+        {
+            method.Invoke(testsInstance, null); 
+            Helper.Green(" [C#] " + method.ToString() + " tests passed");
+        }
+    }
+
+    static void WsCacheTests()
     {
-        tests.CacheTests();
+        tests.testWsCache();
         Helper.Green(" [C#] ArrayCache tests passed");
     }
 
-    static void OrderBookTests()
+    static void WsOrderBookTests()
     {
-        tests.OrderBookTests();
+        tests.testWsOrderBook();
         Helper.Green(" [C#] OrderBook tests passed");
     }
 

@@ -62,7 +62,6 @@ export default class upbit extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
-    fetchOrdersByState(state: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

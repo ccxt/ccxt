@@ -730,6 +730,26 @@ class coinbase extends \ccxt\async\coinbase {
         return $message;
     }
 
+    public function handle_heartbeats($client, $message) {
+        // although the subscription takes a product_ids parameter (i.e. symbol),
+        // there is no (clear) way of mapping the $message back to the symbol.
+        //
+        //     {
+        //         "channel" => "heartbeats",
+        //         "client_id" => "",
+        //         "timestamp" => "2023-06-23T20:31:26.122969572Z",
+        //         "sequence_num" => 0,
+        //         "events" => array(
+        //           {
+        //               "current_time" => "2023-06-23 20:31:56.121961769 +0000 UTC m=+91717.525857105",
+        //               "heartbeat_counter" => "3049"
+        //           }
+        //         )
+        //     }
+        //
+        return $message;
+    }
+
     public function handle_message($client, $message) {
         $channel = $this->safe_string($message, 'channel');
         $methods = array(
@@ -739,6 +759,7 @@ class coinbase extends \ccxt\async\coinbase {
             'market_trades' => array($this, 'handle_trade'),
             'user' => array($this, 'handle_order'),
             'l2_data' => array($this, 'handle_order_book'),
+            'heartbeats' => array($this, 'handle_heartbeats'),
         );
         $type = $this->safe_string($message, 'type');
         if ($type === 'error') {
@@ -746,6 +767,8 @@ class coinbase extends \ccxt\async\coinbase {
             throw new ExchangeError($errorMessage);
         }
         $method = $this->safe_value($methods, $channel);
-        $method($client, $message);
+        if ($method) {
+            $method($client, $message);
+        }
     }
 }

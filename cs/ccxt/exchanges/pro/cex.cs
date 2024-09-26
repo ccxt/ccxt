@@ -16,6 +16,7 @@ public partial class cex : ccxt.cex
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -729,7 +730,7 @@ public partial class cex : ccxt.cex
         //             }
         //         }
         //     }
-        //  fullfilledOrder
+        //  fulfilledOrder
         //     {
         //         "e": "order",
         //         "data": {
@@ -1101,7 +1102,7 @@ public partial class cex : ccxt.cex
         //     }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object incrementalId = this.safeNumber(data, "id");
+        object incrementalId = this.safeInteger(data, "id");
         object pair = this.safeString(data, "pair", "");
         object symbol = this.pairToSymbol(pair);
         object storedOrderBook = this.safeValue(this.orderbooks, symbol);
@@ -1289,6 +1290,7 @@ public partial class cex : ccxt.cex
         * @name cex#fetchOrderWs
         * @description fetches information on an order made by the user
         * @see https://docs.cex.io/#ws-api-get-order
+        * @param {string} id the order id
         * @param {string} symbol not used by cex fetchOrder
         * @param {object} [params] extra parameters specific to the cex api endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1361,7 +1363,7 @@ public partial class cex : ccxt.cex
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the kraken api endpoint
         * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -1403,7 +1405,7 @@ public partial class cex : ccxt.cex
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the cex api endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         */

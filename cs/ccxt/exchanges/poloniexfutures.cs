@@ -65,7 +65,7 @@ public partial class poloniexfutures : Exchange
                     { "private", "https://futures-api.poloniex.com" },
                 } },
                 { "www", "https://www.poloniex.com" },
-                { "doc", "https://futures-docs.poloniex.com" },
+                { "doc", "https://api-docs.poloniex.com/futures/" },
                 { "fees", "https://poloniex.com/fee-schedule" },
                 { "referral", "https://poloniex.com/signup?c=UBFZJRPJ" },
             } },
@@ -202,7 +202,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchMarkets
         * @description retrieves data on all markets for poloniexfutures
-        * @see https://futures-docs.poloniex.com/#symbol-2
+        * @see https://api-docs.poloniex.com/futures/api/symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -422,7 +422,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
+        * @see https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-20
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -461,7 +461,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+        * @see https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-of-all-symbols
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -479,8 +479,8 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfuturesfutures#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://futures-docs.poloniex.com/#get-full-order-book-level-2
-        * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
+        * @see https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book---level-2
+        * @see https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book--level-3
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -572,7 +572,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchL3OrderBook
         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
+        * @see https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book--level-3
         * @param {string} symbol unified market symbol
         * @param {int} [limit] max number of orders to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -691,7 +691,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchTrades
         * @description get the list of most recent trades for a particular symbol
-        * @see https://futures-docs.poloniex.com/#historical-data
+        * @see https://api-docs.poloniex.com/futures/api/historical#transaction-history
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -731,7 +731,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
-        * @see https://futures-docs.poloniex.com/#time
+        * @see https://api-docs.poloniex.com/futures/api/time#server-time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
         */
@@ -753,7 +753,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://futures-docs.poloniex.com/#k-chart
+        * @see https://api-docs.poloniex.com/futures/api/kline#get-k-line-data-of-contract
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -831,7 +831,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://futures-docs.poloniex.com/#get-account-overview
+        * @see https://api-docs.poloniex.com/futures/api/account#get-account-overview
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -871,12 +871,12 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#createOrder
         * @description Create an order on the exchange
-        * @see https://futures-docs.poloniex.com/#place-an-order
+        * @see https://api-docs.poloniex.com/futures/api/orders#place-an-order
         * @param {string} symbol Unified CCXT market symbol
         * @param {string} type 'limit' or 'market'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params]  extra parameters specific to the exchange API endpoint
         * @param {float} [params.leverage] Leverage size of the order
         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -990,7 +990,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#cancelOrder
         * @description cancels an open order
-        * @see https://futures-docs.poloniex.com/#cancel-an-order
+        * @see https://api-docs.poloniex.com/futures/api/orders#cancel-an-order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1034,7 +1034,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchPositions
         * @description fetch all open positions
-        * @see https://futures-docs.poloniex.com/#get-position-list
+        * @see https://api-docs.poloniex.com/futures/api/positions#get-position-list
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -1194,7 +1194,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchFundingHistory
         * @description fetch the history of funding payments paid and received on this account
-        * @see https://futures-docs.poloniex.com/#get-funding-history
+        * @see https://api-docs.poloniex.com/futures/api/funding-fees#get-funding-history
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch funding history for
         * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1346,8 +1346,8 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchOrdersByStatus
         * @description fetches a list of orders placed on the exchange
-        * @see https://futures-docs.poloniex.com/#get-order-list
-        * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
         * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
         * @param {string} symbol unified symbol for the market to retrieve orders from
         * @param {int} [since] timestamp in ms of the earliest order to retrieve
@@ -1467,8 +1467,8 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchOpenOrders
         * @description fetch all unfilled currently open orders
-        * @see https://futures-docs.poloniex.com/#get-order-list
-        * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1488,8 +1488,8 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
-        * @see https://futures-docs.poloniex.com/#get-order-list
-        * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1509,8 +1509,9 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchOrder
         * @description fetches information on an order made by the user
-        * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
-        * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-details-of-a-single-order
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-single-order-by-clientoid
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1719,7 +1720,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchFundingRate
         * @description fetch the current funding rate
-        * @see https://futures-docs.poloniex.com/#get-premium-index
+        * @see https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1770,7 +1771,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchMyTrades
         * @description fetch all trades made by the user
-        * @see https://futures-docs.poloniex.com/#get-fills
+        * @see https://api-docs.poloniex.com/futures/api/fills#get-fillsdeprecated
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1839,7 +1840,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#setMarginMode
         * @description set margin mode to 'cross' or 'isolated'
-        * @see https://futures-docs.poloniex.com/#change-margin-mode
+        * @see https://api-docs.poloniex.com/futures/api/margin-mode#change-margin-mode
         * @param {string} marginMode "0" (isolated) or "1" (cross)
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint

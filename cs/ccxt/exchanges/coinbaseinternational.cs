@@ -58,7 +58,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposits", true },
-                { "fetchFundingHistory", false },
+                { "fetchFundingHistory", true },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -76,7 +76,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchMyBuys", true },
                 { "fetchMySells", true },
                 { "fetchMyTrades", true },
-                { "fetchOHLCV", false },
+                { "fetchOHLCV", true },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -95,6 +95,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchTrades", false },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", false },
+                { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
                 { "sandbox", true },
@@ -125,7 +126,7 @@ public partial class coinbaseinternational : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", ""} },
+                        { "get", new List<object>() {"assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", "instruments/{instrument}/candles"} },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new List<object>() {"orders", "orders/{id}", "portfolios", "portfolios/{portfolio}", "portfolios/{portfolio}/detail", "portfolios/{portfolio}/summary", "portfolios/{portfolio}/balances", "portfolios/{portfolio}/balances/{asset}", "portfolios/{portfolio}/positions", "portfolios/{portfolio}/positions/{instrument}", "portfolios/fills", "portfolios/{portfolio}/fills", "transfers", "transfers/{transfer_uuid}"} },
@@ -309,6 +310,86 @@ public partial class coinbaseinternational : Exchange
         };
     }
 
+    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbaseinternational#fetchOHLCV
+        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
+        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+        * @param {string} timeframe the length of time each candle represents
+        * @param {int} [since] timestamp in ms of the earliest candle to fetch
+        * @param {int} [limit] the maximum amount of candles to fetch, default 100 max 10000
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        */
+        timeframe ??= "1m";
+        limit ??= 100;
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 10000);
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "instrument", getValue(market, "id") },
+            { "granularity", this.safeString(this.timeframes, timeframe, timeframe) },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV() requires a since argument")) ;
+        }
+        object unitl = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(unitl, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["end"] = this.iso8601(unitl);
+        }
+        object response = await this.v1PublicGetInstrumentsInstrumentCandles(this.extend(request, parameters));
+        //
+        //   {
+        //       "aggregations": [
+        //         {
+        //           "start": "2024-04-23T00:00:00Z",
+        //           "open": "62884.4",
+        //           "high": "64710.6",
+        //           "low": "62884.4",
+        //           "close": "63508.4",
+        //           "volume": "3253.9983"
+        //         }
+        //       ]
+        //   }
+        //
+        object candles = this.safeList(response, "aggregations", new List<object>() {});
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
+    }
+
+    public override object parseOHLCV(object ohlcv, object market = null)
+    {
+        //
+        //   {
+        //     "start": "2024-04-23T00:00:00Z",
+        //     "open": "62884.4",
+        //     "high": "64710.6",
+        //     "low": "62884.4",
+        //     "close": "63508.4",
+        //     "volume": "3253.9983"
+        //   }
+        //
+        return new List<object> {this.parse8601(this.safeString2(ohlcv, "start", "time")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
+    }
+
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -408,6 +489,198 @@ public partial class coinbaseinternational : Exchange
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
         };
+    }
+
+    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbaseinternational#fetchFundingHistory
+        * @description fetch the history of funding payments paid and received on this account
+        * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+        * @param {string} [symbol] unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch funding history for
+        * @param {int} [limit] the maximum number of funding history structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "type", "FUNDING" },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object portfolios = null;
+        var portfoliosparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "portfolios");
+        portfolios = ((IList<object>)portfoliosparametersVariable)[0];
+        parameters = ((IList<object>)portfoliosparametersVariable)[1];
+        if (isTrue(!isEqual(portfolios, null)))
+        {
+            ((IDictionary<string,object>)request)["portfolios"] = portfolios;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = 100;
+        }
+        object response = await this.v1PrivateGetTransfers(this.extend(request, parameters));
+        object fundings = this.safeList(response, "results", new List<object>() {});
+        return this.parseIncomes(fundings, market, since, limit);
+    }
+
+    public override object parseIncome(object income, object market = null)
+    {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":{
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     },
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":{
+        //        "name":"CB_FUND"
+        //     },
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        object marketId = this.safeString(income, "symbol");
+        market = this.safeMarket(marketId, market, null, "contract");
+        object datetime = this.safeInteger(income, "created_at");
+        object timestamp = this.parse8601(datetime);
+        object currencyId = this.safeString(income, "asset");
+        object code = this.safeCurrencyCode(currencyId);
+        return new Dictionary<string, object>() {
+            { "info", income },
+            { "symbol", getValue(market, "symbol") },
+            { "code", code },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(income, "transfer_uuid") },
+            { "amount", this.safeNumber(income, "amount") },
+            { "rate", null },
+        };
+    }
+
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbaseinternational#fetchTransfers
+        * @description fetch a history of internal transfers made on an account
+        * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+        * @param {string} code unified currency code of the currency transferred
+        * @param {int} [since] the earliest time in ms to fetch transfers for
+        * @param {int} [limit] the maximum number of  transfers structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "type", "INTERNAL" },
+        };
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+        }
+        object portfolios = null;
+        var portfoliosparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "portfolios");
+        portfolios = ((IList<object>)portfoliosparametersVariable)[0];
+        parameters = ((IList<object>)portfoliosparametersVariable)[1];
+        if (isTrue(!isEqual(portfolios, null)))
+        {
+            ((IDictionary<string,object>)request)["portfolios"] = portfolios;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = 100;
+        }
+        object response = await this.v1PrivateGetTransfers(this.extend(request, parameters));
+        object transfers = this.safeList(response, "results", new List<object>() {});
+        return this.parseTransfers(transfers, currency, since, limit);
+    }
+
+    public override object parseTransfer(object transfer, object currency = null)
+    {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":{
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     },
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":{
+        //        "name":"CB_FUND"
+        //     },
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        object datetime = this.safeInteger(transfer, "created_at");
+        object timestamp = this.parse8601(datetime);
+        object currencyId = this.safeString(transfer, "asset");
+        object code = this.safeCurrencyCode(currencyId);
+        object fromPorfolio = this.safeDict(transfer, "from_portfolio", new Dictionary<string, object>() {});
+        object fromId = this.safeString(fromPorfolio, "id");
+        object toPorfolio = this.safeDict(transfer, "to_portfolio", new Dictionary<string, object>() {});
+        object toId = this.safeString(toPorfolio, "id");
+        return new Dictionary<string, object>() {
+            { "info", transfer },
+            { "id", this.safeString(transfer, "transfer_uuid") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "currency", code },
+            { "amount", this.safeNumber(transfer, "amount") },
+            { "fromAccount", fromId },
+            { "toAccount", toId },
+            { "status", this.parseTransferStatus(this.safeString(transfer, "status")) },
+        };
+    }
+
+    public virtual object parseTransferStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "FAILED", "failed" },
+            { "PROCESSED", "ok" },
+            { "NEW", "pending" },
+            { "STARTED", "pending" },
+        };
+        return this.safeString(statuses, status, status);
     }
 
     public async override Task<object> createDepositAddress(object code, object parameters = null)
@@ -553,11 +826,12 @@ public partial class coinbaseinternational : Exchange
         object currencyId = this.safeString(network, "asset_name");
         object currencyCode = this.safeCurrencyCode(currencyId);
         object networkId = this.safeString(network, "network_arn_id");
+        object networkIdForCode = this.safeStringN(network, new List<object>() {"network_name", "display_name", "network_arn_id"}, "");
         return this.safeNetwork(new Dictionary<string, object>() {
             { "info", network },
             { "id", networkId },
             { "name", this.safeString(network, "display_name") },
-            { "network", this.networkIdToCode(this.safeStringN(network, new List<object>() {"network_name", "display_name", "network_arn_id"}, ""), currencyCode) },
+            { "network", this.networkIdToCode(networkIdForCode, currencyCode) },
             { "active", null },
             { "deposit", null },
             { "withdraw", null },
@@ -1738,7 +2012,7 @@ public partial class coinbaseinternational : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} params.clientOrderId client order id
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

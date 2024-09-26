@@ -9,8 +9,8 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/base/test_position.php';
-include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/exchange/base/test_position.php';
+include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_positions($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
@@ -20,7 +20,7 @@ function test_watch_positions($exchange, $skipped_properties, $symbol) {
         while ($now < $ends) {
             $response = null;
             try {
-                $response = Async\await($exchange->watch_positions($symbol));
+                $response = Async\await($exchange->watch_positions([$symbol]));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;

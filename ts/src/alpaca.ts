@@ -561,8 +561,8 @@ export default class alpaca extends Exchange {
         //       }
         //   }
         //
-        const orderbooks = this.safeValue (response, 'orderbooks', {});
-        const rawOrderbook = this.safeValue (orderbooks, id, {});
+        const orderbooks = this.safeDict (response, 'orderbooks', {});
+        const rawOrderbook = this.safeDict (orderbooks, id, {});
         const timestamp = this.parse8601 (this.safeString (rawOrderbook, 't'));
         return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
@@ -696,7 +696,7 @@ export default class alpaca extends Exchange {
          * @param {string} type 'market', 'limit' or 'stop_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -814,7 +814,11 @@ export default class alpaca extends Exchange {
         if (Array.isArray (response)) {
             return this.parseOrders (response, undefined);
         } else {
-            return response;
+            return [
+                this.safeOrder ({
+                    'info': response,
+                }),
+            ];
         }
     }
 
@@ -824,6 +828,7 @@ export default class alpaca extends Exchange {
          * @name alpaca#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.alpaca.markets/reference/getorderbyorderid
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1105,6 +1110,7 @@ export default class alpaca extends Exchange {
         let url = this.implodeHostname (this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
         if (api[1] === 'private') {
+            this.checkRequiredCredentials ();
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }

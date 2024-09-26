@@ -1090,6 +1090,7 @@ public partial class coinbaseexchange : Exchange
         * @name coinbaseexchange#fetchOrder
         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol not used by coinbaseexchange fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1243,7 +1244,7 @@ public partial class coinbaseexchange : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1510,23 +1511,23 @@ public partial class coinbaseexchange : Exchange
             referenceId = this.safeString(details, "order_id");
         }
         object status = "ok";
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", id },
-            { "currency", code },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "direction", direction },
             { "account", account },
             { "referenceAccount", referenceAccount },
             { "referenceId", referenceId },
-            { "status", status },
+            { "type", type },
+            { "currency", code },
             { "amount", amount },
             { "before", before },
             { "after", after },
+            { "status", status },
             { "fee", null },
-            { "direction", direction },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "type", type },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -1534,11 +1535,11 @@ public partial class coinbaseexchange : Exchange
         /**
         * @method
         * @name coinbaseexchange#fetchLedger
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
         * @param {string} code unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] the latest time in ms to fetch trades for
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}

@@ -723,7 +723,7 @@ class timex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -843,7 +843,8 @@ class timex(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        return await self.cancel_orders([id], symbol, params)
+        orders = await self.cancel_orders([id], symbol, params)
+        return self.safe_dict(orders, 0)
 
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
@@ -883,7 +884,20 @@ class timex(Exchange, ImplicitAPI):
         #         ],
         #         "unchangedOrders": ["string"],
         #     }
-        return response
+        #
+        changedOrders = self.safe_list(response, 'changedOrders', [])
+        unchangedOrders = self.safe_list(response, 'unchangedOrders', [])
+        orders = []
+        for i in range(0, len(changedOrders)):
+            newOrder = self.safe_dict(changedOrders[i], 'newOrder')
+            orders.append(self.parse_order(newOrder))
+        for i in range(0, len(unchangedOrders)):
+            orders.append(self.safe_order({
+                'info': unchangedOrders[i],
+                'id': unchangedOrders[i],
+                'status': 'unchanged',
+            }))
+        return orders
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

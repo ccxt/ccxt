@@ -640,7 +640,7 @@ class btcturk extends btcturk$1 {
         //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
-    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
         const results = [];
         const timestamp = this.safeValue(ohlcvs, 't');
         const high = this.safeValue(ohlcvs, 'h');
@@ -660,7 +660,7 @@ class btcturk extends btcturk$1 {
             results.push(this.parseOHLCV(ohlcv, market));
         }
         const sorted = this.sortBy(results, 0);
-        return this.filterBySinceLimit(sorted, since, limit, 0);
+        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -672,7 +672,7 @@ class btcturk extends btcturk$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
