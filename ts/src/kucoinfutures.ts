@@ -95,7 +95,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchTransactionFee': false,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'transfer': true,
                 'withdraw': undefined,
             },
@@ -2958,7 +2958,7 @@ export default class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
-         * @see https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
