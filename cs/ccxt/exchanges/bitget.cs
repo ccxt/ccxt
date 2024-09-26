@@ -1378,6 +1378,9 @@ public partial class bitget : Exchange
                     { "STARKNET", "Starknet" },
                     { "OPTIMISM", "Optimism" },
                     { "ARBITRUM", "Arbitrum" },
+                    { "APT", "APTOS" },
+                    { "MATIC", "POLYGON" },
+                    { "VIC", "VICTION" },
                 } },
                 { "networksById", new Dictionary<string, object>() {} },
                 { "fetchPositions", new Dictionary<string, object>() {

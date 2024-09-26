@@ -583,6 +583,8 @@ public partial class gate : Exchange
                 { "1w", "7d" },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "ORT", "XREATORS" },
+                { "ASS", "ASSF" },
                 { "88MPH", "MPH" },
                 { "AXIS", "AXISDEFI" },
                 { "BIFI", "BITCOINFILE" },
@@ -617,6 +619,8 @@ public partial class gate : Exchange
                 } },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
+                    { "LINEA", "LINEAETH" },
+                    { "KON", "KONET" },
                     { "AVAXC", "AVAX_C" },
                     { "BEP20", "BSC" },
                     { "EOS", "EOS" },
