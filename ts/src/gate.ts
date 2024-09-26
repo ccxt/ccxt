@@ -593,6 +593,8 @@ export default class gate extends Exchange {
             },
             // copied from gatev2
             'commonCurrencies': {
+                'ORT': 'XREATORS',
+                'ASS': 'ASSF',
                 '88MPH': 'MPH',
                 'AXIS': 'AXISDEFI',
                 'BIFI': 'BITCOINFILE',
