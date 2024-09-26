@@ -10,6 +10,10 @@
       "require": "./dist/ccxt.cjs"
     }
   },
+  "bin": {
+    "ccxt-js": "./js/cli/cli.js",
+    "ccxt": "./js/cli/cli.js"
+  },
   "engines": {
     "node": ">=15.0.0"
   },
@@ -147,9 +151,6 @@
     "package-test": "./utils/package-test.sh",
     "test-freshness": "tsx ./utils/test-freshness.ts",
     "benchmark": "tsx examples/ts/benchmark.ts"
-  },
-  "bin": {
-    "ccxt-js": "./js/cli/cli.js"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
