@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -2913,4 +2913,44 @@ export default class kucoinfutures extends kucoin {
             'tierBased': true,
         };
     }
+
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        /**
+         * @method
+         * @name kucoinfutures#fetchMarginMode
+         * @description fetches the margin mode of a trading pair
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
+         * @param {string} symbol unified symbol of the market to fetch the margin mode for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPrivateGetPositionGetMarginMode (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "symbol": "XBTUSDTM",
+        //             "marginMode": "ISOLATED"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        let marginType = this.safeString (marginMode, 'marginMode');
+        marginType = (marginType === 'ISOLATED') ? 'isolated' : 'cross';
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        } as MarginMode;
+    }
+
 }
