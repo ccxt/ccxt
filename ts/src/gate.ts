@@ -627,6 +627,8 @@ export default class gate extends Exchange {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
+                    'LINEA': 'LINEAETH',
+                    'KON': 'KONET',
                     'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
                     'EOS': 'EOS',
