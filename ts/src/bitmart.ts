@@ -2068,6 +2068,9 @@ export default class bitmart extends Exchange {
                 currencyId = this.safeString (balance, 'coin_code', currencyId);
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
+                if (marketType === 'swap') {
+                    account['unrealizedPnl'] = this.safeNumber (balance, 'unrealized');
+                }
                 account['free'] = this.safeString2 (balance, 'available', 'available_balance');
                 account['used'] = this.safeString2 (balance, 'frozen', 'frozen_balance');
                 result[code] = account;

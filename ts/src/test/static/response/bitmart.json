@@ -707,17 +707,20 @@
                   "USDT": {
                     "free": 5,
                     "used": 0,
-                    "total": 5
+                    "total": 5,
+                    "unrealizedPnl": 0
                   },
                   "BTC": {
                     "free": 0,
                     "used": 0,
-                    "total": 0
+                    "total": 0,
+                    "unrealizedPnl": 0
                   },
                   "ETH": {
                     "free": 0,
                     "used": 0,
-                    "total": 0
+                    "total": 0,
+                    "unrealizedPnl": 0
                   },
                   "free": {
                     "USDT": 5,
@@ -731,6 +734,11 @@
                   },
                   "total": {
                     "USDT": 5,
+                    "BTC": 0,
+                    "ETH": 0
+                  },
+                  "unrealizedPnl": {
+                    "USDT": 0,
                     "BTC": 0,
                     "ETH": 0
                   }
