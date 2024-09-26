@@ -135,10 +135,16 @@ export default class hitbtc extends hitbtcRest {
          * @param {object} [params] extra parameters specific to the hitbtc api
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const isBatch = name.indexOf ('batch') >= 0;
         const url = this.urls['api']['ws']['public'];
-        let messageHash = messageHashPrefix;
-        if (symbols !== undefined) {
-            messageHash = messageHash + '::' + symbols.join (',');
+        const messageHashes = [];
+        if (symbols !== undefined && !isBatch) {
+            for (let i = 0; i < symbols.length; i++) {
+                messageHashes.push (messageHashPrefix + '::' + symbols[i]);
+            }
+        } else {
+            messageHashes.push (messageHashPrefix);
         }
         const subscribe: Dict = {
             'method': 'subscribe',
@@ -146,7 +152,7 @@ export default class hitbtc extends hitbtcRest {
             'ch': name,
         };
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
     async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
@@ -319,20 +325,8 @@ export default class hitbtc extends hitbtcRest {
          * @param {string} [params.speed] '1s' (default), or '3s'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const options = this.safeValue (this.options, 'watchTicker');
-        const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}');
-        const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const speed = this.safeString (params, 'speed', '1s');
-        const name = this.implodeParams (method, { 'speed': speed });
-        params = this.omit (params, [ 'method', 'speed' ]);
-        const market = this.market (symbol);
-        const request: Dict = {
-            'params': {
-                'symbols': [ market['id'] ],
-            },
-        };
-        const result = await this.subscribePublic (name, 'tickers', [ symbol ], this.deepExtend (request, params));
-        return this.safeValue (result, symbol);
+        const ticker = await this.watchTickers ([ symbol ], params);
+        return this.safeValue (ticker, symbol);
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -342,13 +336,14 @@ export default class hitbtc extends hitbtcRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {string} params.method 'ticker/{speed}' (default),'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
+         * @param {string} params.method 'ticker/{speed}' ,'ticker/price/{speed}', 'ticker/{speed}/batch' (default), or 'ticker/{speed}/price/batch''
          * @param {string} params.speed '1s' (default), or '3s'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'watchTicker');
-        const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}');
+        const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
         const speed = this.safeString (params, 'speed', '1s');
         const name = this.implodeParams (method, { 'speed': speed });
@@ -367,11 +362,15 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': marketIds,
             },
         };
-        const tickers = await this.subscribePublic (name, 'tickers', symbols, this.deepExtend (request, params));
+        const newTickers = await this.subscribePublic (name, 'tickers', symbols, this.deepExtend (request, params));
         if (this.newUpdates) {
-            return tickers;
+            if (!Array.isArray (newTickers)) {
+                const tickers: Dict = {};
+                tickers[newTickers['symbol']] = newTickers;
+                return tickers;
+            }
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (newTickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
@@ -415,30 +414,19 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue (message, 'data', {});
         const marketIds = Object.keys (data);
-        const newTickers: Dict = {};
+        const result = [];
+        const topic = 'tickers';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const ticker = this.parseWsTicker (data[marketId], market);
             this.tickers[symbol] = ticker;
-            newTickers[symbol] = ticker;
+            result.push (ticker);
+            const messageHash = topic + '::' + symbol;
+            client.resolve (ticker, messageHash);
         }
-        client.resolve (newTickers, 'tickers');
-        const messageHashes = this.findMessageHashes (client, 'tickers::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
-            const tickersSymbols = Object.keys (tickers);
-            const numTickers = tickersSymbols.length;
-            if (numTickers > 0) {
-                client.resolve (tickers, messageHash);
-            }
-        }
-        return message;
+        client.resolve (result, topic);
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -505,31 +493,33 @@ export default class hitbtc extends hitbtcRest {
          * @see https://api.hitbtc.com/#subscribe-to-top-of-book
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] 'orderbook/top/{speed}' (default) or 'orderbook/top/{speed}/batch'
+         * @param {string} [params.method] 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
          * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const options = this.safeValue (this.options, 'watchBidsAsks');
-        const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}');
+        const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
         const speed = this.safeString (params, 'speed', '100ms');
         const name = this.implodeParams (method, { 'speed': speed });
         params = this.omit (params, [ 'method', 'speed' ]);
         const marketIds = this.marketIds (symbols);
-        const url = this.urls['api']['ws']['public'];
-        const messageHash = 'bidask';
         const request: Dict = {
-            'method': 'subscribe',
-            'id': this.nonce (),
-            'ch': name,
             'params': {
                 'symbols': marketIds,
             },
         };
-        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        const newTickers = await this.subscribePublic (name, 'bidask', symbols, this.deepExtend (request, params));
+        if (this.newUpdates) {
+            if (!Array.isArray (newTickers)) {
+                const tickers: Dict = {};
+                tickers[newTickers['symbol']] = newTickers;
+                return tickers;
+            }
+        }
+        return this.filterByArray (newTickers, 'symbol', symbols);
     }
 
     handleBidAsk (client: Client, message) {
@@ -550,6 +540,7 @@ export default class hitbtc extends hitbtcRest {
         const data = this.safeDict (message, 'data', {});
         const marketIds = Object.keys (data);
         const result = [];
+        const topic = 'bidask';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
@@ -557,8 +548,10 @@ export default class hitbtc extends hitbtcRest {
             const ticker = this.parseWsBidAsk (data[marketId], market);
             this.bidsasks[symbol] = ticker;
             result.push (ticker);
+            const messageHash = topic + '::' + symbol;
+            client.resolve (ticker, messageHash);
         }
-        client.resolve (result, 'bidask');
+        client.resolve (result, topic);
     }
 
     parseWsBidAsk (ticker, market = undefined) {
