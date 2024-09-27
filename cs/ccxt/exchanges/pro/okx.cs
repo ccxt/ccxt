@@ -2477,11 +2477,31 @@ public partial class okx : ccxt.okx
             if (isTrue(isTrue(errorCode) && isTrue(!isEqual(errorCode, "0"))))
             {
                 object feedback = add(add(this.id, " "), this.json(message));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                if (isTrue(!isEqual(errorCode, "1")))
+                {
+                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                }
                 object messageString = this.safeValue(message, "msg");
                 if (isTrue(!isEqual(messageString, null)))
                 {
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
+                } else
+                {
+                    object data = this.safeList(message, "data", new List<object>() {});
+                    for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+                    {
+                        object d = getValue(data, i);
+                        errorCode = this.safeString(d, "sCode");
+                        if (isTrue(!isEqual(errorCode, null)))
+                        {
+                            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                        }
+                        messageString = this.safeValue(message, "sMsg");
+                        if (isTrue(!isEqual(messageString, null)))
+                        {
+                            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
+                        }
+                    }
                 }
                 throw new ExchangeError ((string)feedback) ;
             }
