@@ -78,6 +78,7 @@ class binance extends ParserBase {
         let output = this.stringifyAsCcxtObject (tree);
         const regex = new RegExp(`${this.delimiter}'|'${this.delimiter}`, 'g');
         output = output.replace (regex, "");
+        output = output.replace(/\n\s+\[/g, '[').replace(/\n\s+\]/g, ']').replace(/\n\s+(\d+),/g, `$1,`).replace (',]', ']'); // make inline such content: https://i.imgur.com/70igZzu.png
         return output;
     }
 
