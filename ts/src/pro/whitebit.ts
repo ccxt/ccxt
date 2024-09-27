@@ -289,7 +289,7 @@ export default class whitebit extends whitebitRest {
             messageHashes.push ('ticker:' + market['symbol']);
             args.push (market['id']);
         }
-        const request:Dict = {
+        const request: Dict = {
             'id': id,
             'method': method,
             'params': args,
