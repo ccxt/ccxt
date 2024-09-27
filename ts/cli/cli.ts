@@ -5,7 +5,7 @@ import path from 'path'
 import ansi from 'ansicolor'
 import asTable from 'as-table'
 import ololog from 'ololog'
-import ccxt from '../../ts/ccxt.js'
+import ccxt from '../ccxt.js'
 import { Agent } from 'https'
 
 const fsPromises = fs.promises;
