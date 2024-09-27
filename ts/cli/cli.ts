@@ -58,16 +58,32 @@ process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error
 process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error ((e as any).message); process.exit (1) })
 
 //-----------------------------------------------------------------------------
+const currentFilePath = process.argv[1];
+// if it's global installation, then show `ccxt` command, otherwise `node ./cli.js`
+const commandToShow = currentFilePath.match (/npm(\\|\/)node_modules/) ? 'ccxt' : ' node ' + currentFilePath;
+
+if (!exchangeId) {
+    console.log ('Error, No exchange id specified!');
+    printUsage ();
+    process.exit ();
+}
+
+//-----------------------------------------------------------------------------
 
 // set up keys and settings, if any
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
 
-const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
-const settingsFile  = fs.readFileSync(keysFile);
-// eslint-disable-next-line import/no-dynamic-require, no-path-concat
-let settings = JSON.parse(settingsFile.toString())
-settings = settings[exchangeId] || {}
+let allSettings = {}
+if (fs.existsSync (keysGlobal)) {
+    allSettings = JSON.parse(fs.readFileSync(keysGlobal).toString())
+} else if (fs.existsSync (keysLocal)) {
+    allSettings = JSON.parse(fs.readFileSync(keysLocal).toString())
+} else {
+    console.log ('CLI is being loaded without api keys, because no file found at ' + keysLocal + ', see sample at https://github.com/ccxt/ccxt/blob/master/keys.json');
+}
+
+const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
 
 
 //-----------------------------------------------------------------------------
@@ -183,11 +199,12 @@ function printSupportedExchanges () {
 
 function printUsage () {
     log ('This is an example of a basic command-line interface to all exchanges')
-    log ('Usage: node', process.argv[1], ('id' as any).green, ('method' as any).yellow, ('"param1" param2 "param3" param4 ...' as any).blue)
-    log ('Examples:')
-    log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
-    log ('node', process.argv[1], 'bitfinex fetchBalance')
-    log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
+    log ('   Usage:')
+    log (commandToShow, ('exchangeid' as any).green, ('method' as any).yellow, ('"param1" param2 "param3" param4 ...' as any).blue)
+    log ('   Examples:')
+    log (commandToShow, 'okcoin fetchOHLCV BTC/USD 15m')
+    log (commandToShow, 'bitfinex fetchBalance')
+    log (commandToShow, 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
     log ('Supported options:')
     log ('--verbose         Print verbose output')
@@ -269,12 +286,6 @@ const printHumanReadable = (exchange, result) => {
 //-----------------------------------------------------------------------------
 
 async function run () {
-
-    if (!exchangeId) {
-
-        printUsage ()
-
-    } else {
 
         let args = params
             .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
@@ -405,8 +416,6 @@ async function run () {
         } else {
             log (exchange)
         }
-    }
-
 }
 
 //-----------------------------------------------------------------------------
