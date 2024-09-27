@@ -59,13 +59,14 @@ class binance extends ParserBase {
             'rateLimitBases': this.RateLimitBases,
         };
         // some endpoints are missing in generatedTree, so add them from binance.ts
-        const completeApi = this.ccxt.deepExtend (generatedApiTree, apiDiffs.removed);
+        let completeApi = this.ccxt.deepExtend (generatedApiTree, apiDiffs.removed);
+        completeApi = this.sortGetPostPutDelete (completeApi);
         final['completeApi'] = this.readableOutput (completeApi);
         this.replaceInFile (/\n            'api'\: (\{(.|\n)*?)\,\n\s+'fees'/, final['completeApi']);
         return final;
     }
 
-    delimiter = '!';
+    delimiter = '“';
     readableOutput (tree) {
         if (!this.readableValues) {
             return tree;
@@ -120,7 +121,7 @@ class binance extends ParserBase {
                 continue;
             }
             const reqMethod = match[1].toLowerCase ();
-            const endpoint = match[2]; // sometimes needed
+            const endpoint = match[2].trim();
             // eg: path = '/sapi/v2/account/balance'
             const parts = endpoint.split ('/');
             const apyType = parts[1]; // eg: 'sapi'
@@ -268,14 +269,15 @@ class binance extends ParserBase {
         return this.cacheGet ();
     }
 
+    rlString (value: number, coefficient: number) {
+        if (value === undefined) {
+            return undefined;
+        }
+        const res = !this.readableValues || coefficient === 1 ? value * coefficient : this.delimiter + value.toString () + ' * ' + coefficient.toString () + this.delimiter;
+        return res;
+    }
+
     multiplyRateLimits (generatedApiTree) {
-        const rlString = (value, coefficient) => {
-            if (value === undefined) {
-                return undefined;
-            }
-            const res = !this.readableValues || coefficient === 1 ? value * coefficient : this.delimiter + value.toString () + ' * ' + coefficient.toString () + this.delimiter;
-            return res;
-        };
         const rootKeys = Object.keys (generatedApiTree);
         for (const rootKey of rootKeys) {
             const root = generatedApiTree[rootKey];
@@ -289,10 +291,11 @@ class binance extends ParserBase {
                 for (const path of paths) {
                     const endpoint = endpoints[path];
                     if (typeof endpoint === 'object') {
-                        endpoint['cost'] = rlString (endpoint['cost'], coefficient);  
-                        endpoint['noSymbol'] = rlString (endpoint['noSymbol'], coefficient);  
+                        endpoint['cost'] = this.rlString (endpoint['cost'], coefficient);  
+                        endpoint['noSymbol'] = this.rlString (endpoint['noSymbol'], coefficient);  
                     } else {
-                        endpoints[path] = rlString (endpoints[path], coefficient);
+                        const val = this.rlString (endpoints[path], coefficient);
+                        endpoints[path] = this.rlString (endpoints[path], coefficient);
                     }
                 }
             }
