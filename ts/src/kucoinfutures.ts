@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -69,6 +69,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
@@ -2986,5 +2987,55 @@ export default class kucoinfutures extends kucoin {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseMarginMode (data, market);
+    }
+
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name kucoin#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams (symbol, params);
+        if (marginMode !== 'cross') {
+            throw new NotSupported (this.id + ' fetchLeverage() currently supports only params["marginMode"] = "cross"');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPrivateGetGetCrossUserLeverage (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "leverage": "3"
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const parsed = this.parseLeverage (data, market);
+        return this.extend (parsed, {
+            'marginMode': marginMode,
+        });
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const leverageNum = this.safeInteger (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageNum,
+            'shortLeverage': leverageNum,
+        } as Leverage;
     }
 }
