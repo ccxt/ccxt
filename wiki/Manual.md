@@ -3063,12 +3063,13 @@ Returns
     fundingRate: 0.000072,
     fundingTimestamp: 1645833600000,
     fundingDatetime: '2022-02-26T00:00:00.000Z',
-    nextFundingRate: -0.000018,
+    nextFundingRate: -0.000018, // nextFundingRate is actually two funding rates from now
     nextFundingTimestamp: undefined,
     nextFundingDatetime: undefined,
     previousFundingRate: undefined,
     previousFundingTimestamp: undefined,
-    previousFundingDatetime: undefined
+    previousFundingDatetime: undefined,
+    interval: '8h',
 }
 ```
 

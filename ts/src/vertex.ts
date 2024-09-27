@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1203,7 +1203,7 @@ export default class vertex extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-    parseFundingRate (ticker, market: Market = undefined) {
+    parseFundingRate (ticker, market: Market = undefined): FundingRate {
         //
         // {
         //     "product_id": 4,
@@ -1258,10 +1258,11 @@ export default class vertex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name vertex#fetchFundingRate

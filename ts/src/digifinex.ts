@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3193,7 +3193,7 @@ export default class digifinex extends Exchange {
         return result as any;
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name digifinex#fetchFundingRate
@@ -3228,7 +3228,7 @@ export default class digifinex extends Exchange {
         return this.parseFundingRate (data, market) as any;
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -3241,6 +3241,9 @@ export default class digifinex extends Exchange {
         const marketId = this.safeString (contract, 'instrument_id');
         const timestamp = this.safeInteger (contract, 'funding_time');
         const nextTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const fundingTimeString = this.safeString (contract, 'funding_time');
+        const nextFundingTimeString = this.safeString (contract, 'next_funding_time');
+        const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
         return {
             'info': contract,
             'symbol': this.safeSymbol (marketId, market),
@@ -3253,13 +3256,25 @@ export default class digifinex extends Exchange {
             'fundingRate': this.safeNumber (contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': this.iso8601 (timestamp),
-            'nextFundingRate': this.safeString (contract, 'next_funding_rate'),
+            'nextFundingRate': this.safeNumber (contract, 'next_funding_rate'),
             'nextFundingTimestamp': nextTimestamp,
             'nextFundingDatetime': this.iso8601 (nextTimestamp),
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval (millisecondsInterval),
+        } as FundingRate;
+    }
+
+    parseFundingInterval (interval) {
+        const intervals: Dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
         };
+        return this.safeString (intervals, interval, interval);
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

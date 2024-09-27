@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6813,7 +6813,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         // {
         //      "status": "ok",
@@ -6832,6 +6832,9 @@ export default class htx extends Exchange {
         const nextFundingRate = this.safeNumber (contract, 'estimated_rate');
         const fundingTimestamp = this.safeInteger (contract, 'funding_time');
         const nextFundingTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const fundingTimeString = this.safeString (contract, 'funding_time');
+        const nextFundingTimeString = this.safeString (contract, 'next_funding_time');
+        const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
         const marketId = this.safeString (contract, 'contract_code');
         const symbol = this.safeSymbol (marketId, market);
         return {
@@ -6852,10 +6855,22 @@ export default class htx extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': this.parseFundingInterval (millisecondsInterval),
+        } as FundingRate;
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    parseFundingInterval (interval) {
+        const intervals: Dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString (intervals, interval, interval);
+    }
+
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name htx#fetchFundingRate
