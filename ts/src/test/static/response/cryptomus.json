@@ -1,6 +1,6 @@
 {
     "exchange": "cryptomus",
-    "skipKeys": [ "trade_id", "uuid" ],
+    "skipKeys": [ ],
     "methods": {
         "fetchMarkets": [
             {
@@ -144,7 +144,7 @@
                 "httpResponse": {
                     "data": [
                         {
-                            "trade_id": "01J829C3RAXHXHR09HABGQ1YAT",
+                            "trade_id": "01J8218K0Y3WVSFT69BXHDA6KR",
                             "price": "2315.6320500000000000",
                             "base_volume": "21.9839623057260000",
                             "quote_volume": "0.0094937200000000",
@@ -261,7 +261,7 @@
         ],
         "fetchOrders": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "Fetch orders",
                 "method": "fetchOrders",
                 "input": [
                     "ETH/USDT"
@@ -272,7 +272,7 @@
                         "items": [
                             {
                                 "order_id": "0",
-                                "uuid": "ef3f58bf-8dc3-477e-9f67-c36d5dd9a01f",
+                                "uuid": "997c8a3c-17df-407f-a971-c13c8723fb57",
                                 "convert_amount_from": "15.4",
                                 "convert_amount_to": "0.007",
                                 "executed_amount_from": "15.4",
@@ -363,7 +363,7 @@
                         "convert_currency_from": "USDT",
                         "convert_currency_to": "ETH",
                         "type": "limit",
-                        "status": "canceled",
+                        "status": "cancelled",
                         "created_at": "2024-09-18T14:09:36+03:00",
                         "current_rate": null,
                         "limit": "2200",
@@ -389,7 +389,7 @@
                     "average": null,
                     "filled": null,
                     "remaining": null,
-                    "status": "canceled",
+                    "status": "cancelled",
                     "fee": null,
                     "trades": [],
                     "info": {
