@@ -2,6 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
+import { OrderNotFound } from '../base/errors.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -105,6 +106,11 @@ export default class okx extends okxRest {
                 'ping': this.ping,
                 'keepAlive': 18000,
             },
+            'exceptions': {
+                'broad': {
+                    'Order cancelation failed as the order has been filled, canceled or does not exist.': OrderNotFound,
+                },
+            }
         });
     }
 
@@ -2266,10 +2272,17 @@ export default class okx extends okxRest {
         try {
             if (errorCode && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                if (errorCode !== '1') {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                }
                 const messageString = this.safeValue (message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+                } else {
+                    const data = this.safeList (message, 'data');
+                    if (data !== undefined) {
+                        this.throwBroadlyMatchedException (this.exceptions['broad'], feedback, feedback);
+                    }
                 }
                 throw new ExchangeError (feedback);
             }
