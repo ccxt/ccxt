@@ -4,13 +4,18 @@ import fs from 'fs'
 import path from 'path'
 import ansi from 'ansicolor'
 import asTable from 'as-table'
-import ololog from 'ololog'
 import ccxt from '../ccxt.js'
 import { Agent } from 'https'
 
 const fsPromises = fs.promises;
 ansi.nice
-const log = ololog.configure ({ locate: false }).unlimited
+
+
+
+function log (...args) {
+    console.log (...args);
+}
+
 const { ExchangeError , NetworkError} = ccxt
 
 function jsonStringify (obj: any, indent = undefined) {
@@ -49,21 +54,25 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
 if (!raw) {
     log ((new Date ()).toISOString())
     log ('Node.js:', process.version)
-    log ('CCXT v' + ccxt.version)
+    log ('CCXT v', ccxt.version)
 }
 
 //-----------------------------------------------------------------------------
-
-process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
-process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error ((e as any).message); process.exit (1) })
+function errExit (e) {
+    log ((e.toString ()).red);
+    log (e.message.red);
+    process.exit (1);
+}
+process.on ('uncaughtException',  errExit);
+process.on ('unhandledRejection', errExit);
 
 //-----------------------------------------------------------------------------
 const currentFilePath = process.argv[1];
 // if it's global installation, then show `ccxt` command, otherwise `node ./cli.js`
-const commandToShow = currentFilePath.match (/npm(\\|\/)node_modules/) ? 'ccxt' : ' node ' + currentFilePath;
+const commandToShow = currentFilePath.match (/npm(\\|\/)node_modules/) ? 'ccxt' : 'node ' + currentFilePath;
 
 if (!exchangeId) {
-    console.log ('Error, No exchange id specified!');
+    log (('Error, No exchange id specified!' as any).red);
     printUsage ();
     process.exit ();
 }
@@ -80,7 +89,7 @@ if (fs.existsSync (keysGlobal)) {
 } else if (fs.existsSync (keysLocal)) {
     allSettings = JSON.parse(fs.readFileSync(keysLocal).toString())
 } else {
-    console.log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist. See sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
+    log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist. See sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
 }
 
 const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
@@ -152,7 +161,7 @@ try {
 
 } catch (e) {
 
-    log.red (e)
+    log ((e.toString () as any).red)
     printUsage ()
     process.exit ()
 }
@@ -168,9 +177,9 @@ function createRequestTemplate(exchange, methodName, args, result) {
         'output': exchange.last_request_body ?? undefined
     }
     log('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')')
-    log.green('-------------------------------------------')
+    log(('-------------------------------------------' as any).green)
     log (JSON.stringify (final, null, 2))
-    log.green('-------------------------------------------')
+    log(('-------------------------------------------' as any).green)
 }
 
 //-----------------------------------------------------------------------------
@@ -184,9 +193,9 @@ function createResponseTemplate(exchange, methodName, args, result) {
         'parsedResponse': result
     }
     log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')
-    log.green('-------------------------------------------')
+    log(('-------------------------------------------' as any).green)
     log (jsonStringify (final, 2))
-    log.green('-------------------------------------------')
+    log(('-------------------------------------------' as any).green)
 }
 
 //-----------------------------------------------------------------------------
@@ -331,13 +340,13 @@ async function run () {
 
             exchange.verbose = no_send
             exchange.fetch = function fetch (url, method = 'GET', headers = undefined, body = undefined) {
-                log.dim.noLocate ('-------------------------------------------')
-                log.dim.noLocate (exchange.iso8601 (exchange.milliseconds ()))
-                log.green.unlimited ({
-                    url,
-                    method,
+                log ('-------------------------------------------')
+                log (exchange.iso8601 (exchange.milliseconds ()))
+                log ({
+                    url: url.green,
+                    method: (method as any).green,
                     headers,
-                    body,
+                    body: (body as any).green,
                 })
             }
         }
@@ -378,12 +387,12 @@ async function run () {
                         start = end
                     } catch (e) {
                         if (e instanceof ExchangeError) {
-                            log.red (e.constructor.name, e.message)
+                            log (((e.constructor.name + e.message) as any).red)
                         } else if (e instanceof NetworkError) {
-                            log.yellow (e.constructor.name, e.message)
+                            log (((e.constructor.name + e.message) as any).yellow)
                         }
 
-                        log.dim ('---------------------------------------------------')
+                        log ('---------------------------------------------------')
 
                         // rethrow for call-stack // other errors
                         throw e
@@ -409,7 +418,7 @@ async function run () {
                 exchange.close()
 
             } else if (exchange[methodName] === undefined) {
-                log.red (exchange.id + '.' + methodName + ': no such property')
+                log ((exchange.id + '.' + methodName + ': no such property' as any).red)
             } else {
                 printHumanReadable (exchange, exchange[methodName])
             }
