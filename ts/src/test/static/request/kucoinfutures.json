@@ -486,6 +486,34 @@
                 ],
                 "output": "{\"symbol\":\"XBTUSDTM\",\"marginMode\":\"CROSS\"}"
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "linear swap - cross",
+                "method": "fetchLeverage",
+                "url": "https://api-futures.kucoin.com/api/v2/getCrossUserLeverage?symbol=XBTUSDTM",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "marginMode": "cross"
+                  }
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "linear swap - cross",
+                "method": "setLeverage",
+                "url": "https://api-futures.kucoin.com/api/v2/changeCrossUserLeverage",
+                "input": [
+                  4,
+                  "BTC/USDT:USDT",
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "{\"symbol\":\"XBTUSDTM\",\"leverage\":\"4\"}"
+            }
         ]
     }
 }

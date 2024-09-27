@@ -330,7 +330,7 @@ export default class kucoinfutures extends kucoin {
                         },
                         'POST': {
                             'transfer-out': 'v2',
-                            'changeCrossUserLeverage ': 'v2',
+                            'changeCrossUserLeverage': 'v2',
                             'position/changeMarginMode': 'v2',
                         },
                     },
@@ -2999,12 +2999,12 @@ export default class kucoinfutures extends kucoin {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
-        await this.loadMarkets ();
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams (symbol, params);
         if (marginMode !== 'cross') {
             throw new NotSupported (this.id + ' fetchLeverage() currently supports only params["marginMode"] = "cross"');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -3024,6 +3024,38 @@ export default class kucoinfutures extends kucoin {
         return this.extend (parsed, {
             'marginMode': marginMode,
         });
+    }
+
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams (symbol, params);
+        if (marginMode !== 'cross') {
+            throw new NotSupported (this.id + ' setLeverage() currently supports only params["marginMode"] = "cross"');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'leverage': leverage.toString (),
+        };
+        const response = await this.futuresPrivatePostChangeCrossUserLeverage (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": true
+        //    }
+        //
+        return this.parseLeverage (response, market);
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
