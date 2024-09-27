@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
-
+import { traceMethod } from '../telemetry';
 import * as functions from './functions.js'
 const {
     isNode
@@ -4338,6 +4338,7 @@ export default class Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
+    @traceMethod
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.has['fetchTickers']) {
             await this.loadMarkets ();
@@ -4355,6 +4356,7 @@ export default class Exchange {
         }
     }
 
+    @traceMethod
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         throw new NotSupported (this.id + ' watchTicker() is not supported yet');
     }

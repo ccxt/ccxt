@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3'
 services:
 
   # Runs a CCXT build & test environment with all the required dependencies installed:
@@ -14,3 +14,20 @@ services:
     entrypoint: /bin/bash
     stdin_open: true
     tty: true
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://signoz:4318
+    depends_on:
+      - signoz
+
+  signoz:
+    image: signoz/signoz:latest
+    ports:
+      - "3301:3301"
+      - "4318:4318"
+    volumes:
+      - ./signoz-data:/var/lib/signoz
+    environment:
+      - SIGNOZ_DEPLOYMENT_TYPE=docker-standalone
+
+volumes:
+  signoz-data:

@@ -261,6 +261,12 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
-    "ws": "^8.8.1"
+    "ws": "^8.8.1",
+    "@opentelemetry/api": "^1.4.1",
+    "@opentelemetry/sdk-node": "^0.41.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.41.1",
+    "@opentelemetry/instrumentation": "^0.41.1",
+    "@opentelemetry/resources": "^1.13.0",
+    "@opentelemetry/semantic-conventions": "^1.13.0"
   }
 }
