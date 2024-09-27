@@ -23,7 +23,7 @@ export default class binance extends Exchange {
             'id': 'binance',
             'name': 'Binance',
             'countries': [ 'JP', 'MT' ], // Japan, Malta
-            'rateLimit': 5,
+            'rateLimit': 50,
             'certified': true,
             'pro': true,
             // new metainfo2 interface
