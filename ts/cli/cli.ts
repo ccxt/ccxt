@@ -80,7 +80,7 @@ if (fs.existsSync (keysGlobal)) {
 } else if (fs.existsSync (keysLocal)) {
     allSettings = JSON.parse(fs.readFileSync(keysLocal).toString())
 } else {
-    console.log ('CLI is being loaded without api keys, because no file found at ' + keysLocal + ', see sample at https://github.com/ccxt/ccxt/blob/master/keys.json');
+    console.log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist. See sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
 }
 
 const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
