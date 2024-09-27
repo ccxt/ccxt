@@ -30,23 +30,50 @@ class ParserBase {
         return data;
     }
 
-    sortGetPostPutDelete (apiTree:any = {}, rootKeysSortArray = undefined) {
-        // the endpoint groups will be sorted in the order: GET, POST, PUT, DELETE
-        const newTree: any = {};
-        for (const [key, val] of Object.entries(apiTree)) {
-            newTree[key] = this.sortObject(val, ['get', 'post', 'put', 'delete']);
+    sortApiTree (generatedApiTree:any = {}) {
+        const finalTree: any = {};
+        const ex = new ccxt[this.exchangeId] ();
+        const existingApiTree = ex.api;
+        // sort by endpoint groups (fapi, apiV4, etc..)
+        const sortedTree: any = this.sortObject(generatedApiTree, existingApiTree);
+        // sort them inside by : get, post, put, delete
+        for (const [groupTitle, groupTree] of Object.entries(sortedTree)) { // groupTitle = fapiV4, apiV4, etc..
+            if (!(groupTitle in existingApiTree)) {
+                // if the groupTitle (e.g. fapiV4) does not exist in current content
+                finalTree[groupTitle] = groupTree;
+            } else {
+                // if that root key exists, then sort by the inner keys (get, post, put, delete)
+                finalTree[groupTitle] = this.sortObject(groupTree, existingApiTree[groupTitle]);
+            }
+            // sort inside by endpoint inside eg "fapiV4 > get" 
+            for (const [reqKey, endpointsTree] of Object.entries(finalTree[groupTitle])) { //reqKey = get, post, put, delete
+                if (!(groupTitle in existingApiTree) || !(reqKey in existingApiTree[groupTitle])) {
+                    // if reqMethod does not exist in current content
+                    finalTree[groupTitle][reqKey] = endpointsTree;
+                } else {
+                    // if it exists, then sort them
+                    finalTree[groupTitle][reqKey] = this.sortObject(endpointsTree, existingApiTree[groupTitle][reqKey]);
+                }
+            }
         }
-        if (rootKeysSortArray !== undefined) {
-            return this.sortObject(newTree, rootKeysSortArray);
-        }
-        return newTree;
+        return finalTree;
     }
 
-    sortObject(obj: any , arrayOfkeys: string[]) {
+    sortObject(newDict: any, existingDict: any) {
         const reorderedObj: any = {};
-        arrayOfkeys.forEach(key => {
-            if (obj.hasOwnProperty(key)) {
-                reorderedObj[key] = obj[key];
+        const existingKeys = Object.keys(existingDict);
+        existingKeys.forEach(key => {
+            if (newDict.hasOwnProperty(key)) {
+                reorderedObj[key] = newDict[key];
+            } else {
+                reorderedObj[key] = existingDict[key];
+            }
+        });
+        // add missing
+        const newKeys = Object.keys(newDict);
+        newKeys.forEach(key => {
+            if (!existingKeys.includes(key)) {
+                reorderedObj[key] = newDict[key];
             }
         });
         return reorderedObj;

@@ -63,7 +63,7 @@ class binance extends ParserBase {
         };
         // some endpoints are missing in generatedTree, so add them from binance.ts
         let completeApi = this.ccxt.deepExtend (generatedApiTree, apiDiffs.removed);
-        completeApi = this.sortGetPostPutDelete (completeApi, Object.keys (this.apiDomainMap));
+        completeApi = this.sortApiTree (completeApi); // to immitate existing api-tree sort (sapi, fapi... order in binance.ts)
         final['completeApi'] = this.readableOutput (completeApi);
         const regex = /\n            'api'\: (\{(.|\n)*?)\,\n\s+'fees'/;
         this.replaceInFile (regex, final['completeApi']);
