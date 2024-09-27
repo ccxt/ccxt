@@ -19,26 +19,29 @@ class binance extends ParserBase {
         'fapiData': 2400,
     };
 
-    apiDomainMap = { // if we had clean structure in binance.ts, we would not need any mapping, but ...
-        'public': 'api',
-        'private': 'api',
+    // if we had clean structure in binance.ts, we would not need any mapping, but ...
+    apiDomainMap = {
         'sapi': 'sapi',
-        'sapiV1': 'sapi',
         'sapiV2': 'sapi',
         'sapiV3': 'sapi',
         'sapiV4': 'sapi',
         'dapiPublic': 'dapi',
+        'dapiData': 'dapi',
         'dapiPrivate': 'dapi',
-        'dapiPublicV2': 'dapi',
         'dapiPrivateV2': 'dapi',
         'fapiPublic': 'fapi',
+        'fapiData': 'fapi',
         'fapiPrivate': 'fapi',
         'fapiPublicV2': 'fapi',
         'fapiPrivateV2': 'fapi',
         'fapiPublicV3': 'fapi',
         'fapiPrivateV3': 'fapi',
-        'eapiPrivate': 'eapi',
         'eapiPublic': 'eapi',
+        'eapiPrivate': 'eapi',
+        'public': 'api',
+        'private': 'api',
+        'papi': 'papi',
+        // this is sorted as it's present in binance.ts at this moment
     };
 
     readableValues = true;  // in final output, shows values like: fapi>/klines: 10 * 2.5  instead of 25, because the multiplier coefficient makes the the maintenance easier for users & developers
@@ -60,9 +63,10 @@ class binance extends ParserBase {
         };
         // some endpoints are missing in generatedTree, so add them from binance.ts
         let completeApi = this.ccxt.deepExtend (generatedApiTree, apiDiffs.removed);
-        completeApi = this.sortGetPostPutDelete (completeApi);
+        completeApi = this.sortGetPostPutDelete (completeApi, Object.keys (this.apiDomainMap));
         final['completeApi'] = this.readableOutput (completeApi);
-        this.replaceInFile (/\n            'api'\: (\{(.|\n)*?)\,\n\s+'fees'/, final['completeApi']);
+        const regex = /\n            'api'\: (\{(.|\n)*?)\,\n\s+'fees'/;
+        this.replaceInFile (regex, final['completeApi']);
         return final;
     }
 

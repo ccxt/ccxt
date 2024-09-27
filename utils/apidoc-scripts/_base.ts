@@ -30,20 +30,26 @@ class ParserBase {
         return data;
     }
 
-    sortGetPostPutDelete (apiTree:any = {}) {
+    sortGetPostPutDelete (apiTree:any = {}, rootKeysSortArray = undefined) {
         // the endpoint groups will be sorted in the order: GET, POST, PUT, DELETE
         const newTree: any = {};
         for (const [key, val] of Object.entries(apiTree)) {
-            const sorted = ccxt.keysort (val);
-            // add 'delete' in the end
-            if ('delete' in sorted) {
-                const del = sorted['delete'];
-                delete sorted['delete'];
-                sorted['delete'] = del;
-            }
-            newTree[key] = sorted;
+            newTree[key] = this.sortObject(val, ['get', 'post', 'put', 'delete']);
+        }
+        if (rootKeysSortArray !== undefined) {
+            return this.sortObject(newTree, rootKeysSortArray);
         }
         return newTree;
+    }
+
+    sortObject(obj: any , arrayOfkeys: string[]) {
+        const reorderedObj: any = {};
+        arrayOfkeys.forEach(key => {
+            if (obj.hasOwnProperty(key)) {
+                reorderedObj[key] = obj[key];
+            }
+        });
+        return reorderedObj;
     }
 
     stripTags (input) {
