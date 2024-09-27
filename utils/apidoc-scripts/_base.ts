@@ -102,7 +102,7 @@ class ParserBase {
         //     "a": 1,
         // }
         //
-        input = input.replace (/(?<!(\{|\,))\n/g, ',\n');
+        input = input.replace (/(?<!(\{|\,|\[))\n/g, ',\n');
         // replace double quotes with single quotes
         input = input.replace (/"/g, "'"); 
         return input;
