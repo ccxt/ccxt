@@ -24,7 +24,9 @@ print('Python v' + platform.python_version())
 print('CCXT v' + ccxt.__version__)
 
 # ------------------------------------------------------------------------------
-
+# fix for https://github.com/aio-libs/aiodns/issues/86
+if sys.platform == 'win32':
+	asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 class Argv(object):
 
@@ -72,6 +74,12 @@ parser.parse_args(namespace=argv)
 
 # ------------------------------------------------------------------------------
 
+current_file_path = sys.argv[0]
+# if it's global installation, then show `ccxt` command, otherwise `python ./cli.py`
+command_to_show = 'ccxt-py' if not current_file_path.endswith (".py") else 'python ' + current_file_path
+
+# ------------------------------------------------------------------------------
+
 
 def table(values):
     first = values[0]
@@ -93,11 +101,11 @@ def print_supported_exchanges():
 def print_usage():
     print('\nThis is an example of a basic command-line interface to all exchanges\n')
     print('Usage:\n')
-    print('python ' + sys.argv[0] + ' exchange_id method "param1" param2 "param3" param4 ...\n')
+    print(command_to_show + ' exchange_id method "param1" param2 "param3" param4 ...\n')
     print('Examples:\n')
-    print('python ' + sys.argv[0] + ' okcoin fetch_ohlcv BTC/USD 15m')
-    print('python ' + sys.argv[0] + ' bitfinex fetch_balance')
-    print('python ' + sys.argv[0] + ' kraken fetch_order_book ETH/BTC\n')
+    print(command_to_show + ' okcoin fetch_ohlcv BTC/USD 15m')
+    print(command_to_show + ' bitfinex fetch_balance')
+    print(command_to_show + ' kraken fetch_order_book ETH/BTC\n')
     print_supported_exchanges()
 
 
@@ -110,10 +118,12 @@ async def main():
     keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
     # load the api keys and other settings from a JSON config
-    keys = {}
     if os.path.isfile(keys_file):
         with open(keys_file, encoding="utf-8") as file:
             keys = json.load(file)
+    else:
+        print("Note, CCXT CLI is being loaded without api keys, because " + keys_local + " does not exist. See sample at https://github.com/ccxt/ccxt/blob/master/keys.json")
+        keys = {}
 
     config = {
         # 'verbose': argv.verbose,  # set later, after load_markets

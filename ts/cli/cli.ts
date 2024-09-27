@@ -201,7 +201,7 @@ function createResponseTemplate(exchange, methodName, args, result) {
 //-----------------------------------------------------------------------------
 
 function printSupportedExchanges () {
-    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green)
+    log ('   Supported exchanges:', (ccxt.exchanges.join (', ') as any).green)
 }
 
 //-----------------------------------------------------------------------------
@@ -215,7 +215,7 @@ function printUsage () {
     log (commandToShow, 'bitfinex fetchBalance')
     log (commandToShow, 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
-    log ('Supported options:')
+    log ('   Supported options:')
     log ('--verbose         Print verbose output')
     log ('--debug           Print debugging output')
     log ('--poll            Repeat continuously in rate-limited mode')
