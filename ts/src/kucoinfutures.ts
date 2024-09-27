@@ -173,8 +173,8 @@ export default class kucoinfutures extends kucoin {
                         'trade-fees': 1,
                         'history-positions': 1,
                         'getMaxOpenSize': 1,
-                        'getCrossUserLeverage ': 1,
-                        'position/getMarginMode ': 1,
+                        'getCrossUserLeverage': 1,
+                        'position/getMarginMode': 1,
                     },
                     'post': {
                         'withdrawals': 1,
