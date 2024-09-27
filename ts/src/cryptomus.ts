@@ -938,7 +938,7 @@ export default class cryptomus extends Exchange {
             'active': 'open',
             'completed': 'closed',
             'partially_completed': 'open',
-            'cancelled': 'cancelled',
+            'cancelled': 'canceled',
             'expired': 'expired',
             'failed': 'failed',
         };
