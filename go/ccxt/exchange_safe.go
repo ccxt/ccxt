@@ -145,7 +145,7 @@ func (this *Exchange) SafeStringUpperN(obj interface{}, keys []interface{}, defa
 }
 
 func SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
-	value := SafeValueN(obj, keys, defaultValue)
+	value := SafeStringN(obj, keys, defaultValue)
 	if value == nil {
 		return defaultValue
 	}
