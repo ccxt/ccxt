@@ -2651,7 +2651,8 @@
                     "side": "long",
                     "percentage": null,
                     "stopLossPrice": null,
-                    "takeProfitPrice": null
+                    "takeProfitPrice": null,
+                    "hedged": false
                   }
                 ]
             }
