@@ -4709,16 +4709,46 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
-             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->stop] true for fetching stop orders
              * @param {string} [$params->type] spot, swap or future, if not provided $this->options['defaultType'] is used
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+             * @param {boolean} [$params->historical] *swap only* true for using historical endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            return Async\await($this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params));
+            Async\await($this->load_markets());
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+            }
+            $res = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
+            $type = $this->safe_string($res, 0);
+            $useHistorical = false;
+            list($useHistorical, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'historical', false);
+            if (!$useHistorical && (($since === null && $until === null) || ($type !== 'swap'))) {
+                return Async\await($this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params));
+            }
+            $params = $this->omit($params, 'type');
+            $request = array();
+            list($request, $params) = $this->prepare_request($market, $type, $params);
+            if ($since !== null) {
+                $request['from'] = $this->parse_to_int($since / 1000);
+            }
+            if ($until !== null) {
+                $request['to'] = $this->parse_to_int($until / 1000);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateFuturesGetSettleOrdersTimerange ($this->extend($request, $params)));
+            return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
 

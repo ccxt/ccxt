@@ -359,6 +359,7 @@ public partial class htx
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

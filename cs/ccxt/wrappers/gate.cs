@@ -986,6 +986,7 @@ public partial class gate
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-options-orders"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1021,6 +1022,12 @@ public partial class gate
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.historical</term>
+    /// <description>
+    /// boolean : *swap only* true for using historical endpoint
     /// </description>
     /// </item>
     /// </list>

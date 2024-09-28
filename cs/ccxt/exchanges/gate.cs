@@ -5029,6 +5029,7 @@ public partial class gate : Exchange
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -5036,10 +5037,48 @@ public partial class gate : Exchange
         * @param {bool} [params.stop] true for fetching stop orders
         * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+        * @param {boolean} [params.historical] *swap only* true for using historical endpoint
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByStatus("finished", symbol, since, limit, parameters);
+        await this.loadMarkets();
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+        }
+        object res = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+        object type = this.safeString(res, 0);
+        object useHistorical = false;
+        var useHistoricalparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "historical", false);
+        useHistorical = ((IList<object>)useHistoricalparametersVariable)[0];
+        parameters = ((IList<object>)useHistoricalparametersVariable)[1];
+        if (isTrue(!isTrue(useHistorical) && isTrue((isTrue((isTrue(isEqual(since, null)) && isTrue(isEqual(until, null)))) || isTrue((!isEqual(type, "swap")))))))
+        {
+            return await this.fetchOrdersByStatus("finished", symbol, since, limit, parameters);
+        }
+        parameters = this.omit(parameters, "type");
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.prepareRequest(market, type, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.privateFuturesGetSettleOrdersTimerange(this.extend(request, parameters));
+        return this.parseOrders(response, market, since, limit);
     }
 
     public virtual object fetchOrdersByStatusRequest(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
