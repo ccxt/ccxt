@@ -462,6 +462,29 @@
                     "historical": true
                   }
                 ]
+            },
+            {
+                "description": "swap market with since should use historical endpoint",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders_timerange?contract=LTC_USDT&from=1727504130",
+                "input": [
+                  "LTC/USDT:USDT",
+                  1727504130000,
+                  null
+                ]
+            },
+            {
+                "description": "swap with since and until should use historical",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders_timerange?contract=LTC_USDT&from=1727504020&to=1727511742",
+                "input": [
+                  "LTC/USDT:USDT",
+                  1727504020000,
+                  null,
+                  {
+                    "until": 1727511742000
+                  }
+                ]
             }
         ],
         "cancelAllOrders": [
