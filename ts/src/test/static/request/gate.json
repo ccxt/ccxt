@@ -449,6 +449,19 @@
                 "input": [
                     "BTC/USDT:USDT-240126-20000-C"
                 ]
+            },
+            {
+                "description": "swap closed orders using historical endpoint",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders_timerange?contract=LTC_USDT",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "historical": true
+                  }
+                ]
             }
         ],
         "cancelAllOrders": [
