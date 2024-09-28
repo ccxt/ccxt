@@ -1423,6 +1423,9 @@ export default class bitget extends Exchange {
                     'STARKNET': 'Starknet',
                     'OPTIMISM': 'Optimism',
                     'ARBITRUM': 'Arbitrum',
+                    'APT': 'APTOS',
+                    'MATIC': 'POLYGON',
+                    'VIC': 'VICTION',
                 },
                 'networksById': {},
                 'fetchPositions': {

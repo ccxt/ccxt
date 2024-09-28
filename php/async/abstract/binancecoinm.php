@@ -2107,6 +2107,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function papi_post_asset_collection($params = array()) {
         return $this->request('asset-collection', 'papi', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function papi_post_margin_repay_debt($params = array()) {
+        return $this->request('margin/repay-debt', 'papi', 'POST', $params, null, null, array("cost" => 0.4));
+    }
     public function papi_put_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -4245,6 +4248,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     }
     public function papiPostAssetCollection($params = array()) {
         return $this->request('asset-collection', 'papi', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function papiPostMarginRepayDebt($params = array()) {
+        return $this->request('margin/repay-debt', 'papi', 'POST', $params, null, null, array("cost" => 0.4));
     }
     public function papiPutListenKey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 1));

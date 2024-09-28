@@ -602,6 +602,8 @@ class gate extends Exchange {
             ),
             // copied from gatev2
             'commonCurrencies' => array(
+                'ORT' => 'XREATORS',
+                'ASS' => 'ASSF',
                 '88MPH' => 'MPH',
                 'AXIS' => 'AXISDEFI',
                 'BIFI' => 'BITCOINFILE',
@@ -636,6 +638,8 @@ class gate extends Exchange {
                 ),
                 'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
+                    'LINEA' => 'LINEAETH',
+                    'KON' => 'KONET',
                     'AVAXC' => 'AVAX_C',
                     'BEP20' => 'BSC',
                     'EOS' => 'EOS',

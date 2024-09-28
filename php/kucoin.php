@@ -620,6 +620,7 @@ class kucoin extends Exchange {
                 'WAX' => 'WAXP',
                 'ALT' => 'APTOSLAUNCHTOKEN',
                 'KALT' => 'ALT', // ALTLAYER
+                'FUD' => 'FTX Users\' Debt',
             ),
             'options' => array(
                 'hf' => false,

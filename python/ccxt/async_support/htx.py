@@ -2328,6 +2328,10 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2539,6 +2543,7 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2556,6 +2561,17 @@ class htx(Exchange, ImplicitAPI):
         return await self.fetch_spot_order_trades(id, symbol, since, limit, params)
 
     async def fetch_spot_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+         * @ignore
+        fetch all the trades made from a single order
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+        :param str id: order id
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
         await self.load_markets()
         request: dict = {
             'order-id': id,
