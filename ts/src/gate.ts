@@ -4719,6 +4719,7 @@ export default class gate extends Exchange {
         }
         params = this.omit (params, 'type');
         let request = {};
+        [ request, params ] = this.prepareRequest (market, type, params);
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
         }
@@ -4728,7 +4729,6 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.prepareRequest (market, type, params);
         const response = await this.privateFuturesGetSettleOrdersTimerange (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
