@@ -2677,14 +2677,14 @@ class binance extends \ccxt\async\binance {
             list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchBalance', 'papi', 'portfolioMargin', false);
-            $urlType = $type;
-            if ($isPortfolioMargin) {
-                $urlType = 'papi';
-            }
             if ($this->isLinear ($type, $subType)) {
                 $type = 'future';
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
+            }
+            $urlType = $type;
+            if ($isPortfolioMargin) {
+                $urlType = 'papi';
             }
             $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
             $client = $this->client($url);

@@ -644,7 +644,12 @@ class bingx extends Exchange {
         //                    "maxNotional" => 20000,
         //                    "status" => 1,
         //                    "tickSize" => 0.000001,
-        //                    "stepSize" => 1
+        //                    "stepSize" => 1,
+        //                    "apiStateSell" => true,
+        //                    "apiStateBuy" => true,
+        //                    "timeOnline" => 0,
+        //                    "offTime" => 0,
+        //                    "maintainTime" => 0
         //                  ),
         //                  ...
         //              )
@@ -755,7 +760,7 @@ class bingx extends Exchange {
         $isActive = false;
         if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
             $isActive = true; // $swap active
-        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy')) {
+        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy') && ($this->safe_number($market, 'status') === 1)) {
             $isActive = true; // $spot active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;

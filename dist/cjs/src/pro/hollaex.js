@@ -56,6 +56,7 @@ class hollaex extends hollaex$1 {
          * @method
          * @name hollaex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -114,6 +115,7 @@ class hollaex extends hollaex$1 {
          * @method
          * @name hollaex#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -170,6 +172,7 @@ class hollaex extends hollaex$1 {
          * @method
          * @name hollaex#watchMyTrades
          * @description watches information on multiple trades made by the user
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -250,6 +253,7 @@ class hollaex extends hollaex$1 {
          * @method
          * @name hollaex#watchOrders
          * @description watches information on multiple orders made by the user
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -371,6 +375,7 @@ class hollaex extends hollaex$1 {
          * @method
          * @name hollaex#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */

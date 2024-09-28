@@ -622,7 +622,8 @@ class kucoin extends kucoin$1 {
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
                 'ALT': 'APTOSLAUNCHTOKEN',
-                'KALT': 'ALT', // ALTLAYER
+                'KALT': 'ALT',
+                'FUD': 'FTX Users\' Debt',
             },
             'options': {
                 'hf': false,

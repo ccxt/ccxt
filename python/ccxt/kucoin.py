@@ -642,6 +642,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'WAX': 'WAXP',
                 'ALT': 'APTOSLAUNCHTOKEN',
                 'KALT': 'ALT',  # ALTLAYER
+                'FUD': 'FTX Users\' Debt',
             },
             'options': {
                 'hf': False,
