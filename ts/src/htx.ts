@@ -3086,6 +3086,7 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
@@ -3160,6 +3161,7 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
