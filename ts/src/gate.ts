@@ -4729,7 +4729,7 @@ export default class gate extends Exchange {
             request['limit'] = limit;
         }
         [ request, params ] = this.prepareRequest (market, type, params);
-        const response = this.privateFuturesGetSettleOrdersTimerange (this.extend (request, params));
+        const response = await this.privateFuturesGetSettleOrdersTimerange (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
