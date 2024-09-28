@@ -6714,6 +6714,8 @@ class bybit extends Exchange {
         }
         $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notional);
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateralString, 4);
+        $positionIdx = $this->safe_string($position, 'positionIdx');
+        $hedged = ($positionIdx !== null) && ($positionIdx !== '0');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -6742,6 +6744,7 @@ class bybit extends Exchange {
             'percentage' => null,
             'stopLossPrice' => $this->safe_number_2($position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice' => $this->safe_number_2($position, 'take_profit', 'takeProfit'),
+            'hedged' => $hedged,
         ));
     }
 

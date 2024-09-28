@@ -7314,6 +7314,8 @@ public partial class bybit : Exchange
         }
         object maintenanceMarginPercentage = Precise.stringDiv(maintenanceMarginString, notional);
         object marginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
+        object positionIdx = this.safeString(position, "positionIdx");
+        object hedged = isTrue((!isEqual(positionIdx, null))) && isTrue((!isEqual(positionIdx, "0")));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -7342,6 +7344,7 @@ public partial class bybit : Exchange
             { "percentage", null },
             { "stopLossPrice", this.safeNumber2(position, "stop_loss", "stopLoss") },
             { "takeProfitPrice", this.safeNumber2(position, "take_profit", "takeProfit") },
+            { "hedged", hedged },
         });
     }
 

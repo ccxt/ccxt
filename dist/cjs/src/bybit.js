@@ -6828,6 +6828,8 @@ class bybit extends bybit$1 {
         }
         const maintenanceMarginPercentage = Precise["default"].stringDiv(maintenanceMarginString, notional);
         const marginRatio = Precise["default"].stringDiv(maintenanceMarginString, collateralString, 4);
+        const positionIdx = this.safeString(position, 'positionIdx');
+        const hedged = (positionIdx !== undefined) && (positionIdx !== '0');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -6856,6 +6858,7 @@ class bybit extends bybit$1 {
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2(position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice': this.safeNumber2(position, 'take_profit', 'takeProfit'),
+            'hedged': hedged,
         });
     }
     async fetchLeverage(symbol, params = {}) {

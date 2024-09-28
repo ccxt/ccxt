@@ -6344,6 +6344,8 @@ class bybit(Exchange, ImplicitAPI):
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
+        positionIdx = self.safe_string(position, 'positionIdx')
+        hedged = (positionIdx is not None) and (positionIdx != '0')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -6372,6 +6374,7 @@ class bybit(Exchange, ImplicitAPI):
             'percentage': None,
             'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
+            'hedged': hedged,
         })
 
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
