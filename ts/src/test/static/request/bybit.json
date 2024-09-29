@@ -442,6 +442,40 @@
                   }
                 ],
                 "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"10\",\"positionIdx\":2}"
+            },
+            {
+                "description": "swap hedged reduceOnly sell order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "market",
+                  "sell",
+                  10,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Sell\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"10\",\"positionIdx\":1}"
+            },
+            {
+                "description": "swap hedged buy reduceOnly order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "market",
+                  "buy",
+                  10,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"10\",\"positionIdx\":2}"
             }
         ],
         "createMarketBuyOrderWithCost": [
