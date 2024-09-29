@@ -14,7 +14,6 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"encoding/pem"
 	"hash/crc32"
 	"math/big"
@@ -214,7 +213,11 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 		options = make(map[string]interface{})
 	}
 	algorithm := hash()
-	alg := "HS" + strings.ToUpper(algorithm[3:])
+	algPrefix := "HS"
+	if isRsa {
+		algPrefix = "RS"
+	}
+	alg := algPrefix + strings.ToUpper(algorithm[3:])
 	if algOpt, ok := options["alg"]; ok {
 		alg = algOpt.(string)
 	}
@@ -233,10 +236,8 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 		delete(header, "iat")
 	}
 
-	headerJson, _ := json.Marshal(header)
-	encodedHeader := base64.RawURLEncoding.EncodeToString(headerJson)
-	dataJson, _ := json.Marshal(data)
-	encodedData := base64.RawURLEncoding.EncodeToString(dataJson)
+	encodedHeader := base64.RawURLEncoding.EncodeToString([]byte(Json(header)))
+	encodedData := base64.RawURLEncoding.EncodeToString([]byte(Json(data)))
 	token := encodedHeader + "." + encodedData
 
 	var signature string
@@ -247,6 +248,10 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	} else {
 		signature = base64.RawURLEncoding.EncodeToString(signHMACSHA256([]byte(token), []byte(secret.(string))))
 	}
+	// dirty quicky
+	signature = strings.Replace(signature, "+", "-", -1)
+	signature = strings.Replace(signature, "/", "_", -1)
+	signature = strings.TrimRight(signature, "==")
 	return token + "." + signature
 }
 
