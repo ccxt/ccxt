@@ -159,7 +159,7 @@ func secp256k1() string {
 	return "secp256k1"
 }
 
-func Ecdsa(request2 interface{}, secret2 interface{}, algorithm2 func() string, digest interface{}) interface{} {
+func Ecdsa(request2 interface{}, secret2 interface{}, algorithm2 func() string, digest func() string) interface{} {
 	return ccxt.Ecdsa(request2, secret2, algorithm2, digest)
 }
 
