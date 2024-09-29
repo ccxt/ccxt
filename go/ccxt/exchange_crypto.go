@@ -16,6 +16,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
+	"hash/crc32"
 	"math/big"
 	"strings"
 
@@ -240,7 +241,7 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 
 	var signature string
 	if isRsa {
-		// Rsa signing logic here (omitted for simplicity)
+		signature = Rsa(token, secret, hash)
 	} else if alg[:2] == "ES" {
 		// Ecdsa signing logic here (omitted for simplicity)
 	} else {
@@ -491,6 +492,20 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 	return result
 }
 
-func Crc32(request2 interface{}, encode bool) interface{} {
-	return "" // to do
+func Crc32(str string, signed2 ...bool) int64 {
+	signed := false
+	if len(signed2) > 0 {
+		signed = signed2[0]
+	}
+
+	// Compute the CRC32 checksum using IEEE polynomial
+	crc := crc32.ChecksumIEEE([]byte(str))
+
+	if signed {
+		// Convert unsigned CRC32 to signed 32-bit integer
+		return int64(int32(crc))
+	}
+
+	// Return unsigned 32-bit integer as int64
+	return int64(crc)
 }
