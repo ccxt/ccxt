@@ -3707,6 +3707,7 @@ class bybit extends Exchange {
             // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         );
         $hedged = $this->safe_bool($params, 'hedged', false);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
         $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
@@ -3886,6 +3887,10 @@ class bybit extends Exchange {
             }
         }
         if (!$market['spot'] && $hedged) {
+            if ($reduceOnly) {
+                $params = $this->omit($params, 'reduceOnly');
+                $side = ($side === 'buy') ? 'sell' : 'buy';
+            }
             $request['positionIdx'] = ($side === 'buy') ? 1 : 2;
         }
         $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged' ));
