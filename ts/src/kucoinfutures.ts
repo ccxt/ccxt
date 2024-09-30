@@ -2193,10 +2193,16 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const fundingTimestamp = this.safeInteger (data, 'timePoint');
-        // the website displayes the previous funding rate as "funding rate"
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (response, market = undefined) {
+        const previousFundingTimestamp = this.safeInteger (response, 'timePoint');
+        // the website displays the previous funding rate as "funding rate"
+        const granularity = this.safeInteger (response, 'granularity');
+        const fundingTimestamp = this.sum (previousFundingTimestamp, granularity);
         return {
-            'info': data,
+            'info': response,
             'symbol': market['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
@@ -2204,15 +2210,15 @@ export default class kucoinfutures extends kucoin {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (data, 'value'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': this.safeNumber (data, 'predictedValue'),
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
+            'fundingRate': undefined,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeNumber (response, 'predictedValue'),
+            'nextFundingTimestamp': fundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (fundingTimestamp),
+            'previousFundingRate': this.safeNumber (response, 'value'),
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
         };
     }
 
