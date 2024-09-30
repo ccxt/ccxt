@@ -1220,6 +1220,7 @@ export default class htx extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/6081
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
+                'NGL': 'GFNGL',
                 'GET': 'THEMIS', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'GTC': 'GAMECOM', // conflict with Gitcoin and Gastrocoin
                 'HIT': 'HITCHAIN',

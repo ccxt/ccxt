@@ -1125,6 +1125,7 @@ public partial class htx : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "NGL", "GFNGL" },
                 { "GET", "THEMIS" },
                 { "GTC", "GAMECOM" },
                 { "HIT", "HITCHAIN" },

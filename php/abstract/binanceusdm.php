@@ -2110,6 +2110,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function papi_post_margin_repay_debt($params = array()) {
         return $this->request('margin/repay-debt', 'papi', 'POST', $params, null, null, array("cost" => 0.4));
     }
+    public function papi_post_um_feeburn($params = array()) {
+        return $this->request('um/feeBurn', 'papi', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function papi_put_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -4251,6 +4254,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function papiPostMarginRepayDebt($params = array()) {
         return $this->request('margin/repay-debt', 'papi', 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    public function papiPostUmFeeBurn($params = array()) {
+        return $this->request('um/feeBurn', 'papi', 'POST', $params, null, null, array("cost" => 1));
     }
     public function papiPutListenKey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 1));

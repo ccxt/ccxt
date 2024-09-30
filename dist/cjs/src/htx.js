@@ -1218,6 +1218,7 @@ class htx extends htx$1 {
                 // https://github.com/ccxt/ccxt/issues/6081
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
+                'NGL': 'GFNGL',
                 'GET': 'THEMIS',
                 'GTC': 'GAMECOM',
                 'HIT': 'HITCHAIN',
