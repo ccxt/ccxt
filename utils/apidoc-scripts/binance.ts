@@ -242,7 +242,7 @@ class binance extends ParserBase {
     async fetchPortalData () {
         // fetches and saves cache
         const baseUrl = 'https://developers.binance.com';
-        if (!this.cacheExists ()) {
+        if (!this.cacheExists (this.exchangeId)) {
             const data = await this.fetchData (baseUrl + '/docs/');
             const mainJsPattern = /<script src="(\/docs\/assets\/js\/main(.*?)\.js)"/g;
             const match = mainJsPattern.exec(data);
@@ -277,9 +277,9 @@ class binance extends ParserBase {
                 return this.fetchData(url);
             });
             const responses = await Promise.all (promises);
-            this.cacheSet (undefined, responses);
+            this.cacheSet (this.exchangeId, responses);
         }
-        return this.cacheGet ();
+        return this.cacheGet (this.exchangeId);
     }
 
     rlString (value: number, coefficient: number) {
