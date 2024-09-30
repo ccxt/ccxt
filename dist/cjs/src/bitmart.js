@@ -4496,6 +4496,7 @@ class bitmart extends bitmart$1 {
             'previousFundingRate': this.safeNumber(contract, 'rate_value'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchPosition(symbol, params = {}) {

@@ -2168,11 +2168,11 @@ class krakenfutures extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * fetch the current funding rates for multiple markets
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-$tickers
-             * fetch the current funding rates
              * @param {string[]} $symbols unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
@@ -2180,7 +2180,7 @@ class krakenfutures extends Exchange {
             Async\await($this->load_markets());
             $marketIds = $this->market_ids($symbols);
             $response = Async\await($this->publicGetTickers ($params));
-            $tickers = $this->safe_value($response, 'tickers');
+            $tickers = $this->safe_list($response, 'tickers', array());
             $fundingRates = array();
             for ($i = 0; $i < count($tickers); $i++) {
                 $entry = $tickers[$i];
@@ -2198,7 +2198,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($ticker, ?array $market = null) {
+    public function parse_funding_rate($ticker, ?array $market = null): array {
         //
         // {"ask" => 26.283,
         //  "askSize" => 4.6,
@@ -2252,6 +2252,7 @@ class krakenfutures extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 

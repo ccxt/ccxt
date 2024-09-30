@@ -72,7 +72,7 @@ class oxfun extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -1012,11 +1012,11 @@ class oxfun extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * fetch the current funding rates for multiple markets
              * @see https://docs.ox.fun/?json#get-v3-funding-estimates
-             * fetch the current funding rates
              * @param {string[]} $symbols unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
@@ -1048,14 +1048,13 @@ class oxfun extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($fundingRate, ?array $market = null) {
+    public function parse_funding_rate($fundingRate, ?array $market = null): array {
         //
-        //     array(
+        //     {
         //         "marketCode" => "OX-USD-SWAP-LIN",
         //         "fundingAt" => "1715515200000",
         //         "estFundingRate" => "0.000200000"
-        //     ),
-        //
+        //     }
         //
         $symbol = $this->safe_string($fundingRate, 'marketCode');
         $market = $this->market($symbol);
@@ -1078,6 +1077,7 @@ class oxfun extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 

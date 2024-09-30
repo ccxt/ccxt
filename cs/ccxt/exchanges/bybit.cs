@@ -71,7 +71,7 @@ public partial class bybit : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
-                { "fetchFundingRate", true },
+                { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchGreeks", true },
@@ -2500,6 +2500,7 @@ public partial class bybit : Exchange
 
     public override object parseFundingRate(object ticker, object market = null)
     {
+        //
         //     {
         //         "symbol": "BTCUSDT",
         //         "bidPrice": "19255",
@@ -2550,6 +2551,7 @@ public partial class bybit : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -2562,7 +2564,7 @@ public partial class bybit : Exchange
         * @see https://bybit-exchange.github.io/docs/v5/market/tickers
         * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2630,19 +2632,10 @@ public partial class bybit : Exchange
         //         "time": 1663670053454
         //     }
         //
-        object tickerList = this.safeValue(response, "result", new List<object>() {});
-        object timestamp = this.safeInteger(response, "time");
-        tickerList = this.safeValue(tickerList, "list");
-        object fundingRates = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickerList)); postFixIncrement(ref i))
-        {
-            object rawTicker = getValue(tickerList, i);
-            ((IDictionary<string,object>)rawTicker)["timestamp"] = timestamp; // will be removed inside the parser
-            object ticker = this.parseFundingRate(getValue(tickerList, i), null);
-            object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)fundingRates)[(string)symbol] = ticker;
-        }
-        return this.filterByArray(fundingRates, "symbol", symbols);
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object tickerList = this.safeList(data, "list", new List<object>() {});
+        object result = this.parseFundingRates(tickerList);
+        return this.filterByArray(result, "symbol", symbols);
     }
 
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
