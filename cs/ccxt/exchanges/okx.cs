@@ -252,6 +252,7 @@ public partial class okx : Exchange
                         { "copytrading/public-preference-currency", 4 },
                         { "copytrading/public-current-subpositions", 4 },
                         { "copytrading/public-subpositions-history", 4 },
+                        { "support/announcements-types", 20 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -385,6 +386,7 @@ public partial class okx : Exchange
                         { "broker/fd/if-rebate", 5 },
                         { "affiliate/invitee/detail", 1 },
                         { "users/partner/if-rebate", 1 },
+                        { "support/announcements", 4 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "rfq/create-rfq", 4 },
@@ -747,6 +749,8 @@ public partial class okx : Exchange
                     { "52000", typeof(ExchangeError) },
                     { "54000", typeof(ExchangeError) },
                     { "54001", typeof(ExchangeError) },
+                    { "54008", typeof(InvalidOrder) },
+                    { "54009", typeof(InvalidOrder) },
                     { "54011", typeof(InvalidOrder) },
                     { "55100", typeof(InvalidOrder) },
                     { "55101", typeof(InvalidOrder) },
@@ -6353,6 +6357,9 @@ public partial class okx : Exchange
         object symbol = this.safeSymbol(marketId, market);
         object nextFundingRate = this.safeNumber(contract, "nextFundingRate");
         object fundingTime = this.safeInteger(contract, "fundingTime");
+        object fundingTimeString = this.safeString(contract, "fundingTime");
+        object nextFundingTimeString = this.safeString(contract, "nextFundingRate");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return new Dictionary<string, object>() {
@@ -6373,7 +6380,20 @@ public partial class okx : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)

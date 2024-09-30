@@ -273,6 +273,7 @@ class okx extends Exchange {
                         'copytrading/public-preference-currency' => 4,
                         'copytrading/public-current-subpositions' => 4,
                         'copytrading/public-subpositions-history' => 4,
+                        'support/announcements-types' => 20,
                     ),
                 ),
                 'private' => array(
@@ -418,6 +419,7 @@ class okx extends Exchange {
                         // affiliate
                         'affiliate/invitee/detail' => 1,
                         'users/partner/if-rebate' => 1,
+                        'support/announcements' => 4,
                     ),
                     'post' => array(
                         // rfq
@@ -798,6 +800,8 @@ class okx extends Exchange {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000' => '\\ccxt\\ExchangeError', // Margin transactions unavailable
                     '54001' => '\\ccxt\\ExchangeError', // Only Multi-currency margin account can be set to borrow coins automatically
+                    '54008' => '\\ccxt\\InvalidOrder', // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
+                    '54009' => '\\ccxt\\InvalidOrder', // The range of {param0} should be [{param1}, {param2}].
                     '54011' => '\\ccxt\\InvalidOrder', // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
                     // Trading bot Error Code from 55100 to 55999
                     '55100' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be within the range of {parameter1}-{parameter2}
@@ -6003,7 +6007,7 @@ class okx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate" => "0.00027815",
@@ -6037,6 +6041,9 @@ class okx extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $nextFundingRate = $this->safe_number($contract, 'nextFundingRate');
         $fundingTime = $this->safe_integer($contract, 'fundingTime');
+        $fundingTimeString = $this->safe_string($contract, 'fundingTime');
+        $nextFundingTimeString = $this->safe_string($contract, 'nextFundingRate');
+        $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return array(
@@ -6057,10 +6064,22 @@ class okx extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => $this->parse_funding_interval($millisecondsInterval),
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function parse_funding_interval($interval) {
+        $intervals = array(
+            '3600000' => '1h',
+            '14400000' => '4h',
+            '28800000' => '8h',
+            '57600000' => '16h',
+            '86400000' => '24h',
+        );
+        return $this->safe_string($intervals, $interval, $interval);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate

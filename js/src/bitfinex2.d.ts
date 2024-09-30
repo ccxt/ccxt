@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 /**
  * @class bitfinex2
  * @augments Exchange
@@ -81,28 +81,9 @@ export default class bitfinex2 extends Exchange {
     parseLedgerEntryType(type: Str): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
-    fetchFundingRate(symbol: string, params?: {}): Promise<any>;
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    parseFundingRate(contract: any, market?: Market): {
-        info: any;
-        symbol: string;
-        markPrice: number;
-        indexPrice: number;
-        interestRate: any;
-        estimatedSettlePrice: any;
-        timestamp: number;
-        datetime: string;
-        fundingRate: number;
-        fundingTimestamp: any;
-        fundingDatetime: any;
-        nextFundingRate: number;
-        nextFundingTimestamp: number;
-        nextFundingDatetime: string;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
-    };
+    parseFundingRate(contract: any, market?: Market): FundingRate;
     parseFundingRateHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;

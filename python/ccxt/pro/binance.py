@@ -2417,13 +2417,13 @@ class binance(ccxt.async_support.binance):
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchBalance', 'papi', 'portfolioMargin', False)
-        urlType = type
-        if isPortfolioMargin:
-            urlType = 'papi'
         if self.isLinear(type, subType):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
+        urlType = type
+        if isPortfolioMargin:
+            urlType = 'papi'
         url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)

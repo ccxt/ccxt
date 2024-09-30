@@ -2524,7 +2524,7 @@ export default class Exchange {
         return this.parseOHLCV (ohlcv, market);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<{}> {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
@@ -6096,11 +6096,11 @@ export default class Exchange {
         return market['symbol'];
     }
 
-    parseFundingRate (contract: string, market: Market = undefined): object {
+    parseFundingRate (contract: string, market: Market = undefined): FundingRate {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 
-    parseFundingRates (response, market: Market = undefined) {
+    parseFundingRates (response, market: Market = undefined): FundingRates {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parseFundingRate (response[i], market);
@@ -6738,8 +6738,19 @@ export default class Exchange {
                     break;
                 }
                 result = this.arrayConcat (result, response);
-                const last = this.safeValue (response, responseLength - 1);
-                cursorValue = this.safeValue (last['info'], cursorReceived);
+                const last = this.safeDict (response, responseLength - 1);
+                // cursorValue = this.safeValue (last['info'], cursorReceived);
+                cursorValue = undefined; // search for the cursor
+                for (let j = 0; j < responseLength; j++) {
+                    const index = responseLength - j - 1;
+                    const entry = this.safeDict (response, index);
+                    const info = this.safeDict (entry, 'info');
+                    const cursor = this.safeValue (info, cursorReceived);
+                    if (cursor !== undefined) {
+                        cursorValue = cursor;
+                        break;
+                    }
+                }
                 if (cursorValue === undefined) {
                     break;
                 }

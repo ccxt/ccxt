@@ -1371,14 +1371,18 @@ public partial class bitget : Exchange
                 } },
                 { "sandboxMode", false },
                 { "networks", new Dictionary<string, object>() {
-                    { "TRX", "TRC20" },
-                    { "ETH", "ERC20" },
-                    { "BSC", "BEP20" },
+                    { "TRC20", "TRC20" },
+                    { "ERC20", "ERC20" },
+                    { "BEP20", "BSC" },
+                    { "ARB", "ArbitrumOne" },
+                    { "ZKSYNC", "zkSyncEra" },
+                    { "STARKNET", "Starknet" },
+                    { "APT", "APTOS" },
+                    { "MATIC", "Polygon" },
+                    { "VIC", "VICTION" },
+                    { "AVAXC", "C-Chain" },
                 } },
-                { "networksById", new Dictionary<string, object>() {
-                    { "TRC20", "TRX" },
-                    { "BSC", "BEP20" },
-                } },
+                { "networksById", new Dictionary<string, object>() {} },
                 { "fetchPositions", new Dictionary<string, object>() {
                     { "method", "privateMixGetV2MixPositionAllPosition" },
                 } },
@@ -1865,7 +1869,11 @@ public partial class bitget : Exchange
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
-                object network = this.safeCurrencyCode(networkId);
+                object network = this.networkIdToCode(networkId, code);
+                if (isTrue(!isEqual(network, null)))
+                {
+                    network = ((string)network).ToUpper();
+                }
                 object withdrawEnabled = this.safeString(chain, "withdrawable");
                 object canWithdraw = isEqual(withdrawEnabled, "true");
                 withdraw = ((bool) isTrue((canWithdraw))) ? canWithdraw : withdraw;
@@ -7289,6 +7297,7 @@ public partial class bitget : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

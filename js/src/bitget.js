@@ -1416,14 +1416,18 @@ export default class bitget extends Exchange {
                 },
                 'sandboxMode': false,
                 'networks': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
-                    'BSC': 'BEP20',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'BEP20': 'BSC',
+                    'ARB': 'ArbitrumOne',
+                    'ZKSYNC': 'zkSyncEra',
+                    'STARKNET': 'Starknet',
+                    'APT': 'APTOS',
+                    'MATIC': 'Polygon',
+                    'VIC': 'VICTION',
+                    'AVAXC': 'C-Chain',
                 },
-                'networksById': {
-                    'TRC20': 'TRX',
-                    'BSC': 'BEP20',
-                },
+                'networksById': {},
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 },
@@ -1865,7 +1869,10 @@ export default class bitget extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
-                const network = this.safeCurrencyCode(networkId);
+                let network = this.networkIdToCode(networkId, code);
+                if (network !== undefined) {
+                    network = network.toUpperCase();
+                }
                 const withdrawEnabled = this.safeString(chain, 'withdrawable');
                 const canWithdraw = withdrawEnabled === 'true';
                 withdraw = (canWithdraw) ? canWithdraw : withdraw;
@@ -6813,6 +6820,7 @@ export default class bitget extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

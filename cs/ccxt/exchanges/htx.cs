@@ -169,7 +169,7 @@ public partial class htx : Exchange
                 } },
                 { "www", "https://www.huobi.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223" },
+                    { "url", "https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223" },
                     { "discount", 0.15 },
                 } },
                 { "doc", new List<object>() {"https://huobiapi.github.io/docs/spot/v1/en/", "https://huobiapi.github.io/docs/dm/v1/en/", "https://huobiapi.github.io/docs/coin_margined_swap/v1/en/", "https://huobiapi.github.io/docs/usdt_swap/v1/en/", "https://www.huobi.com/en-us/opend/newApiPages/"} },
@@ -2056,6 +2056,10 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2334,6 +2338,10 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2573,6 +2581,7 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchOrderTrades
         * @description fetch all the trades made from a single order
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
         * @param {string} id order id
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2599,6 +2608,19 @@ public partial class htx : Exchange
 
     public async virtual Task<object> fetchSpotOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name htx#fetchOrderTrades
+        * @description fetch all the trades made from a single order
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+        * @param {string} id order id
+        * @param {string} symbol unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch trades for
+        * @param {int} [limit] the maximum number of trades to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3087,6 +3109,7 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchAccounts
         * @description fetch all the accounts associated with a profile
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
         */
@@ -3174,6 +3197,7 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchCurrencies
         * @description fetches all available currencies on an exchange
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an associative dictionary of currencies
         */
@@ -7265,6 +7289,9 @@ public partial class htx : Exchange
         object nextFundingRate = this.safeNumber(contract, "estimated_rate");
         object fundingTimestamp = this.safeInteger(contract, "funding_time");
         object nextFundingTimestamp = this.safeInteger(contract, "next_funding_time");
+        object fundingTimeString = this.safeString(contract, "funding_time");
+        object nextFundingTimeString = this.safeString(contract, "next_funding_time");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         object marketId = this.safeString(contract, "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
@@ -7285,7 +7312,20 @@ public partial class htx : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -7342,7 +7382,7 @@ public partial class htx : Exchange
         * @description fetch the funding rate for multiple markets
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -8981,6 +9021,9 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchSettlementHistory
         * @description Fetches historical settlement records
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
         * @param {string} symbol unified symbol of the market to fetch the settlement history for
         * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
         * @param {int} [limit] page items, default 20, shall not exceed 50

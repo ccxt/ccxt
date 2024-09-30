@@ -1098,6 +1098,7 @@ class binance extends Exchange {
                         'repay-futures-negative-balance' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'listenKey' => 1, // 1
                         'asset-collection' => 3,
+                        'margin/repay-debt' => 0.4, // Weight(Order) => 0.4 => (1000 / (50 * 0.4)) * 60 = 3000
                     ),
                     'put' => array(
                         'listenKey' => 1, // 1
@@ -1215,6 +1216,7 @@ class binance extends Exchange {
                 ),
                 'fetchCurrencies' => true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
+                // 'repayCrossMarginMethod' => 'papiPostRepayLoan', // papiPostMarginRepayDebt
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType' => null, // 'linear', 'inverse'
@@ -2906,7 +2908,7 @@ class binance extends Exchange {
                 $res = $this->safe_value($results, $i);
                 if ($fetchMargins && gettype($res) === 'array' && array_keys($res) === array_keys(array_keys($res))) {
                     $keysList = is_array($this->index_by($res, 'symbol')) ? array_keys($this->index_by($res, 'symbol')) : array();
-                    $length = ($this->options['crossMarginPairsData']);
+                    $length = count($this->options['crossMarginPairsData']);
                     // first one is the cross-margin promise
                     if ($length === 0) {
                         $this->options['crossMarginPairsData'] = $keysList;
@@ -9146,7 +9148,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -9199,7 +9201,7 @@ class binance extends Exchange {
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
@@ -9265,7 +9267,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
@@ -9274,7 +9276,7 @@ class binance extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -9291,17 +9293,12 @@ class binance extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' fetchFundingRates() supports linear and inverse contracts only');
             }
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $parsed = $this->parse_funding_rate($entry);
-                $result[] = $parsed;
-            }
+            $result = $this->parse_funding_rates($response);
             return $this->filter_by_array($result, 'symbol', $symbols);
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
         //   {
@@ -9342,6 +9339,7 @@ class binance extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
@@ -12043,10 +12041,13 @@ class binance extends Exchange {
              * repay borrowed margin and interest
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
+             * @param {string} [$params->repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+             * @param {string} [$params->specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -12059,18 +12060,39 @@ class binance extends Exchange {
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
             if ($isPortfolioMargin) {
-                $response = Async\await($this->papiPostRepayLoan ($this->extend($request, $params)));
+                $method = null;
+                list($method, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
+                if ($method === 'papiPostMarginRepayDebt') {
+                    $response = Async\await($this->papiPostMarginRepayDebt ($this->extend($request, $params)));
+                    //
+                    //     {
+                    //         "asset" => "USDC",
+                    //         "amount" => 10,
+                    //         "specifyRepayAssets" => null,
+                    //         "updateTime" => 1727170761267,
+                    //         "success" => true
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->papiPostRepayLoan ($this->extend($request, $params)));
+                    //
+                    //     {
+                    //         "tranId" => 108988250265,
+                    //         "clientTag":""
+                    //     }
+                    //
+                }
             } else {
                 $request['isIsolated'] = 'FALSE';
                 $request['type'] = 'REPAY';
                 $response = Async\await($this->sapiPostMarginBorrowRepay ($this->extend($request, $params)));
+                //
+                //     {
+                //         "tranId" => 108988250265,
+                //         "clientTag":""
+                //     }
+                //
             }
-            //
-            //     {
-            //         "tranId" => 108988250265,
-            //         "clientTag":""
-            //     }
-            //
             return $this->parse_margin_loan($response, $currency);
         }) ();
     }
@@ -12184,13 +12206,25 @@ class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
+        // repayCrossMargin alternative endpoint
+        //
+        //     {
+        //         "asset" => "USDC",
+        //         "amount" => 10,
+        //         "specifyRepayAssets" => null,
+        //         "updateTime" => 1727170761267,
+        //         "success" => true
+        //     }
+        //
+        $currencyId = $this->safe_string($info, 'asset');
+        $timestamp = $this->safe_integer($info, 'updateTime');
         return array(
             'id' => $this->safe_integer($info, 'tranId'),
-            'currency' => $this->safe_currency_code(null, $currency),
-            'amount' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($info, 'amount'),
             'symbol' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
     }

@@ -3455,6 +3455,9 @@ public partial class digifinex : Exchange
         object marketId = this.safeString(contract, "instrument_id");
         object timestamp = this.safeInteger(contract, "funding_time");
         object nextTimestamp = this.safeInteger(contract, "next_funding_time");
+        object fundingTimeString = this.safeString(contract, "funding_time");
+        object nextFundingTimeString = this.safeString(contract, "next_funding_time");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -3467,13 +3470,26 @@ public partial class digifinex : Exchange
             { "fundingRate", this.safeNumber(contract, "funding_rate") },
             { "fundingTimestamp", timestamp },
             { "fundingDatetime", this.iso8601(timestamp) },
-            { "nextFundingRate", this.safeString(contract, "next_funding_rate") },
+            { "nextFundingRate", this.safeNumber(contract, "next_funding_rate") },
             { "nextFundingTimestamp", nextTimestamp },
             { "nextFundingDatetime", this.iso8601(nextTimestamp) },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)

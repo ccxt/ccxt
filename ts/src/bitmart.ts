@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2295,7 +2295,7 @@ export default class bitmart extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "order_id": 2707217580
@@ -4432,7 +4432,7 @@ export default class bitmart extends Exchange {
         return await this.privatePostContractPrivateSubmitLeverage (this.extend (request, params));
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name bitmart#fetchFundingRate
@@ -4468,7 +4468,7 @@ export default class bitmart extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "timestamp": 1695184410697,
@@ -4497,7 +4497,8 @@ export default class bitmart extends Exchange {
             'previousFundingRate': this.safeNumber (contract, 'rate_value'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async fetchPosition (symbol: string, params = {}) {
@@ -4782,6 +4783,125 @@ export default class bitmart extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name bitmart#editOrder
+         * @description edits an open order
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to edit an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} [amount] how much you want to trade in units of the base currency
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+         * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+         * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+         * @param {string} [params.stopLoss.triggerPrice] *swap only* the price to trigger a preset stop-loss order
+         * @param {string} [params.takeProfit.triggerPrice] *swap only* the price to trigger a preset take-profit order
+         * @param {string} [params.clientOrderId] client order id of the order
+         * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+         * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' markets, only swap markets are supported');
+        }
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
+        const stopLoss = this.safeDict (params, 'stopLoss', {});
+        const takeProfit = this.safeDict (params, 'takeProfit', {});
+        const presetStopLoss = this.safeString (stopLoss, 'triggerPrice');
+        const presetTakeProfit = this.safeString (takeProfit, 'triggerPrice');
+        const isTriggerOrder = triggerPrice !== undefined;
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const isPresetStopLoss = presetStopLoss !== undefined;
+        const isPresetTakeProfit = presetTakeProfit !== undefined;
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['client_order_id'] = clientOrderId;
+        }
+        if (id !== undefined) {
+            request['order_id'] = id;
+        }
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
+        let response = undefined;
+        if (isTriggerOrder || isStopLoss || isTakeProfit) {
+            request['price_type'] = this.safeInteger (params, 'price_type', 1);
+            if (price !== undefined) {
+                request['executive_price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        if (isTriggerOrder) {
+            request['type'] = type;
+            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            response = await this.privatePostContractPrivateModifyPlanOrder (this.extend (request, params));
+            //
+            //     {
+            //         "code": 1000,
+            //         "message": "Ok",
+            //         "data": {
+            //             "order_id": "3000023150003503"
+            //         },
+            //         "trace": "324523453245.108.1734567125596324575"
+            //     }
+            //
+        } else if (isStopLoss || isTakeProfit) {
+            request['category'] = type;
+            if (isStopLoss) {
+                request['trigger_price'] = this.priceToPrecision (symbol, stopLossPrice);
+            } else {
+                request['trigger_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+            }
+            response = await this.privatePostContractPrivateModifyTpSlOrder (this.extend (request, params));
+            //
+            //     {
+            //         "code": 1000,
+            //         "message": "Ok",
+            //         "data": {
+            //             "order_id": "3000023150003480"
+            //         },
+            //         "trace": "23452345.104.1724536582682345459"
+            //     }
+            //
+        } else if (isPresetStopLoss || isPresetTakeProfit) {
+            if (isPresetStopLoss) {
+                request['preset_stop_loss_price_type'] = this.safeInteger (params, 'price_type', 1);
+                request['preset_stop_loss_price'] = this.priceToPrecision (symbol, presetStopLoss);
+            } else {
+                request['preset_take_profit_price_type'] = this.safeInteger (params, 'price_type', 1);
+                request['preset_take_profit_price'] = this.priceToPrecision (symbol, presetTakeProfit);
+            }
+            response = await this.privatePostContractPrivateModifyPresetPlanOrder (this.extend (request, params));
+            //
+            //     {
+            //         "code": 1000,
+            //         "message": "Ok",
+            //         "data": {
+            //             "order_id": "3000023150003496"
+            //         },
+            //         "trace": "a5c3234534534a836bc476a203.123452.172716624359200197"
+            //     }
+            //
+        } else {
+            throw new NotSupported (this.id + ' editOrder() only supports trigger, stop loss and take profit orders');
+        }
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     nonce () {

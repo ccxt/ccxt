@@ -70,10 +70,10 @@ public partial class gate
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch the funding rate for multiple markets
@@ -89,11 +89,11 @@ public partial class gate
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     public async Task<Dictionary<string, object>> FetchNetworkDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
@@ -986,6 +986,7 @@ public partial class gate
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-options-orders"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1023,6 +1024,12 @@ public partial class gate
     /// string : 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.historical</term>
+    /// <description>
+    /// boolean : *swap only* true for using historical endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1032,13 +1039,6 @@ public partial class gate
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    public List<Dictionary<string, object>> FetchOrdersByStatusRequest(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = this.fetchOrdersByStatusRequest(status, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     public async Task<Dictionary<string, object>> FetchOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {

@@ -684,6 +684,61 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "editOrder": [
+            {
+                "description": "edit a stopLossPrice order",
+                "method": "editOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-tp-sl-order",
+                "input": [
+                  "3000023150003480",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  50000,
+                  {
+                    "stopLossPrice": "52000"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"3000023150003480\",\"price_type\":1,\"executive_price\":\"50000\",\"category\":\"limit\",\"trigger_price\":\"52000\"}"
+            },
+            {
+                "description": "edit a stopLoss order",
+                "method": "editOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-preset-plan-order",
+                "input": [
+                  "3000023150003496",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  50000,
+                  {
+                    "stopLoss": {
+                      "triggerPrice": "52000"
+                    }
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"3000023150003496\",\"preset_stop_loss_price_type\":1,\"preset_stop_loss_price\":\"52000\"}"
+            },
+            {
+                "description": "edit a triggerPrice order",
+                "method": "editOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-plan-order",
+                "input": [
+                  "3000023150003503",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1,
+                  71000,
+                  {
+                    "triggerPrice": "70500"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"3000023150003503\",\"price_type\":1,\"executive_price\":\"71000\",\"type\":\"limit\",\"trigger_price\":\"70500\"}"
+            }
         ]
     }
 }

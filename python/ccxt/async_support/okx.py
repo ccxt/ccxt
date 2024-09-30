@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, LeverageTier, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, LeverageTier, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -291,6 +291,7 @@ class okx(Exchange, ImplicitAPI):
                         'copytrading/public-preference-currency': 4,
                         'copytrading/public-current-subpositions': 4,
                         'copytrading/public-subpositions-history': 4,
+                        'support/announcements-types': 20,
                     },
                 },
                 'private': {
@@ -436,6 +437,7 @@ class okx(Exchange, ImplicitAPI):
                         # affiliate
                         'affiliate/invitee/detail': 1,
                         'users/partner/if-rebate': 1,
+                        'support/announcements': 4,
                     },
                     'post': {
                         # rfq
@@ -815,6 +817,8 @@ class okx(Exchange, ImplicitAPI):
                     # SPOT/MARGIN error codes 54000-54999
                     '54000': ExchangeError,  # Margin transactions unavailable
                     '54001': ExchangeError,  # Only Multi-currency margin account can be set to borrow coins automatically
+                    '54008': InvalidOrder,  # This operation is disabled by the 'mass cancel order' endpoint. Please enable it using self endpoint.
+                    '54009': InvalidOrder,  # The range of {param0} should be [{param1}, {param2}].
                     '54011': InvalidOrder,  # 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
                     # Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder,  # Take profit % should be within the range of {parameter1}-{parameter2}
@@ -5619,7 +5623,7 @@ class okx(Exchange, ImplicitAPI):
             headers['OK-ACCESS-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #    {
         #        "fundingRate": "0.00027815",
@@ -5653,6 +5657,9 @@ class okx(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market)
         nextFundingRate = self.safe_number(contract, 'nextFundingRate')
         fundingTime = self.safe_integer(contract, 'fundingTime')
+        fundingTimeString = self.safe_string(contract, 'fundingTime')
+        nextFundingTimeString = self.safe_string(contract, 'nextFundingRate')
+        millisecondsInterval = Precise.string_sub(nextFundingTimeString, fundingTimeString)
         # https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         # > The current interest is 0.
         return {
@@ -5673,9 +5680,20 @@ class okx(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    async def fetch_funding_rate(self, symbol: str, params={}):
+    def parse_funding_interval(self, interval):
+        intervals: dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        }
+        return self.safe_string(intervals, interval, interval)
+
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate

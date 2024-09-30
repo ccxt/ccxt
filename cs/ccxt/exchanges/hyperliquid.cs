@@ -2219,6 +2219,7 @@ public partial class hyperliquid : Exchange
         //             "crossed": true,
         //             "dir": "Close Long",
         //             "fee": "0.050062",
+        //             "feeToken": "USDC",
         //             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
         //             "liquidationMarkPx": null,
         //             "oid": 3929354691,
@@ -2283,7 +2284,8 @@ public partial class hyperliquid : Exchange
             { "cost", null },
             { "fee", new Dictionary<string, object>() {
                 { "cost", fee },
-                { "currency", "USDC" },
+                { "currency", this.safeString(trade, "feeToken") },
+                { "rate", null },
             } },
         }, market);
     }

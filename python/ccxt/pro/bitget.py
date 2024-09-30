@@ -42,6 +42,7 @@ class bitget(ccxt.async_support.bitget):
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
                 'watchPositions': True,
@@ -209,6 +210,7 @@ class bitget(ccxt.async_support.bitget):
         #         "ts": 1701842994341
         #     }
         #
+        self.handle_bid_ask(client, message)
         ticker = self.parse_ws_ticker(message)
         symbol = ticker['symbol']
         self.tickers[symbol] = ticker
@@ -317,6 +319,66 @@ class bitget(ccxt.async_support.bitget):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'baseVolume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
+            'info': ticker,
+        }, market)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+        :see: https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        market = self.market(symbols[0])
+        instType = None
+        instType, params = self.get_inst_type(market, params)
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            marketInner = self.market(symbol)
+            args: dict = {
+                'instType': instType,
+                'channel': 'ticker',
+                'instId': marketInner['id'],
+            }
+            topics.append(args)
+            messageHashes.append('bidask:' + symbol)
+        tickers = await self.watch_public_multiple(messageHashes, topics, params)
+        if self.newUpdates:
+            result: dict = {}
+            result[tickers['symbol']] = tickers
+            return result
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        ticker = self.parse_ws_bid_ask(message)
+        symbol = ticker['symbol']
+        self.bidsasks[symbol] = ticker
+        messageHash = 'bidask:' + symbol
+        client.resolve(ticker, messageHash)
+
+    def parse_ws_bid_ask(self, message, market=None):
+        arg = self.safe_value(message, 'arg', {})
+        data = self.safe_value(message, 'data', [])
+        ticker = self.safe_value(data, 0, {})
+        timestamp = self.safe_integer(ticker, 'ts')
+        instType = self.safe_string(arg, 'instType')
+        marketType = 'spot' if (instType == 'SPOT') else 'contract'
+        marketId = self.safe_string(ticker, 'instId')
+        market = self.safe_market(marketId, market, None, marketType)
+        return self.safe_ticker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(ticker, 'askPr'),
+            'askVolume': self.safe_string(ticker, 'askSz'),
+            'bid': self.safe_string(ticker, 'bidPr'),
+            'bidVolume': self.safe_string(ticker, 'bidSz'),
             'info': ticker,
         }, market)
 

@@ -2199,7 +2199,7 @@ public partial class bitmart : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "order_id": 2707217580
@@ -4666,6 +4666,7 @@ public partial class bitmart : Exchange
             { "previousFundingRate", this.safeNumber(contract, "rate_value") },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -4969,6 +4970,110 @@ public partial class bitmart : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         });
+    }
+
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#editOrder
+        * @description edits an open order
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+        * @param {string} id order id
+        * @param {string} symbol unified symbol of the market to edit an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} [amount] how much you want to trade in units of the base currency
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+        * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+        * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+        * @param {string} [params.stopLoss.triggerPrice] *swap only* the price to trigger a preset stop-loss order
+        * @param {string} [params.takeProfit.triggerPrice] *swap only* the price to trigger a preset take-profit order
+        * @param {string} [params.clientOrderId] client order id of the order
+        * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+        * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " markets, only swap markets are supported")) ;
+        }
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "trigger_price"});
+        object stopLoss = this.safeDict(parameters, "stopLoss", new Dictionary<string, object>() {});
+        object takeProfit = this.safeDict(parameters, "takeProfit", new Dictionary<string, object>() {});
+        object presetStopLoss = this.safeString(stopLoss, "triggerPrice");
+        object presetTakeProfit = this.safeString(takeProfit, "triggerPrice");
+        object isTriggerOrder = !isEqual(triggerPrice, null);
+        object isStopLoss = !isEqual(stopLossPrice, null);
+        object isTakeProfit = !isEqual(takeProfitPrice, null);
+        object isPresetStopLoss = !isEqual(presetStopLoss, null);
+        object isPresetTakeProfit = !isEqual(presetTakeProfit, null);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            parameters = this.omit(parameters, "clientOrderId");
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
+        if (isTrue(!isEqual(id, null)))
+        {
+            ((IDictionary<string,object>)request)["order_id"] = id;
+        }
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"});
+        object response = null;
+        if (isTrue(isTrue(isTrue(isTriggerOrder) || isTrue(isStopLoss)) || isTrue(isTakeProfit)))
+        {
+            ((IDictionary<string,object>)request)["price_type"] = this.safeInteger(parameters, "price_type", 1);
+            if (isTrue(!isEqual(price, null)))
+            {
+                ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            }
+        }
+        if (isTrue(isTriggerOrder))
+        {
+            ((IDictionary<string,object>)request)["type"] = type;
+            ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
+            response = await this.privatePostContractPrivateModifyPlanOrder(this.extend(request, parameters));
+        } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+        {
+            ((IDictionary<string,object>)request)["category"] = type;
+            if (isTrue(isStopLoss))
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, stopLossPrice);
+            } else
+            {
+                ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, takeProfitPrice);
+            }
+            response = await this.privatePostContractPrivateModifyTpSlOrder(this.extend(request, parameters));
+        } else if (isTrue(isTrue(isPresetStopLoss) || isTrue(isPresetTakeProfit)))
+        {
+            if (isTrue(isPresetStopLoss))
+            {
+                ((IDictionary<string,object>)request)["preset_stop_loss_price_type"] = this.safeInteger(parameters, "price_type", 1);
+                ((IDictionary<string,object>)request)["preset_stop_loss_price"] = this.priceToPrecision(symbol, presetStopLoss);
+            } else
+            {
+                ((IDictionary<string,object>)request)["preset_take_profit_price_type"] = this.safeInteger(parameters, "price_type", 1);
+                ((IDictionary<string,object>)request)["preset_take_profit_price"] = this.priceToPrecision(symbol, presetTakeProfit);
+            }
+            response = await this.privatePostContractPrivateModifyPresetPlanOrder(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " editOrder() only supports trigger, stop loss and take profit orders")) ;
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
     }
 
     public override object nonce()
