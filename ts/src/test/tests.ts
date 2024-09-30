@@ -15,12 +15,13 @@ import {
     // shared
     getCliArgValue,
     //
-    envVars,
-    newLine,
-    lang,
-    ext,
-    rootDir,
-    proxyTestFileName,
+    ENV_VARS,
+    NEW_LINE,
+    LANG,
+    EXT,
+    ROOT_DIR,
+    PROXY_TEST_FILE_NAME,
+    IS_SYNCHRONOUS,
     dump,
     jsonParse,
     jsonStringify,
@@ -47,7 +48,7 @@ import {
 
 
 class testMainClass {
-    isSynchronous: boolean = false;
+    isSynchronous: boolean = IS_SYNCHRONOUS;
     idTests: boolean = false;
     requestTestsFailed: boolean = false;
     responseTestsFailed: boolean = false;
@@ -62,18 +63,18 @@ class testMainClass {
     privateTestOnly: boolean = false;
     private loadKeys: boolean = false;
     sandbox: boolean = false;
-    proxyTestFileName: string = proxyTestFileName;
+    proxyTestFileName: string = PROXY_TEST_FILE_NAME;
     onlySpecificTests: string[] = [];
     skippedSettingsForExchange: any = {};
     skippedMethods: any = {};
     checkedPublicTests: any = {};
     testFiles: any = {};
     publicTests: any = {};
-    newLine: string = newLine;
-    rootDir: string = rootDir;
-    envVars: any = envVars;
-    ext: string = ext;
-    lang: string = lang;
+    newLine: string = NEW_LINE;
+    rootDir: string = ROOT_DIR;
+    envVars: any = ENV_VARS;
+    ext: string = EXT;
+    lang: string = LANG;
 
     parseCliArgs () {
         this.responseTests = getCliArgValue ('--responseTests');
