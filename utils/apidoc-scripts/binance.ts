@@ -82,7 +82,7 @@ class binance extends ParserBase {
         output = output.
             replace(/\n\s+\[/g, '[').
             replace(/\n\s+\]/g, ' ]').
-            replace(/\n\s+(\d+),/g, ` $1,`).
+            replace(/\n\s+(\d.*?),/g, ` $1,`).
             replace(/, ]/g, ' ]').
             replace(/\[\[/g, `[ [`).
             replace(/\]\]/g, `] ]`).
@@ -304,8 +304,16 @@ class binance extends ParserBase {
                 for (const path of paths) {
                     const endpoint = endpoints[path];
                     if (typeof endpoint === 'object') {
-                        endpoint['cost'] = this.rlString (endpoint['cost'], coefficient);  
-                        endpoint['noSymbol'] = this.rlString (endpoint['noSymbol'], coefficient);  
+                        endpoint['cost'] = this.rlString (endpoint['cost'], coefficient);
+                        if ('noSymbol' in endpoint) {
+                            endpoint['noSymbol'] = this.rlString (endpoint['noSymbol'], coefficient); 
+                        } else if ('noCoin' in endpoint) {
+                            endpoint['noCoin'] = this.rlString (endpoint['noCoin'], coefficient); 
+                        } else if ('byLimit' in endpoint) {
+                            for (const limit of endpoint['byLimit']) {
+                                limit[1] = this.rlString (limit[1], coefficient);
+                            }
+                        }
                     } else {
                         const val = this.rlString (endpoints[path], coefficient);
                         endpoints[path] = this.rlString (endpoints[path], coefficient);
