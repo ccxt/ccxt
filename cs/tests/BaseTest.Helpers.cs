@@ -13,42 +13,21 @@ public partial class testMainClass : BaseTest
 {
     public static SharedMethods testSharedMethods = new SharedMethods();
     public Exchange exchange = new Exchange();
-    public string rootDir = Tests.ccxtBaseDir + "/";
-    public string rootDirForSkips = Tests.ccxtBaseDir + "/";
-    public object skippedSettingsForExchange = null;
-    public object skippedMethods = null;
-    public object publicTests = null;
-    public object checkedPublicTests = null;
-    public bool sandbox = false;
-    public object envVars = null;
     public dict testFiles = new dict();
-    public bool privateTestOnly = Tests.privateOnly;
-    public bool privateTest = Tests.privateTests;
+    // consts to be accessed from transpiled tests
+    public const ROOT_DIR = Tests.ccxtBaseDir + "/";
+    public const ENV_VARS = null;
+    public const IS_SYNCHRONOUS = false;
+    public const EXT = cs;
+    public const PROXY_TEST_FILE_NAME = "proxies";
+    public const LANG = "C#";
+    public const NEW_LINE = "\n";
+
     public bool info = Tests.info;
     public bool verbose = Tests.verbose;
     public bool debug = Tests.debug;
     public static string httpsAgent = "";
-    public string ext = "cs";
     public bool loadKeys = false;
-
-    public bool staticTestsFailed = false;
-    public bool responseTests = false;
-    public bool responseTestsFailed = false;
-    public bool requestTests = false;
-    public bool requestTestsFailed = false;
-    public bool staticTests = false;
-    public bool wsTests = false;
-    public bool idTests = false;
-
-    public bool isSynchronous = false;
-
-    public List<object> onlySpecificTests = new List<object>();
-    public string proxyTestFileName = "proxies";
-
-    public string lang = "C#";
-
-    public object newLine = "\n";
-
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
@@ -94,11 +73,11 @@ public partial class testMainClass : BaseTest
             var testFilePath = "";
             if (!ws)
             {
-                testFilePath = rootDir + "cs/tests/Generated/Exchange/test." + key + ".cs";
+                testFilePath = ROOT_DIR + "cs/tests/Generated/Exchange/test." + key + ".cs";
             }
             else
             {
-                testFilePath = rootDir + "cs/tests/Generated/Exchange/Ws/test." + key + ".cs";
+                testFilePath = ROOT_DIR + "cs/tests/Generated/Exchange/Ws/test." + key + ".cs";
             }
             if (ioFileExists(testFilePath))
             {
