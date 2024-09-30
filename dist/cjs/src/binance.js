@@ -1091,7 +1091,8 @@ class binance extends binance$1 {
                         'repay-futures-negative-balance': 150,
                         'listenKey': 1,
                         'asset-collection': 3,
-                        'margin/repay-debt': 0.4, // Weight(Order): 0.4 => (1000 / (50 * 0.4)) * 60 = 3000
+                        'margin/repay-debt': 0.4,
+                        'um/feeBurn': 1,
                     },
                     'put': {
                         'listenKey': 1, // 1

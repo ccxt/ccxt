@@ -1157,6 +1157,7 @@ public partial class binance : Exchange
                         { "listenKey", 1 },
                         { "asset-collection", 3 },
                         { "margin/repay-debt", 0.4 },
+                        { "um/feeBurn", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 1 },

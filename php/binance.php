@@ -1086,6 +1086,7 @@ class binance extends Exchange {
                         'listenKey' => 1, // 1
                         'asset-collection' => 3,
                         'margin/repay-debt' => 0.4, // Weight(Order) => 0.4 => (1000 / (50 * 0.4)) * 60 = 3000
+                        'um/feeBurn' => 1,
                     ),
                     'put' => array(
                         'listenKey' => 1, // 1
