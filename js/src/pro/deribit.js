@@ -17,7 +17,7 @@ export default class deribit extends deribitRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchMyTrades': true,
@@ -187,6 +187,48 @@ export default class deribit extends deribitRest {
         };
         const request = this.deepExtend(message, params);
         return await this.watch(url, channel, request, channel, request);
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#watchTickers
+         * @see https://docs.deribit.com/#ticker-instrument_name-interval
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const url = this.urls['api']['ws'];
+        const interval = this.safeString(params, 'interval', '100ms');
+        params = this.omit(params, 'interval');
+        await this.loadMarkets();
+        if (interval === 'raw') {
+            await this.authenticate();
+        }
+        const channels = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            channels.push('ticker.' + market['id'] + '.' + interval);
+        }
+        const message = {
+            'jsonrpc': '2.0',
+            'method': 'public/subscribe',
+            'params': {
+                'channels': channels,
+            },
+            'id': this.requestId(),
+        };
+        const request = this.deepExtend(message, params);
+        const newTickers = await this.watchMultiple(url, channels, request, channels, request);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[newTickers['symbol']] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //
