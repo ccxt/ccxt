@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from tests_helpers import get_cli_arg_value, is_synchronous, argvExchange, argvSymbol, argvMethod
+from tests_helpers import get_cli_arg_value, IS_SYNCHRONOUS, argvExchange, argvSymbol, argvMethod
 
 try:
     import asyncio
@@ -31,7 +31,7 @@ if (isBaseTests):
         exit(0)
 
 # ###### exchange tests #######
-if (is_synchronous):
+if (IS_SYNCHRONOUS):
     from tests_sync import testMainClass as testMainClassSync
     testMainClassSync().init(argvExchange, argvSymbol, argvMethod)
 else:
