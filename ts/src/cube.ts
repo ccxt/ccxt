@@ -163,13 +163,13 @@ export default class cube extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.privateGetMarkets (params);
-        const result = this.safeValue(response, 'result', {});
-        const markets = this.safeValue(result, 'markets', []);
-        const assets = this.safeValue(result, 'assets', []);
-        const feeTables = this.safeValue(result, 'feeTables', []);
-        const assetsById = this.indexBy(assets, 'assetId');
-        const feeTablesById = this.indexBy(feeTables, 'feeTableId');
-        return markets.map(market => this.parseMarket(market, { assetsById, feeTablesById }));
+        const result = this.safeValue (response, 'result', {});
+        const markets = this.safeValue (result, 'markets', []);
+        const assets = this.safeValue (result, 'assets', []);
+        const feeTables = this.safeValue (result, 'feeTables', []);
+        const assetsById = this.indexBy (assets, 'assetId');
+        const feeTablesById = this.indexBy (feeTables, 'feeTableId');
+        return markets.map ((market) => this.parseMarket (market, { assetsById, feeTablesById }));
     }
 
     parseMarket (market, params = {}): MarketInterface {
