@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2164,7 +2164,7 @@ export default class kucoinfutures extends kucoin {
         }, market);
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name kucoinfutures#fetchFundingRate
@@ -2213,7 +2213,19 @@ export default class kucoinfutures extends kucoin {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval (this.safeString (data, 'granularity')),
+        } as FundingRate;
+    }
+
+    parseFundingInterval (interval) {
+        const intervals: Dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
         };
+        return this.safeString (intervals, interval, interval);
     }
 
     parseBalance (response): Balances {

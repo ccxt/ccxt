@@ -515,7 +515,8 @@
                         "nextFundingDatetime": null,
                         "previousFundingRate": null,
                         "previousFundingTimestamp": null,
-                        "previousFundingDatetime": null
+                        "previousFundingDatetime": null,
+                        "interval": null
                     }
                 }
             }
@@ -796,7 +797,8 @@
                     "nextFundingDatetime": null,
                     "previousFundingRate": null,
                     "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null
+                    "previousFundingDatetime": null,
+                    "interval": null
                 }
             }
         ],

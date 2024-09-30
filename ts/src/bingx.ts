@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1346,7 +1346,7 @@ export default class bingx extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name bingx#fetchFundingRate
@@ -1388,33 +1388,25 @@ export default class bingx extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
-         * @name bingx#fetchFundingRate
-         * @description fetch the current funding rate
+         * @name bingx#fetchFundingRates
+         * @description fetch the current funding rate for multiple symbols
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, 'swap', true);
         const response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (params));
         const data = this.safeList (response, 'data', []);
-        const filteredResponse = [];
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const marketId = this.safeString (item, 'symbol');
-            const market = this.safeMarket (marketId, undefined, undefined, 'swap');
-            if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
-                filteredResponse.push (this.parseFundingRate (item, market));
-            }
-        }
-        return filteredResponse;
+        const result = this.parseFundingRates (data);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -1444,7 +1436,8 @@ export default class bingx extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
