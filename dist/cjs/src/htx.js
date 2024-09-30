@@ -1229,7 +1229,8 @@ class htx extends htx$1 {
                 'PNT': 'PENTA',
                 'SBTC': 'SUPERBITCOIN',
                 'SOUL': 'SOULSAVER',
-                'BIFI': 'BITCOINFILE', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
+                'BIFI': 'BITCOINFILE',
+                'FUD': 'FTX Users\' Debt',
             },
         });
     }
