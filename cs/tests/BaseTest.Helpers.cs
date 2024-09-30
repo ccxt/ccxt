@@ -12,22 +12,22 @@ using dict = Dictionary<string, object>;
 public partial class testMainClass : BaseTest
 {
     public static SharedMethods testSharedMethods = new SharedMethods();
-    public Exchange exchange = new Exchange();
-    public dict testFiles = new dict();
+    // public Exchange exchange = new Exchange();
+    // public dict testFiles = new dict();
     // consts to be accessed from transpiled tests
-    public const ROOT_DIR = Tests.ccxtBaseDir + "/";
-    public const ENV_VARS = null;
-    public const IS_SYNCHRONOUS = false;
-    public const EXT = cs;
-    public const PROXY_TEST_FILE_NAME = "proxies";
-    public const LANG = "C#";
-    public const NEW_LINE = "\n";
+    public static string EXT = "cs";
+    public static string LANG = "C#";
+    public static bool IS_SYNCHRONOUS = false;
+    public static string PROXY_TEST_FILE_NAME = "proxies";
+    public static string ROOT_DIR = Tests.ccxtBaseDir + "/";
+    public static dict ENV_VARS = null;
+    public static string NEW_LINE = "\n";
 
-    public bool info = Tests.info;
-    public bool verbose = Tests.verbose;
-    public bool debug = Tests.debug;
+    //public bool info = Tests.info;
+    //public bool verbose = Tests.verbose;
+    //public bool debug = Tests.debug;
     public static string httpsAgent = "";
-    public bool loadKeys = false;
+    //public bool loadKeys = false;
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
