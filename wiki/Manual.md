@@ -5040,19 +5040,18 @@ if ($exchange->has['fetchOrderTrades']) {
 
 ## Ledger
 
-The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user which includes
+The ledger is the history of changes, i.e. operations that altered the user's balance in any way. This history of movements of funds from/to all accounts of the user includes:
 
 - deposits and withdrawals (funding)
 - amounts incoming and outcoming in result of a trade or an order
 - trading fees
-- transfers between accounts
-- rebates, cashbacks and other types of events that are subject to accounting.
+- transfers between accounts, including staking and unstaking
+- rewards, rebates, cashbacks and other types of events that are subject to accounting.
 
-Data on ledger entries can be retrieved using
+Ledger entry data can be retrieved using:
 
 - `fetchLedgerEntry ()` for a ledger entry
 - `fetchLedger ( code )` for multiple ledger entries of the same currency
-- `fetchLedger ()` for all ledger entries
 
 ```javascript
 fetchLedgerEntry (id, code = undefined, params = {})
@@ -5061,7 +5060,7 @@ fetchLedgerEntry (id, code = undefined, params = {})
 Parameters
 
 - **id** (String) *required* Ledger entry id
-- **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
+- **code** (String) *required* Unified CCXT currency code (e.g. `"USDT"`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
 
 Returns
@@ -5076,7 +5075,7 @@ Parameters
 
 - **code** (String) Unified CCXT currency code; *required* if fetching all ledger entries for all assets at once is not supported (e.g. `"USDT"`)
 - **since** (Integer) Timestamp (ms) of the earliest time to retrieve withdrawals for (e.g. `1646940314000`)
-- **limit** (Integer) The number of [ledger entry structures](#ledger-entry-structure) to retrieve (e.g. `5`)
+- **limit** (Integer) The number of [ledger entry structures](#ledger-entry-structure) to retrieve (e.g. `5`). The default and maximum are exchange-specific, e.g. 25 and 300 for Coinbase.
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
@@ -5110,7 +5109,7 @@ Returns
 
 #### Notes On Ledger Entry Structure
 
-The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is associated with a corresponding transaction.
+The type of the ledger entry is the type of the operation associated with it. If the amount comes from a sell order, then it is associated with a corresponding trade type ledger entry, and the `referenceId` will contain the associated trade id (if the exchange provides it). If the amount went into a withdrawal, then is associated with a corresponding transaction. Below is a non-exhaustive list of ledger `type`s. Each exchange can have its specific ledger entry types.
 
 - `trade`
 - `transaction`
@@ -5121,9 +5120,17 @@ The type of the ledger entry is the type of the operation associated with it. If
 - `transfer`
 - `airdrop`
 - `whatever`
+- `interest`,
+- `advanced_trade_fill`,
+- `staking_reward`,
+- `unstaking_transfer`,
+- `cardspend`,
+- `cardbuyback`,
+- `clawback`,
+- `incentives_shared_clawback`
 - ...
 
-The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger.
+The `referenceId` field, if present, holds the id of the corresponding event that was registered by adding a new item to the ledger.
 
 The `status` field is there to support for exchanges that include pending and canceled changes in the ledger. The ledger naturally represents the actual changes that have taken place, therefore the status is `'ok'` in most cases.
 
