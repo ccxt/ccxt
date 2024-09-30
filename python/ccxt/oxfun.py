@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.oxfun import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -83,7 +83,7 @@ class oxfun(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': False,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
@@ -987,10 +987,10 @@ class oxfun(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'lastUpdatedAt')
         return self.parse_order_book(data, market['symbol'], timestamp)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
+        fetch the current funding rates for multiple markets
         :see: https://docs.ox.fun/?json#get-v3-funding-estimates
-        fetch the current funding rates
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -1020,14 +1020,13 @@ class oxfun(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, fundingRate, market: Market = None):
+    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
         #
         #     {
         #         "marketCode": "OX-USD-SWAP-LIN",
         #         "fundingAt": "1715515200000",
         #         "estFundingRate": "0.000200000"
-        #     },
-        #
+        #     }
         #
         symbol = self.safe_string(fundingRate, 'marketCode')
         market = self.market(symbol)
@@ -1050,6 +1049,7 @@ class oxfun(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

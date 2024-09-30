@@ -771,7 +771,7 @@ export default class Exchange {
     parseWsOrder(order: Dict, market?: Market): Order;
     parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     watchFundingRates(symbols: string[], params?: {}): Promise<FundingRates>;
     watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<{}>;
@@ -1088,8 +1088,8 @@ export default class Exchange {
     parseIsolatedBorrowRates(info: any): IsolatedBorrowRates;
     parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
-    parseFundingRate(contract: string, market?: Market): object;
-    parseFundingRates(response: any, market?: Market): {};
+    parseFundingRate(contract: string, market?: Market): FundingRate;
+    parseFundingRates(response: any, market?: Market): FundingRates;
     handleTriggerAndParams(params: any): any[];
     isTriggerOrder(params: any): any[];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: {}): boolean;

@@ -4217,6 +4217,7 @@ export default class mexc extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRate(symbol, params = {}) {

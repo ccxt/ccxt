@@ -2167,7 +2167,7 @@ class kucoinfutures extends kucoin {
         ), $market);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -2215,8 +2215,20 @@ class kucoinfutures extends kucoin {
                 'previousFundingRate' => null,
                 'previousFundingTimestamp' => null,
                 'previousFundingDatetime' => null,
+                'interval' => $this->parse_funding_interval($this->safe_string($data, 'granularity')),
             );
         }) ();
+    }
+
+    public function parse_funding_interval($interval) {
+        $intervals = array(
+            '3600000' => '1h',
+            '14400000' => '4h',
+            '28800000' => '8h',
+            '57600000' => '16h',
+            '86400000' => '24h',
+        );
+        return $this->safe_string($intervals, $interval, $interval);
     }
 
     public function parse_balance($response): array {

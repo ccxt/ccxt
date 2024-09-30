@@ -1413,16 +1413,16 @@ class bitget extends bitget$1 {
                 },
                 'sandboxMode': false,
                 'networks': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
                     'BEP20': 'BSC',
+                    'ARB': 'ArbitrumOne',
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
-                    'OPTIMISM': 'Optimism',
-                    'ARBITRUM': 'Arbitrum',
                     'APT': 'APTOS',
-                    'MATIC': 'POLYGON',
+                    'MATIC': 'Polygon',
                     'VIC': 'VICTION',
+                    'AVAXC': 'C-Chain',
                 },
                 'networksById': {},
                 'fetchPositions': {
@@ -6817,6 +6817,7 @@ class bitget extends bitget$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

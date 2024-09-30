@@ -2463,8 +2463,8 @@ public partial class whitebit : Exchange
         /**
         * @method
         * @name whitebit#fetchFundingRate
-        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @description fetch the current funding rate
+        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2481,11 +2481,11 @@ public partial class whitebit : Exchange
         /**
         * @method
         * @name whitebit#fetchFundingRates
-        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @description fetch the funding rate for multiple markets
+        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2535,7 +2535,7 @@ public partial class whitebit : Exchange
         //        }
         //    ]
         //
-        object data = this.safeValue(response, "result", new List<object>() {});
+        object data = this.safeList(response, "result", new List<object>() {});
         object result = this.parseFundingRates(data);
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -2580,7 +2580,7 @@ public partial class whitebit : Exchange
         object indexPrice = this.safeNumber(contract, "indexPrice");
         object interestRate = this.safeNumber(contract, "interestRate");
         object fundingRate = this.safeNumber(contract, "funding_rate");
-        object nextFundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
+        object fundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -2590,14 +2590,15 @@ public partial class whitebit : Exchange
             { "timestamp", null },
             { "datetime", null },
             { "fundingRate", fundingRate },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", this.iso8601(null) },
+            { "fundingTimestamp", fundingTime },
+            { "fundingDatetime", this.iso8601(fundingTime) },
             { "nextFundingRate", null },
-            { "nextFundingTimestamp", nextFundingTime },
-            { "nextFundingDatetime", this.iso8601(nextFundingTime) },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

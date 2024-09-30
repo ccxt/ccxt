@@ -2794,6 +2794,7 @@ class ascendex extends ascendex$1 {
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingRateTimestamp,
             'fundingDatetime': this.iso8601(nextFundingRateTimestamp),
+            'interval': undefined,
         };
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
@@ -2803,7 +2804,7 @@ class ascendex extends ascendex$1 {
          * @description fetch the funding rate for multiple markets
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);

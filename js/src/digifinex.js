@@ -3266,6 +3266,9 @@ export default class digifinex extends Exchange {
         const marketId = this.safeString(contract, 'instrument_id');
         const timestamp = this.safeInteger(contract, 'funding_time');
         const nextTimestamp = this.safeInteger(contract, 'next_funding_time');
+        const fundingTimeString = this.safeString(contract, 'funding_time');
+        const nextFundingTimeString = this.safeString(contract, 'next_funding_time');
+        const millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market),
@@ -3278,13 +3281,24 @@ export default class digifinex extends Exchange {
             'fundingRate': this.safeNumber(contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': this.iso8601(timestamp),
-            'nextFundingRate': this.safeString(contract, 'next_funding_rate'),
+            'nextFundingRate': this.safeNumber(contract, 'next_funding_rate'),
             'nextFundingTimestamp': nextTimestamp,
             'nextFundingDatetime': this.iso8601(nextTimestamp),
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(millisecondsInterval),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

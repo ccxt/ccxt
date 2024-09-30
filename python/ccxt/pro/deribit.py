@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -22,7 +22,7 @@ class deribit(ccxt.async_support.deribit):
                 'ws': True,
                 'watchBalance': True,
                 'watchTicker': True,
-                'watchTickers': False,
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
                 'watchMyTrades': True,
@@ -188,6 +188,43 @@ class deribit(ccxt.async_support.deribit):
         }
         request = self.deep_extend(message, params)
         return await self.watch(url, channel, request, channel, request)
+
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://docs.deribit.com/#ticker-instrument_name-interval
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        url = self.urls['api']['ws']
+        interval = self.safe_string(params, 'interval', '100ms')
+        params = self.omit(params, 'interval')
+        await self.load_markets()
+        if interval == 'raw':
+            await self.authenticate()
+        channels = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            channels.append('ticker.' + market['id'] + '.' + interval)
+        message: dict = {
+            'jsonrpc': '2.0',
+            'method': 'public/subscribe',
+            'params': {
+                'channels': channels,
+            },
+            'id': self.request_id(),
+        }
+        request = self.deep_extend(message, params)
+        newTickers = await self.watch_multiple(url, channels, request, channels, request)
+        if self.newUpdates:
+            tickers: dict = {}
+            tickers[newTickers['symbol']] = newTickers
+            return tickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
         #
