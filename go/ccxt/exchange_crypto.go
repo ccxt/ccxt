@@ -381,21 +381,45 @@ func toHex(bytes []byte) string {
 	return hex.EncodeToString(bytes)
 }
 
+func enforceLowS(s *big.Int) *big.Int {
+	// secp256k1 curve order
+	curveOrder := fromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141")
+
+	// If s is greater than curveOrder / 2, calculate the new s as curveOrder - s
+	halfOrder := new(big.Int).Div(curveOrder, big.NewInt(2))
+	if s.Cmp(halfOrder) > 0 {
+		s.Sub(curveOrder, s)
+	}
+	return s
+}
+
 // Sign the message with secp256k1 curve using Go's native ecdsa package
 
 func signSecp256k1(message []byte, seckey []byte) ([]byte, int, bool) {
-	// Hash the message (if needed, depending on your use case)
-	hash := sha256Hash.Sum256(message)
-
-	// Sign the hashed message with the secret key
-	signature, err := secp256k1Hash.Sign(hash[:], seckey)
+	// Sign the message with the secp256k1 private key
+	signature, err := secp256k1Hash.Sign(message, seckey)
 	if err != nil {
 		return nil, 0, false
 	}
 
 	recoveryID := int(signature[64])
 
-	// For simplicity, we are returning recoveryId as 0
+	// // Split the signature into r and s components
+	r := new(big.Int).SetBytes(signature[:32])
+	s := new(big.Int).SetBytes(signature[32:64])
+
+	// // Enforce low-s rule on the 's' value
+	s = enforceLowS(s)
+
+	// // Convert r and s back to byte slices
+	rBytes := r.FillBytes(make([]byte, 32))
+	sBytes := s.FillBytes(make([]byte, 32))
+
+	// // Reconstruct the signature with the adjusted low-s value
+	signature = append(rBytes, sBytes...)
+
+	// The recovery ID is the last byte in the original signature
+
 	return signature, recoveryID, true
 }
 

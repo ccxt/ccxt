@@ -171,8 +171,8 @@ func Jwt(request2 interface{}, secret2 interface{}, algorithm2 func() string, en
 	return ccxt.Jwt(request2, secret2, algorithm2, encode)
 }
 
-func Crc32(request2 interface{}, encode bool) interface{} {
-	return ccxt.Crc32(request2, encode)
+func Crc32(request2 interface{}, signed2 bool) interface{} {
+	return ccxt.Crc32(request2.(string), signed2)
 }
 
 func Join(interfaceArray interface{}, separator string) string {
