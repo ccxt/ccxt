@@ -83,7 +83,7 @@ define('LOG_CHARS_LENGTH', 1000000); // no need to trim
 define('ext', 'php');
 define('lang', 'PHP');
 define('proxyTestFileName', 'proxies');
-define('new_line', "\n");
+define('newLine', "\n");
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
