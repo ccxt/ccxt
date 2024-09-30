@@ -203,74 +203,99 @@ export default class cube extends Exchange {
         return this.parseMarkets (markets, data);
     }
 
-    parseMarkets (markets: any, params = {}): MarketInterface[] {
+    parseMarkets (markets: any[], params = {}): Market[] {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const parsedMarket = this.parseMarket (market, params);
+            result.push (parsedMarket);
+        }
+        return result;
+    }
+
+    parseMarket (market: any, params = {}): MarketInterface {
+        /**
+         * @method
+         * @name cube#parseMarket
+         * @description parses a single market from the exchange API response
+         * @param {object} market the market data from the API response
+         * @param {object} [params] additional parameters, typically contains assetsById and feeTablesById
+         * @returns {object} an object representing a parsed market with base and quote currencies, symbol, precision, limits, fees, etc.
+         */
+
         const assetsById = this.safeValue (params, 'assetsById', {});
         const feeTablesById = this.safeValue (params, 'feeTablesById', {});
-        return markets.map ((market) => {
-            const baseAsset = assetsById[market.baseAssetId];
-            const quoteAsset = assetsById[market.quoteAssetId];
-            const id = this.safeString (market, 'marketId');
-            const baseAssetId = this.safeString (market, 'baseAssetId');
-            const quoteAssetId = this.safeString (market, 'quoteAssetId');
-            const base = this.safeCurrencyCode (this.safeString (baseAsset, 'symbol'));
-            const quote = this.safeCurrencyCode (this.safeString (quoteAsset, 'symbol'));
-            const symbol = this.safeString (market, 'symbol', base + '/' + quote);
-            const feeTableId = this.safeString (market, 'feeTableId');
-            const feeTable = this.safeValue (feeTablesById, feeTableId, {});
-            const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
-            const firstTier = this.safeValue (feeTiers, 0, {});
-            return {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseAssetId,
-                'quoteId': quoteAssetId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': this.safeValue (market, 'status') === 1,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.safeNumber (firstTier, 'takerFeeRatio'),
-                'maker': this.safeNumber (firstTier, 'makerFeeRatio'),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'quantityTickSize'),
-                    'price': this.safeNumber (market, 'priceTickSize'),
+        // Retrieve the base and quote assets using their IDs
+        const baseAsset = assetsById[market.baseAssetId];
+        const quoteAsset = assetsById[market.quoteAssetId];
+        // Market identifier
+        const id = this.safeString (market, 'marketId');
+        // Base and quote asset identifiers
+        const baseAssetId = this.safeString (market, 'baseAssetId');
+        const quoteAssetId = this.safeString (market, 'quoteAssetId');
+        // Retrieve the currency codes for the base and quote assets
+        const base = this.safeCurrencyCode (this.safeString (baseAsset, 'symbol'));
+        const quote = this.safeCurrencyCode (this.safeString (quoteAsset, 'symbol'));
+        // Default to 'base/quote' if no symbol is provided
+        const symbol = this.safeString (market, 'symbol', base + '/' + quote);
+        // Retrieve the fee table for this market
+        const feeTableId = this.safeString (market, 'feeTableId');
+        const feeTable = this.safeValue (feeTablesById, feeTableId, {});
+        // Get the fee tiers and pick the first tier if available
+        const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
+        const firstTier = this.safeValue (feeTiers, 0, {});
+        // Construct and return the parsed market object
+        return {
+            'id': id, // Market ID
+            'symbol': symbol, // Symbol of the market, e.g., 'BTC/USDT'
+            'base': base, // Base asset code
+            'quote': quote, // Quote asset code
+            'settle': undefined, // No settle currency for spot markets
+            'baseId': baseAssetId, // Base asset ID from the exchange
+            'quoteId': quoteAssetId, // Quote asset ID from the exchange
+            'settleId': undefined, // No settle ID for spot markets
+            'type': 'spot', // Market type, in this case 'spot'
+            'spot': true, // Spot market flag
+            'margin': false, // Not a margin market
+            'swap': false, // Not a swap market
+            'future': false, // Not a future market
+            'option': false, // Not an option market
+            'active': this.safeValue (market, 'status') === 1, // Market active if status is 1
+            'contract': false, // Not a contract market
+            'linear': undefined, // No linear property for spot markets
+            'inverse': undefined, // No inverse property for spot markets
+            'taker': this.safeNumber (firstTier, 'takerFeeRatio'), // Taker fee
+            'maker': this.safeNumber (firstTier, 'makerFeeRatio'), // Maker fee
+            'contractSize': undefined, // No contract size for spot markets
+            'expiry': undefined, // No expiry for spot markets
+            'expiryDatetime': undefined, // No expiry datetime for spot markets
+            'strike': undefined, // No strike price for spot markets
+            'optionType': undefined, // Not an option market
+            'precision': {
+                'amount': this.safeNumber (market, 'quantityTickSize'), // Precision for the amount
+                'price': this.safeNumber (market, 'priceTickSize'), // Precision for the price
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minOrderQty'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber (market, 'minOrderQty'), // Minimum order quantity
+                    'max': undefined, // No max specified
                 },
-                'created': undefined,
-                'info': market,
-            };
-        });
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined, // No creation timestamp provided
+            'info': market, // The raw market object from the exchange response
+        };
     }
 
     async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
@@ -488,10 +513,15 @@ export default class cube extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const subaccounts = this.safeValue (result, 'ids', []);
-        return subaccounts.map ((id) => ({
-            'id': id,
-            'type': 'subaccount',
-        }));
+        const output = [];
+        for (let i = 0; i < subaccounts.length; i++) {
+            const id = subaccounts[i];
+            output.push ({
+                'id': id,
+                'type': 'subaccount',
+            });
+        }
+        return output;
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
@@ -789,14 +819,15 @@ export default class cube extends Exchange {
         const response = await this.privateGetUsersMe (params);
         const balances = response['result']['balances'];
         const result = { 'info': response };
-        balances.forEach ((balance) => {
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
             const currency = this.safeCurrencyCode (balance['currency']);
             result[currency] = {
                 'free': balance['available'],
                 'used': balance['in_order'],
                 'total': balance['total'],
             };
-        });
+        }
         return this.safeBalance (result);
     }
 
