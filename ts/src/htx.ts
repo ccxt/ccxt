@@ -8660,6 +8660,9 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchSettlementHistory
          * @description Fetches historical settlement records
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
          * @param {string} symbol unified symbol of the market to fetch the settlement history for
          * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
          * @param {int} [limit] page items, default 20, shall not exceed 50
