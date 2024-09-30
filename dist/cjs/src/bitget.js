@@ -1413,7 +1413,7 @@ class bitget extends bitget$1 {
                 },
                 'sandboxMode': false,
                 'networks': {
-                    'TRX': 'TRC20',
+                    'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'BEP20': 'BSC',
                     'ARB': 'ArbitrumOne',

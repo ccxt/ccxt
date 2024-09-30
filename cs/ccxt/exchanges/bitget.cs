@@ -1371,7 +1371,7 @@ public partial class bitget : Exchange
                 } },
                 { "sandboxMode", false },
                 { "networks", new Dictionary<string, object>() {
-                    { "TRX", "TRC20" },
+                    { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "BEP20", "BSC" },
                     { "ARB", "ArbitrumOne" },
