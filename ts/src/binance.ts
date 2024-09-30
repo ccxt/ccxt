@@ -693,7 +693,7 @@ export default class binance extends Exchange {
                         'exchangeInfo': 1 * 5,
                         'depth': {
                             'cost': 2 * 5,
-                            'byLimit': [[50,2],[100,5,],[500,10,],[1000,20,],],
+                            'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ],
                         },
                         'trades': 5 * 5,
                         'historicalTrades': 20,
@@ -702,23 +702,23 @@ export default class binance extends Exchange {
                         'fundingRate': 1 * 5,
                         'klines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'continuousKlines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'indexPriceKlines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'markPriceKlines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'premiumIndexKlines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'ticker/24hr': {
                             'cost': 1 * 5,
@@ -817,30 +817,30 @@ export default class binance extends Exchange {
                         'exchangeInfo': 1 * 5,
                         'depth': {
                             'cost': 2 * 5,
-                            'byLimit': [[50,2,],[100,5,],[500,10,],[1000,20,],],
+                            'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ],
                         },
                         'trades': 5 * 5,
                         'historicalTrades': 20,
                         'aggTrades': 20 * 5,
                         'klines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'continuousKlines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'markPriceKlines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'indexPriceKlines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'premiumIndexKlines': {
                             'cost': 1 * 5,
-                            'byLimit': [[99,1,],[499,2,],[1000,5,],[10000,10,],],
+                            'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ],
                         },
                         'fundingRate': 1 * 5,
                         'fundingInfo': 1 * 5,
@@ -1048,7 +1048,7 @@ export default class binance extends Exchange {
                         'time': 1 * 2,
                         'depth': {
                             'cost': 5 * 2,
-                            'byLimit': [[100,5,],[500,25,],[1000,50,],[5000,250,],],
+                            'byLimit': [ [ 100, 5 ], [ 500, 25 ], [ 1000, 50 ], [ 5000, 250 ] ],
                         },
                         'trades': 25 * 2,
                         'aggTrades': 2 * 2,
