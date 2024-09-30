@@ -4287,7 +4287,7 @@ class xt extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -4330,7 +4330,7 @@ class xt extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, $market = null): array {
         //
         //     {
         //         "symbol" => "btc_usdt",
@@ -4342,6 +4342,7 @@ class xt extends Exchange {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_', 'swap');
         $timestamp = $this->safe_integer($contract, 'nextCollectionTime');
+        $interval = $this->safe_string($contract, 'collectionInternal');
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -4360,6 +4361,7 @@ class xt extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => $interval . 'h',
         );
     }
 

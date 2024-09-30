@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1645,7 +1645,7 @@ class gate(Exchange, ImplicitAPI):
             result[code]['withdraw'] = withdrawAvailable
         return result
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
@@ -1705,13 +1705,13 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1764,7 +1764,7 @@ class gate(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(response)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #    {
         #        "name": "BTC_USDT",
@@ -1815,6 +1815,7 @@ class gate(Exchange, ImplicitAPI):
         fundingRate = self.safe_number(contract, 'funding_rate')
         fundingTime = self.safe_timestamp(contract, 'funding_next_apply')
         fundingRateIndicative = self.safe_number(contract, 'funding_rate_indicative')
+        fundingInterval = Precise.string_mul('1000', self.safe_string(contract, 'funding_interval'))
         return {
             'info': contract,
             'symbol': symbol,
@@ -1833,7 +1834,18 @@ class gate(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': self.parse_funding_interval(fundingInterval),
         }
+
+    def parse_funding_interval(self, interval):
+        intervals: dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        }
+        return self.safe_string(intervals, interval, interval)
 
     def fetch_network_deposit_address(self, code: str, params={}):
         self.load_markets()
@@ -4410,7 +4422,6 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         until = self.safe_integer(params, 'until')
-        params = self.omit(params, 'until')
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -4427,30 +4438,38 @@ class gate(Exchange, ImplicitAPI):
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
         if until is not None:
+            params = self.omit(params, 'until')
             request['to'] = self.parse_to_int(until / 1000)
         if limit is not None:
             request['limit'] = limit
         response = self.privateFuturesGetSettleOrdersTimerange(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_orders_by_status_request(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def prepare_orders_by_status_request(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
         stop = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        type, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
+        type: Str = None
+        type, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         spot = (type == 'spot') or (type == 'margin')
-        request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if spot else self.prepare_request(market, type, query)
+        request: dict = {}
+        request, params = self.multi_order_spot_prepare_request(market, stop, params) if spot else self.prepare_request(market, type, params)
         if status == 'closed':
             status = 'finished'
         request['status'] = status
         if limit is not None:
             request['limit'] = limit
-        if since is not None and spot:
-            request['from'] = self.parse_to_int(since / 1000)
-        lastId, finalParams = self.handle_param_string_2(requestParams, 'lastId', 'last_id')
+        if spot:
+            if since is not None:
+                request['from'] = self.parse_to_int(since / 1000)
+            until = self.safe_integer(params, 'until')
+            if until is not None:
+                params = self.omit(params, 'until')
+                request['to'] = self.parse_to_int(until / 1000)
+        lastId, finalParams = self.handle_param_string_2(params, 'lastId', 'last_id')
         if lastId is not None:
             request['last_id'] = lastId
         return [request, finalParams]
@@ -4466,7 +4485,7 @@ class gate(Exchange, ImplicitAPI):
         res = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         type = self.safe_string(res, 0)
         params['type'] = type
-        request, requestParams = self.fetch_orders_by_status_request(status, symbol, since, limit, params)
+        request, requestParams = self.prepare_orders_by_status_request(status, symbol, since, limit, params)
         spot = (type == 'spot') or (type == 'margin')
         openSpotOrders = spot and (status == 'open') and not stop
         response = None

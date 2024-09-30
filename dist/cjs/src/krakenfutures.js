@@ -2162,8 +2162,8 @@ class krakenfutures extends krakenfutures$1 {
         /**
          * @method
          * @name krakenfutures#fetchFundingRates
+         * @description fetch the current funding rates for multiple markets
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
-         * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2171,7 +2171,7 @@ class krakenfutures extends krakenfutures$1 {
         await this.loadMarkets();
         const marketIds = this.marketIds(symbols);
         const response = await this.publicGetTickers(params);
-        const tickers = this.safeValue(response, 'tickers');
+        const tickers = this.safeList(response, 'tickers', []);
         const fundingRates = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
@@ -2241,6 +2241,7 @@ class krakenfutures extends krakenfutures$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

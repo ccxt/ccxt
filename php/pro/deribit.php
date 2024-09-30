@@ -20,7 +20,7 @@ class deribit extends \ccxt\async\deribit {
                 'ws' => true,
                 'watchBalance' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchMyTrades' => true,
@@ -195,6 +195,49 @@ class deribit extends \ccxt\async\deribit {
             );
             $request = $this->deep_extend($message, $params);
             return Async\await($this->watch($url, $channel, $request, $channel, $request));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://docs.deribit.com/#ticker-instrument_name-$interval
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $url = $this->urls['api']['ws'];
+            $interval = $this->safe_string($params, 'interval', '100ms');
+            $params = $this->omit($params, 'interval');
+            Async\await($this->load_markets());
+            if ($interval === 'raw') {
+                Async\await($this->authenticate());
+            }
+            $channels = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $channels[] = 'ticker.' . $market['id'] . '.' . $interval;
+            }
+            $message = array(
+                'jsonrpc' => '2.0',
+                'method' => 'public/subscribe',
+                'params' => array(
+                    'channels' => $channels,
+                ),
+                'id' => $this->request_id(),
+            );
+            $request = $this->deep_extend($message, $params);
+            $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 

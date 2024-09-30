@@ -169,7 +169,7 @@ public partial class htx : Exchange
                 } },
                 { "www", "https://www.huobi.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223" },
+                    { "url", "https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223" },
                     { "discount", 0.15 },
                 } },
                 { "doc", new List<object>() {"https://huobiapi.github.io/docs/spot/v1/en/", "https://huobiapi.github.io/docs/dm/v1/en/", "https://huobiapi.github.io/docs/coin_margined_swap/v1/en/", "https://huobiapi.github.io/docs/usdt_swap/v1/en/", "https://www.huobi.com/en-us/opend/newApiPages/"} },
@@ -1125,6 +1125,7 @@ public partial class htx : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "NGL", "GFNGL" },
                 { "GET", "THEMIS" },
                 { "GTC", "GAMECOM" },
                 { "HIT", "HITCHAIN" },
@@ -7289,6 +7290,9 @@ public partial class htx : Exchange
         object nextFundingRate = this.safeNumber(contract, "estimated_rate");
         object fundingTimestamp = this.safeInteger(contract, "funding_time");
         object nextFundingTimestamp = this.safeInteger(contract, "next_funding_time");
+        object fundingTimeString = this.safeString(contract, "funding_time");
+        object nextFundingTimeString = this.safeString(contract, "next_funding_time");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         object marketId = this.safeString(contract, "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
@@ -7309,7 +7313,20 @@ public partial class htx : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -7366,7 +7383,7 @@ public partial class htx : Exchange
         * @description fetch the funding rate for multiple markets
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -9005,6 +9022,9 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchSettlementHistory
         * @description Fetches historical settlement records
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
         * @param {string} symbol unified symbol of the market to fetch the settlement history for
         * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
         * @param {int} [limit] page items, default 20, shall not exceed 50
