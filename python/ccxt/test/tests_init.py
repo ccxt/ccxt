@@ -10,6 +10,10 @@ except ImportError:
 from base.tests_init import base_tests_init  # noqa: F401
 from ccxt.pro.test.base.tests_init import test_base_init_ws  # noqa: F401
 
+# fix : https://github.com/aio-libs/aiodns/issues/86
+import sys
+if sys.platform == 'win32':
+	asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 # ########### args ###########
 isWs = get_cli_arg_value('--ws')
