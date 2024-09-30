@@ -20,7 +20,6 @@ date_default_timezone_set('UTC');
 ini_set('memory_limit', '512M');
 
 define('rootDir', __DIR__ . '/../../');
-define('root_dir', __DIR__ . '/../../');
 
 include_once rootDir .'/vendor/autoload.php';
 use React\Async;
@@ -77,13 +76,14 @@ function get_cli_arg_value ($arg) {
     return in_array($arg, $GLOBALS['argv']);
 }
 
-define('is_synchronous', get_cli_arg_value('--sync'));
-define('envVars', $_ENV);
+define('EXT', 'php');
+define('LANG', 'PHP');
+define('IS_SYNCHRONOUS', get_cli_arg_value('--sync'));
+define('PROXY_TEST_FILE_NAME', 'proxies');
+define('ROOT_DIR', rootDir);
+define('ENV_VARS', $_ENV);
+define('NEW_LINE', "\n");
 define('LOG_CHARS_LENGTH', 1000000); // no need to trim
-define('ext', 'php');
-define('lang', 'PHP');
-define('proxyTestFileName', 'proxies');
-define('newLine', "\n");
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -212,10 +212,10 @@ function set_exchange_prop ($exchange, $prop, $value) {
     $exchange->{convert_to_snake_case($prop)} = $value;
 }
 function create_dynamic_class ($exchangeId, $originalClass, $args) {
-    $async_suffix = is_synchronous ? '_async' : '_sync';
+    $async_suffix = IS_SYNCHRONOUS ? '_async' : '_sync';
     $filePath = sys_get_temp_dir() . '/temp_dynamic_class_' . $exchangeId . $async_suffix . '.php';
     $newClassName = $exchangeId . '_mock' . $async_suffix ;
-    if (is_synchronous) {
+    if (IS_SYNCHRONOUS) {
         $content = '<?php if (!class_exists("'.$newClassName.'"))  {
             class '. $newClassName . ' extends ' . $originalClass . ' {
                 public $fetch_result = null;
@@ -252,7 +252,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
 }
 
 function init_exchange ($exchangeId, $args, $is_ws = false) {
-    $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
+    $exchangeClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
     if ($is_ws) {
         $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
     }
@@ -263,13 +263,13 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 function get_test_files_sync ($properties, $ws = false) {
     $func = function() use ($properties, $ws){
         $tests = array();
-        $finalPropList = array_merge ($properties, [proxyTestFileName]);
+        $finalPropList = array_merge ($properties, [PROXY_TEST_FILE_NAME]);
         for ($i = 0; $i < count($finalPropList); $i++) {
             $methodName = $finalPropList[$i];
             $name_snake_case = convert_to_snake_case($methodName);
-            $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/exchange/' . (is_synchronous ? 'sync' : 'async') .'/';
+            $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/exchange/' . (IS_SYNCHRONOUS ? 'sync' : 'async') .'/';
             $test_method_name = 'test_'. $name_snake_case;
-            $test_file = $dir_to_test . $test_method_name . '.' . ext;
+            $test_file = $dir_to_test . $test_method_name . '.' . EXT;
             if (io_file_exists ($test_file)) {
                 include_once $test_file;
                 $tests[$methodName] = $test_method_name;
@@ -277,7 +277,7 @@ function get_test_files_sync ($properties, $ws = false) {
         }
         return $tests;
     };
-    if (is_synchronous) {
+    if (IS_SYNCHRONOUS) {
         return $func();
     } else {
         return Async\async ($func)();
@@ -300,7 +300,7 @@ function close($exchange) {
         }
         return true;
     };
-    if (is_synchronous) {
+    if (IS_SYNCHRONOUS) {
         return $func();
     } else {
         return Async\async ($func)();
