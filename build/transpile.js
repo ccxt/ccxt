@@ -2098,10 +2098,12 @@ class Transpiler {
             }
             let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
             let newContent = head + cont;
-            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
-            replace(/\->wallet_address/g, '->walletAddress').
-            replace(/\->private_key/g, '->privateKey').
-            replace(/\->api_key/g, '->apiKey');
+            newContent = newContent.
+                replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+                replace(/\->wallet_address/g, '->walletAddress').
+                replace(/\->private_key/g, '->privateKey').
+                replace(/\->api_key/g, '->apiKey').
+                replace (/class testMainClass/, '#[\\AllowDynamicProperties]\nclass testMainClass');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
             return newContent;

@@ -217,6 +217,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
     $newClassName = $exchangeId . '_mock' . $async_suffix ;
     if (IS_SYNCHRONOUS) {
         $content = '<?php if (!class_exists("'.$newClassName.'"))  {
+            #[\\AllowDynamicProperties]
             class '. $newClassName . ' extends ' . $originalClass . ' {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
@@ -231,6 +232,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
         $content = '<?php 
         use React\Async;
         if (!class_exists("'.$newClassName.'"))  {
+            #[\\AllowDynamicProperties]
             class '. $newClassName . ' extends ' . $originalClass . ' {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
