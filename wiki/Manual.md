@@ -6554,7 +6554,7 @@ https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-
 CORS (known as [Cross-Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)) affects mostly browsers and is the cause of the well-know warning `No 'Access-Control-Allow-Origin' header is present on the requested resource`. It happens when a script (running in a browser) makes a request to a 3rd party domain (by default such requests are blocked, unless the target domain explicitly allows it).
 So, in such cases you will need to communicate with a "CORS" proxy, which would redirect requests (as opposed to direct browser-side request) to the target exchange. To set a CORS proxy, you can run [sample-local-proxy-server-with-cors](https://github.com/ccxt/ccxt/blob/master/examples/) example file and in ccxt set the [`.proxyUrl`](#proxyUrl) property to route requests through cors/proxy server.
 
-# String Math
+## String Math
 
 Some users might want to control how CCXT handles arithmetic operations. Even though it uses numeric types by default, users can switch to fixed-point math using string types. This can be done by:
 
