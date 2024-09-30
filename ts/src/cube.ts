@@ -6,41 +6,55 @@ import * as utils from './static_dependencies/noble-hashes/utils.js';
 import Exchange from './abstract/cube.js';
 import { BadRequest, AuthenticationError, InsufficientFunds, ArgumentsRequired, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Transaction, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Num, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 /**
- * @class ace
+ * @class cube
  * @augments Exchange
  */
 export default class cube extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'cube',
             'name': 'Cube Exchange',
-            'countries': [ 'US' ],
+            'countries': ['US'],
+            'version': 'v0',
             'rateLimit': 1000,
-            'proxyUrl': undefined,
+            'pro': false,
             'has': {
-                'fetchMarkets': true,
-                'fetchTicker': true,
-                'fetchOrderBook': true,
-                'fetchOHLCV': true,
-                'fetchWithdrawals': true,
-                'fetchDeposits': true,
-                'fetchTransfers': true,
-                'fetchPositions': true,
-                'fetchBalance': true,
-                'fetchOrders': true,
-                'fetchOrder': true,
-                'createOrder': true,
-                'cancelOrder': true,
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
+                'cancelOrder': true,
+                'createOrder': true,
                 'editOrder': true,
-                'withdraw': true,
-                'fetchSubaccounts': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': false,
+                'fetchCurrencies': false,
+                'fetchDeposits': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchPositions': true,
+                'fetchSubaccounts': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': false,
+                'fetchTransfers': true,
+                'fetchWithdrawals': true,
+                'transfer': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1s': '1s',
@@ -52,12 +66,14 @@ export default class cube extends Exchange {
                 '7d': '7d',
             },
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/216908003-fb314cf6-e66e-471c-b91d-1d86e4baaa90.jpg',
                 'api': {
                     'public': 'https://api.cube.exchange/md/v0',
                     'private': 'https://api.cube.exchange/os/v0',
                 },
                 'www': 'https://www.cube.exchange',
                 'doc': 'https://docs.cube.exchange',
+                'fees': 'https://www.cube.exchange/fees',
             },
             'api': {
                 'public': {
@@ -96,6 +112,14 @@ export default class cube extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': this.parseNumber('0.0005'),
+                    'taker': this.parseNumber('0.001'),
+                },
+            },
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
@@ -116,6 +140,14 @@ export default class cube extends Exchange {
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
                     'Rate limit exceeded': RateLimitExceeded,
+                    'Required parameter': ArgumentsRequired,
+                },
+            },
+            'precisionMode': TICK_SIZE,
+            'options': {
+                'defaultType': 'spot',
+                'fetchBalance': {
+                    'type': 'spot',
                 },
             },
         });
@@ -231,8 +263,33 @@ export default class cube extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetParsedTickers (params);
+        //
+        // {
+        //   "result": [
+        //     {
+        //       "ask": 101.17,
+        //       "base_currency": "SOL",
+        //       "base_volume": 29332.58,
+        //       "bid": 101.16,
+        //       "high": 109.69,
+        //       "last_price": 101.17,
+        //       "low": 100.23,
+        //       "open": 107.72,
+        //       "quote_currency": "USDC",
+        //       "quote_volume": 3062431.887,
+        //       "ticker_id": "SOLUSDC",
+        //       "timestamp": 1708521090000
+        //     }
+        //   ]
+        // }
+        //
         const tickers = this.safeValue (response, 'result', []);
-        return this.parseTickers (tickers, symbols);
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = this.parseTicker (tickers[i]);
+            result.push (ticker);
+        }
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined): Ticker {
@@ -262,16 +319,6 @@ export default class cube extends Exchange {
             'quoteVolume': this.safeNumber (ticker, 'quote_volume'),
             'info': ticker,
         };
-    }
-
-    parseTickers (tickers, symbols = undefined): Tickers {
-        const result: Tickers = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i]);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
-        }
-        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
