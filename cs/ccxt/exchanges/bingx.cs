@@ -583,7 +583,6 @@ public partial class bingx : Exchange
             object networkList = this.safeList(entry, "networkList");
             object networks = new Dictionary<string, object>() {};
             object fee = null;
-            object active = null;
             object depositEnabled = null;
             object withdrawEnabled = null;
             object defaultLimits = new Dictionary<string, object>() {};
@@ -593,8 +592,16 @@ public partial class bingx : Exchange
                 object network = this.safeString(rawNetwork, "network");
                 object networkCode = this.networkIdToCode(network);
                 object isDefault = this.safeBool(rawNetwork, "isDefault");
-                depositEnabled = this.safeBool(rawNetwork, "depositEnable");
-                withdrawEnabled = this.safeBool(rawNetwork, "withdrawEnable");
+                object networkDepositEnabled = this.safeBool(rawNetwork, "depositEnable");
+                if (isTrue(networkDepositEnabled))
+                {
+                    depositEnabled = true;
+                }
+                object networkWithdrawEnabled = this.safeBool(rawNetwork, "withdrawEnable");
+                if (isTrue(networkDepositEnabled))
+                {
+                    withdrawEnabled = true;
+                }
                 object limits = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", this.safeNumber(rawNetwork, "withdrawMin") },
@@ -604,21 +611,22 @@ public partial class bingx : Exchange
                 if (isTrue(isDefault))
                 {
                     fee = this.safeNumber(rawNetwork, "withdrawFee");
-                    active = isTrue(depositEnabled) || isTrue(withdrawEnabled);
                     defaultLimits = limits;
                 }
+                object networkActive = isTrue(networkDepositEnabled) || isTrue(networkWithdrawEnabled);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
                     { "id", network },
                     { "network", networkCode },
                     { "fee", fee },
-                    { "active", active },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
+                    { "active", networkActive },
+                    { "deposit", networkDepositEnabled },
+                    { "withdraw", networkWithdrawEnabled },
                     { "precision", null },
                     { "limits", limits },
                 };
             }
+            object active = isTrue(depositEnabled) || isTrue(withdrawEnabled);
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "info", entry },
                 { "code", code },

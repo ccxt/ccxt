@@ -590,7 +590,6 @@ class bingx(Exchange, ImplicitAPI):
             networkList = self.safe_list(entry, 'networkList')
             networks: dict = {}
             fee = None
-            active = None
             depositEnabled = None
             withdrawEnabled = None
             defaultLimits: dict = {}
@@ -599,8 +598,12 @@ class bingx(Exchange, ImplicitAPI):
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
                 isDefault = self.safe_bool(rawNetwork, 'isDefault')
-                depositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
-                withdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
+                networkDepositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
+                if networkDepositEnabled:
+                    depositEnabled = True
+                networkWithdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
+                if networkDepositEnabled:
+                    withdrawEnabled = True
                 limits: dict = {
                     'withdraw': {
                         'min': self.safe_number(rawNetwork, 'withdrawMin'),
@@ -609,19 +612,20 @@ class bingx(Exchange, ImplicitAPI):
                 }
                 if isDefault:
                     fee = self.safe_number(rawNetwork, 'withdrawFee')
-                    active = depositEnabled or withdrawEnabled
                     defaultLimits = limits
+                networkActive = networkDepositEnabled or networkWithdrawEnabled
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
                     'network': networkCode,
                     'fee': fee,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': networkActive,
+                    'deposit': networkDepositEnabled,
+                    'withdraw': networkWithdrawEnabled,
                     'precision': None,
                     'limits': limits,
                 }
+            active = depositEnabled or withdrawEnabled
             result[code] = {
                 'info': entry,
                 'code': code,

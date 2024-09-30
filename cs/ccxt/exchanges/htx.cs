@@ -169,7 +169,7 @@ public partial class htx : Exchange
                 } },
                 { "www", "https://www.huobi.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223" },
+                    { "url", "https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223" },
                     { "discount", 0.15 },
                 } },
                 { "doc", new List<object>() {"https://huobiapi.github.io/docs/spot/v1/en/", "https://huobiapi.github.io/docs/dm/v1/en/", "https://huobiapi.github.io/docs/coin_margined_swap/v1/en/", "https://huobiapi.github.io/docs/usdt_swap/v1/en/", "https://www.huobi.com/en-us/opend/newApiPages/"} },

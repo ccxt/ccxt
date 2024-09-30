@@ -581,7 +581,6 @@ class bingx extends bingx$1 {
             const networkList = this.safeList(entry, 'networkList');
             const networks = {};
             let fee = undefined;
-            let active = undefined;
             let depositEnabled = undefined;
             let withdrawEnabled = undefined;
             let defaultLimits = {};
@@ -590,8 +589,14 @@ class bingx extends bingx$1 {
                 const network = this.safeString(rawNetwork, 'network');
                 const networkCode = this.networkIdToCode(network);
                 const isDefault = this.safeBool(rawNetwork, 'isDefault');
-                depositEnabled = this.safeBool(rawNetwork, 'depositEnable');
-                withdrawEnabled = this.safeBool(rawNetwork, 'withdrawEnable');
+                const networkDepositEnabled = this.safeBool(rawNetwork, 'depositEnable');
+                if (networkDepositEnabled) {
+                    depositEnabled = true;
+                }
+                const networkWithdrawEnabled = this.safeBool(rawNetwork, 'withdrawEnable');
+                if (networkDepositEnabled) {
+                    withdrawEnabled = true;
+                }
                 const limits = {
                     'withdraw': {
                         'min': this.safeNumber(rawNetwork, 'withdrawMin'),
@@ -600,21 +605,22 @@ class bingx extends bingx$1 {
                 };
                 if (isDefault) {
                     fee = this.safeNumber(rawNetwork, 'withdrawFee');
-                    active = depositEnabled || withdrawEnabled;
                     defaultLimits = limits;
                 }
+                const networkActive = networkDepositEnabled || networkWithdrawEnabled;
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
                     'network': networkCode,
                     'fee': fee,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': networkActive,
+                    'deposit': networkDepositEnabled,
+                    'withdraw': networkWithdrawEnabled,
                     'precision': undefined,
                     'limits': limits,
                 };
             }
+            const active = depositEnabled || withdrawEnabled;
             result[code] = {
                 'info': entry,
                 'code': code,

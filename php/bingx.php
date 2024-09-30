@@ -576,7 +576,6 @@ class bingx extends Exchange {
             $networkList = $this->safe_list($entry, 'networkList');
             $networks = array();
             $fee = null;
-            $active = null;
             $depositEnabled = null;
             $withdrawEnabled = null;
             $defaultLimits = array();
@@ -585,8 +584,14 @@ class bingx extends Exchange {
                 $network = $this->safe_string($rawNetwork, 'network');
                 $networkCode = $this->network_id_to_code($network);
                 $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
-                $depositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
-                $withdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
+                $networkDepositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
+                if ($networkDepositEnabled) {
+                    $depositEnabled = true;
+                }
+                $networkWithdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
+                if ($networkDepositEnabled) {
+                    $withdrawEnabled = true;
+                }
                 $limits = array(
                     'withdraw' => array(
                         'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
@@ -595,21 +600,22 @@ class bingx extends Exchange {
                 );
                 if ($isDefault) {
                     $fee = $this->safe_number($rawNetwork, 'withdrawFee');
-                    $active = $depositEnabled || $withdrawEnabled;
                     $defaultLimits = $limits;
                 }
+                $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
                 $networks[$networkCode] = array(
                     'info' => $rawNetwork,
                     'id' => $network,
                     'network' => $networkCode,
                     'fee' => $fee,
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
+                    'active' => $networkActive,
+                    'deposit' => $networkDepositEnabled,
+                    'withdraw' => $networkWithdrawEnabled,
                     'precision' => null,
                     'limits' => $limits,
                 );
             }
+            $active = $depositEnabled || $withdrawEnabled;
             $result[$code] = array(
                 'info' => $entry,
                 'code' => $code,
