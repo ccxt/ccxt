@@ -291,7 +291,7 @@ func SafeIntegerProduct2(obj interface{}, key1, key2 interface{}, multiplier int
 }
 
 // SafeBool retrieves a boolean value from a nested structure
-func SafeBool(obj interface{}, key interface{}, defaultValue bool) bool {
+func SafeBool(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
 	value := SafeValueN(obj, []interface{}{key}, defaultValue)
 	if value == nil {
 		return defaultValue
