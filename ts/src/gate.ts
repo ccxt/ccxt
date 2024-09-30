@@ -4721,7 +4721,6 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -4741,6 +4740,7 @@ export default class gate extends Exchange {
             request['from'] = this.parseToInt (since / 1000);
         }
         if (until !== undefined) {
+            params = this.omit (params, 'until');
             request['to'] = this.parseToInt (until / 1000);
         }
         if (limit !== undefined) {
@@ -4750,7 +4750,7 @@ export default class gate extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    fetchOrdersByStatusRequest (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    prepareOrdersByStatusRequest (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -4758,9 +4758,11 @@ export default class gate extends Exchange {
         }
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        let type: Str = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const spot = (type === 'spot') || (type === 'margin');
-        const [ request, requestParams ] = spot ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        let request: Dict = {};
+        [ request, params ] = spot ? this.multiOrderSpotPrepareRequest (market, stop, params) : this.prepareRequest (market, type, params);
         if (status === 'closed') {
             status = 'finished';
         }
@@ -4768,10 +4770,17 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined && spot) {
-            request['from'] = this.parseToInt (since / 1000);
+        if (spot) {
+            if (since !== undefined) {
+                request['from'] = this.parseToInt (since / 1000);
+            }
+            const until = this.safeInteger (params, 'until');
+            if (until !== undefined) {
+                params = this.omit (params, 'until');
+                request['to'] = this.parseToInt (until / 1000);
+            }
         }
-        const [ lastId, finalParams ] = this.handleParamString2 (requestParams, 'lastId', 'last_id');
+        const [ lastId, finalParams ] = this.handleParamString2 (params, 'lastId', 'last_id');
         if (lastId !== undefined) {
             request['last_id'] = lastId;
         }
@@ -4790,7 +4799,7 @@ export default class gate extends Exchange {
         const res = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const type = this.safeString (res, 0);
         params['type'] = type;
-        const [ request, requestParams ] = this.fetchOrdersByStatusRequest (status, symbol, since, limit, params);
+        const [ request, requestParams ] = this.prepareOrdersByStatusRequest (status, symbol, since, limit, params);
         const spot = (type === 'spot') || (type === 'margin');
         const openSpotOrders = spot && (status === 'open') && !stop;
         let response = undefined;

@@ -485,6 +485,19 @@
                     "until": 1727511742000
                   }
                 ]
+            },
+            {
+                "description": "spot closed orders with limit since and until",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/orders?account=spot&currency_pair=LTC_USDT&status=finished&limit=1000&from=1727308800&to=1727316000",
+                "input": [
+                  "LTC/USDT",
+                  1727308800000,
+                  1000,
+                  {
+                    "until": 1727316000000
+                  }
+                ]
             }
         ],
         "cancelAllOrders": [
