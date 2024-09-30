@@ -154,15 +154,22 @@ export default class cube extends Exchange {
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const url = 'https://api.cube.exchange/ir/v0/markets';
-        const response = await this.fetch (url);
-        const result = this.safeValue (response, 'result', {});
-        const markets = this.safeValue (result, 'markets', []);
-        const assets = this.safeValue (result, 'assets', []);
-        const feeTables = this.safeValue (result, 'feeTables', []);
-        const assetsById = this.indexBy (assets, 'assetId');
-        const feeTablesById = this.indexBy (feeTables, 'feeTableId');
-        return markets.map ((market) => this.parseMarket (market, { assetsById, feeTablesById }));
+        /**
+         * @method
+         * @name cube#fetchMarkets
+         * @description retrieves data on all markets for cube
+         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.privateGetMarkets (params);
+        const result = this.safeValue(response, 'result', {});
+        const markets = this.safeValue(result, 'markets', []);
+        const assets = this.safeValue(result, 'assets', []);
+        const feeTables = this.safeValue(result, 'feeTables', []);
+        const assetsById = this.indexBy(assets, 'assetId');
+        const feeTablesById = this.indexBy(feeTables, 'feeTableId');
+        return markets.map(market => this.parseMarket(market, { assetsById, feeTablesById }));
     }
 
     parseMarket (market, params = {}): MarketInterface {
