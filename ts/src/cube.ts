@@ -66,7 +66,6 @@ export default class cube extends Exchange {
                 '7d': '7d',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/216908003-fb314cf6-e66e-471c-b91d-1d86e4baaa90.jpg',
                 'api': {
                     'public': 'https://api.cube.exchange/md/v0',
                     'private': 'https://api.cube.exchange/os/v0',
@@ -158,7 +157,6 @@ export default class cube extends Exchange {
          * @method
          * @name cube#fetchMarkets
          * @description retrieves data on all markets for cube
-         * @see https://cubexch.gitbook.io/cube-api/rest-iridium-api
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -169,75 +167,110 @@ export default class cube extends Exchange {
         const feeTables = this.safeValue (result, 'feeTables', []);
         const assetsById = this.indexBy (assets, 'assetId');
         const feeTablesById = this.indexBy (feeTables, 'feeTableId');
-        return markets.map ((market) => this.parseMarket (market, { assetsById, feeTablesById }));
+        //
+        // Response structure:
+        // {
+        //     "result": {
+        //         "markets": [
+        //             {
+        //                 "marketId": "BTC-USD",
+        //                 "symbol": "BTC/USD",
+        //                 "baseAssetId": "BTC",
+        //                 "quoteAssetId": "USD",
+        //                 // ... other market properties
+        //             },
+        //             // ... other markets
+        //         ],
+        //         "assets": [
+        //             {
+        //                 "assetId": "BTC",
+        //                 "symbol": "BTC",
+        //                 // ... other asset properties
+        //             },
+        //             // ... other assets
+        //         ],
+        //         "feeTables": [
+        //             {
+        //                 "feeTableId": "1",
+        //                 // ... fee table properties
+        //             },
+        //             // ... other fee tables
+        //         ]
+        //     }
+        // }
+        //
+        const data = { assetsById, feeTablesById };
+        return this.parseMarkets (markets, data);
     }
 
-    parseMarket (market, params = {}): MarketInterface {
+    parseMarkets (markets: any, params = {}): MarketInterface[] {
         const assetsById = this.safeValue (params, 'assetsById', {});
         const feeTablesById = this.safeValue (params, 'feeTablesById', {});
-        const id = this.safeString (market, 'marketId');
-        const baseAssetId = this.safeString (market, 'baseAssetId');
-        const quoteAssetId = this.safeString (market, 'quoteAssetId');
-        const baseAsset = this.safeValue (assetsById, baseAssetId, {});
-        const quoteAsset = this.safeValue (assetsById, quoteAssetId, {});
-        const base = this.safeCurrencyCode (this.safeString (baseAsset, 'symbol'));
-        const quote = this.safeCurrencyCode (this.safeString (quoteAsset, 'symbol'));
-        const symbol = this.safeString (market, 'symbol', base + '/' + quote);
-        const feeTableId = this.safeString (market, 'feeTableId');
-        const feeTable = this.safeValue (feeTablesById, feeTableId, {});
-        const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
-        const firstTier = this.safeValue (feeTiers, 0, {});
-        return {
-            'id': id,
-            'symbol': symbol,
-            'base': base,
-            'quote': quote,
-            'settle': undefined,
-            'baseId': baseAssetId,
-            'quoteId': quoteAssetId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
-            'margin': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'active': this.safeValue (market, 'status') === 1,
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'taker': this.safeNumber (firstTier, 'takerFeeRatio'),
-            'maker': this.safeNumber (firstTier, 'makerFeeRatio'),
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
-            'precision': {
-                'amount': this.safeNumber (market, 'quantityTickSize'),
-                'price': this.safeNumber (market, 'priceTickSize'),
-            },
-            'limits': {
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
+        return markets.map ((market) => {
+            const baseAsset = assetsById[market.baseAssetId];
+            const quoteAsset = assetsById[market.quoteAssetId];
+            const id = this.safeString (market, 'marketId');
+            const baseAssetId = this.safeString (market, 'baseAssetId');
+            const quoteAssetId = this.safeString (market, 'quoteAssetId');
+            const base = this.safeCurrencyCode (this.safeString (baseAsset, 'symbol'));
+            const quote = this.safeCurrencyCode (this.safeString (quoteAsset, 'symbol'));
+            const symbol = this.safeString (market, 'symbol', base + '/' + quote);
+            const feeTableId = this.safeString (market, 'feeTableId');
+            const feeTable = this.safeValue (feeTablesById, feeTableId, {});
+            const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
+            const firstTier = this.safeValue (feeTiers, 0, {});
+            return {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseAssetId,
+                'quoteId': quoteAssetId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeValue (market, 'status') === 1,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (firstTier, 'takerFeeRatio'),
+                'maker': this.safeNumber (firstTier, 'makerFeeRatio'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'quantityTickSize'),
+                    'price': this.safeNumber (market, 'priceTickSize'),
                 },
-                'amount': {
-                    'min': this.safeNumber (market, 'minOrderQty'),
-                    'max': undefined,
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minOrderQty'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'created': undefined,
-            'info': market,
-        };
+                'created': undefined,
+                'info': market,
+            };
+        });
     }
 
     async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
