@@ -16,11 +16,11 @@ import type { Balances, Transaction, Int, Market, MarketInterface, OHLCV, Order,
  * @augments Exchange
  */
 export default class cube extends Exchange {
-    describe() {
-        return this.deepExtend(super.describe(), {
+    describe () {
+        return this.deepExtend (super.describe (), {
             'id': 'cube',
             'name': 'Cube Exchange',
-            'countries': ['US'],
+            'countries': [ 'US' ],
             'version': 'v0',
             'rateLimit': 1000,
             'pro': false,
@@ -116,8 +116,8 @@ export default class cube extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': this.parseNumber('0.0005'),
-                    'taker': this.parseNumber('0.001'),
+                    'maker': this.parseNumber ('0.0005'),
+                    'taker': this.parseNumber ('0.001'),
                 },
             },
             'requiredCredentials': {
