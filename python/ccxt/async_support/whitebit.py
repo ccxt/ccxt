@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Bool, Currencies, Currency, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2219,10 +2219,10 @@ class whitebit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params={}):
         """
-        fetch the current funding rate
         :see: https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+        fetch the current funding rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2232,13 +2232,13 @@ class whitebit(Exchange, ImplicitAPI):
         response = await self.fetch_funding_rates([symbol], params)
         return self.safe_value(response, symbol)
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
-        fetch the funding rate for multiple markets
         :see: https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+        fetch the funding rate for multiple markets
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2287,11 +2287,11 @@ class whitebit(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        data = self.safe_list(response, 'result', [])
+        data = self.safe_value(response, 'result', [])
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         # {
         #     "ticker_id":"ADA_PERP",
@@ -2330,7 +2330,7 @@ class whitebit(Exchange, ImplicitAPI):
         indexPrice = self.safe_number(contract, 'indexPrice')
         interestRate = self.safe_number(contract, 'interestRate')
         fundingRate = self.safe_number(contract, 'funding_rate')
-        fundingTime = self.safe_integer(contract, 'next_funding_rate_timestamp')
+        nextFundingTime = self.safe_integer(contract, 'next_funding_rate_timestamp')
         return {
             'info': contract,
             'symbol': symbol,
@@ -2340,15 +2340,14 @@ class whitebit(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
             'fundingRate': fundingRate,
-            'fundingTimestamp': fundingTime,
-            'fundingDatetime': self.iso8601(fundingTime),
+            'fundingTimestamp': None,
+            'fundingDatetime': self.iso8601(None),
             'nextFundingRate': None,
-            'nextFundingTimestamp': None,
-            'nextFundingDatetime': None,
+            'nextFundingTimestamp': nextFundingTime,
+            'nextFundingDatetime': self.iso8601(nextFundingTime),
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
         }
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

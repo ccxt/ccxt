@@ -4499,7 +4499,6 @@ export default class bitmart extends Exchange {
             'previousFundingRate': this.safeNumber(contract, 'rate_value'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
         };
     }
     async fetchPosition(symbol, params = {}) {

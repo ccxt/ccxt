@@ -1410,16 +1410,16 @@ class bitget extends Exchange {
                 ),
                 'sandboxMode' => false,
                 'networks' => array(
-                    'TRC20' => 'TRC20',
-                    'ERC20' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
                     'BEP20' => 'BSC',
-                    'ARB' => 'ArbitrumOne',
                     'ZKSYNC' => 'zkSyncEra',
                     'STARKNET' => 'Starknet',
+                    'OPTIMISM' => 'Optimism',
+                    'ARBITRUM' => 'Arbitrum',
                     'APT' => 'APTOS',
-                    'MATIC' => 'Polygon',
+                    'MATIC' => 'POLYGON',
                     'VIC' => 'VICTION',
-                    'AVAXC' => 'C-Chain',
                 ),
                 'networksById' => array(
                 ),
@@ -6572,7 +6572,7 @@ class bitget extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
          * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
@@ -6616,7 +6616,7 @@ class bitget extends Exchange {
         return $this->parse_funding_rate($data[0], $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -6643,7 +6643,6 @@ class bitget extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
         );
     }
 

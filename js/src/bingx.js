@@ -584,6 +584,7 @@ export default class bingx extends Exchange {
             const networkList = this.safeList(entry, 'networkList');
             const networks = {};
             let fee = undefined;
+            let active = undefined;
             let depositEnabled = undefined;
             let withdrawEnabled = undefined;
             let defaultLimits = {};
@@ -592,14 +593,8 @@ export default class bingx extends Exchange {
                 const network = this.safeString(rawNetwork, 'network');
                 const networkCode = this.networkIdToCode(network);
                 const isDefault = this.safeBool(rawNetwork, 'isDefault');
-                const networkDepositEnabled = this.safeBool(rawNetwork, 'depositEnable');
-                if (networkDepositEnabled) {
-                    depositEnabled = true;
-                }
-                const networkWithdrawEnabled = this.safeBool(rawNetwork, 'withdrawEnable');
-                if (networkDepositEnabled) {
-                    withdrawEnabled = true;
-                }
+                depositEnabled = this.safeBool(rawNetwork, 'depositEnable');
+                withdrawEnabled = this.safeBool(rawNetwork, 'withdrawEnable');
                 const limits = {
                     'withdraw': {
                         'min': this.safeNumber(rawNetwork, 'withdrawMin'),
@@ -608,22 +603,21 @@ export default class bingx extends Exchange {
                 };
                 if (isDefault) {
                     fee = this.safeNumber(rawNetwork, 'withdrawFee');
+                    active = depositEnabled || withdrawEnabled;
                     defaultLimits = limits;
                 }
-                const networkActive = networkDepositEnabled || networkWithdrawEnabled;
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
                     'network': networkCode,
                     'fee': fee,
-                    'active': networkActive,
-                    'deposit': networkDepositEnabled,
-                    'withdraw': networkWithdrawEnabled,
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
                     'precision': undefined,
                     'limits': limits,
                 };
             }
-            const active = depositEnabled || withdrawEnabled;
             result[code] = {
                 'info': entry,
                 'code': code,
@@ -1386,19 +1380,27 @@ export default class bingx extends Exchange {
     async fetchFundingRates(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name bingx#fetchFundingRates
-         * @description fetch the current funding rate for multiple symbols
+         * @name bingx#fetchFundingRate
+         * @description fetch the current funding rate
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, 'swap', true);
         const response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(params));
         const data = this.safeList(response, 'data', []);
-        const result = this.parseFundingRates(data);
-        return this.filterByArray(result, 'symbol', symbols);
+        const filteredResponse = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const marketId = this.safeString(item, 'symbol');
+            const market = this.safeMarket(marketId, undefined, undefined, 'swap');
+            if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
+                filteredResponse.push(this.parseFundingRate(item, market));
+            }
+        }
+        return filteredResponse;
     }
     parseFundingRate(contract, market = undefined) {
         //
@@ -1430,7 +1432,6 @@ export default class bingx extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

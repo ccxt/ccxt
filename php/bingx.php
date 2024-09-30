@@ -576,6 +576,7 @@ class bingx extends Exchange {
             $networkList = $this->safe_list($entry, 'networkList');
             $networks = array();
             $fee = null;
+            $active = null;
             $depositEnabled = null;
             $withdrawEnabled = null;
             $defaultLimits = array();
@@ -584,14 +585,8 @@ class bingx extends Exchange {
                 $network = $this->safe_string($rawNetwork, 'network');
                 $networkCode = $this->network_id_to_code($network);
                 $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
-                $networkDepositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
-                if ($networkDepositEnabled) {
-                    $depositEnabled = true;
-                }
-                $networkWithdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
-                if ($networkDepositEnabled) {
-                    $withdrawEnabled = true;
-                }
+                $depositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
+                $withdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
                 $limits = array(
                     'withdraw' => array(
                         'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
@@ -600,22 +595,21 @@ class bingx extends Exchange {
                 );
                 if ($isDefault) {
                     $fee = $this->safe_number($rawNetwork, 'withdrawFee');
+                    $active = $depositEnabled || $withdrawEnabled;
                     $defaultLimits = $limits;
                 }
-                $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
                 $networks[$networkCode] = array(
                     'info' => $rawNetwork,
                     'id' => $network,
                     'network' => $networkCode,
                     'fee' => $fee,
-                    'active' => $networkActive,
-                    'deposit' => $networkDepositEnabled,
-                    'withdraw' => $networkWithdrawEnabled,
+                    'active' => $active,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
                     'precision' => null,
                     'limits' => $limits,
                 );
             }
-            $active = $depositEnabled || $withdrawEnabled;
             $result[$code] = array(
                 'info' => $entry,
                 'code' => $code,
@@ -1329,7 +1323,7 @@ class bingx extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
@@ -1369,23 +1363,31 @@ class bingx extends Exchange {
         return $this->parse_funding_rate($data, $market);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
-         * fetch the current funding rate for multiple $symbols
+         * fetch the current funding rate
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
-         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols, 'swap', true);
         $response = $this->swapV2PublicGetQuotePremiumIndex ($this->extend($params));
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_funding_rates($data);
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        $filteredResponse = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $item = $data[$i];
+            $marketId = $this->safe_string($item, 'symbol');
+            $market = $this->safe_market($marketId, null, null, 'swap');
+            if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
+                $filteredResponse[] = $this->parse_funding_rate($item, $market);
+            }
+        }
+        return $filteredResponse;
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1415,7 +1417,6 @@ class bingx extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
         );
     }
 

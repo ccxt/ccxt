@@ -3140,7 +3140,6 @@ export default class deribit extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': '8h',
         };
     }
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {

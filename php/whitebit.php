@@ -2321,10 +2321,10 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
-         * fetch the current funding rate
          * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+         * fetch the current funding rate
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -2335,13 +2335,13 @@ class whitebit extends Exchange {
         return $this->safe_value($response, $symbol);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         /**
-         * fetch the funding rate for multiple markets
          * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+         * fetch the funding rate for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2390,12 +2390,12 @@ class whitebit extends Exchange {
         //        }
         //    )
         //
-        $data = $this->safe_list($response, 'result', array());
+        $data = $this->safe_value($response, 'result', array());
         $result = $this->parse_funding_rates($data);
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         // {
         //     "ticker_id":"ADA_PERP",
@@ -2434,7 +2434,7 @@ class whitebit extends Exchange {
         $indexPrice = $this->safe_number($contract, 'indexPrice');
         $interestRate = $this->safe_number($contract, 'interestRate');
         $fundingRate = $this->safe_number($contract, 'funding_rate');
-        $fundingTime = $this->safe_integer($contract, 'next_funding_rate_timestamp');
+        $nextFundingTime = $this->safe_integer($contract, 'next_funding_rate_timestamp');
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -2444,15 +2444,14 @@ class whitebit extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'fundingRate' => $fundingRate,
-            'fundingTimestamp' => $fundingTime,
-            'fundingDatetime' => $this->iso8601($fundingTime),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => $this->iso8601(null),
             'nextFundingRate' => null,
-            'nextFundingTimestamp' => null,
-            'nextFundingDatetime' => null,
+            'nextFundingTimestamp' => $nextFundingTime,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTime),
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
         );
     }
 

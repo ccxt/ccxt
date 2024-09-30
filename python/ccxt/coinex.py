@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -4253,7 +4253,7 @@ class coinex(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
         :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
@@ -4291,7 +4291,7 @@ class coinex(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(first, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         # fetchFundingRate, fetchFundingRates
         #
@@ -4308,9 +4308,6 @@ class coinex(Exchange, ImplicitAPI):
         #
         currentFundingTimestamp = self.safe_integer(contract, 'latest_funding_time')
         futureFundingTimestamp = self.safe_integer(contract, 'next_funding_time')
-        fundingTimeString = self.safe_string(contract, 'latest_funding_time')
-        nextFundingTimeString = self.safe_string(contract, 'next_funding_time')
-        millisecondsInterval = Precise.string_sub(nextFundingTimeString, fundingTimeString)
         marketId = self.safe_string(contract, 'market')
         return {
             'info': contract,
@@ -4330,22 +4327,11 @@ class coinex(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval):
-        intervals: dict = {
-            '3600000': '1h',
-            '14400000': '4h',
-            '28800000': '8h',
-            '57600000': '16h',
-            '86400000': '24h',
-        }
-        return self.safe_string(intervals, interval, interval)
-
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
-        fetch the current funding rates for multiple markets
+        fetch the current funding rates
         :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint

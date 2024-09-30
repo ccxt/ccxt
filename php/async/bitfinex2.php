@@ -70,7 +70,7 @@ class bitfinex2 extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => 'emulated', // emulated in exchange
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -3035,14 +3035,27 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rates(array( $symbol ), $params));
+        }) ();
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetch the current funding rate for multiple $symbols
+             * fetch the current funding rate
              * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
              * @param {string[]} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRates() requires a $symbols argument');
@@ -3166,7 +3179,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //       array(
         //          "tBTCF0:USTF0",
@@ -3216,7 +3229,6 @@ class bitfinex2 extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
         );
     }
 

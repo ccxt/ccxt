@@ -1245,7 +1245,6 @@ export default class vertex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
         };
     }
     async fetchFundingRate(symbol, params = {}) {
@@ -1283,7 +1282,7 @@ export default class vertex extends Exchange {
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
          * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const request = {};

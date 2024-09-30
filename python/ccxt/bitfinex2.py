@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -82,7 +82,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                 'fetchDepositAddress': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
-                'fetchFundingRate': 'emulated',  # emulated in exchange
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
@@ -2829,13 +2829,23 @@ class bitfinex2(Exchange, ImplicitAPI):
             ledgerObjects.append({'result': item})
         return self.parse_ledger(ledgerObjects, currency, since, limit)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    def fetch_funding_rate(self, symbol: str, params={}):
         """
-        fetch the current funding rate for multiple symbols
+        fetch the current funding rate
+        :see: https://docs.bitfinex.com/reference/rest-public-derivatives-status
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rates([symbol], params)
+
+    def fetch_funding_rates(self, symbols: Strings = None, params={}):
+        """
+        fetch the current funding rate
         :see: https://docs.bitfinex.com/reference/rest-public-derivatives-status
         :param str[] symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRates() requires a symbols argument')
@@ -2948,7 +2958,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             reversedArray.append(valueAtIndex)
         return reversedArray
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         #       [
         #          "tBTCF0:USTF0",
@@ -2998,7 +3008,6 @@ class bitfinex2(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
         }
 
     def parse_funding_rate_history(self, contract, market: Market = None):

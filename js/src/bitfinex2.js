@@ -66,7 +66,7 @@ export default class bitfinex2 extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -3008,15 +3008,27 @@ export default class bitfinex2 extends Exchange {
         }
         return this.parseLedger(ledgerObjects, currency, since, limit);
     }
+    async fetchFundingRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRates([symbol], params);
+    }
     async fetchFundingRates(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name bitfinex2#fetchFundingRates
-         * @description fetch the current funding rate for multiple symbols
+         * @name bitfinex2#fetchFundingRate
+         * @description fetch the current funding rate
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
          * @param {string[]} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         if (symbols === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRates() requires a symbols argument');
@@ -3187,7 +3199,6 @@ export default class bitfinex2 extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
         };
     }
     parseFundingRateHistory(contract, market = undefined) {

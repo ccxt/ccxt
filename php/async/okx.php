@@ -6007,7 +6007,7 @@ class okx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //    {
         //        "fundingRate" => "0.00027815",
@@ -6041,9 +6041,6 @@ class okx extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $nextFundingRate = $this->safe_number($contract, 'nextFundingRate');
         $fundingTime = $this->safe_integer($contract, 'fundingTime');
-        $fundingTimeString = $this->safe_string($contract, 'fundingTime');
-        $nextFundingTimeString = $this->safe_string($contract, 'nextFundingRate');
-        $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return array(
@@ -6064,22 +6061,10 @@ class okx extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => $this->parse_funding_interval($millisecondsInterval),
         );
     }
 
-    public function parse_funding_interval($interval) {
-        $intervals = array(
-            '3600000' => '1h',
-            '14400000' => '4h',
-            '28800000' => '8h',
-            '57600000' => '16h',
-            '86400000' => '24h',
-        );
-        return $this->safe_string($intervals, $interval, $interval);
-    }
-
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate

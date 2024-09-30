@@ -2370,8 +2370,8 @@ class whitebit extends whitebit$1 {
         /**
          * @method
          * @name whitebit#fetchFundingRate
-         * @description fetch the current funding rate
          * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+         * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2385,11 +2385,11 @@ class whitebit extends whitebit$1 {
         /**
          * @method
          * @name whitebit#fetchFundingRates
-         * @description fetch the funding rate for multiple markets
          * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+         * @description fetch the funding rate for multiple markets
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2438,7 +2438,7 @@ class whitebit extends whitebit$1 {
         //        }
         //    ]
         //
-        const data = this.safeList(response, 'result', []);
+        const data = this.safeValue(response, 'result', []);
         const result = this.parseFundingRates(data);
         return this.filterByArray(result, 'symbol', symbols);
     }
@@ -2481,7 +2481,7 @@ class whitebit extends whitebit$1 {
         const indexPrice = this.safeNumber(contract, 'indexPrice');
         const interestRate = this.safeNumber(contract, 'interestRate');
         const fundingRate = this.safeNumber(contract, 'funding_rate');
-        const fundingTime = this.safeInteger(contract, 'next_funding_rate_timestamp');
+        const nextFundingTime = this.safeInteger(contract, 'next_funding_rate_timestamp');
         return {
             'info': contract,
             'symbol': symbol,
@@ -2491,15 +2491,14 @@ class whitebit extends whitebit$1 {
             'timestamp': undefined,
             'datetime': undefined,
             'fundingRate': fundingRate,
-            'fundingTimestamp': fundingTime,
-            'fundingDatetime': this.iso8601(fundingTime),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': this.iso8601(undefined),
             'nextFundingRate': undefined,
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
+            'nextFundingTimestamp': nextFundingTime,
+            'nextFundingDatetime': this.iso8601(nextFundingTime),
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
         };
     }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {

@@ -14,7 +14,7 @@ public partial class deribit : ccxt.deribit
                 { "ws", true },
                 { "watchBalance", true },
                 { "watchTicker", true },
-                { "watchTickers", true },
+                { "watchTickers", false },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "watchMyTrades", true },
@@ -194,54 +194,6 @@ public partial class deribit : ccxt.deribit
         };
         object request = this.deepExtend(message, parameters);
         return await this.watch(url, channel, request, channel, request);
-    }
-
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name deribit#watchTickers
-        * @see https://docs.deribit.com/#ticker-instrument_name-interval
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, false);
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object interval = this.safeString(parameters, "interval", "100ms");
-        parameters = this.omit(parameters, "interval");
-        await this.loadMarkets();
-        if (isTrue(isEqual(interval, "raw")))
-        {
-            await this.authenticate();
-        }
-        object channels = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-        {
-            object market = this.market(getValue(symbols, i));
-            ((IList<object>)channels).Add(add(add(add("ticker.", getValue(market, "id")), "."), interval));
-        }
-        object message = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "public/subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channels", channels },
-            } },
-            { "id", this.requestId() },
-        };
-        object request = this.deepExtend(message, parameters);
-        object newTickers = await this.watchMultiple(url, channels, request, channels, request);
-        if (isTrue(this.newUpdates))
-        {
-            object tickers = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
-            return tickers;
-        }
-        return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)

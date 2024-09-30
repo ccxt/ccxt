@@ -4201,7 +4201,7 @@ class xt extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
          * @see https://doc.xt.com/#futures_quotesgetFundingRate
@@ -4242,7 +4242,7 @@ class xt extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function parse_funding_rate($contract, $market = null): array {
+    public function parse_funding_rate($contract, $market = null) {
         //
         //     {
         //         "symbol" => "btc_usdt",
@@ -4254,7 +4254,6 @@ class xt extends Exchange {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_', 'swap');
         $timestamp = $this->safe_integer($contract, 'nextCollectionTime');
-        $interval = $this->safe_string($contract, 'collectionInternal');
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -4273,7 +4272,6 @@ class xt extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => $interval . 'h',
         );
     }
 

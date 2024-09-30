@@ -4666,7 +4666,6 @@ public partial class bitmart : Exchange
             { "previousFundingRate", this.safeNumber(contract, "rate_value") },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
         };
     }
 

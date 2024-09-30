@@ -2204,18 +2204,7 @@ export default class kucoinfutures extends kucoin {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': this.parseFundingInterval(this.safeString(data, 'granularity')),
         };
-    }
-    parseFundingInterval(interval) {
-        const intervals = {
-            '3600000': '1h',
-            '14400000': '4h',
-            '28800000': '8h',
-            '57600000': '16h',
-            '86400000': '24h',
-        };
-        return this.safeString(intervals, interval, interval);
     }
     parseBalance(response) {
         const result = {

@@ -1371,16 +1371,16 @@ public partial class bitget : Exchange
                 } },
                 { "sandboxMode", false },
                 { "networks", new Dictionary<string, object>() {
-                    { "TRC20", "TRC20" },
-                    { "ERC20", "ERC20" },
+                    { "TRX", "TRC20" },
+                    { "ETH", "ERC20" },
                     { "BEP20", "BSC" },
-                    { "ARB", "ArbitrumOne" },
                     { "ZKSYNC", "zkSyncEra" },
                     { "STARKNET", "Starknet" },
+                    { "OPTIMISM", "Optimism" },
+                    { "ARBITRUM", "Arbitrum" },
                     { "APT", "APTOS" },
-                    { "MATIC", "Polygon" },
+                    { "MATIC", "POLYGON" },
                     { "VIC", "VICTION" },
-                    { "AVAXC", "C-Chain" },
                 } },
                 { "networksById", new Dictionary<string, object>() {} },
                 { "fetchPositions", new Dictionary<string, object>() {
@@ -7297,7 +7297,6 @@ public partial class bitget : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
         };
     }
 

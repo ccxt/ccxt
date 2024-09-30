@@ -4350,7 +4350,6 @@ export default class xt extends Exchange {
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, '_', 'swap');
         const timestamp = this.safeInteger(contract, 'nextCollectionTime');
-        const interval = this.safeString(contract, 'collectionInternal');
         return {
             'info': contract,
             'symbol': symbol,
@@ -4369,7 +4368,6 @@ export default class xt extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': interval + 'h',
         };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

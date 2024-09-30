@@ -4213,7 +4213,6 @@ class mexc extends mexc$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
         };
     }
     async fetchFundingRate(symbol, params = {}) {

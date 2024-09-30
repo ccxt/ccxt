@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -96,7 +96,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': 'emulated',  # emulated in exchange
+                'fetchFundingRate': True,  # emulated in exchange
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchGreeks': True,
@@ -2345,8 +2345,7 @@ class bybit(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_funding_rate(self, ticker, market: Market = None) -> FundingRate:
-        #
+    def parse_funding_rate(self, ticker, market: Market = None):
         #     {
         #         "symbol": "BTCUSDT",
         #         "bidPrice": "19255",
@@ -2397,16 +2396,15 @@ class bybit(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
         }
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetches funding rates for multiple markets
         :see: https://bybit-exchange.github.io/docs/v5/market/tickers
         :param str[] symbols: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = None
@@ -2462,10 +2460,17 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1663670053454
         #     }
         #
-        data = self.safe_dict(response, 'result', {})
-        tickerList = self.safe_list(data, 'list', [])
-        result = self.parse_funding_rates(tickerList)
-        return self.filter_by_array(result, 'symbol', symbols)
+        tickerList = self.safe_value(response, 'result', [])
+        timestamp = self.safe_integer(response, 'time')
+        tickerList = self.safe_value(tickerList, 'list')
+        fundingRates: dict = {}
+        for i in range(0, len(tickerList)):
+            rawTicker = tickerList[i]
+            rawTicker['timestamp'] = timestamp  # will be removed inside the parser
+            ticker = self.parse_funding_rate(tickerList[i], None)
+            symbol = ticker['symbol']
+            fundingRates[symbol] = ticker
+        return self.filter_by_array(fundingRates, 'symbol', symbols)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -3512,8 +3517,6 @@ class bybit(Exchange, ImplicitAPI):
             # Valid for option only.
             # 'orderIv': '0',  # Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         }
-        hedged = self.safe_bool(params, 'hedged', False)
-        reduceOnly = self.safe_bool(params, 'reduceOnly')
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
         takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
@@ -3663,12 +3666,7 @@ class bybit(Exchange, ImplicitAPI):
                     request['tpslMode'] = 'Partial'
                     request['tpOrderType'] = 'Limit'
                     request['tpLimitPrice'] = self.get_price(symbol, tpLimitPrice)
-        if not market['spot'] and hedged:
-            if reduceOnly:
-                params = self.omit(params, 'reduceOnly')
-                side = 'sell' if (side == 'buy') else 'buy'
-            request['positionIdx'] = 1 if (side == 'buy') else 2
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice'])
         return self.extend(request, params)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
@@ -6344,8 +6342,6 @@ class bybit(Exchange, ImplicitAPI):
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
-        positionIdx = self.safe_string(position, 'positionIdx')
-        hedged = (positionIdx is not None) and (positionIdx != '0')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -6374,7 +6370,6 @@ class bybit(Exchange, ImplicitAPI):
             'percentage': None,
             'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
-            'hedged': hedged,
         })
 
     async def fetch_leverage(self, symbol: str, params={}) -> Leverage:

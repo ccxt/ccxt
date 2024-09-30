@@ -4110,7 +4110,6 @@ public partial class mexc : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
         };
     }
 

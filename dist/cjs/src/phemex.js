@@ -4128,7 +4128,6 @@ class phemex extends phemex$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
         };
     }
     async setMargin(symbol, amount, params = {}) {
