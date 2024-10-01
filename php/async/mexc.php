@@ -3859,6 +3859,7 @@ class mexc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch $trades for
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
@@ -3866,19 +3867,25 @@ class mexc extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
             $request = array(
                 'symbol' => $market['id'],
             );
             $trades = null;
             if ($marketType === 'spot') {
                 if ($since !== null) {
-                    $request['start_time'] = $since;
+                    $request['startTime'] = $since;
                 }
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $trades = Async\await($this->spotPrivateGetMyTrades ($this->extend($request, $query)));
+                $until = $this->safe_integer($params, 'until');
+                if ($until !== null) {
+                    $params = $this->omit($params, 'until');
+                    $request['endTime'] = $until;
+                }
+                $trades = Async\await($this->spotPrivateGetMyTrades ($this->extend($request, $params)));
                 //
                 // spot
                 //
@@ -3911,7 +3918,7 @@ class mexc extends Exchange {
                 if ($limit !== null) {
                     $request['page_size'] = $limit;
                 }
-                $response = Async\await($this->contractPrivateGetOrderListOrderDeals ($this->extend($request, $query)));
+                $response = Async\await($this->contractPrivateGetOrderListOrderDeals ($this->extend($request, $params)));
                 //
                 //     {
                 //         "success" => true,

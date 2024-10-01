@@ -575,6 +575,7 @@ class okx extends okx$1 {
                     // General Class
                     '1': errors.ExchangeError,
                     '2': errors.ExchangeError,
+                    '4088': errors.ManualInteractionNeeded,
                     '50000': errors.BadRequest,
                     '50001': errors.OnMaintenance,
                     '50002': errors.BadRequest,

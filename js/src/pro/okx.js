@@ -1954,7 +1954,7 @@ export default class okx extends okxRest {
         const tradeSymbols = Object.keys(symbols);
         for (let i = 0; i < tradeSymbols.length; i++) {
             const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
-            client.resolve(this.orders, symbolMessageHash);
+            client.resolve(this.myTrades, symbolMessageHash);
         }
     }
     requestId() {

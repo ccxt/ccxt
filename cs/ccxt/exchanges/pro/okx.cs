@@ -2166,7 +2166,7 @@ public partial class okx : ccxt.okx
         for (object i = 0; isLessThan(i, getArrayLength(tradeSymbols)); postFixIncrement(ref i))
         {
             object symbolMessageHash = add(add(messageHash, "::"), getValue(tradeSymbols, i));
-            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, symbolMessageHash});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, symbolMessageHash});
         }
     }
 

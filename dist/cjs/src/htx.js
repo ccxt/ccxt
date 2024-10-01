@@ -1229,7 +1229,8 @@ class htx extends htx$1 {
                 'PNT': 'PENTA',
                 'SBTC': 'SUPERBITCOIN',
                 'SOUL': 'SOULSAVER',
-                'BIFI': 'BITCOINFILE', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
+                'BIFI': 'BITCOINFILE',
+                'FUD': 'FTX Users\' Debt',
             },
         });
     }
@@ -7507,6 +7508,10 @@ class htx extends htx$1 {
          * @method
          * @name htx#setLeverage
          * @description set the level of leverage for a market
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  // Coin-m futures
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
