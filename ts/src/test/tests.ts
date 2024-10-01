@@ -65,11 +65,11 @@ class testMainClass {
     sandbox: boolean = false;
     proxyTestFileName: string = PROXY_TEST_FILE_NAME;
     onlySpecificTests: string[] = [];
-    skippedSettingsForExchange: any = {};
-    skippedMethods: any = {};
-    checkedPublicTests: any = {};
+    skippedSettingsForExchange = {};
+    skippedMethods = {};
+    checkedPublicTests = {};
     testFiles: any = {};
-    publicTests: any = {};
+    publicTests = {};
     newLine: string = NEW_LINE;
     rootDir: string = ROOT_DIR;
     envVars: any = ENV_VARS;
