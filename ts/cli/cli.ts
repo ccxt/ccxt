@@ -2,14 +2,39 @@
 
 import fs from 'fs'
 import path from 'path'
-import ansi from 'ansicolor'
 import asTable from 'as-table'
-import ccxt from '../ccxt.js'
+import ccxt, { pro } from '../ccxt.js'
 import { Agent } from 'https'
 
 const fsPromises = fs.promises;
-ansi.nice
 
+// #################################################################
+// ########### https://www.npmjs.com/package/yoctocolors ###########
+// #################################################################
+const format = (open, close) => {
+	const openCode = `\u001B[${open}m`, closeCode = `\u001B[${close}m`;
+	return input => {
+		const string = input + ''; 
+		let index = string.indexOf(closeCode);
+		if (index === -1) { return openCode + string + closeCode; }
+        return openCode + string.replaceAll(closeCode, openCode) + closeCode;
+	};
+};
+const colorString = {
+    reset:  format(0, 0),
+    bold:  format(1, 22), dim:  format(2, 22), italic:  format(3, 23), underline:  format(4, 24), overline:  format(53, 55), inverse:  format(7, 27), hidden:  format(8, 28), strikethrough:  format(9, 29),
+    black:  format(30, 39), red:  format(31, 39), green:  format(32, 39), yellow:  format(33, 39), blue:  format(34, 39), magenta:  format(35, 39), cyan:  format(36, 39), white:  format(37, 39), gray:  format(90, 39),
+    bgBlack:  format(40, 49), bgRed:  format(41, 49), bgGreen:  format(42, 49), bgYellow:  format(43, 49), bgBlue:  format(44, 49), bgMagenta:  format(45, 49), bgCyan:  format(46, 49), bgWhite:  format(47, 49), bgGray:  format(100, 49),
+    redBright:  format(91, 39), greenBright:  format(92, 39), yellowBright:  format(93, 39), blueBright:  format(94, 39), magentaBright:  format(95, 39), cyanBright:  format(96, 39), whiteBright:  format(97, 39),
+    bgRedBright:  format(101, 49), bgGreenBright:  format(102, 49), bgYellowBright:  format(103, 49), bgBlueBright:  format(104, 49), bgMagentaBright:  format(105, 49), bgCyanBright:  format(106, 49), bgWhiteBright:  format(107, 49)
+};
+for (const key of Object.keys(colorString)) {
+    String.prototype.__defineGetter__(key, function(){
+        return colorString[key](this);
+    });
+}
+// #################################################################
+// #################################################################
 
 
 function log (...args) {
@@ -177,7 +202,7 @@ function createRequestTemplate(exchange, methodName, args, result) {
         'output': exchange.last_request_body ?? undefined
     }
     log('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')')
-    log(('-------------------------------------------' as any).green)
+    log('-------------------------------------------'.green)
     log (JSON.stringify (final, null, 2))
     log(('-------------------------------------------' as any).green)
 }
