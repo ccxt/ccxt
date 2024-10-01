@@ -434,7 +434,10 @@ export default class woo extends wooRest {
         };
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
     handleBidAsk (client: Client, message) {
@@ -456,14 +459,14 @@ export default class woo extends wooRest {
         const topic = this.safeString (message, 'topic');
         const data = this.safeList (message, 'data', []);
         const timestamp = this.safeInteger (message, 'ts');
-        const result = [];
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict (data, i);
             ticker['ts'] = timestamp;
             const parsedTicker = this.parseWsBidAsk (ticker);
             const symbol = parsedTicker['symbol'];
             this.bidsasks[symbol] = parsedTicker;
-            result.push (parsedTicker);
+            result[symbol] = parsedTicker;
         }
         client.resolve (result, topic);
     }
