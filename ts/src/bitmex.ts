@@ -2930,7 +2930,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: Dict, requestHeaders: Dict, requestBody: Dict) {
         if (response === undefined) {
             return undefined;
         }

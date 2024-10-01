@@ -2367,7 +2367,7 @@ export default class coinlist extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: Dict, requestHeaders: Dict, requestBody: Dict) {
         if (response === undefined) {
             // In some cases the exchange returns 202 Accepted for bad orders.
             // The body of that response contains order_id of the order.

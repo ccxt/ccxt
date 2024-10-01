@@ -3217,7 +3217,7 @@ export default class kraken extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: Dict, requestHeaders: Dict, requestBody: Dict) {
         if (code === 520) {
             throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
         }

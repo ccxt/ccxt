@@ -5918,7 +5918,7 @@ export default class bingx extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: Dict, requestHeaders: Dict, requestBody: Dict) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

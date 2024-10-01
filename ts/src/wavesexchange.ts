@@ -2421,7 +2421,7 @@ export default class wavesexchange extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'id');
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: Dict, requestHeaders: Dict, requestBody: Dict) {
         const errorCode = this.safeString (response, 'error');
         const success = this.safeBool (response, 'success', true);
         const Exception = this.safeValue (this.exceptions, errorCode);
