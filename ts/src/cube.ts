@@ -1197,7 +1197,7 @@ export default class cube extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async withdraw (code: string, amount: Num, address: string, tag?: string, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag: string = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
