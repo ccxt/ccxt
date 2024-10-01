@@ -1,8 +1,6 @@
 //  ---------------------------------------------------------------------------
 
-import { hmac } from './static_dependencies/noble-hashes/hmac.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import * as utils from './static_dependencies/noble-hashes/utils.js';
 import Exchange from './abstract/cube.js';
 import { BadRequest, AuthenticationError, InsufficientFunds, ArgumentsRequired, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
