@@ -151,13 +151,6 @@ export default class cube extends Exchange {
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
-        /**
-         * @method
-         * @name cube#fetchMarkets
-         * @description retrieves data on all markets for cube
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.privateGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
         const markets = this.safeValue (result, 'markets', []);
@@ -165,45 +158,21 @@ export default class cube extends Exchange {
         const feeTables = this.safeValue (result, 'feeTables', []);
         const assetsById = this.indexBy (assets, 'assetId');
         const feeTablesById = this.indexBy (feeTables, 'feeTableId');
-        //
-        // Response structure:
-        // {
-        //     "result": {
-        //         "markets": [
-        //             {
-        //                 "marketId": "BTC-USD",
-        //                 "symbol": "BTC/USD",
-        //                 "baseAssetId": "BTC",
-        //                 "quoteAssetId": "USD",
-        //                 // ... other market properties
-        //             },
-        //             // ... other markets
-        //         ],
-        //         "assets": [
-        //             {
-        //                 "assetId": "BTC",
-        //                 "symbol": "BTC",
-        //                 // ... other asset properties
-        //             },
-        //             // ... other assets
-        //         ],
-        //         "feeTables": [
-        //             {
-        //                 "feeTableId": "1",
-        //                 // ... fee table properties
-        //             },
-        //             // ... other fee tables
-        //         ]
-        //     }
-        // }
-        //
-        const data = { assetsById, feeTablesById };
-        return this.parseMarkets (markets, data);
+        return this.parseMarkets (markets, assetsById, feeTablesById);
+    }
+
+    parseMarkets (markets: any[], assetsById = {}, feeTablesById = {}): Market[] {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = this.parseMarket (markets[i], assetsById, feeTablesById);
+            result.push (market);
+        }
+        return result;
     }
 
     parseMarket (market: Dict, assetsById = {}, feeTablesById = {}): Market {
-        const baseAsset = assetsById[market.baseAssetId];
-        const quoteAsset = assetsById[market.quoteAssetId];
+        const baseAsset = this.safeValue (assetsById, market.baseAssetId);
+        const quoteAsset = this.safeValue (assetsById, market.quoteAssetId);
         const id = this.safeString (market, 'marketId');
         const baseAssetId = this.safeString (market, 'baseAssetId');
         const quoteAssetId = this.safeString (market, 'quoteAssetId');
