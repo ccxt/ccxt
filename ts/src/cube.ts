@@ -1219,7 +1219,7 @@ export default class cube extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    handleErrors (statusCode: number, statusText: string, url: string, method: string, responseHeaders: any, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
+    handleErrors (statusCode: number, statusText: string, url: string, method: string, responseHeaders: any, responseBody: string, response: any, requestHeaders: any, requestBody: any): void {
         if (response === undefined) {
             return; // fallback to default error handler
         }
