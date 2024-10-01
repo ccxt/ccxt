@@ -5,7 +5,7 @@ import Exchange from './abstract/cube.js';
 import { BadRequest, AuthenticationError, InsufficientFunds, ArgumentsRequired, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Transaction, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Num, Dict } from './base/types.js';
+import type { Balances, Transaction, Int, int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Num, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -156,26 +156,21 @@ export default class cube extends Exchange {
         const markets = this.safeValue (result, 'markets', []);
         const assets = this.safeValue (result, 'assets', []);
         const feeTables = this.safeValue (result, 'feeTables', []);
-        // Index assets and fee tables by their respective IDs
-        const assetsById = this.indexBy (assets, 'assetId');
-        const feeTablesById = this.indexBy (feeTables, 'feeTableId'); return this.parseMarkets (markets, { assetsById, feeTablesById });
+        // Store assetsById and feeTablesById in this.options
+        this.options['assetsById'] = this.indexBy (assets, 'assetId');
+        this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId');
+        return this.parseMarkets (markets);
     }
 
-    parseMarkets (markets: any, params = {}): Market[] {
-        const assetsById = this.safeValue (params, 'assetsById', {});
-        const feeTablesById = this.safeValue (params, 'feeTablesById', {});
-        const result: Market[] = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = this.parseMarket (markets[i], { assetsById, feeTablesById }); result.push (market);
-        }
-        return result;
-    }
-
-    parseMarket (market: Dict, params = {}): Market {
-        const assetsById = this.safeValue (params, 'assetsById', {});
-        const feeTablesById = this.safeValue (params, 'feeTablesById', {});
+    parseMarket (market: any): any {
+        // Access assetsById and feeTablesById from this.options
+        const assetsById = this.safeValue (this.options, 'assetsById', {});
+        const feeTablesById = this.safeValue (this.options, 'feeTablesById', {});
         const baseAsset = this.safeValue (assetsById, market['baseAssetId']);
         const quoteAsset = this.safeValue (assetsById, market['quoteAssetId']);
+        const id = this.safeString (market, 'marketId');
+        const baseAssetId = this.safeString (market, 'baseAssetId');
+        const quoteAssetId = this.safeString (market, 'quoteAssetId');
         const base = this.safeCurrencyCode (this.safeString (baseAsset, 'symbol'));
         const quote = this.safeCurrencyCode (this.safeString (quoteAsset, 'symbol'));
         const symbol = this.safeString (market, 'symbol', base + '/' + quote);
@@ -184,13 +179,13 @@ export default class cube extends Exchange {
         const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
         const firstTier = this.safeValue (feeTiers, 0, {});
         return {
-            'id': market['id'],
+            'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
             'settle': null,
-            'baseId': market['baseAssetId'],
-            'quoteId': market['quoteAssetId'],
+            'baseId': baseAssetId,
+            'quoteId': quoteAssetId,
             'settleId': null,
             'type': 'spot',
             'spot': true,
@@ -1188,23 +1183,22 @@ export default class cube extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    handleErrors (code: number, reason: string, url: string, method: string, headers: any, body: string, response: any, requestHeaders: any, requestBody: any): void {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
-            return; // default error handler
+            return undefined; // fallback to the default error handler
         }
-        const feedback = this.id + ' ' + body;
+        const feedback = this.id + ' ' + responseBody;
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
         const message = this.safeString (response, 'message');
         if (message !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+        }
+        if (statusCode !== 200) {
             throw new ExchangeError (feedback);
         }
-        if (code !== 200) {
-            throw new ExchangeError (feedback);
-        }
+        return undefined;
     }
 }
