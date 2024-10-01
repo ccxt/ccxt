@@ -441,7 +441,9 @@ export default class kraken extends Exchange {
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
+                'EGeneral:Invalid arguments:price': InvalidOrder,
                 'EOrder:Unknown order': InvalidOrder,
+                'EOrder:Invalid price:Invalid price argument': InvalidOrder,
                 'EOrder:Order minimum not met': InvalidOrder,
                 'EGeneral:Invalid arguments': BadRequest,
                 'ESession:Invalid session': AuthenticationError,
@@ -1867,7 +1869,7 @@ export default class kraken extends Exchange {
         } else if (isTrailingAmountOrder || isTrailingPercentOrder) {
             let trailingPercentString = undefined;
             if (isTrailingPercentOrder) {
-                trailingPercentString = (trailingPercent.endsWith ('%')) ? trailingPercent : (this.numberToString (trailingPercent) + '%');
+                trailingPercentString = (trailingPercent.endsWith ('%')) ? trailingPercent : '+' + (this.numberToString (trailingPercent) + '%');
             }
             const trailingAmountString = '+' + trailingAmount; // must use + for this
             const offset = this.safeString (params, 'offset', '-'); // can use + or - for this
