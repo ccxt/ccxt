@@ -821,8 +821,10 @@ export default class cube extends Exchange {
             message.set (payload);
             message.set (timestampBytes, payload.length);
             const secretBytes = new TextEncoder ().encode (this.secret);
-            const wrappedSha256 = utils.wrapConstructor (() => sha256.create ());
-            const signatureBytes = hmac (wrappedSha256, secretBytes, message);
+            const wrappedSha256 = utils.wrapConstructor(function () {
+                return sha256.create();
+            });
+            const signatureBytes = hmac(wrappedSha256, secretBytes, message);
             const signature = utils.bytesToHex (signatureBytes);
             headers = {
                 'Content-Type': 'application/json',
