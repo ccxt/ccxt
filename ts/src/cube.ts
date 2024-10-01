@@ -821,7 +821,9 @@ export default class cube extends Exchange {
             message.set (payload);
             message.set (timestampBytes, payload.length);
             const secretBytes = new TextEncoder ().encode (this.secret);
-            const wrappedSha256 = utils.wrapConstructor (() => sha256.create ());
+            const wrappedSha256 = utils.wrapConstructor(function () {
+                return sha256.create();
+            });
             const signatureBytes = hmac (wrappedSha256, secretBytes, message);
             const signature = utils.bytesToHex (signatureBytes);
             headers = {
@@ -840,6 +842,7 @@ export default class cube extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
+    
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const subaccountId = this.safeInteger2 (params, 'subaccountId', 'subaccount_id');
