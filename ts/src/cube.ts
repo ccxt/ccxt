@@ -1219,11 +1219,11 @@ export default class cube extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    handleErrors (statusCode: number, statusText: string, url: string, method: string, responseHeaders: any, responseBody: string, response: any, requestHeaders: any, requestBody: any): void {
+    handleErrors (code: number, reason: string, url: string, method: string, headers: any, body: string, response: any, requestHeaders: any, requestBody: any): void {
         if (response === undefined) {
-            return; // fallback to default error handler
+            return; // default error handler
         }
-        const feedback = this.id + ' ' + responseBody;
+        const feedback = this.id + ' ' + body;
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
@@ -1232,8 +1232,9 @@ export default class cube extends Exchange {
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
         }
-        if (statusCode !== 200) {
+        if (code !== 200) {
             throw new ExchangeError (feedback);
         }
     }
