@@ -803,46 +803,43 @@ export default class cube extends Exchange {
     }
 
     async sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        // Construct the base URL
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
+            // Handle public API requests
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
+            // Handle private API requests
             this.checkRequiredCredentials ();
-            const timestamp = this.nonce ().toString ();
-            const payloadStr = 'cube.xyz';
-            const payload = new TextEncoder ().encode (payloadStr);
-            const timestampBytes = new Uint8Array (8);
-            const timestampView = new DataView (timestampBytes.buffer);
-            timestampView.setBigUint64 (0, BigInt (timestamp), true);
-            const message = new Uint8Array (payload.length + timestampBytes.length);
-            message.set (payload);
-            message.set (timestampBytes, payload.length);
-            const secretBytes = new TextEncoder ().encode (this.secret);
-            const wrappedSha256 = utils.wrapConstructor(function () {
-                return sha256.create();
-            });
-            const signatureBytes = hmac (wrappedSha256, secretBytes, message);
-            const signature = utils.bytesToHex (signatureBytes);
+            // Create the timestamp
+            const timestamp = this.milliseconds ().toString ();  // AscendEX uses milliseconds
+            // Prepare the payload and signature
+            const payload = timestamp + '+' + path;  // Create a payload string (adjust this as needed for Cube)
+            const encodedPayload = this.encode (payload);
+            const encodedSecret = this.encode (this.secret);
+            const signature = this.hmac (encodedPayload, encodedSecret, sha256, 'hex');
+            // Construct headers
             headers = {
                 'Content-Type': 'application/json',
                 'X-Cube-Api-Key': this.apiKey,
                 'X-Cube-Api-Timestamp': timestamp,
                 'X-Cube-Api-Signature': signature,
             };
+            // Handle GET or POST requests
             if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
             } else if (method === 'POST') {
-                body = this.json (query);
+                body = this.json (query);  // Convert params to JSON format for POST requests
             }
         }
+        // Return the full request details
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-    
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const subaccountId = this.safeInteger2 (params, 'subaccountId', 'subaccount_id');
