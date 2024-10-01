@@ -1251,3 +1251,30 @@ func Capitalize(s string) string {
 	// Combine the uppercase first letter with the rest of the string
 	return firstLetter + s[1:]
 }
+
+func setDefaults(p interface{}) {
+	// Get the value of the pointer to struct
+	val := reflect.ValueOf(p).Elem()
+	typ := val.Type()
+
+	// Iterate over the fields of the struct using reflection
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i)
+		if value, ok := fieldType.Tag.Lookup("default"); ok {
+			switch field.Kind() {
+			case reflect.String:
+				if field.String() == "" {
+					field.SetString(value)
+				}
+			case reflect.Int:
+				if field.Int() == 0 {
+					if intValue, err := strconv.Atoi(value); err == nil {
+						field.SetInt(int64(intValue))
+					}
+				}
+				// Add other types as necessary
+			}
+		}
+	}
+}
