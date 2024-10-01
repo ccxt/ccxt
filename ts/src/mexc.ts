@@ -3907,7 +3907,7 @@ export default class mexc extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const response = await this.contractPrivateGetOrderListOrderDeals (this.extend (request, query));
+            const response = await this.contractPrivateGetOrderListOrderDeals (this.extend (request, params));
             //
             //     {
             //         "success": true,
