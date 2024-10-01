@@ -4216,13 +4216,35 @@ public partial class bingx : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
-        object network = this.safeString(depositAddress, "network");
+        // the exchange API returns deposit addresses without the leading '0x' prefix
+        // however, the exchange API does require the 0x prefix to withdraw
+        // so we append the prefix before returning the address to the user
+        // that is only if the underlying contract address has the 0x prefix as well
+        object networkCode = this.safeString(depositAddress, "network");
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            if (isTrue(inOp(getValue(currency, "networks"), networkCode)))
+            {
+                object network = getValue(getValue(currency, "networks"), networkCode);
+                object contractAddress = this.safeString(getValue(network, "info"), "contractAddress");
+                if (isTrue(!isEqual(contractAddress, null)))
+                {
+                    if (isTrue(isTrue(isEqual(getValue(contractAddress, 0), "0")) && isTrue(isEqual(getValue(contractAddress, 1), "x"))))
+                    {
+                        if (isTrue(isTrue(!isEqual(getValue(address, 0), "0")) || isTrue(!isEqual(getValue(address, 1), "x"))))
+                        {
+                            address = add("0x", address);
+                        }
+                    }
+                }
+            }
+        }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "currency", code },
             { "address", address },
             { "tag", tag },
-            { "network", network },
+            { "network", networkCode },
             { "info", depositAddress },
         };
     }
