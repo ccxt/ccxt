@@ -536,6 +536,7 @@ public partial class okx : Exchange
                 { "exact", new Dictionary<string, object>() {
                     { "1", typeof(ExchangeError) },
                     { "2", typeof(ExchangeError) },
+                    { "4088", typeof(ManualInteractionNeeded) },
                     { "50000", typeof(BadRequest) },
                     { "50001", typeof(OnMaintenance) },
                     { "50002", typeof(BadRequest) },

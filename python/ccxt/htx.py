@@ -6855,6 +6855,10 @@ class htx(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  # Coin-m futures
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint

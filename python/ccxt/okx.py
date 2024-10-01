@@ -17,6 +17,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import ManualInteractionNeeded
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -599,6 +600,7 @@ class okx(Exchange, ImplicitAPI):
                     # General Class
                     '1': ExchangeError,  # Operation failed
                     '2': ExchangeError,  # Bulk operation partially succeeded
+                    '4088': ManualInteractionNeeded,  # {"code":"4088","data":[],"msg":"You can’t trade or deposit until you’ve verified your identity again. Head to Identity Verification to complete it."}
                     '50000': BadRequest,  # Body can not be empty
                     '50001': OnMaintenance,  # Matching engine upgrading. Please try again later
                     '50002': BadRequest,  # Json data format error

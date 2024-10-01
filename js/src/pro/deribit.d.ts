@@ -9,6 +9,9 @@ export default class deribit extends deribitRest {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
