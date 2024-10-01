@@ -205,7 +205,7 @@
             {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.mexc.com/api/v3/myTrades?symbol=LTCUSDT&start_time=1699457638000&limit=5&timestamp=1699458296346&recvWindow=5000&signature=7dc7d5f1dd4aa27c8b16c58e6aa72b425dad4fe252fdc2e8f89ba505681a4794",
+                "url": "https://api.mexc.com/api/v3/myTrades?symbol=LTCUSDT&startTime=1699457638000&limit=5&timestamp=1699458296346&recvWindow=5000&signature=7dc7d5f1dd4aa27c8b16c58e6aa72b425dad4fe252fdc2e8f89ba505681a4794",
                 "input": [
                     "LTC/USDT",
                     1699457638000,
