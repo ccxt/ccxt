@@ -150,32 +150,32 @@ export default class cube extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    async fetchMarkets (params = {}) {
         const response = await this.privateGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
         const markets = this.safeValue (result, 'markets', []);
         const assets = this.safeValue (result, 'assets', []);
         const feeTables = this.safeValue (result, 'feeTables', []);
+        // Index assets and fee tables by their respective IDs
         const assetsById = this.indexBy (assets, 'assetId');
-        const feeTablesById = this.indexBy (feeTables, 'feeTableId');
-        return this.parseMarkets (markets, assetsById, feeTablesById);
+        const feeTablesById = this.indexBy (feeTables, 'feeTableId'); return this.parseMarkets (markets, { assetsById, feeTablesById });
     }
 
-    parseMarkets (markets: any[], assetsById = {}, feeTablesById = {}): Market[] {
-        const result = [];
+    parseMarkets (markets: any, params = {}): Market[] {
+        const assetsById = this.safeValue (params, 'assetsById', {});
+        const feeTablesById = this.safeValue (params, 'feeTablesById', {});
+        const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = this.parseMarket (markets[i], assetsById, feeTablesById);
-            result.push (market);
+            const market = this.parseMarket (markets[i], { assetsById, feeTablesById }); result.push (market);
         }
         return result;
     }
 
-    parseMarket (market: Dict, assetsById = {}, feeTablesById = {}): Market {
-        const baseAsset = this.safeValue (assetsById, market.baseAssetId);
-        const quoteAsset = this.safeValue (assetsById, market.quoteAssetId);
-        const id = this.safeString (market, 'marketId');
-        const baseAssetId = this.safeString (market, 'baseAssetId');
-        const quoteAssetId = this.safeString (market, 'quoteAssetId');
+    parseMarket (market: Dict, params = {}): Market {
+        const assetsById = this.safeValue (params, 'assetsById', {});
+        const feeTablesById = this.safeValue (params, 'feeTablesById', {});
+        const baseAsset = this.safeValue (assetsById, market['baseAssetId']);
+        const quoteAsset = this.safeValue (assetsById, market['quoteAssetId']);
         const base = this.safeCurrencyCode (this.safeString (baseAsset, 'symbol'));
         const quote = this.safeCurrencyCode (this.safeString (quoteAsset, 'symbol'));
         const symbol = this.safeString (market, 'symbol', base + '/' + quote);
@@ -184,54 +184,54 @@ export default class cube extends Exchange {
         const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
         const firstTier = this.safeValue (feeTiers, 0, {});
         return {
-            'id': id,
+            'id': market['id'],
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
-            'baseId': baseAssetId,
-            'quoteId': quoteAssetId,
-            'settleId': undefined,
+            'settle': null,
+            'baseId': market['baseAssetId'],
+            'quoteId': market['quoteAssetId'],
+            'settleId': null,
             'type': 'spot',
             'spot': true,
             'margin': false,
             'swap': false,
             'future': false,
             'option': false,
-            'active': this.safeValue (market, 'status') === 1,
+            'active': (this.safeValue (market, 'status') === 1),
             'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
+            'linear': null,
+            'inverse': null,
             'taker': this.safeNumber (firstTier, 'takerFeeRatio'),
             'maker': this.safeNumber (firstTier, 'makerFeeRatio'),
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
+            'contractSize': null,
+            'expiry': null,
+            'expiryDatetime': null,
+            'strike': null,
+            'optionType': null,
             'precision': {
                 'amount': this.safeNumber (market, 'quantityTickSize'),
                 'price': this.safeNumber (market, 'priceTickSize'),
             },
             'limits': {
                 'leverage': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': null,
+                    'max': null,
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'minOrderQty'),
-                    'max': undefined,
+                    'max': null,
                 },
                 'price': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': null,
+                    'max': null,
                 },
                 'cost': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': null,
+                    'max': null,
                 },
             },
-            'created': undefined,
+            'created': null,
             'info': market,
         };
     }
