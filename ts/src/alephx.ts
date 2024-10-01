@@ -144,7 +144,6 @@ export default class alephx extends Exchange {
                             'orders': 0,
                             'orders/{id}': 0,
                             'trades': 0,
-
                         },
                         'post': {
                             'orders': 0,

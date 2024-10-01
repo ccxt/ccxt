@@ -47,6 +47,7 @@ const version = '4.4.8';
 //-----------------------------------------------------------------------------
 
 import ace from  './src/ace.js'
+import alephx from  './src/alephx.js'
 import alpaca from  './src/alpaca.js'
 import ascendex from  './src/ascendex.js'
 import bequant from  './src/bequant.js'
@@ -231,6 +232,7 @@ import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
     'ace':                    ace,
+    'alephx':                 alephx,
     'alpaca':                 alpaca,
     'ascendex':               ascendex,
     'bequant':                bequant,
@@ -553,6 +555,7 @@ export {
     CrossBorrowRates,
     LeverageTiers,
     ace,
+    alephx,
     alpaca,
     ascendex,
     bequant,

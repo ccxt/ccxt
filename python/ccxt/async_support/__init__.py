@@ -64,6 +64,7 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 
 
 from ccxt.async_support.ace import ace                                          # noqa: F401
+from ccxt.async_support.alephx import alephx                                    # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
@@ -174,6 +175,7 @@ from ccxt.async_support.zonda import zonda                                      
 
 exchanges = [
     'ace',
+    'alephx',
     'alpaca',
     'ascendex',
     'bequant',
