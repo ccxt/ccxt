@@ -1475,6 +1475,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#createOrder
          * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+         * @see https://docs.kraken.com/api/docs/rest-api/add-order/
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1490,6 +1491,7 @@ export default class kraken extends Exchange {
          * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
          * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
          * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
+         * @param {int} [params.leverage] the leverage level to use
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1757,7 +1759,7 @@ export default class kraken extends Exchange {
             const txid = this.safeList (order, 'txid');
             id = this.safeString (txid, 0);
         }
-        const clientOrderId = this.safeString2 (order, 'userref', 'newuserref');
+        const clientOrderId = this.safeStringN (order, [ 'cl_order_id', 'userref', 'newuserref' ]);
         const rawTrades = this.safeValue (order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
@@ -1808,10 +1810,10 @@ export default class kraken extends Exchange {
     }
 
     orderRequest (method: string, symbol: string, type: string, request: Dict, amount: Num, price: Num = undefined, params = {}) {
-        const clientOrderId = this.safeString2 (params, 'userref', 'clientOrderId');
-        params = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        const clientOrderId = this.safeString2 (params, 'cl_order_id', 'clientOrderId');
+        params = this.omit (params, [ 'cl_order_id', 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
-            request['userref'] = clientOrderId;
+            request['cl_order_id'] = clientOrderId;
         }
         const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');

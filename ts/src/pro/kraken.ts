@@ -1366,7 +1366,7 @@ export default class kraken extends krakenRest {
             const txid = this.safeValue (order, 'txid');
             id = this.safeString (txid, 0);
         }
-        const clientOrderId = this.safeString (order, 'userref');
+        const clientOrderId = this.safeStringN (order, [ 'cl_order_id', 'userref', 'newuserref' ]);
         const rawTrades = this.safeValue (order, 'trades');
         let trades = undefined;
         if (rawTrades !== undefined) {
