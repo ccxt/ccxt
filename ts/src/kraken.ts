@@ -1871,9 +1871,9 @@ export default class kraken extends Exchange {
             if (isTrailingPercentOrder) {
                 trailingPercentString = (trailingPercent.endsWith ('%')) ? trailingPercent : '+' + (this.numberToString (trailingPercent) + '%');
             }
-            const trailingAmountString = '+' + trailingAmount; // must use + for this
+            const trailingAmountString = (trailingAmount !== undefined) ? '+' + trailingAmount : undefined; // must use + for this
             const offset = this.safeString (params, 'offset', '-'); // can use + or - for this
-            const trailingLimitAmountString = offset + this.numberToString (trailingLimitAmount);
+            const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString (trailingLimitAmount) : undefined;
             const trailingActivationPriceType = this.safeString (params, 'trigger', 'last');
             request['trigger'] = trailingActivationPriceType;
             if (isLimitOrder || (trailingLimitAmount !== undefined) || (trailingLimitPercent !== undefined)) {
