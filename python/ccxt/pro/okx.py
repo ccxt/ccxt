@@ -1813,7 +1813,7 @@ class okx(ccxt.async_support.okx):
         tradeSymbols = list(symbols.keys())
         for i in range(0, len(tradeSymbols)):
             symbolMessageHash = messageHash + '::' + tradeSymbols[i]
-            client.resolve(self.orders, symbolMessageHash)
+            client.resolve(self.myTrades, symbolMessageHash)
 
     def request_id(self):
         ts = str(self.milliseconds())

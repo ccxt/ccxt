@@ -4434,18 +4434,35 @@ export default class bingx extends Exchange {
         //         "tag": ''
         //     }
         //
-        const address = this.safeString (depositAddress, 'address');
+        let address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'tag');
         const currencyId = this.safeString (depositAddress, 'coin');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
-        const network = this.safeString (depositAddress, 'network');
+        // the exchange API returns deposit addresses without the leading '0x' prefix
+        // however, the exchange API does require the 0x prefix to withdraw
+        // so we append the prefix before returning the address to the user
+        // that is only if the underlying contract address has the 0x prefix as well
+        const networkCode = this.safeString (depositAddress, 'network');
+        if (networkCode !== undefined) {
+            if (networkCode in currency['networks']) {
+                const network = currency['networks'][networkCode];
+                const contractAddress = this.safeString (network['info'], 'contractAddress');
+                if (contractAddress !== undefined) {
+                    if (contractAddress[0] === '0' && contractAddress[1] === 'x') {
+                        if (address[0] !== '0' || address[1] !== 'x') {
+                            address = '0x' + address;
+                        }
+                    }
+                }
+            }
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         };
     }

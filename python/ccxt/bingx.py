@@ -4183,13 +4183,25 @@ class bingx(Exchange, ImplicitAPI):
         currencyId = self.safe_string(depositAddress, 'coin')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        network = self.safe_string(depositAddress, 'network')
+        # the exchange API returns deposit addresses without the leading '0x' prefix
+        # however, the exchange API does require the 0x prefix to withdraw
+        # so we append the prefix before returning the address to the user
+        # that is only if the underlying contract address has the 0x prefix
+        networkCode = self.safe_string(depositAddress, 'network')
+        if networkCode is not None:
+            if networkCode in currency['networks']:
+                network = currency['networks'][networkCode]
+                contractAddress = self.safe_string(network['info'], 'contractAddress')
+                if contractAddress is not None:
+                    if contractAddress[0] == '0' and contractAddress[1] == 'x':
+                        if address[0] != '0' or address[1] != 'x':
+                            address = '0x' + address
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         }
 

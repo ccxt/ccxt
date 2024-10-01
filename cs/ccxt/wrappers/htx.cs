@@ -1359,6 +1359,10 @@ public partial class htx
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

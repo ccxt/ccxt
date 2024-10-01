@@ -3615,23 +3615,29 @@ class mexc(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        marketType: Str = None
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request: dict = {
             'symbol': market['id'],
         }
         trades = None
         if marketType == 'spot':
             if since is not None:
-                request['start_time'] = since
+                request['startTime'] = since
             if limit is not None:
                 request['limit'] = limit
-            trades = self.spotPrivateGetMyTrades(self.extend(request, query))
+            until = self.safe_integer(params, 'until')
+            if until is not None:
+                params = self.omit(params, 'until')
+                request['endTime'] = until
+            trades = self.spotPrivateGetMyTrades(self.extend(request, params))
             #
             # spot
             #
@@ -3661,7 +3667,7 @@ class mexc(Exchange, ImplicitAPI):
                     request['end_time'] = self.sum(since, self.options['maxTimeTillEnd'])
             if limit is not None:
                 request['page_size'] = limit
-            response = self.contractPrivateGetOrderListOrderDeals(self.extend(request, query))
+            response = self.contractPrivateGetOrderListOrderDeals(self.extend(request, params))
             #
             #     {
             #         "success": True,

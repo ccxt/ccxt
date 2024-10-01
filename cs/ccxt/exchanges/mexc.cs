@@ -3761,6 +3761,7 @@ public partial class mexc : Exchange
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch trades for
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3770,9 +3771,10 @@ public partial class mexc : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -3781,13 +3783,19 @@ public partial class mexc : Exchange
         {
             if (isTrue(!isEqual(since, null)))
             {
-                ((IDictionary<string,object>)request)["start_time"] = since;
+                ((IDictionary<string,object>)request)["startTime"] = since;
             }
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            trades = await this.spotPrivateGetMyTrades(this.extend(request, query));
+            object until = this.safeInteger(parameters, "until");
+            if (isTrue(!isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                ((IDictionary<string,object>)request)["endTime"] = until;
+            }
+            trades = await this.spotPrivateGetMyTrades(this.extend(request, parameters));
         } else
         {
             if (isTrue(!isEqual(since, null)))
@@ -3803,7 +3811,7 @@ public partial class mexc : Exchange
             {
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
-            object response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, query));
+            object response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, parameters));
             //
             //     {
             //         "success": true,

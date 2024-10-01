@@ -2002,7 +2002,7 @@ class okx extends \ccxt\async\okx {
         $tradeSymbols = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($tradeSymbols); $i++) {
             $symbolMessageHash = $messageHash . '::' . $tradeSymbols[$i];
-            $client->resolve ($this->orders, $symbolMessageHash);
+            $client->resolve ($this->myTrades, $symbolMessageHash);
         }
     }
 

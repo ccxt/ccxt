@@ -23,6 +23,7 @@ class deribit(ccxt.async_support.deribit):
                 'watchBalance': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
                 'watchMyTrades': True,
@@ -264,6 +265,79 @@ class deribit(ccxt.async_support.deribit):
         messageHash = self.safe_string(params, 'channel')
         self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://docs.deribit.com/#quote-instrument_name
+        watches best bid & ask for symbols
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        url = self.urls['api']['ws']
+        channels = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            channels.append('quote.' + market['id'])
+        message: dict = {
+            'jsonrpc': '2.0',
+            'method': 'public/subscribe',
+            'params': {
+                'channels': channels,
+            },
+            'id': self.request_id(),
+        }
+        request = self.deep_extend(message, params)
+        newTickers = await self.watch_multiple(url, channels, request, channels, request)
+        if self.newUpdates:
+            tickers: dict = {}
+            tickers[newTickers['symbol']] = newTickers
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "quote.BTC_USDT",
+        #             "data": {
+        #                 "best_bid_amount": 0.026,
+        #                 "best_ask_amount": 0.026,
+        #                 "best_bid_price": 63908,
+        #                 "best_ask_price": 63940,
+        #                 "instrument_name": "BTC_USDT",
+        #                 "timestamp": 1727765131750
+        #             }
+        #         }
+        #     }
+        #
+        params = self.safe_dict(message, 'params', {})
+        data = self.safe_dict(params, 'data', {})
+        ticker = self.parse_ws_bid_ask(data)
+        symbol = ticker['symbol']
+        self.bidsasks[symbol] = ticker
+        messageHash = self.safe_string(params, 'channel')
+        client.resolve(ticker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'instrument_name')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(ticker, 'best_ask_price'),
+            'askVolume': self.safe_string(ticker, 'best_ask_amount'),
+            'bid': self.safe_string(ticker, 'best_bid_price'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_amount'),
+            'info': ticker,
+        }, market)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -862,6 +936,7 @@ class deribit(ccxt.async_support.deribit):
             }
             handlers: dict = {
                 'ticker': self.handle_ticker,
+                'quote': self.handle_bid_ask,
                 'book': self.handle_order_book,
                 'trades': self.handle_trades,
                 'chart': self.handle_ohlcv,
