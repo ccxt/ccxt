@@ -3848,6 +3848,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
@@ -3855,19 +3856,25 @@ export default class mexc extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request: Dict = {
             'symbol': market['id'],
         };
         let trades = undefined;
         if (marketType === 'spot') {
             if (since !== undefined) {
-                request['start_time'] = since;
+                request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            trades = await this.spotPrivateGetMyTrades (this.extend (request, query));
+            const until = this.safeInteger (params, 'until');
+            if (until !== undefined) {
+                params = this.omit (params, 'until');
+                request['endTime'] = until;
+            }
+            trades = await this.spotPrivateGetMyTrades (this.extend (request, params));
             //
             // spot
             //
