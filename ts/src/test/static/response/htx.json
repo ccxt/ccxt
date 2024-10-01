@@ -876,7 +876,7 @@
         ],
         "fetchOpenOrders": [
             {
-                "description": "open orders with clientOrdeId",
+                "description": "spot orders with clientOrderId",
                 "method": "fetchOpenOrders",
                 "input": [
                   "LTC/USDT"
@@ -890,13 +890,13 @@
                       "account-id": "44234548",
                       "amount": "0.210000000000000000",
                       "price": "50.000000000000000000",
-                      "created-at": "1727694217201",
+                      "created-at": "1727777938596",
                       "ice-amount": "0.0",
-                      "client-order-id": "101",
+                      "client-order-id": "104",
                       "filled-amount": "0.0",
                       "filled-cash-amount": "0.0",
                       "filled-fees": "0.0",
-                      "id": "1168150634634374",
+                      "id": "1168162320551949",
                       "state": "submitted",
                       "type": "buy-limit"
                     }
@@ -904,10 +904,26 @@
                 },
                 "parsedResponse": [
                   {
-                    "id": "1168150634634374",
-                    "clientOrderId": "101",
-                    "timestamp": 1727694217201,
-                    "datetime": "2024-09-30T11:03:37.201Z",
+                    "info": {
+                      "symbol": "ltcusdt",
+                      "source": "api",
+                      "account-id": "44234548",
+                      "amount": "0.210000000000000000",
+                      "price": "50.000000000000000000",
+                      "created-at": "1727777938596",
+                      "ice-amount": "0.0",
+                      "client-order-id": "104",
+                      "filled-amount": "0.0",
+                      "filled-cash-amount": "0.0",
+                      "filled-fees": "0.0",
+                      "id": "1168162320551949",
+                      "state": "submitted",
+                      "type": "buy-limit"
+                    },
+                    "id": "1168162320551949",
+                    "clientOrderId": "104",
+                    "timestamp": 1727777938596,
+                    "datetime": "2024-10-01T10:18:58.596Z",
                     "lastTradeTimestamp": null,
                     "symbol": "LTC/USDT",
                     "type": "limit",
@@ -940,7 +956,7 @@
                     "stopLossPrice": null
                   }
                 ]
-            }
+              }
         ]
     }
 }
