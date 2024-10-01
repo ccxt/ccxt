@@ -1224,17 +1224,17 @@ export default class cube extends Exchange {
             return; // fallback to default error handler
         }
         const feedback = this.id + ' ' + responseBody;
-        const errorCode = this.safeString (response, 'code');
+        const errorCode = this.safeString(response, 'code');
         if (errorCode !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         }
-        const message = this.safeString (response, 'message');
+        const message = this.safeString(response, 'message');
         if (message !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
         }
         if (statusCode !== 200) {
-            throw new ExchangeError (feedback);
+            throw new ExchangeError(feedback);
         }
     }
 }
