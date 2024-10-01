@@ -4306,7 +4306,7 @@ export default class htx extends Exchange {
                 await this.loadAccounts ();
                 for (let i = 0; i < this.accounts.length; i++) {
                     const account = this.accounts[i];
-                    if (account['type'] === 'spot') {
+                    if (this.safeString (account, 'type') === 'spot') {
                         accountId = this.safeString (account, 'id');
                         if (accountId !== undefined) {
                             break;
