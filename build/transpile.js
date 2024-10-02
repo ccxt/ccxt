@@ -2301,6 +2301,11 @@ class Transpiler {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
             }
+            // py: json
+            if (pythonAsync.includes ('json.load') || pythonAsync.includes ('json.dump')) {
+                pythonHeaderSync.push ('import json  # noqa E402')
+                pythonHeaderAsync.push ('import json  # noqa E402')
+            }
             if (usesPrecise) {
                 pythonHeaderAsync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
