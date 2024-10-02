@@ -1,10 +1,10 @@
-// @ts-nocheck
+
 // AUTO_TRANSPILE_ENABLED
 
 import assert from 'assert';
 import ccxt, { BadRequest } from '../../../ccxt.js';
 
-function testJson () {
+function testJsonInner () {
 
     const exchange = new ccxt.Exchange ({
         'id': 'regirock',
@@ -33,6 +33,23 @@ function testJson () {
     const serializedString = exchange.json (str);
     assert (serializedString === "\"ccxt, rocks!\"");
 
+}
+
+function testJson () {
+    testJsonInner ();
+}
+
+function testJson2 () {
+    try {
+        testJsonInner ();
+    } catch (exc) {
+        // todo: the reason this tests was commented in `base/test.init.ts` is that as it needs fix of ast-tranpsiler - it adds extra backslashes in PHP double-quoted json which are read as literal chars in PHP
+        const message = exc.toString ();
+        // transpiler trick
+        if (!((message + '').toString ()).includes ('json.php')) {
+            throw exc;
+        }
+    }
 }
 
 export default testJson;

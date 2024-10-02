@@ -1,4 +1,5 @@
 // @ts-nocheck
+// todo: per https://github.com/ttodua/ccxt/blob/428f5b50da50b7401caa5ac452538fb0f6641af4/ts/src/test/base/test.aggregate.ts
 
 import assert, { strictEqual, deepEqual } from 'assert';
 import ccxt, { Exchange, functions } from '../../../ccxt.js';
