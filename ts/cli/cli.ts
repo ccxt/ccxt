@@ -27,7 +27,9 @@ const colorString = () => {
     }
 };
 for (const [key,value] of Object.entries(colorString())) {
+    // @ts-ignore
     String.prototype.__defineGetter__(key, function(){
+        // @ts-ignore
         return value(this);
     });
 }
@@ -200,7 +202,7 @@ function createRequestTemplate(exchange, methodName, args, result) {
         'output': exchange.last_request_body ?? undefined
     }
     log('Report: (paste inside static/request/' + exchange.id + '.json ->' + methodName + ')')
-    log('-------------------------------------------'.green)
+    log(('-------------------------------------------' as any).green)
     log (JSON.stringify (final, null, 2))
     log(('-------------------------------------------' as any).green)
 }
