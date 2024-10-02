@@ -1869,7 +1869,7 @@ export default class kraken extends Exchange {
         } else if (isTrailingAmountOrder || isTrailingPercentOrder) {
             let trailingPercentString = undefined;
             if (trailingPercent !== undefined) {
-                trailingPercentString = (trailingLimitPercent.endsWith ('%')) ? ('+' + trailingPercent) : ('+' + trailingPercent + '%');
+                trailingPercentString = (trailingPercent.endsWith ('%')) ? ('+' + trailingPercent) : ('+' + trailingPercent + '%');
             }
             const trailingAmountString = (trailingAmount !== undefined) ? '+' + trailingAmount : undefined; // must use + for this
             const offset = this.safeString (params, 'offset', '-'); // can use + or - for this
