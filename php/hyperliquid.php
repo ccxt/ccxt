@@ -472,7 +472,7 @@ class hyperliquid extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->parse_number('10'),
                         'max' => null,
                     ),
                 ),
@@ -566,7 +566,7 @@ class hyperliquid extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $this->parse_number('10'),
                     'max' => null,
                 ),
             ),
@@ -2017,6 +2017,7 @@ class hyperliquid extends Exchange {
         //             "crossed" => true,
         //             "dir" => "Close Long",
         //             "fee" => "0.050062",
+        //             "feeToken" => "USDC",
         //             "hash" => "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
         //             "liquidationMarkPx" => null,
         //             "oid" => 3929354691,
@@ -2077,7 +2078,11 @@ class hyperliquid extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
-            'fee' => array( 'cost' => $fee, 'currency' => 'USDC' ),
+            'fee' => array(
+                'cost' => $fee,
+                'currency' => $this->safe_string($trade, 'feeToken'),
+                'rate' => null,
+            ),
         ), $market);
     }
 

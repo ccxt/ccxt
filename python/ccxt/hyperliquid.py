@@ -476,7 +476,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.parse_number('10'),
                         'max': None,
                     },
                 },
@@ -566,7 +566,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'cost': {
-                    'min': None,
+                    'min': self.parse_number('10'),
                     'max': None,
                 },
             },
@@ -1926,6 +1926,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #             "crossed": True,
         #             "dir": "Close Long",
         #             "fee": "0.050062",
+        #             "feeToken": "USDC",
         #             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
         #             "liquidationMarkPx": null,
         #             "oid": 3929354691,
@@ -1984,7 +1985,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             'price': price,
             'amount': amount,
             'cost': None,
-            'fee': {'cost': fee, 'currency': 'USDC'},
+            'fee': {
+                'cost': fee,
+                'currency': self.safe_string(trade, 'feeToken'),
+                'rate': None,
+            },
         }, market)
 
     def fetch_position(self, symbol: str, params={}):

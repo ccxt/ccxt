@@ -701,6 +701,8 @@ interface Exchange {
     papiPostRepayFuturesNegativeBalance(params?: {}): Promise<implicitReturnType>;
     papiPostListenKey(params?: {}): Promise<implicitReturnType>;
     papiPostAssetCollection(params?: {}): Promise<implicitReturnType>;
+    papiPostMarginRepayDebt(params?: {}): Promise<implicitReturnType>;
+    papiPostUmFeeBurn(params?: {}): Promise<implicitReturnType>;
     papiPutListenKey(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmConditionalOrder(params?: {}): Promise<implicitReturnType>;

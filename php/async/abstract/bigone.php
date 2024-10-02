@@ -127,8 +127,8 @@ abstract class bigone extends \ccxt\async\Exchange {
     public function contractprivate_delete_orders_batch($params = array()) {
         return $this->request('orders/batch', 'contractPrivate', 'DELETE', $params, null, null, array());
     }
-    public function webexchange_get_uc_v2_assets($params = array()) {
-        return $this->request('uc/v2/assets', 'webExchange', 'GET', $params, null, null, array());
+    public function webexchange_get_v3_assets($params = array()) {
+        return $this->request('v3/assets', 'webExchange', 'GET', $params, null, null, array());
     }
     public function publicGetPing($params = array()) {
         return $this->request('ping', 'public', 'GET', $params, null, null, array());
@@ -250,7 +250,7 @@ abstract class bigone extends \ccxt\async\Exchange {
     public function contractPrivateDeleteOrdersBatch($params = array()) {
         return $this->request('orders/batch', 'contractPrivate', 'DELETE', $params, null, null, array());
     }
-    public function webExchangeGetUcV2Assets($params = array()) {
-        return $this->request('uc/v2/assets', 'webExchange', 'GET', $params, null, null, array());
+    public function webExchangeGetV3Assets($params = array()) {
+        return $this->request('v3/assets', 'webExchange', 'GET', $params, null, null, array());
     }
 }

@@ -1658,7 +1658,18 @@ export default class poloniexfutures extends Exchange {
             'previousFundingRate': this.safeNumber(data, 'value'),
             'previousFundingTimestamp': fundingTimestamp,
             'previousFundingDatetime': this.iso8601(fundingTimestamp),
+            'interval': this.parseFundingInterval(this.safeString(data, 'interval')),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

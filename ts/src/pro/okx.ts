@@ -1990,8 +1990,15 @@ export default class okx extends okxRest {
         const tradeSymbols = Object.keys (symbols);
         for (let i = 0; i < tradeSymbols.length; i++) {
             const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
-            client.resolve (this.orders, symbolMessageHash);
+            client.resolve (this.myTrades, symbolMessageHash);
         }
+    }
+
+    requestId () {
+        const ts = this.milliseconds ().toString ();
+        const randomNumber = this.randNumber (4);
+        const randomPart = randomNumber.toString ();
+        return ts + randomPart;
     }
 
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -2012,7 +2019,7 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.milliseconds ().toString ();
+        const messageHash = this.requestId ();
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest (symbol, type, side, amount, price, params);
@@ -2084,7 +2091,7 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.milliseconds ().toString ();
+        const messageHash = this.requestId ();
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest (id, symbol, type, side, amount, price, params);
@@ -2114,7 +2121,7 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.milliseconds ().toString ();
+        const messageHash = this.requestId ();
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
         const arg: Dict = {
@@ -2154,7 +2161,7 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.milliseconds ().toString ();
+        const messageHash = this.requestId ();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
             const arg: Dict = {
@@ -2191,7 +2198,7 @@ export default class okx extends okxRest {
             throw new BadRequest (this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.milliseconds ().toString ();
+        const messageHash = this.requestId ();
         const request: Dict = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -2255,14 +2262,29 @@ export default class okx extends okxRest {
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
-        const errorCode = this.safeString (message, 'code');
+        let errorCode = this.safeString (message, 'code');
         try {
             if (errorCode && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-                const messageString = this.safeValue (message, 'msg');
+                if (errorCode !== '1') {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                }
+                let messageString = this.safeValue (message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+                } else {
+                    const data = this.safeList (message, 'data', []);
+                    for (let i = 0; i < data.length; i++) {
+                        const d = data[i];
+                        errorCode = this.safeString (d, 'sCode');
+                        if (errorCode !== undefined) {
+                            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                        }
+                        messageString = this.safeValue (message, 'sMsg');
+                        if (messageString !== undefined) {
+                            this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+                        }
+                    }
                 }
                 throw new ExchangeError (feedback);
             }

@@ -281,6 +281,7 @@ export interface FundingRate {
     indexPrice?: number;
     info: any;
     interestRate?: number;
+    interval?: string;
     markPrice?: number;
     nextFundingDatetime?: string;
     nextFundingRate?: number;

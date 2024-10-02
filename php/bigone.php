@@ -154,7 +154,7 @@ class bigone extends Exchange {
                 ),
                 'webExchange' => array(
                     'get' => array(
-                        'uc/v2/assets',
+                        'v3/assets',
                     ),
                 ),
             ),
@@ -334,7 +334,7 @@ class bigone extends Exchange {
          * @return {dict} an associative dictionary of currencies
          */
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
-        $data = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetUcV2Assets', true);
+        $data = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if ($data === null) {
             return null;
         }
@@ -343,92 +343,41 @@ class bigone extends Exchange {
         //     "code" => "0",
         //     "message" => "",
         //     "data" => array(
-        //       array(
-        //         "name" => "TetherUS",
-        //         "symbol" => "USDT",
-        //         "contract_address" => "31",
-        //         "is_deposit_enabled" => true,
-        //         "is_withdrawal_enabled" => true,
-        //         "is_stub" => false,
-        //         "withdrawal_fee" => "5.0",
-        //         "is_fiat" => false,
-        //         "is_memo_required" => false,
-        //         "logo" => array(
-        //           "default" => "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-        //           "white" => "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        //       {
+        //             "uuid" => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        //             "symbol" => "USDT",
+        //             "name" => "TetherUS",
+        //             "scale" => 12,
+        //             "is_fiat" => false,
+        //             "is_transfer_enabled" => true,
+        //             "transfer_scale" => 12,
+        //             "binding_gateways" => array(
+        //                 array(
+        //                     "guid" => "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        //                     "is_deposit_enabled" => true,
+        //                     "gateway_name" => "Ethereum",
+        //                     "min_withdrawal_amount" => "0.000001",
+        //                     "withdrawal_fee" => "5.71",
+        //                     "is_withdrawal_enabled" => true,
+        //                     "min_deposit_amount" => "0.000001",
+        //                     "is_memo_required" => false,
+        //                     "withdrawal_scale" => 6,
+        //                     "scale" => 12
+        //                 ),
+        //                 array(
+        //                     "guid" => "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+        //                     "is_deposit_enabled" => true,
+        //                     "gateway_name" => "BinanceSmartChain",
+        //                     "min_withdrawal_amount" => "10",
+        //                     "withdrawal_fee" => "5",
+        //                     "is_withdrawal_enabled" => false,
+        //                     "min_deposit_amount" => "1",
+        //                     "is_memo_required" => false,
+        //                     "withdrawal_scale" => 8,
+        //                     "scale" => 12
+        //                 }
+        //             )
         //         ),
-        //         "info_link" => null,
-        //         "scale" => "12",
-        //         "default_gateway" => ..., // one object from "gateways"
-        //         "gateways" => array(
-        //           array(
-        //             "uuid" => "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-        //             "name" => "Mixin",
-        //             "kind" => "CHAIN",
-        //             "required_confirmations" => "0",
-        //           ),
-        //           array(
-        //             "uuid" => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //             "name" => "Ethereum",
-        //             "kind" => "CHAIN",
-        //             "required_confirmations" => "18",
-        //           ),
-        //           array(
-        //             "uuid" => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //             "name" => "Tron",
-        //             "kind" => "CHAIN",
-        //             "required_confirmations" => "1",
-        //           ),
-        //          ...
-        //         ),
-        //         "payments" => array(),
-        //         "uuid" => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-        //         "binding_gateways" => array(
-        //           array(
-        //             "guid" => "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-        //             "contract_address" => "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        //             "is_deposit_enabled" => true,
-        //             "display_name" => "Ethereum(ERC20)",
-        //             "gateway_name" => "Ethereum",
-        //             "min_withdrawal_amount" => "0.000001",
-        //             "min_internal_withdrawal_amount" => "0.00000001",
-        //             "withdrawal_fee" => "14",
-        //             "is_withdrawal_enabled" => true,
-        //             "min_deposit_amount" => "0.000001",
-        //             "is_memo_required" => false,
-        //             "withdrawal_scale" => "2",
-        //             "gateway" => array(
-        //               "uuid" => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //               "name" => "Ethereum",
-        //               "kind" => "CHAIN",
-        //               "required_confirmations" => "18",
-        //             ),
-        //             "scale" => "12",
-        //          ),
-        //          array(
-        //             "guid" => "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-        //             "contract_address" => "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-        //             "is_deposit_enabled" => true,
-        //             "display_name" => "Tron(TRC20)",
-        //             "gateway_name" => "Tron",
-        //             "min_withdrawal_amount" => "0.000001",
-        //             "min_internal_withdrawal_amount" => "0.00000001",
-        //             "withdrawal_fee" => "1",
-        //             "is_withdrawal_enabled" => true,
-        //             "min_deposit_amount" => "0.000001",
-        //             "is_memo_required" => false,
-        //             "withdrawal_scale" => "6",
-        //             "gateway" => array(
-        //               "uuid" => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //               "name" => "Tron",
-        //               "kind" => "CHAIN",
-        //               "required_confirmations" => "1",
-        //             ),
-        //             "scale" => "12",
-        //           ),
-        //           ...
-        //         ),
-        //       ),
         //       ...
         //     ),
         // }

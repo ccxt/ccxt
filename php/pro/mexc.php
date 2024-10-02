@@ -7,6 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -32,6 +34,7 @@ class mexc extends \ccxt\async\mexc {
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
             ),
@@ -113,6 +116,7 @@ class mexc extends \ccxt\async\mexc {
         //        "t" => 1678643605721
         //    }
         //
+        $this->handle_bid_ask($client, $message);
         $rawTicker = $this->safe_value_2($message, 'd', 'data');
         $marketId = $this->safe_string_2($message, 's', 'symbol');
         $timestamp = $this->safe_integer($message, 't');
@@ -239,6 +243,90 @@ class mexc extends \ccxt\async\mexc {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => null,
+            'info' => $ticker,
+        ), $market);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-$ticker-streams
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, false, true);
+            $marketType = null;
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . 'watchBidsAsks required $symbols argument');
+            }
+            $markets = $this->markets_for_symbols($symbols);
+            list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $markets[0], $params);
+            $isSpot = $marketType === 'spot';
+            if (!$isSpot) {
+                throw new NotSupported($this->id . 'watchBidsAsks only support spot market');
+            }
+            $messageHashes = array();
+            $topics = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                if ($isSpot) {
+                    $market = $this->market($symbols[$i]);
+                    $topics[] = 'spot@public.bookTicker.v3.api@' . $market['id'];
+                }
+                $messageHashes[] = 'bidask:' . $symbols[$i];
+            }
+            $url = $this->urls['api']['ws']['spot'];
+            $request = array(
+                'method' => 'SUBSCRIPTION',
+                'params' => $topics,
+            );
+            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$ticker['symbol']] = $ticker;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        //
+        //    {
+        //        "c" => "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d" => array(
+        //            "A" => "4.70432",
+        //            "B" => "6.714863",
+        //            "a" => "20744.54",
+        //            "b" => "20744.17"
+        //        ),
+        //        "s" => "BTCUSDT",
+        //        "t" => 1678643605721
+        //    }
+        //
+        $parsedTicker = $this->parse_ws_bid_ask($message);
+        $symbol = $parsedTicker['symbol'];
+        $this->bidsasks[$symbol] = $parsedTicker;
+        $messageHash = 'bidask:' . $symbol;
+        $client->resolve ($parsedTicker, $messageHash);
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $data = $this->safe_dict($ticker, 'd');
+        $marketId = $this->safe_string($ticker, 's');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 't');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_number($data, 'a'),
+            'askVolume' => $this->safe_number($data, 'A'),
+            'bid' => $this->safe_number($data, 'b'),
+            'bidVolume' => $this->safe_number($data, 'B'),
             'info' => $ticker,
         ), $market);
     }

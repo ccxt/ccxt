@@ -1289,6 +1289,724 @@
                 }
             }
         ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch trc20 usdt address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "USDT-TRC20",
+                      "ctAddr": "gjLj6t",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAA",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-TRC20",
+                      "ctAddr": "gjLj6t",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBB",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-ERC20",
+                      "ctAddr": "831ec7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-ERC20",
+                      "ctAddr": "831ec7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Arbitrum One",
+                      "ctAddr": "9fcbb9",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Arbitrum One",
+                      "ctAddr": "9fcbb9",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Avalanche C-Chain",
+                      "ctAddr": "f4a8c7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Avalanche C-Chain",
+                      "ctAddr": "f4a8c7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-OKTC",
+                      "ctAddr": "c65c50",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-OKTC",
+                      "ctAddr": "c65c50",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Optimism",
+                      "ctAddr": "e58e58",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Optimism",
+                      "ctAddr": "e58e58",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Polygon",
+                      "ctAddr": "b58e8f",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Polygon",
+                      "ctAddr": "b58e8f",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Solana",
+                      "ctAddr": "enwNYB",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCSSCSSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Solana",
+                      "ctAddr": "enwNYB",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBDDBBBCCCSSCSSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-TON",
+                      "addrEx": {
+                        "comment": "11563797"
+                      },
+                      "ctAddr": "Id_sDs",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBDDSSSSBBBCCCSSCSSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-X Layer",
+                      "ctAddr": "49D41d",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-X Layer",
+                      "ctAddr": "49D41d",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAAAAAABBBBBBBBBCCCCSSS",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "USDT",
+                  "address": "AAAAAAAABBBBBBBBB",
+                  "tag": null,
+                  "network": "TRC20",
+                  "info": {
+                    "chain": "USDT-TRC20",
+                    "ctAddr": "gjLj6t",
+                    "ccy": "USDT",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAAAAAABBBBBBBBB",
+                    "selected": true
+                  }
+                }
+            },
+            {
+                "description": "fetch POL matic address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "POL",
+                  {
+                    "network": "MATIC"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "POL-ERC20",
+                      "ctAddr": "ffc3f6",
+                      "ccy": "POL",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "POL-ERC20",
+                      "ctAddr": "ffc3f6",
+                      "ccy": "POL",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "POL-Polygon",
+                      "ctAddr": "",
+                      "ccy": "POL",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCC",
+                      "selected": true
+                    },
+                    {
+                      "chain": "POL-Polygon",
+                      "ctAddr": "",
+                      "ccy": "POL",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDD",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "POL",
+                  "address": "AAAABBBCCC",
+                  "tag": null,
+                  "network": "MATIC",
+                  "info": {
+                    "chain": "POL-Polygon",
+                    "ctAddr": "",
+                    "ccy": "POL",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAABBBCCC",
+                    "selected": true
+                  }
+                }
+            },
+            {
+                "description": "fetch eth eth address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "ETH",
+                  {
+                    "network": "ETH"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "ETH-ERC20",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-ERC20",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Arbitrum One",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-Arbitrum One",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Base",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-Base",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Linea",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-Linea",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETHK-OKTC",
+                      "ctAddr": "72315c",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETHK-OKTC",
+                      "ctAddr": "72315c",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Optimism",
+                      "ctAddr": " ",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-Optimism",
+                      "ctAddr": " ",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-Starknet",
+                      "ctAddr": "004dc7",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-X Layer",
+                      "ctAddr": "6bc71c",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-X Layer",
+                      "ctAddr": "6bc71c",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    },
+                    {
+                      "chain": "ETH-zkSync Era",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "ETH-zkSync Era",
+                      "ctAddr": "",
+                      "ccy": "ETH",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADD",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "ETH",
+                  "address": "AAAABBBCCCDDDDA",
+                  "tag": null,
+                  "network": "ETH",
+                  "info": {
+                    "chain": "ETH-ERC20",
+                    "ctAddr": "",
+                    "ccy": "ETH",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAABBBCCCDDDDA",
+                    "selected": true
+                  }
+                }
+            },
+            {
+                "description": "fetch btc address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "BTC",
+                  {
+                    "network": "BTC"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "BTC-Bitcoin",
+                      "ctAddr": "",
+                      "ccy": "BTC",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCCDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "BTCK-OKTC",
+                      "ctAddr": "99a7ff",
+                      "ccy": "BTC",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "BTCK-OKTC",
+                      "ctAddr": "99a7ff",
+                      "ccy": "BTC",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "BTC",
+                  "address": "AAAABBBCCCDDDDADDSS",
+                  "tag": null,
+                  "network": "BTC",
+                  "info": {
+                    "chain": "BTC-Bitcoin",
+                    "ctAddr": "",
+                    "ccy": "BTC",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAABBBCCCDDDDADDSS",
+                    "selected": true
+                  }
+                }
+            },
+            {
+                "description": "fetch deposit address without network",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "chain": "USDT-TRC20",
+                      "ctAddr": "gjLj6t",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDAADAADDSSAA",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-TRC20",
+                      "ctAddr": "gjLj6t",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDAAADAADDSSAA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-ERC20",
+                      "ctAddr": "831ec7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-ERC20",
+                      "ctAddr": "831ec7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Arbitrum One",
+                      "ctAddr": "9fcbb9",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Arbitrum One",
+                      "ctAddr": "9fcbb9",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Avalanche C-Chain",
+                      "ctAddr": "f4a8c7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Avalanche C-Chain",
+                      "ctAddr": "f4a8c7",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-OKTC",
+                      "ctAddr": "c65c50",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-OKTC",
+                      "ctAddr": "c65c50",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Optimism",
+                      "ctAddr": "e58e58",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Optimism",
+                      "ctAddr": "e58e58",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Polygon",
+                      "ctAddr": "b58e8f",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Polygon",
+                      "ctAddr": "b58e8f",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-Solana",
+                      "ctAddr": "enwNYB",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-Solana",
+                      "ctAddr": "enwNYB",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDDADDSSAA",
+                      "selected": false
+                    },
+                    {
+                      "chain": "USDT-TON",
+                      "addrEx": {
+                        "comment": "11563797"
+                      },
+                      "ctAddr": "Id_sDs",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDAADADDSSAA",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-X Layer",
+                      "ctAddr": "49D41d",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCfsdffdsDDDDDDADDSS",
+                      "selected": true
+                    },
+                    {
+                      "chain": "USDT-X Layer",
+                      "ctAddr": "49D41d",
+                      "ccy": "USDT",
+                      "to": "18",
+                      "verifiedName": "",
+                      "addr": "AAAABBBCCDDDCDDDDDDADDSS",
+                      "selected": false
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "currency": "USDT",
+                  "address": "AAAABBAAAABCCDDDCfsdffdsDDDDDAAADAADDSSAA",
+                  "tag": null,
+                  "network": "TRC20",
+                  "info": {
+                    "chain": "USDT-TRC20",
+                    "ctAddr": "gjLj6t",
+                    "ccy": "USDT",
+                    "to": "18",
+                    "verifiedName": "",
+                    "addr": "AAAABBAAAABCCDDDCfsdffdsDDDDDAAADAADDSSAA",
+                    "selected": true
+                  }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
