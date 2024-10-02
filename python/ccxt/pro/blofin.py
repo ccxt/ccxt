@@ -26,6 +26,7 @@ class blofin(ccxt.async_support.blofin):
                 'watchOrderBookForSymbols': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchOHLCV': True,
                 'watchOHLCVForSymbols': True,
                 'watchOrders': True,
@@ -256,6 +257,7 @@ class blofin(ccxt.async_support.blofin):
         #         ],
         #     }
         #
+        self.handle_bid_ask(client, message)
         arg = self.safe_dict(message, 'arg')
         channelName = self.safe_string(arg, 'channel')
         data = self.safe_list(message, 'data')
@@ -268,6 +270,63 @@ class blofin(ccxt.async_support.blofin):
 
     def parse_ws_ticker(self, ticker, market: Market = None) -> Ticker:
         return self.parse_ticker(ticker, market)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches best bid & ask for symbols
+        :see: https://docs.blofin.com/index.html#ws-tickers-channel
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        firstMarket = self.market(symbols[0])
+        channel = 'tickers'
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
+        url = self.implode_hostname(self.urls['api']['ws'][marketType]['public'])
+        messageHashes = []
+        args = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            messageHashes.append('bidask:' + market['symbol'])
+            args.append({
+                'channel': channel,
+                'instId': market['id'],
+            })
+        request = self.get_subscription_request(args)
+        ticker = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
+        if self.newUpdates:
+            tickers = {}
+            tickers[ticker['symbol']] = ticker
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        data = self.safe_list(message, 'data')
+        for i in range(0, len(data)):
+            ticker = self.parse_ws_bid_ask(data[i])
+            symbol = ticker['symbol']
+            messageHash = 'bidask:' + symbol
+            self.bidsasks[symbol] = ticker
+            client.resolve(ticker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'instId')
+        market = self.safe_market(marketId, market, '-')
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 'ts')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(ticker, 'askPrice'),
+            'askVolume': self.safe_string(ticker, 'askSize'),
+            'bid': self.safe_string(ticker, 'bidPrice'),
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'info': ticker,
+        }, market)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """

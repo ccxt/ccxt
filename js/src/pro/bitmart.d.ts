@@ -14,6 +14,9 @@ export default class bitmart extends bitmartRest {
     getParamsForMultipleSub(methodName: string, symbols: string[], limit?: Int, params?: {}): any[];
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
     parseWsOrder(order: Dict, market?: Market): Order;

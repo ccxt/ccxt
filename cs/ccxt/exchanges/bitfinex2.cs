@@ -55,7 +55,7 @@ public partial class bitfinex2 : Exchange
                 { "fetchDepositAddress", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
-                { "fetchFundingRate", true },
+                { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -3239,31 +3239,16 @@ public partial class bitfinex2 : Exchange
         return this.parseLedger(ledgerObjects, currency, since, limit);
     }
 
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
-    {
-        /**
-        * @method
-        * @name bitfinex2#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        return ((object)await this.fetchFundingRates(new List<object>() {symbol}, parameters));
-    }
-
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         /**
         * @method
-        * @name bitfinex2#fetchFundingRate
-        * @description fetch the current funding rate
+        * @name bitfinex2#fetchFundingRates
+        * @description fetch the current funding rate for multiple symbols
         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
         * @param {string[]} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbols, null)))
@@ -3450,6 +3435,7 @@ public partial class bitfinex2 : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

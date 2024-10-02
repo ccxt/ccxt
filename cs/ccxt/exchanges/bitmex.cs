@@ -44,7 +44,7 @@ public partial class bitmex : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
-                { "fetchFundingRate", false },
+                { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -2672,7 +2672,7 @@ public partial class bitmex : Exchange
         * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2711,7 +2711,7 @@ public partial class bitmex : Exchange
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
-            { "fundingTimestamp", this.iso8601(fundingDatetime) },
+            { "fundingTimestamp", this.parseToNumeric(this.iso8601(fundingDatetime)) },
             { "fundingDatetime", fundingDatetime },
             { "nextFundingRate", this.safeNumber(contract, "indicativeFundingRate") },
             { "nextFundingTimestamp", null },
@@ -2719,6 +2719,7 @@ public partial class bitmex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

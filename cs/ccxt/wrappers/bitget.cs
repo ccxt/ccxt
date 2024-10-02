@@ -32,6 +32,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Symbols"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/margin/common/support-currencies"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -45,11 +46,6 @@ public partial class bitget
     public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchMarketsByType(object type, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsByType(type, parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
@@ -649,6 +645,12 @@ public partial class bitget
     /// <term>params.oneWayMode</term>
     /// <description>
     /// boolean : *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap and future only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
     /// <item>
@@ -1408,10 +1410,10 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch the funding history

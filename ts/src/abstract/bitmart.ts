@@ -108,6 +108,10 @@ interface Exchange {
     privatePostContractPrivateSubmitPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateCancelPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateSubmitTpSlOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyPlanOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyPresetPlanOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyTpSlOrder (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

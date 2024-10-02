@@ -86,6 +86,7 @@ interface Exchange {
     publicGetCopytradingPublicPreferenceCurrency (params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicCurrentSubpositions (params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicSubpositionsHistory (params?: {}): Promise<implicitReturnType>;
+    publicGetSupportAnnouncementsTypes (params?: {}): Promise<implicitReturnType>;
     privateGetRfqCounterparties (params?: {}): Promise<implicitReturnType>;
     privateGetRfqMakerInstrumentSettings (params?: {}): Promise<implicitReturnType>;
     privateGetRfqMmpConfig (params?: {}): Promise<implicitReturnType>;
@@ -215,6 +216,7 @@ interface Exchange {
     privateGetBrokerFdIfRebate (params?: {}): Promise<implicitReturnType>;
     privateGetAffiliateInviteeDetail (params?: {}): Promise<implicitReturnType>;
     privateGetUsersPartnerIfRebate (params?: {}): Promise<implicitReturnType>;
+    privateGetSupportAnnouncements (params?: {}): Promise<implicitReturnType>;
     privatePostRfqCreateRfq (params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelRfq (params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelBatchRfqs (params?: {}): Promise<implicitReturnType>;

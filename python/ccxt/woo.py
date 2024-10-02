@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, Int, LedgerEntry, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -2548,23 +2548,27 @@ class woo(Exchange, ImplicitAPI):
             result[resultLength - 1] = lastItem
         return self.parse_incomes(result, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate, market: Market = None):
+    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
         #
-        #         {
-        #             "symbol":"PERP_AAVE_USDT",
-        #             "est_funding_rate":-0.00003447,
-        #             "est_funding_rate_timestamp":1653633959001,
-        #             "last_funding_rate":-0.00002094,
-        #             "last_funding_rate_timestamp":1653631200000,
-        #             "next_funding_time":1653634800000
-        #         }
-        #
+        #     {
+        #         "success": True,
+        #         "timestamp": 1727427915529,
+        #         "symbol": "PERP_BTC_USDT",
+        #         "est_funding_rate": -0.00092719,
+        #         "est_funding_rate_timestamp": 1727427899060,
+        #         "last_funding_rate": -0.00092610,
+        #         "last_funding_rate_timestamp": 1727424000000,
+        #         "next_funding_time": 1727452800000,
+        #         "last_funding_rate_interval": 8,
+        #         "est_funding_rate_interval": 8
+        #     }
         #
         symbol = self.safe_string(fundingRate, 'symbol')
         market = self.market(symbol)
         nextFundingTimestamp = self.safe_integer(fundingRate, 'next_funding_time')
         estFundingRateTimestamp = self.safe_integer(fundingRate, 'est_funding_rate_timestamp')
         lastFundingRateTimestamp = self.safe_integer(fundingRate, 'last_funding_rate_timestamp')
+        intervalString = self.safe_string(fundingRate, 'est_funding_rate_interval')
         return {
             'info': fundingRate,
             'symbol': market['symbol'],
@@ -2583,9 +2587,17 @@ class woo(Exchange, ImplicitAPI):
             'previousFundingRate': self.safe_number(fundingRate, 'last_funding_rate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': self.iso8601(lastFundingRateTimestamp),
+            'interval': intervalString + 'h',
         }
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate
+        :see: https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -2594,19 +2606,28 @@ class woo(Exchange, ImplicitAPI):
         response = self.v1PublicGetFundingRateSymbol(self.extend(request, params))
         #
         #     {
-        #         "success":true,
-        #         "timestamp":1653640572711,
-        #         "symbol":"PERP_BTC_USDT",
-        #         "est_funding_rate":0.00000738,
-        #         "est_funding_rate_timestamp":1653640559003,
-        #         "last_funding_rate":0.00000629,
-        #         "last_funding_rate_timestamp":1653638400000,
-        #         "next_funding_time":1653642000000
+        #         "success": True,
+        #         "timestamp": 1727428037877,
+        #         "symbol": "PERP_BTC_USDT",
+        #         "est_funding_rate": -0.00092674,
+        #         "est_funding_rate_timestamp": 1727428019064,
+        #         "last_funding_rate": -0.00092610,
+        #         "last_funding_rate_timestamp": 1727424000000,
+        #         "next_funding_time": 1727452800000,
+        #         "last_funding_rate_interval": 8,
+        #         "est_funding_rate_interval": 8
         #     }
         #
         return self.parse_funding_rate(response, market)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetch the funding rate for multiple markets
+        :see: https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
+        """
         self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.v1PublicGetFundingRates(params)

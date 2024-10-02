@@ -28,6 +28,7 @@ public partial class bitget : ccxt.bitget
                 { "watchOrders", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "watchPositions", true },
@@ -232,6 +233,7 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701842994341
         //     }
         //
+        this.handleBidAsk(client as WebSocketClient, message);
         object ticker = this.parseWsTicker(message);
         object symbol = getValue(ticker, "symbol");
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -342,6 +344,81 @@ public partial class bitget : ccxt.bitget
             { "average", null },
             { "baseVolume", this.safeString(ticker, "baseVolume") },
             { "quoteVolume", this.safeString(ticker, "quoteVolume") },
+            { "info", ticker },
+        }, market);
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#watchBidsAsks
+        * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+        * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object market = this.market(getValue(symbols, 0));
+        object instType = null;
+        var instTypeparametersVariable = this.getInstType(market, parameters);
+        instType = ((IList<object>)instTypeparametersVariable)[0];
+        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        object topics = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object marketInner = this.market(symbol);
+            object args = new Dictionary<string, object>() {
+                { "instType", instType },
+                { "channel", "ticker" },
+                { "instId", getValue(marketInner, "id") },
+            };
+            ((IList<object>)topics).Add(args);
+            ((IList<object>)messageHashes).Add(add("bidask:", symbol));
+        }
+        object tickers = await this.watchPublicMultiple(messageHashes, topics, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(tickers, "symbol")] = tickers;
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        object ticker = this.parseWsBidAsk(message);
+        object symbol = getValue(ticker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+        object messageHash = add("bidask:", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object message, object market = null)
+    {
+        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        object data = this.safeValue(message, "data", new List<object>() {});
+        object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object timestamp = this.safeInteger(ticker, "ts");
+        object instType = this.safeString(arg, "instType");
+        object marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "contract";
+        object marketId = this.safeString(ticker, "instId");
+        market = this.safeMarket(marketId, market, null, marketType);
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "askPr") },
+            { "askVolume", this.safeString(ticker, "askSz") },
+            { "bid", this.safeString(ticker, "bidPr") },
+            { "bidVolume", this.safeString(ticker, "bidSz") },
             { "info", ticker },
         }, market);
     }

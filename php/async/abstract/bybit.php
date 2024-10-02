@@ -397,6 +397,15 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_account_mmp_state($params = array()) {
         return $this->request('v5/account/mmp-state', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_asset_exchange_query_coin_list($params = array()) {
+        return $this->request('v5/asset/exchange/query-coin-list', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function private_get_v5_asset_exchange_convert_result_query($params = array()) {
+        return $this->request('v5/asset/exchange/convert-result-query', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function private_get_v5_asset_exchange_query_convert_history($params = array()) {
+        return $this->request('v5/asset/exchange/query-convert-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
     public function private_get_v5_asset_exchange_order_record($params = array()) {
         return $this->request('v5/asset/exchange/order-record', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -810,6 +819,12 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function private_post_v5_account_mmp_reset($params = array()) {
         return $this->request('v5/account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_v5_asset_exchange_quote_apply($params = array()) {
+        return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v5_asset_exchange_convert_execute($params = array()) {
+        return $this->request('v5/asset/exchange/convert-execute', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_v5_asset_transfer_inter_transfer($params = array()) {
         return $this->request('v5/asset/transfer/inter-transfer', 'private', 'POST', $params, null, null, array("cost" => 50));
@@ -1282,6 +1297,15 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function privateGetV5AccountMmpState($params = array()) {
         return $this->request('v5/account/mmp-state', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetV5AssetExchangeQueryCoinList($params = array()) {
+        return $this->request('v5/asset/exchange/query-coin-list', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function privateGetV5AssetExchangeConvertResultQuery($params = array()) {
+        return $this->request('v5/asset/exchange/convert-result-query', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function privateGetV5AssetExchangeQueryConvertHistory($params = array()) {
+        return $this->request('v5/asset/exchange/query-convert-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
     public function privateGetV5AssetExchangeOrderRecord($params = array()) {
         return $this->request('v5/asset/exchange/order-record', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1695,6 +1719,12 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privatePostV5AccountMmpReset($params = array()) {
         return $this->request('v5/account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AssetExchangeQuoteApply($params = array()) {
+        return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV5AssetExchangeConvertExecute($params = array()) {
+        return $this->request('v5/asset/exchange/convert-execute', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostV5AssetTransferInterTransfer($params = array()) {
         return $this->request('v5/asset/transfer/inter-transfer', 'private', 'POST', $params, null, null, array("cost" => 50));

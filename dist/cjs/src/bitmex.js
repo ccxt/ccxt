@@ -56,7 +56,7 @@ class bitmex extends bitmex$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -2489,7 +2489,7 @@ class bitmex extends bitmex$1 {
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.publicGetInstrumentActiveAndIndices(params);
@@ -2523,7 +2523,7 @@ class bitmex extends bitmex$1 {
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': this.safeNumber(contract, 'fundingRate'),
-            'fundingTimestamp': this.iso8601(fundingDatetime),
+            'fundingTimestamp': this.parseToNumeric(this.iso8601(fundingDatetime)),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': this.safeNumber(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': undefined,
@@ -2531,6 +2531,7 @@ class bitmex extends bitmex$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

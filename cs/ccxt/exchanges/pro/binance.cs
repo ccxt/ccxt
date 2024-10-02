@@ -9,7 +9,13 @@ public partial class binance : ccxt.binance
 {
     public override object describe()
     {
-        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
+        object superDescribe = base.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+
+    public virtual object describeData()
+    {
+        return new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
@@ -148,7 +154,7 @@ public partial class binance : ccxt.binance
                     { "bookTicker", "bookTicker" },
                 } },
             } },
-        });
+        };
     }
 
     public virtual object requestId(object url)
@@ -2994,17 +3000,17 @@ public partial class binance : ccxt.binance
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchBalance", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object urlType = type;
-        if (isTrue(isPortfolioMargin))
-        {
-            urlType = "papi";
-        }
         if (isTrue(this.isLinear(type, subType)))
         {
             type = "future";
         } else if (isTrue(this.isInverse(type, subType)))
         {
             type = "delivery";
+        }
+        object urlType = type;
+        if (isTrue(isPortfolioMargin))
+        {
+            urlType = "papi";
         }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
         var client = this.client(url);

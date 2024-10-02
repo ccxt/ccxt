@@ -22,7 +22,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
@@ -237,6 +237,21 @@ export default class hyperliquid extends hyperliquidRest {
         orderbook.reset(snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
+    }
+    async watchTicker(symbol, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#watchTicker
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const tickers = await this.watchTickers([symbol], params);
+        return tickers[symbol];
     }
     async watchTickers(symbols = undefined, params = {}) {
         /**

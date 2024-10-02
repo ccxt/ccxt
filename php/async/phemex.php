@@ -2502,6 +2502,8 @@ class phemex extends Exchange {
              * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
              * @param {array} [$params->stopLoss] *swap only* *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
              * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+             * @param {string} [$params->posSide] *swap only* "Merged" for one way mode, "Long" for buy $side of $hedged mode, "Short" for sell $side of $hedged mode
+             * @param {bool} [$params->hedged] *swap only* true for $hedged mode, false for one way mode, default is false
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2597,15 +2599,21 @@ class phemex extends Exchange {
                     $request['baseQtyEv'] = $this->to_ev($amountString, $market);
                 }
             } elseif ($market['swap']) {
+                $hedged = $this->safe_bool($params, 'hedged', false);
+                $params = $this->omit($params, 'hedged');
                 $posSide = $this->safe_string_lower($params, 'posSide');
                 if ($posSide === null) {
-                    $posSide = 'Merged';
+                    if ($hedged) {
+                        if ($reduceOnly) {
+                            $side = ($side === 'buy') ? 'sell' : 'buy';
+                        }
+                        $posSide = ($side === 'buy') ? 'Long' : 'Short';
+                    } else {
+                        $posSide = 'Merged';
+                    }
                 }
                 $posSide = $this->capitalize($posSide);
                 $request['posSide'] = $posSide;
-                if ($reduceOnly !== null) {
-                    $request['reduceOnly'] = $reduceOnly;
-                }
                 if ($market['settle'] === 'USDT') {
                     $request['orderQtyRq'] = $amount;
                 } else {
@@ -3990,7 +3998,7 @@ class phemex extends Exchange {
         return $value;
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -4040,7 +4048,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
         //         "askEp" => 2332500,
@@ -4099,6 +4107,7 @@ class phemex extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 

@@ -91,6 +91,7 @@ public partial class paradex
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

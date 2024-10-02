@@ -20,7 +20,11 @@ from ccxt.base.precise import Precise
 class binance(ccxt.async_support.binance):
 
     def describe(self):
-        return self.deep_extend(super(binance, self).describe(), {
+        superDescribe = super(binance, self).describe()
+        return self.deep_extend(superDescribe, self.describe_data())
+
+    def describe_data(self):
+        return {
             'has': {
                 'ws': True,
                 'watchBalance': True,
@@ -162,7 +166,7 @@ class binance(ccxt.async_support.binance):
                     'bookTicker': 'bookTicker',
                 },
             },
-        })
+        }
 
     def request_id(self, url):
         options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
@@ -2413,13 +2417,13 @@ class binance(ccxt.async_support.binance):
         subType, params = self.handle_sub_type_and_params('watchBalance', None, params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchBalance', 'papi', 'portfolioMargin', False)
-        urlType = type
-        if isPortfolioMargin:
-            urlType = 'papi'
         if self.isLinear(type, subType):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
+        urlType = type
+        if isPortfolioMargin:
+            urlType = 'papi'
         url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)

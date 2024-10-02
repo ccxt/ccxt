@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2166,12 +2166,12 @@ export default class krakenfutures extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name krakenfutures#fetchFundingRates
+         * @description fetch the current funding rates for multiple markets
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
-         * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2179,7 +2179,7 @@ export default class krakenfutures extends Exchange {
         await this.loadMarkets ();
         const marketIds = this.marketIds (symbols);
         const response = await this.publicGetTickers (params);
-        const tickers = this.safeValue (response, 'tickers');
+        const tickers = this.safeList (response, 'tickers', []);
         const fundingRates = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
@@ -2196,7 +2196,7 @@ export default class krakenfutures extends Exchange {
         return this.indexBy (fundingRates, 'symbol') as any;
     }
 
-    parseFundingRate (ticker, market: Market = undefined) {
+    parseFundingRate (ticker, market: Market = undefined): FundingRate {
         //
         // {"ask": 26.283,
         //  "askSize": 4.6,
@@ -2250,7 +2250,8 @@ export default class krakenfutures extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
