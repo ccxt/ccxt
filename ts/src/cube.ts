@@ -720,7 +720,8 @@ export default class cube extends Exchange {
         const amount = this.safeString (trade, 'quantity');
         const cost = this.safeString (trade, 'quoteAmount');
         const side = this.safeStringLower (trade, 'side');
-        const takerOrMaker = (this.safeString (trade, 'aggressingSide') === side) ? 'taker' : 'maker';
+        const aggressingSide = this.safeString (trade, 'aggressingSide');
+        const takerOrMaker = (aggressingSide === side) ? 'taker' : 'maker';
         const feeCost = this.safeString (trade, 'feeAmount');
         let fee = undefined;
         if (feeCost !== undefined) {
