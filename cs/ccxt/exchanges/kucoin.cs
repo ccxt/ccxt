@@ -555,6 +555,7 @@ public partial class kucoin : Exchange
                 { "WAX", "WAXP" },
                 { "ALT", "APTOSLAUNCHTOKEN" },
                 { "KALT", "ALT" },
+                { "FUD", "FTX Users\' Debt" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "hf", false },
@@ -671,7 +672,7 @@ public partial class kucoin : Exchange
                     { "hf", "trade_hf" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "BTC", "btc" },
+                    { "BRC20", "btc" },
                     { "BTCNATIVESEGWIT", "bech32" },
                     { "ERC20", "eth" },
                     { "TRC20", "trx" },
@@ -1169,7 +1170,7 @@ public partial class kucoin : Exchange
             {
                 object chain = getValue(chains, j);
                 object chainId = this.safeString(chain, "chainId");
-                object networkCode = this.networkIdToCode(chainId);
+                object networkCode = this.networkIdToCode(chainId, code);
                 object chainWithdrawEnabled = this.safeBool(chain, "isWithdrawEnabled", false);
                 if (isTrue(isEqual(isWithdrawEnabled, null)))
                 {

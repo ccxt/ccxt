@@ -37,6 +37,7 @@ class bitget extends \ccxt\async\bitget {
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchPositions' => true,
@@ -218,6 +219,7 @@ class bitget extends \ccxt\async\bitget {
         //         "ts" => 1701842994341
         //     }
         //
+        $this->handle_bid_ask($client, $message);
         $ticker = $this->parse_ws_ticker($message);
         $symbol = $ticker['symbol'];
         $this->tickers[$symbol] = $ticker;
@@ -327,6 +329,73 @@ class bitget extends \ccxt\async\bitget {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
+            'info' => $ticker,
+        ), $market);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $market = $this->market($symbols[0]);
+            $instType = null;
+            list($instType, $params) = $this->get_inst_type($market, $params);
+            $topics = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $marketInner = $this->market($symbol);
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => 'ticker',
+                    'instId' => $marketInner['id'],
+                );
+                $topics[] = $args;
+                $messageHashes[] = 'bidask:' . $symbol;
+            }
+            $tickers = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
+            if ($this->newUpdates) {
+                $result = array();
+                $result[$tickers['symbol']] = $tickers;
+                return $result;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        $ticker = $this->parse_ws_bid_ask($message);
+        $symbol = $ticker['symbol'];
+        $this->bidsasks[$symbol] = $ticker;
+        $messageHash = 'bidask:' . $symbol;
+        $client->resolve ($ticker, $messageHash);
+    }
+
+    public function parse_ws_bid_ask($message, $market = null) {
+        $arg = $this->safe_value($message, 'arg', array());
+        $data = $this->safe_value($message, 'data', array());
+        $ticker = $this->safe_value($data, 0, array());
+        $timestamp = $this->safe_integer($ticker, 'ts');
+        $instType = $this->safe_string($arg, 'instType');
+        $marketType = ($instType === 'SPOT') ? 'spot' : 'contract';
+        $marketId = $this->safe_string($ticker, 'instId');
+        $market = $this->safe_market($marketId, $market, null, $marketType);
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string($ticker, 'askPr'),
+            'askVolume' => $this->safe_string($ticker, 'askSz'),
+            'bid' => $this->safe_string($ticker, 'bidPr'),
+            'bidVolume' => $this->safe_string($ticker, 'bidSz'),
             'info' => $ticker,
         ), $market);
     }

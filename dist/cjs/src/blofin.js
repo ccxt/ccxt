@@ -793,17 +793,10 @@ class blofin extends blofin$1 {
         //        "fundingRate": "0.00027815",
         //        "fundingTime": "1634256000000",
         //        "instId": "BTC-USD-SWAP",
-        //        "instType": "SWAP",
-        //        "nextFundingRate": "0.00017",
-        //        "nextFundingTime": "1634284800000"
         //    }
         //
-        // in the response above nextFundingRate is actually two funding rates from now
-        //
-        const nextFundingRateTimestamp = this.safeInteger(contract, 'nextFundingTime');
         const marketId = this.safeString(contract, 'instId');
         const symbol = this.safeSymbol(marketId, market);
-        const nextFundingRate = this.safeNumber(contract, 'nextFundingRate');
         const fundingTime = this.safeInteger(contract, 'fundingTime');
         // > The current interest is 0.
         return {
@@ -818,12 +811,13 @@ class blofin extends blofin$1 {
             'fundingRate': this.safeNumber(contract, 'fundingRate'),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': this.iso8601(fundingTime),
-            'nextFundingRate': nextFundingRate,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'nextFundingDatetime': this.iso8601(nextFundingRateTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRate(symbol, params = {}) {
@@ -853,9 +847,6 @@ class blofin extends blofin$1 {
         //                "fundingRate": "0.00027815",
         //                "fundingTime": "1634256000000",
         //                "instId": "BTC-USD-SWAP",
-        //                "instType": "SWAP",
-        //                "nextFundingRate": "0.00017",
-        //                "nextFundingTime": "1634284800000"
         //            }
         //        ],
         //        "msg": ""

@@ -1156,6 +1156,8 @@ public partial class binance : Exchange
                         { "repay-futures-negative-balance", 150 },
                         { "listenKey", 1 },
                         { "asset-collection", 3 },
+                        { "margin/repay-debt", 0.4 },
+                        { "um/feeBurn", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 1 },
@@ -2864,7 +2866,7 @@ public partial class binance : Exchange
             if (isTrue(isTrue(fetchMargins) && isTrue(((res is IList<object>) || (res.GetType().IsGenericType && res.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 object keysList = new List<object>(((IDictionary<string,object>)this.indexBy(res, "symbol")).Keys);
-                object length = getArrayLength((new List<object>(((IDictionary<string,object>)getValue(this.options, "crossMarginPairsData")).Keys)));
+                object length = getArrayLength(getValue(this.options, "crossMarginPairsData"));
                 // first one is the cross-margin promise
                 if (isTrue(isEqual(length, 0)))
                 {
@@ -5962,6 +5964,8 @@ public partial class binance : Exchange
         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
         * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
         * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
+        * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+        * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6091,10 +6095,10 @@ public partial class binance : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if (isTrue(isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))) || isTrue(getValue(market, "option"))))
         {
             // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             parameters = this.omit(parameters, "reduceOnly");
             if (isTrue(getValue(market, "option")))
             {
@@ -6406,7 +6410,17 @@ public partial class binance : Exchange
         {
             parameters = this.omit(parameters, "timeInForce");
         }
-        object requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test"});
+        object hedged = this.safeBool(parameters, "hedged", false);
+        if (isTrue(isTrue(!isTrue(getValue(market, "spot")) && !isTrue(getValue(market, "option"))) && isTrue(hedged)))
+        {
+            if (isTrue(reduceOnly))
+            {
+                parameters = this.omit(parameters, "reduceOnly");
+                side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+            }
+            ((IDictionary<string,object>)request)["positionSide"] = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
+        }
+        object requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged"});
         return this.extend(request, requestParams);
     }
 
@@ -9582,7 +9596,7 @@ public partial class binance : Exchange
         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest funding rate
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
         */
@@ -9672,7 +9686,7 @@ public partial class binance : Exchange
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] "linear" or "inverse"
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -9695,13 +9709,7 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchFundingRates() supports linear and inverse contracts only")) ;
         }
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object entry = getValue(response, i);
-            object parsed = this.parseFundingRate(entry);
-            ((IList<object>)result).Add(parsed);
-        }
+        object result = this.parseFundingRates(response);
         return this.filterByArray(result, "symbol", symbols);
     }
 
@@ -9747,6 +9755,7 @@ public partial class binance : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -12756,10 +12765,13 @@ public partial class binance : Exchange
         * @description repay borrowed margin and interest
         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
         * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+        * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
         * @param {string} code unified currency code of the currency to repay
         * @param {float} amount the amount to repay
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
+        * @param {string} [params.repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+        * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -12776,19 +12788,23 @@ public partial class binance : Exchange
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         if (isTrue(isPortfolioMargin))
         {
-            response = await this.papiPostRepayLoan(this.extend(request, parameters));
+            object method = null;
+            var methodparametersVariable = this.handleOptionAndParams2(parameters, "repayCrossMargin", "repayCrossMarginMethod", "method");
+            method = ((IList<object>)methodparametersVariable)[0];
+            parameters = ((IList<object>)methodparametersVariable)[1];
+            if (isTrue(isEqual(method, "papiPostMarginRepayDebt")))
+            {
+                response = await this.papiPostMarginRepayDebt(this.extend(request, parameters));
+            } else
+            {
+                response = await this.papiPostRepayLoan(this.extend(request, parameters));
+            }
         } else
         {
             ((IDictionary<string,object>)request)["isIsolated"] = "FALSE";
             ((IDictionary<string,object>)request)["type"] = "REPAY";
             response = await this.sapiPostMarginBorrowRepay(this.extend(request, parameters));
         }
-        //
-        //     {
-        //         "tranId": 108988250265,
-        //         "clientTag":""
-        //     }
-        //
         return this.parseMarginLoan(response, currency);
     }
 
@@ -12912,13 +12928,25 @@ public partial class binance : Exchange
         //         "clientTag":""
         //     }
         //
+        // repayCrossMargin alternative endpoint
+        //
+        //     {
+        //         "asset": "USDC",
+        //         "amount": 10,
+        //         "specifyRepayAssets": null,
+        //         "updateTime": 1727170761267,
+        //         "success": true
+        //     }
+        //
+        object currencyId = this.safeString(info, "asset");
+        object timestamp = this.safeInteger(info, "updateTime");
         return new Dictionary<string, object>() {
             { "id", this.safeInteger(info, "tranId") },
-            { "currency", this.safeCurrencyCode(null, currency) },
-            { "amount", null },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "amount", this.safeNumber(info, "amount") },
             { "symbol", null },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "info", info },
         };
     }

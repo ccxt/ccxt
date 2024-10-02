@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmex.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 /**
  * @class bitmex
  * @augments Exchange
@@ -49,26 +49,8 @@ export default class bitmex extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
-    parseFundingRate(contract: any, market?: Market): {
-        info: any;
-        symbol: string;
-        markPrice: number;
-        indexPrice: any;
-        interestRate: any;
-        estimatedSettlePrice: number;
-        timestamp: number;
-        datetime: string;
-        fundingRate: number;
-        fundingTimestamp: string;
-        fundingDatetime: string;
-        nextFundingRate: number;
-        nextFundingTimestamp: any;
-        nextFundingDatetime: any;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
-    };
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    parseFundingRate(contract: any, market?: Market): FundingRate;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingRateHistory[]>;
     parseFundingRateHistory(info: any, market?: Market): {
         info: any;

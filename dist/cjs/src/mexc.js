@@ -40,8 +40,8 @@ class mexc extends mexc$1 {
                 'closePosition': false,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
-                'createMarketSellOrderWithCost': false,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -130,7 +130,7 @@ class mexc extends mexc$1 {
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'setLeverage': true,
-                'setMarginMode': undefined,
+                'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': undefined,
@@ -416,7 +416,6 @@ class mexc extends mexc$1 {
             'options': {
                 'adjustForTimeDifference': false,
                 'timeDifference': 0,
-                'createMarketBuyOrderRequiresPrice': true,
                 'unavailableContracts': {
                     'BTC/USDT:USDT': true,
                     'LTC/USDT:USDT': true,
@@ -465,12 +464,14 @@ class mexc extends mexc$1 {
                     'LTC': 'LTC',
                 },
                 'networks': {
+                    'ZKSYNC': 'ZKSYNCERA',
                     'TRC20': 'TRX',
                     'TON': 'TONCOIN',
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
                     'BEP20': 'BSC',
+                    'OPTIMISM': 'OP',
                     // 'ADA': 'Cardano(ADA)',
                     // 'AE': 'AE',
                     // 'ALGO': 'Algorand(ALGO)',
@@ -2106,8 +2107,27 @@ class mexc extends mexc$1 {
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
-        params['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'buy', 0, undefined, params);
+    }
+    async createMarketSellOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name mexc#createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['spot']) {
+            throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['cost'] = cost;
+        return await this.createOrder(symbol, 'market', 'sell', 0, undefined, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -2127,12 +2147,14 @@ class mexc extends mexc$1 {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
          * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
          * @param {string} [params.externalOid] *contract only* external order ID
          * @param {int} [params.positionMode] *contract only*  1:hedge, 2:one-way, default: the user's current config
+         * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2153,26 +2175,25 @@ class mexc extends mexc$1 {
             'side': orderSide,
             'type': type.toUpperCase(),
         };
-        if (orderSide === 'BUY' && type === 'market') {
-            let createMarketBuyOrderRequiresPrice = true;
-            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+        if (type === 'market') {
             const cost = this.safeNumber2(params, 'cost', 'quoteOrderQty');
             params = this.omit(params, 'cost');
             if (cost !== undefined) {
                 amount = cost;
+                request['quoteOrderQty'] = this.costToPrecision(symbol, amount);
             }
-            else if (createMarketBuyOrderRequiresPrice) {
+            else {
                 if (price === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                    request['quantity'] = this.amountToPrecision(symbol, amount);
                 }
                 else {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
                     const quoteAmount = Precise["default"].stringMul(amountString, priceString);
                     amount = quoteAmount;
+                    request['quoteOrderQty'] = this.costToPrecision(symbol, amount);
                 }
             }
-            request['quoteOrderQty'] = this.costToPrecision(symbol, amount);
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
@@ -2216,8 +2237,16 @@ class mexc extends mexc$1 {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        const test = this.safeBool(params, 'test', false);
+        params = this.omit(params, 'test');
         const request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, params);
-        const response = await this.spotPrivatePostOrder(this.extend(request, params));
+        let response = undefined;
+        if (test) {
+            response = await this.spotPrivatePostOrderTest(request);
+        }
+        else {
+            response = await this.spotPrivatePostOrder(request);
+        }
         //
         // spot
         //
@@ -2263,6 +2292,7 @@ class mexc extends mexc$1 {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [params.reduceOnly] indicates if this order is to reduce the size of a position
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.leverage] leverage is necessary on isolated margin
@@ -2343,18 +2373,31 @@ class mexc extends mexc$1 {
             }
         }
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        if (reduceOnly) {
-            request['side'] = (side === 'buy') ? 2 : 4;
+        const hedged = this.safeBool(params, 'hedged', false);
+        let sideInteger = undefined;
+        if (hedged) {
+            if (reduceOnly) {
+                params = this.omit(params, 'reduceOnly'); // hedged mode does not accept this parameter
+                side = (side === 'buy') ? 'sell' : 'buy';
+            }
+            sideInteger = (side === 'buy') ? 1 : 3;
+            request['positionMode'] = 1;
         }
         else {
-            request['side'] = (side === 'buy') ? 1 : 3;
+            if (reduceOnly) {
+                sideInteger = (side === 'buy') ? 2 : 4;
+            }
+            else {
+                sideInteger = (side === 'buy') ? 1 : 3;
+            }
         }
+        request['side'] = sideInteger;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'externalOid');
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
         const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice']);
+        params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
         let response = undefined;
         if (stopPrice) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
@@ -3830,6 +3873,7 @@ class mexc extends mexc$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
@@ -3837,19 +3881,25 @@ class mexc extends mexc$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         const request = {
             'symbol': market['id'],
         };
         let trades = undefined;
         if (marketType === 'spot') {
             if (since !== undefined) {
-                request['start_time'] = since;
+                request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            trades = await this.spotPrivateGetMyTrades(this.extend(request, query));
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['endTime'] = until;
+            }
+            trades = await this.spotPrivateGetMyTrades(this.extend(request, params));
             //
             // spot
             //
@@ -3883,7 +3933,7 @@ class mexc extends mexc$1 {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, query));
+            const response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, params));
             //
             //     {
             //         "success": true,
@@ -4185,6 +4235,7 @@ class mexc extends mexc$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRate(symbol, params = {}) {
@@ -5660,6 +5711,50 @@ class mexc extends mexc$1 {
         const data = this.safeList(response, 'data');
         const positions = this.parsePositions(data, symbols, params);
         return this.filterBySinceLimit(positions, since, limit);
+    }
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} [symbol] required when there is no position, else provide params["positionId"]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.positionId] required when a position is set
+         * @param {string} [params.direction] "long" or "short" required when there is no position
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (market['spot']) {
+            throw new errors.BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+        }
+        marginMode = marginMode.toLowerCase();
+        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+            throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        const leverage = this.safeInteger(params, 'leverage');
+        if (leverage === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter');
+        }
+        const direction = this.safeStringLower2(params, 'direction', 'positionId');
+        const request = {
+            'leverage': leverage,
+            'openType': (marginMode === 'isolated') ? 1 : 2,
+        };
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (direction !== undefined) {
+            request['positionType'] = (direction === 'short') ? 2 : 1;
+        }
+        params = this.omit(params, 'direction');
+        const response = await this.contractPrivatePostPositionChangeLeverage(this.extend(request, params));
+        //
+        // { success: true, code: '0' }
+        //
+        return this.parseLeverage(response, market);
     }
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);

@@ -43,11 +43,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.6';
+$version = '4.4.11';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.6';
+    const VERSION = '4.4.11';
 
     public $browser;
     public $marketsLoading = null;
@@ -1414,6 +1414,7 @@ class Exchange extends \ccxt\Exchange {
                 'ETH' => array( 'ERC20' => 'ETH' ),
                 'TRX' => array( 'TRC20' => 'TRX' ),
                 'CRO' => array( 'CRC20' => 'CRONOS' ),
+                'BRC20' => array( 'BRC20' => 'BTC' ),
             ),
         );
     }
@@ -5554,15 +5555,26 @@ class Exchange extends \ccxt\Exchange {
                     if ($this->verbose) {
                         $cursorString = ($cursorValue === null) ? '' : $cursorValue;
                         $iteration = ($i + 1);
-                        $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorString;
+                        $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' $cursor ' . $cursorString;
                         $this->log($cursorMessage);
                     }
                     if ($responseLength === 0) {
                         break;
                     }
                     $result = $this->array_concat($result, $response);
-                    $last = $this->safe_value($response, $responseLength - 1);
-                    $cursorValue = $this->safe_value($last['info'], $cursorReceived);
+                    $last = $this->safe_dict($response, $responseLength - 1);
+                    // $cursorValue = $this->safe_value($last['info'], $cursorReceived);
+                    $cursorValue = null; // search for the $cursor
+                    for ($j = 0; $j < $responseLength; $j++) {
+                        $index = $responseLength - $j - 1;
+                        $entry = $this->safe_dict($response, $index);
+                        $info = $this->safe_dict($entry, 'info');
+                        $cursor = $this->safe_value($info, $cursorReceived);
+                        if ($cursor !== null) {
+                            $cursorValue = $cursor;
+                            break;
+                        }
+                    }
                     if ($cursorValue === null) {
                         break;
                     }

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.6'
+__version__ = '4.4.11'
 
 # -----------------------------------------------------------------------------
 
@@ -1734,6 +1734,9 @@ class Exchange(object):
     def create_safe_dictionary(self):
         return {}
 
+    def rand_number(self, size):
+        return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -2676,6 +2679,7 @@ class Exchange(object):
                 'ETH': {'ERC20': 'ETH'},
                 'TRX': {'TRC20': 'TRX'},
                 'CRO': {'CRC20': 'CRONOS'},
+                'BRC20': {'BRC20': 'BTC'},
             },
         }
 
@@ -5946,8 +5950,17 @@ class Exchange(object):
                 if responseLength == 0:
                     break
                 result = self.array_concat(result, response)
-                last = self.safe_value(response, responseLength - 1)
-                cursorValue = self.safe_value(last['info'], cursorReceived)
+                last = self.safe_dict(response, responseLength - 1)
+                # cursorValue = self.safe_value(last['info'], cursorReceived)
+                cursorValue = None  # search for the cursor
+                for j in range(0, responseLength):
+                    index = responseLength - j - 1
+                    entry = self.safe_dict(response, index)
+                    info = self.safe_dict(entry, 'info')
+                    cursor = self.safe_value(info, cursorReceived)
+                    if cursor is not None:
+                        cursorValue = cursor
+                        break
                 if cursorValue is None:
                     break
                 lastTimestamp = self.safe_integer(last, 'timestamp')

@@ -1371,14 +1371,18 @@ public partial class bitget : Exchange
                 } },
                 { "sandboxMode", false },
                 { "networks", new Dictionary<string, object>() {
-                    { "TRX", "TRC20" },
-                    { "ETH", "ERC20" },
-                    { "BSC", "BEP20" },
+                    { "TRC20", "TRC20" },
+                    { "ERC20", "ERC20" },
+                    { "BEP20", "BSC" },
+                    { "ARB", "ArbitrumOne" },
+                    { "ZKSYNC", "zkSyncEra" },
+                    { "STARKNET", "Starknet" },
+                    { "APT", "APTOS" },
+                    { "MATIC", "Polygon" },
+                    { "VIC", "VICTION" },
+                    { "AVAXC", "C-Chain" },
                 } },
-                { "networksById", new Dictionary<string, object>() {
-                    { "TRC20", "TRX" },
-                    { "BSC", "BEP20" },
-                } },
+                { "networksById", new Dictionary<string, object>() {} },
                 { "fetchPositions", new Dictionary<string, object>() {
                     { "method", "privateMixGetV2MixPositionAllPosition" },
                 } },
@@ -1865,7 +1869,11 @@ public partial class bitget : Exchange
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
-                object network = this.safeCurrencyCode(networkId);
+                object network = this.networkIdToCode(networkId, code);
+                if (isTrue(!isEqual(network, null)))
+                {
+                    network = ((string)network).ToUpper();
+                }
                 object withdrawEnabled = this.safeString(chain, "withdrawable");
                 object canWithdraw = isEqual(withdrawEnabled, "true");
                 withdraw = ((bool) isTrue((canWithdraw))) ? canWithdraw : withdraw;
@@ -4306,6 +4314,7 @@ public partial class bitget : Exchange
         * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
         * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
         * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+        * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -7289,6 +7298,7 @@ public partial class bitget : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

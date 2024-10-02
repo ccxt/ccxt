@@ -1,5 +1,5 @@
 import Exchange from './abstract/oceanex.js';
-import type { Balances, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 /**
  * @class oceanex
  * @augments Exchange
@@ -32,6 +32,14 @@ export default class oceanex extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        info: any;
+        currency: string;
+        address: string;
+        tag: string;
+        network: string;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

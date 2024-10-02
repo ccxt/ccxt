@@ -6,7 +6,7 @@ import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationE
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3732,7 +3732,7 @@ export default class hashkey extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name hashkey#fetchFundingRate
@@ -3758,7 +3758,7 @@ export default class hashkey extends Exchange {
         return this.parseFundingRate (rate, market);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name hashkey#fetchFundingRates
@@ -3766,7 +3766,7 @@ export default class hashkey extends Exchange {
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -3784,9 +3784,8 @@ export default class hashkey extends Exchange {
         return this.filterByArray (fundingRates, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
-        // fetchFundingRates
         //     {
         //         "symbol": "ETHUSDT-PERPETUAL",
         //         "rate": "0.0001",
@@ -3815,7 +3814,8 @@ export default class hashkey extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

@@ -2002,8 +2002,15 @@ class okx extends \ccxt\async\okx {
         $tradeSymbols = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($tradeSymbols); $i++) {
             $symbolMessageHash = $messageHash . '::' . $tradeSymbols[$i];
-            $client->resolve ($this->orders, $symbolMessageHash);
+            $client->resolve ($this->myTrades, $symbolMessageHash);
         }
+    }
+
+    public function request_id() {
+        $ts = (string) $this->milliseconds();
+        $randomNumber = $this->rand_number(4);
+        $randomPart = (string) $randomNumber;
+        return $ts . $randomPart;
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
@@ -2023,7 +2030,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'op', 'batch-orders');
             $args = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -2095,7 +2102,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'op', 'amend-order');
             $args = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
@@ -2125,7 +2132,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
             $arg = array(
@@ -2165,7 +2172,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $args = array();
             for ($i = 0; $i < $idsLength; $i++) {
                 $arg = array(
@@ -2202,7 +2209,7 @@ class okx extends \ccxt\async\okx {
                 throw new BadRequest($this->id . 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
             }
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->milliseconds();
+            $messageHash = $this->request_id();
             $request = array(
                 'id' => $messageHash,
                 'op' => 'mass-cancel',
@@ -2271,10 +2278,25 @@ class okx extends \ccxt\async\okx {
         try {
             if ($errorCode && $errorCode !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                if ($errorCode !== '1') {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                }
                 $messageString = $this->safe_value($message, 'msg');
                 if ($messageString !== null) {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
+                } else {
+                    $data = $this->safe_list($message, 'data', array());
+                    for ($i = 0; $i < count($data); $i++) {
+                        $d = $data[$i];
+                        $errorCode = $this->safe_string($d, 'sCode');
+                        if ($errorCode !== null) {
+                            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                        }
+                        $messageString = $this->safe_value($message, 'sMsg');
+                        if ($messageString !== null) {
+                            $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
+                        }
+                    }
                 }
                 throw new ExchangeError($feedback);
             }

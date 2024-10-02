@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2405,7 +2405,7 @@ export default class delta extends Exchange {
         };
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name delta#fetchFundingRate
@@ -2473,7 +2473,7 @@ export default class delta extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name delta#fetchFundingRates
@@ -2481,7 +2481,7 @@ export default class delta extends Exchange {
          * @see https://docs.delta.exchange/#get-tickers-for-products
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -2541,7 +2541,7 @@ export default class delta extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "close": 30600.5,
@@ -2606,7 +2606,8 @@ export default class delta extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {

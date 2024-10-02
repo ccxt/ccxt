@@ -999,6 +999,7 @@ public struct FundingRate
     public double? previousFundingTimestamp;
     public string? previousFundingDatetime;
     public double? previousFundingRate;
+    public string? interval;
 
     public FundingRate(object fundingRateEntry)
     {
@@ -1017,6 +1018,7 @@ public struct FundingRate
         previousFundingTimestamp = Exchange.SafeFloat(fundingRateEntry, "previousFundingTimestamp");
         previousFundingDatetime = Exchange.SafeString(fundingRateEntry, "previousFundingDatetime");
         previousFundingRate = Exchange.SafeFloat(fundingRateEntry, "previousFundingRate");
+        interval = Exchange.SafeString(fundingRateEntry, "interval");
     }
 }
 

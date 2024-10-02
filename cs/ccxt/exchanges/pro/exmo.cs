@@ -14,7 +14,7 @@ public partial class exmo : ccxt.exmo
                 { "ws", true },
                 { "watchBalance", true },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchMyTrades", true },
                 { "watchOrders", false },
@@ -219,6 +219,7 @@ public partial class exmo : ccxt.exmo
         * @method
         * @name exmo#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -236,6 +237,39 @@ public partial class exmo : ccxt.exmo
         };
         object request = this.deepExtend(message, parameters);
         return await this.watch(url, messageHash, request, messageHash, request);
+    }
+
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name exmo#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object args = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+            ((IList<object>)args).Add(add("spot/ticker:", getValue(market, "id")));
+        }
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object message = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "topics", args },
+            { "id", this.requestId() },
+        };
+        object request = this.deepExtend(message, parameters);
+        await this.watchMultiple(url, messageHashes, request, messageHashes, request);
+        return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)

@@ -48,6 +48,7 @@ class kraken extends kraken$1 {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTrailingAmountOrder': true,
+                'createTrailingPercentOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -438,7 +439,9 @@ class kraken extends kraken$1 {
                 'EGeneral:Internal error': errors.ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': errors.DDoSProtection,
                 'EGeneral:Permission denied': errors.PermissionDenied,
+                'EGeneral:Invalid arguments:price': errors.InvalidOrder,
                 'EOrder:Unknown order': errors.InvalidOrder,
+                'EOrder:Invalid price:Invalid price argument': errors.InvalidOrder,
                 'EOrder:Order minimum not met': errors.InvalidOrder,
                 'EGeneral:Invalid arguments': errors.BadRequest,
                 'ESession:Invalid session': errors.AuthenticationError,
@@ -1450,8 +1453,8 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#createOrder
-         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * @description create a trade order
+         * @see https://docs.kraken.com/api/docs/rest-api/add-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1463,7 +1466,9 @@ class kraken extends kraken$1 {
          * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
          * @param {string} [params.trailingAmount] *margin only* the quote amount to trail away from the current market price
+         * @param {string} [params.trailingPercent] *margin only* the percent to trail away from the current market price
          * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+         * @param {string} [params.trailingLimitPercent] *margin only* the percent away from the trailingAmount
          * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
          * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1797,8 +1802,11 @@ class kraken extends kraken$1 {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const trailingAmount = this.safeString(params, 'trailingAmount');
+        const trailingPercent = this.safeString(params, 'trailingPercent');
         const trailingLimitAmount = this.safeString(params, 'trailingLimitAmount');
+        const trailingLimitPercent = this.safeString(params, 'trailingLimitPercent');
         const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const isLimitOrder = type.endsWith('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         const isMarketOrder = type === 'market';
         const cost = this.safeString(params, 'cost');
@@ -1815,7 +1823,7 @@ class kraken extends kraken$1 {
             const extendedOflags = (flags !== undefined) ? flags + ',viqc' : 'viqc';
             request['oflags'] = extendedOflags;
         }
-        else if (isLimitOrder && !isTrailingAmountOrder) {
+        else if (isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
@@ -1842,20 +1850,36 @@ class kraken extends kraken$1 {
                 request['price2'] = this.priceToPrecision(symbol, price);
             }
         }
-        else if (isTrailingAmountOrder) {
+        else if (isTrailingAmountOrder || isTrailingPercentOrder) {
+            let trailingPercentString = undefined;
+            if (trailingPercent !== undefined) {
+                trailingPercentString = (trailingPercent.endsWith('%')) ? ('+' + trailingPercent) : ('+' + trailingPercent + '%');
+            }
+            const trailingAmountString = (trailingAmount !== undefined) ? '+' + trailingAmount : undefined; // must use + for this
+            const offset = this.safeString(params, 'offset', '-'); // can use + or - for this
+            const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString(trailingLimitAmount) : undefined;
             const trailingActivationPriceType = this.safeString(params, 'trigger', 'last');
-            const trailingAmountString = '+' + trailingAmount;
             request['trigger'] = trailingActivationPriceType;
-            if (isLimitOrder || (trailingLimitAmount !== undefined)) {
-                const offset = this.safeString(params, 'offset', '-');
-                const trailingLimitAmountString = offset + this.numberToString(trailingLimitAmount);
-                request['price'] = trailingAmountString;
-                request['price2'] = trailingLimitAmountString;
+            if (isLimitOrder || (trailingLimitAmount !== undefined) || (trailingLimitPercent !== undefined)) {
                 request['ordertype'] = 'trailing-stop-limit';
+                if (trailingLimitPercent !== undefined) {
+                    const trailingLimitPercentString = (trailingLimitPercent.endsWith('%')) ? (offset + trailingLimitPercent) : (offset + trailingLimitPercent + '%');
+                    request['price'] = trailingPercentString;
+                    request['price2'] = trailingLimitPercentString;
+                }
+                else if (trailingLimitAmount !== undefined) {
+                    request['price'] = trailingAmountString;
+                    request['price2'] = trailingLimitAmountString;
+                }
             }
             else {
-                request['price'] = trailingAmountString;
                 request['ordertype'] = 'trailing-stop';
+                if (trailingPercent !== undefined) {
+                    request['price'] = trailingPercentString;
+                }
+                else {
+                    request['price'] = trailingAmountString;
+                }
             }
         }
         if (reduceOnly) {
@@ -1893,7 +1917,7 @@ class kraken extends kraken$1 {
         if ((flags !== undefined) && !('oflags' in request)) {
             request['oflags'] = flags;
         }
-        params = this.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset']);
+        params = this.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset']);
         return [request, params];
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -3115,11 +3139,16 @@ class kraken extends kraken$1 {
             }
         }
         else if (api === 'private') {
+            const price = this.safeString(params, 'price');
+            let isTriggerPercent = false;
+            if (price !== undefined) {
+                isTriggerPercent = (price.endsWith('%')) ? true : false;
+            }
             const isCancelOrderBatch = (path === 'CancelOrderBatch');
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if (isCancelOrderBatch) {
+            if (isCancelOrderBatch || isTriggerPercent) {
                 body = this.json(this.extend({ 'nonce': nonce }, params));
             }
             else {
@@ -3134,9 +3163,8 @@ class kraken extends kraken$1 {
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
-                // 'Content-Type': 'application/x-www-form-urlencoded',
             };
-            if (isCancelOrderBatch) {
+            if (isCancelOrderBatch || isTriggerPercent) {
                 headers['Content-Type'] = 'application/json';
             }
             else {

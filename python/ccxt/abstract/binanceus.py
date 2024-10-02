@@ -754,6 +754,8 @@ class ImplicitAPI:
     papi_post_repay_futures_negative_balance = papiPostRepayFuturesNegativeBalance = Entry('repay-futures-negative-balance', 'papi', 'POST', {'cost': 150})
     papi_post_listenkey = papiPostListenKey = Entry('listenKey', 'papi', 'POST', {'cost': 1})
     papi_post_asset_collection = papiPostAssetCollection = Entry('asset-collection', 'papi', 'POST', {'cost': 3})
+    papi_post_margin_repay_debt = papiPostMarginRepayDebt = Entry('margin/repay-debt', 'papi', 'POST', {'cost': 0.4})
+    papi_post_um_feeburn = papiPostUmFeeBurn = Entry('um/feeBurn', 'papi', 'POST', {'cost': 1})
     papi_put_listenkey = papiPutListenKey = Entry('listenKey', 'papi', 'PUT', {'cost': 1})
     papi_delete_um_order = papiDeleteUmOrder = Entry('um/order', 'papi', 'DELETE', {'cost': 1})
     papi_delete_um_conditional_order = papiDeleteUmConditionalOrder = Entry('um/conditional/order', 'papi', 'DELETE', {'cost': 1})

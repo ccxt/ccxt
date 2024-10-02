@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1415,13 +1415,16 @@ export default class bitget extends Exchange {
                 },
                 'sandboxMode': false,
                 'networks': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
                     'BEP20': 'BSC',
+                    'ARB': 'ArbitrumOne',
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
-                    'OPTIMISM': 'Optimism',
-                    'ARBITRUM': 'Arbitrum',
+                    'APT': 'APTOS',
+                    'MATIC': 'Polygon',
+                    'VIC': 'VICTION',
+                    'AVAXC': 'C-Chain',
                 },
                 'networksById': {
                 },
@@ -4100,6 +4103,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
          * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
          * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+         * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -6642,7 +6646,7 @@ export default class bitget extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name bitget#fetchFundingRate
@@ -6688,7 +6692,7 @@ export default class bitget extends Exchange {
         return this.parseFundingRate (data[0], market);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -6715,7 +6719,8 @@ export default class bitget extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {

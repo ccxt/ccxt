@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -25,6 +25,8 @@ class bitvavo(ccxt.async_support.bitvavo):
                 'watchOrderBook': True,
                 'watchTrades': True,
                 'watchTicker': True,
+                'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchOHLCV': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
@@ -85,14 +87,50 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
+    async def watch_public_multiple(self, methodName, channelName: str, symbols, params={}):
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        messageHashes = [methodName]
+        args = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            args.append(market['id'])
+        url = self.urls['api']['ws']
+        request: dict = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': channelName,
+                    'markets': args,
+                },
+            ],
+        }
+        message = self.extend(request, params)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes)
+
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_public('ticker24h', symbol, params)
+
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :see: https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        channel = 'ticker24h'
+        tickers = await self.watch_public_multiple(channel, channel, symbols, params)
+        return self.filter_by_array(tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -116,8 +154,10 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         ]
         #     }
         #
+        self.handle_bid_ask(client, message)
         event = self.safe_string(message, 'event')
         tickers = self.safe_value(message, 'data', [])
+        result = []
         for i in range(0, len(tickers)):
             data = tickers[i]
             marketId = self.safe_string(data, 'market')
@@ -126,8 +166,53 @@ class bitvavo(ccxt.async_support.bitvavo):
             ticker = self.parse_ticker(data, market)
             symbol = ticker['symbol']
             self.tickers[symbol] = ticker
+            result.append(ticker)
             client.resolve(ticker, messageHash)
-        return message
+        client.resolve(result, event)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches best bid & ask for symbols
+        :see: https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        channel = 'ticker24h'
+        tickers = await self.watch_public_multiple('bidask', channel, symbols, params)
+        return self.filter_by_array(tickers, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        event = 'bidask'
+        tickers = self.safe_value(message, 'data', [])
+        result = []
+        for i in range(0, len(tickers)):
+            data = tickers[i]
+            ticker = self.parse_ws_bid_ask(data)
+            symbol = ticker['symbol']
+            self.bidsasks[symbol] = ticker
+            result.append(ticker)
+            messageHash = event + ':' + symbol
+            client.resolve(ticker, messageHash)
+        client.resolve(result, event)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'market')
+        market = self.safe_market(marketId, None, '-')
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_number(ticker, 'ask'),
+            'askVolume': self.safe_number(ticker, 'askSize'),
+            'bid': self.safe_number(ticker, 'bid'),
+            'bidVolume': self.safe_number(ticker, 'bidSize'),
+            'info': ticker,
+        }, market)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """

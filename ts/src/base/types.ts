@@ -298,6 +298,7 @@ export interface FundingRate {
     previousFundingTimestamp?: number;
     previousFundingDatetime?: string;
     previousFundingRate?: number;
+    interval?: string;
 }
 
 export interface FundingRates extends Dictionary<FundingRate> {

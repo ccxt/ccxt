@@ -758,7 +758,7 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($fundingRate, ?array $market = null) {
+    public function parse_funding_rate($fundingRate, ?array $market = null): array {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -770,12 +770,14 @@ class woofipro extends Exchange {
         //            "sum_unitary_funding" => 521.367
         //         }
         //
-        //
         $symbol = $this->safe_string($fundingRate, 'symbol');
         $market = $this->market($symbol);
         $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
         $estFundingRateTimestamp = $this->safe_integer($fundingRate, 'est_funding_rate_timestamp');
         $lastFundingRateTimestamp = $this->safe_integer($fundingRate, 'last_funding_rate_timestamp');
+        $fundingTimeString = $this->safe_string($fundingRate, 'last_funding_rate_timestamp');
+        $nextFundingTimeString = $this->safe_string($fundingRate, 'next_funding_time');
+        $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
         return array(
             'info' => $fundingRate,
             'symbol' => $market['symbol'],
@@ -794,10 +796,22 @@ class woofipro extends Exchange {
             'previousFundingRate' => $this->safe_number($fundingRate, 'last_funding_rate'),
             'previousFundingTimestamp' => $lastFundingRateTimestamp,
             'previousFundingDatetime' => $this->iso8601($lastFundingRateTimestamp),
+            'interval' => $this->parse_funding_interval($millisecondsInterval),
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function parse_funding_interval($interval) {
+        $intervals = array(
+            '3600000' => '1h',
+            '14400000' => '4h',
+            '28800000' => '8h',
+            '57600000' => '16h',
+            '86400000' => '24h',
+        );
+        return $this->safe_string($intervals, $interval, $interval);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -832,10 +846,10 @@ class woofipro extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetch the current funding rates
+             * fetch the current funding rate for multiple markets
              * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
              * @param {string[]} $symbols unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

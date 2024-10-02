@@ -1410,13 +1410,18 @@ class bitget extends Exchange {
                 ),
                 'sandboxMode' => false,
                 'networks' => array(
-                    'TRX' => 'TRC20',
-                    'ETH' => 'ERC20',
-                    'BSC' => 'BEP20',
+                    'TRC20' => 'TRC20',
+                    'ERC20' => 'ERC20',
+                    'BEP20' => 'BSC',
+                    'ARB' => 'ArbitrumOne',
+                    'ZKSYNC' => 'zkSyncEra',
+                    'STARKNET' => 'Starknet',
+                    'APT' => 'APTOS',
+                    'MATIC' => 'Polygon',
+                    'VIC' => 'VICTION',
+                    'AVAXC' => 'C-Chain',
                 ),
                 'networksById' => array(
-                    'TRC20' => 'TRX',
-                    'BSC' => 'BEP20',
                 ),
                 'fetchPositions' => array(
                     'method' => 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
@@ -1845,7 +1850,10 @@ class bitget extends Exchange {
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
-                $network = $this->safe_currency_code($networkId);
+                $network = $this->network_id_to_code($networkId, $code);
+                if ($network !== null) {
+                    $network = strtoupper($network);
+                }
                 $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
                 $canWithdraw = $withdrawEnabled === 'true';
                 $withdraw = ($canWithdraw) ? $canWithdraw : $withdraw;
@@ -4052,6 +4060,7 @@ class bitget extends Exchange {
          * @param {string} [$params->trailingTriggerPrice] *swap and future only* the $price to trigger a trailing stop order, default uses the $price argument
          * @param {string} [$params->triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
          * @param {boolean} [$params->oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this in hedge_mode, can adjust the mode using the setPositionMode() method
+         * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
          * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -6564,7 +6573,7 @@ class bitget extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
@@ -6608,7 +6617,7 @@ class bitget extends Exchange {
         return $this->parse_funding_rate($data[0], $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -6635,6 +6644,7 @@ class bitget extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 

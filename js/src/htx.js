@@ -187,7 +187,7 @@ export default class htx extends Exchange {
                 },
                 'www': 'https://www.huobi.com',
                 'referral': {
-                    'url': 'https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223',
+                    'url': 'https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223',
                     'discount': 0.15,
                 },
                 'doc': [
@@ -1221,6 +1221,7 @@ export default class htx extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/6081
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
+                'NGL': 'GFNGL',
                 'GET': 'THEMIS',
                 'GTC': 'GAMECOM',
                 'HIT': 'HITCHAIN',
@@ -1231,7 +1232,8 @@ export default class htx extends Exchange {
                 'PNT': 'PENTA',
                 'SBTC': 'SUPERBITCOIN',
                 'SOUL': 'SOULSAVER',
-                'BIFI': 'BITCOINFILE', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
+                'BIFI': 'BITCOINFILE',
+                'FUD': 'FTX Users\' Debt',
             },
         });
     }
@@ -2081,6 +2083,10 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2401,6 +2407,10 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2630,6 +2640,7 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2649,6 +2660,19 @@ export default class htx extends Exchange {
         return await this.fetchSpotOrderTrades(id, symbol, since, limit, params);
     }
     async fetchSpotOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name htx#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+         * @param {string} id order id
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
         await this.loadMarkets();
         const request = {
             'order-id': id,
@@ -3105,6 +3129,7 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
@@ -3178,6 +3203,7 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -3679,6 +3705,12 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -6976,6 +7008,9 @@ export default class htx extends Exchange {
         const nextFundingRate = this.safeNumber(contract, 'estimated_rate');
         const fundingTimestamp = this.safeInteger(contract, 'funding_time');
         const nextFundingTimestamp = this.safeInteger(contract, 'next_funding_time');
+        const fundingTimeString = this.safeString(contract, 'funding_time');
+        const nextFundingTimeString = this.safeString(contract, 'next_funding_time');
+        const millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         const marketId = this.safeString(contract, 'contract_code');
         const symbol = this.safeSymbol(marketId, market);
         return {
@@ -6996,7 +7031,18 @@ export default class htx extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(millisecondsInterval),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**
@@ -7047,7 +7093,7 @@ export default class htx extends Exchange {
          * @description fetch the funding rate for multiple markets
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -7471,6 +7517,10 @@ export default class htx extends Exchange {
          * @method
          * @name htx#setLeverage
          * @description set the level of leverage for a market
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  // Coin-m futures
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8814,6 +8864,9 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchSettlementHistory
          * @description Fetches historical settlement records
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
          * @param {string} symbol unified symbol of the market to fetch the settlement history for
          * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
          * @param {int} [limit] page items, default 20, shall not exceed 50

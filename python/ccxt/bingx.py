@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -503,6 +503,9 @@ class bingx(Exchange, ImplicitAPI):
                     'BTC': 'BTC',
                     'LTC': 'LTC',
                 },
+                'networks': {
+                    'ARB': 'ARBITRUM',
+                },
             },
         })
 
@@ -587,7 +590,6 @@ class bingx(Exchange, ImplicitAPI):
             networkList = self.safe_list(entry, 'networkList')
             networks: dict = {}
             fee = None
-            active = None
             depositEnabled = None
             withdrawEnabled = None
             defaultLimits: dict = {}
@@ -596,8 +598,12 @@ class bingx(Exchange, ImplicitAPI):
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
                 isDefault = self.safe_bool(rawNetwork, 'isDefault')
-                depositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
-                withdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
+                networkDepositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
+                if networkDepositEnabled:
+                    depositEnabled = True
+                networkWithdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
+                if networkDepositEnabled:
+                    withdrawEnabled = True
                 limits: dict = {
                     'withdraw': {
                         'min': self.safe_number(rawNetwork, 'withdrawMin'),
@@ -606,19 +612,20 @@ class bingx(Exchange, ImplicitAPI):
                 }
                 if isDefault:
                     fee = self.safe_number(rawNetwork, 'withdrawFee')
-                    active = depositEnabled or withdrawEnabled
                     defaultLimits = limits
+                networkActive = networkDepositEnabled or networkWithdrawEnabled
                 networks[networkCode] = {
                     'info': rawNetwork,
                     'id': network,
                     'network': networkCode,
                     'fee': fee,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': networkActive,
+                    'deposit': networkDepositEnabled,
+                    'withdraw': networkWithdrawEnabled,
                     'precision': None,
                     'limits': limits,
                 }
+            active = depositEnabled or withdrawEnabled
             result[code] = {
                 'info': entry,
                 'code': code,
@@ -651,7 +658,12 @@ class bingx(Exchange, ImplicitAPI):
         #                    "maxNotional": 20000,
         #                    "status": 1,
         #                    "tickSize": 0.000001,
-        #                    "stepSize": 1
+        #                    "stepSize": 1,
+        #                    "apiStateSell": True,
+        #                    "apiStateBuy": True,
+        #                    "timeOnline": 0,
+        #                    "offTime": 0,
+        #                    "maintainTime": 0
         #                  },
         #                  ...
         #              ]
@@ -755,7 +767,7 @@ class bingx(Exchange, ImplicitAPI):
         isActive = False
         if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
             isActive = True  # swap active
-        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy'):
+        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy') and (self.safe_number(market, 'status') == 1):
             isActive = True  # spot active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
@@ -1286,7 +1298,7 @@ class bingx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(orderbook, 'T', 'ts')
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
@@ -1324,28 +1336,22 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate(data, market)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
-        fetch the current funding rate
+        fetch the current funding rate for multiple symbols
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols, 'swap', True)
         response = self.swapV2PublicGetQuotePremiumIndex(self.extend(params))
         data = self.safe_list(response, 'data', [])
-        filteredResponse = []
-        for i in range(0, len(data)):
-            item = data[i]
-            marketId = self.safe_string(item, 'symbol')
-            market = self.safe_market(marketId, None, None, 'swap')
-            if (symbols is None) or self.in_array(market['symbol'], symbols):
-                filteredResponse.append(self.parse_funding_rate(item, market))
-        return filteredResponse
+        result = self.parse_funding_rates(data)
+        return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -1375,6 +1381,7 @@ class bingx(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2450,6 +2457,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
+        :param str [params.positionSide]: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -4176,13 +4184,25 @@ class bingx(Exchange, ImplicitAPI):
         currencyId = self.safe_string(depositAddress, 'coin')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        network = self.safe_string(depositAddress, 'network')
+        # the exchange API returns deposit addresses without the leading '0x' prefix
+        # however, the exchange API does require the 0x prefix to withdraw
+        # so we append the prefix before returning the address to the user
+        # that is only if the underlying contract address has the 0x prefix
+        networkCode = self.safe_string(depositAddress, 'network')
+        if networkCode is not None:
+            if networkCode in currency['networks']:
+                network = currency['networks'][networkCode]
+                contractAddress = self.safe_string(network['info'], 'contractAddress')
+                if contractAddress is not None:
+                    if contractAddress[0] == '0' and contractAddress[1] == 'x':
+                        if address[0] != '0' or address[1] != 'x':
+                            address = '0x' + address
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         }
 
