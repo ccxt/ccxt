@@ -173,6 +173,7 @@ public partial class testMainClass : BaseTest
         var argsWithExchange = new List<object> { exchange };
         foreach (var arg in args)
         {
+            if (arg == null) continue; // skip if no arguments passed into method
             // emulate ... spread operator in c#
             if (arg.GetType() == typeof(List<object>))
             {
@@ -332,6 +333,11 @@ public partial class testMainClass : BaseTest
 
     public partial class SharedMethods
     {
-        // stub, the actual content is generated inside Generated/Exchange
+        // ast-transpiler uses "json()" method in transpiled C# content,
+        // which should pre-exist in the language-specific helpers for project
+        public object json(object a)
+        {
+            return Exchange.Json(a);
+        }     
     }
 }
