@@ -1343,6 +1343,12 @@
         }
     },
     "oxfun": {
+        "httpsProxy": "http://5.75.153.75:8911",
+        "wsProxy": "http://5.75.153.75:8911",
+        "headers": {
+            "cookie": "_cfuvid=RmpjIlkd0RGuxCjnPSYsegs5VXkhw.hWo0SMibLhZt4-1727876725478-0.0.1.1-604800000; cf_clearance=IgtQt3nVjCMH9uXTVhe6bHO4TNeTabqKz7nFeeRRew8-1727878046-1.2.1.1-AUdSPle0Bu1yRj9DOGPXuR5thq5Hk7KTqNn385DaFm7c8hl6_XzBGuKSvZVQYzOQVDPsf2kcM3gAd438IjC9DJllnDNtm3KAAS87Mz3FCJEF9b2z75z12Q..SfjYzS47.7prEDCRJ.pJMWpB42XJuTWORz.nil8y69045nTcvazwi2v_GMyffBVRWS7dR2PVMKthTE6Ql2VYkducXQ1zamAhlSPH2_WiRS6q4SANpKEVoL2RWvl.5A0To9smcHsFOcAt1Yu4WtEyBw12ZTHZp2ff85Bf.owr9OE3r.kMzZjQ3LKpsvIyhxd7HzkEJsmTtA.hw.hz7aNRxLIL8eJnStjhowmHRQiVXS1m92kt0OepO5L4Kk2G.6RDgON1A8jwovxcCiOTiiwZuAmdXThcFLSKpPs4eZ4iE6xK6UmmZT0; __cf_bm=6lA1KFW.IT.7l7Vs3ua.iqAHUcVGMd8HkWoEIYsQO9k-1727878054-1.0.1.1-nrdmfR2IQ73gVg8RWig1qn3fbvDa0JiCifdGMU0OInmyLCBuNbkuiFozBJvHXA.J69JMN9p3MsH5_c3girrgNg",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        },
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
