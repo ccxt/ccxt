@@ -162,7 +162,7 @@ export default class cube extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market: any): any {
+    parseMarket (market: Dict): Market {
         // Access assetsById and feeTablesById from this.options
         const assetsById = this.safeValue (this.options, 'assetsById', {});
         const feeTablesById = this.safeValue (this.options, 'feeTablesById', {});
@@ -1184,7 +1184,7 @@ export default class cube extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }
