@@ -42,7 +42,7 @@ if (platform === 'win32') {
 }
 
 // const GLOBAL_WRAPPER_FILE = './go/ccxt/base/Exchange.Wrappers.go';
-// const EXCHANGE_WRAPPER_FOLDER = './go/ccxt/wrappers/'
+const EXCHANGE_WRAPPER_FOLDER = './go/ccxt/'
 // const EXCHANGE_WS_WRAPPER_FOLDER = './go/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FILE = './go/ccxt/exchange_errors.go';
 const BASE_METHODS_FILE = './go/ccxt/exchange_generated.go';
@@ -50,7 +50,7 @@ const EXCHANGES_FOLDER = './go/ccxt/';
 // const EXCHANGES_WS_FOLDER = './go/ccxt/exchanges/pro/';
 // const GENERATED_TESTS_FOLDER = './go/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './go/tests/base';
-// const BASE_TESTS_FILE =  './go/tests/Generated/TestMethods.go';
+const BASE_TESTS_FILE =  './go/tests/tests.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base/';
 // const EXCHANGE_GENERATED_FOLDER = './go/tests/Generated/Exchange/';
 // const EXAMPLES_INPUT_FOLDER = './examples/ts/';
@@ -369,7 +369,7 @@ class NewTranspiler {
         return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool')
     }
 
-    convertJavascriptTypeToCsharpType(name: string, type: string, isReturn = false): string | undefined {
+    convertJavascriptTypeToGoType(name: string, type: string, isReturn = false): string | undefined {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
         if (name.startsWith('watchOrderBook')) {
@@ -377,7 +377,7 @@ class NewTranspiler {
         }
 
         if (name === 'fetchTime'){
-            return `Task<Int64>`; // custom handling for now
+            return ` <- chan int64`; // custom handling for now
         }
 
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
@@ -386,7 +386,7 @@ class NewTranspiler {
 
         function addTaskIfNeeded(type) {
             if (type == 'void') {
-                return isPromise ? `Task` : 'void';
+                return isPromise ? `<- chan` : '<- chan';
             } else if (isList) {
                 return isPromise ? `Task<List<${type}>>` : `List<${type}>`;
             }
@@ -403,7 +403,7 @@ class NewTranspiler {
         }
 
         if (wrappedType === 'string[][]') {
-            return addTaskIfNeeded('List<List<string>>');
+            return addTaskIfNeeded('[][]string');
         }
 
         // check if returns a list
@@ -414,18 +414,18 @@ class NewTranspiler {
 
         if (this.isObject(wrappedType)) {
             if (isReturn) {
-                return addTaskIfNeeded('Dictionary<string, object>');
+                return addTaskIfNeeded('map[string]interface{}');
             }
-            return addTaskIfNeeded('object');
+            return addTaskIfNeeded('interface{}');
         }
         if (this.isDictionary(wrappedType)) {
-            return addTaskIfNeeded('Dictionary<string, object>');
+            return addTaskIfNeeded('map[string]interface{}');
         }
         if (this.isStringType(wrappedType)) {
             return addTaskIfNeeded('string');
         }
         if (this.isIntegerType(wrappedType)) {
-            return addTaskIfNeeded('Int64');
+            return addTaskIfNeeded('int64');
         }
         if (this.isNumberType(wrappedType)) {
             // return addTaskIfNeeded('float');
@@ -435,7 +435,7 @@ class NewTranspiler {
             return addTaskIfNeeded('bool');
         }
         if (wrappedType === 'Strings') {
-            return addTaskIfNeeded('List<String>')
+            return addTaskIfNeeded('[]string')
         }
         if (csharpReplacements[wrappedType] !== undefined) {
             return addTaskIfNeeded(csharpReplacements[wrappedType]);
@@ -444,32 +444,33 @@ class NewTranspiler {
         if (wrappedType.startsWith('Dictionary<')) {
             let type = wrappedType.substring(11, wrappedType.length - 1);
             if (type.startsWith('Dictionary<')) {
-                type = this.convertJavascriptTypeToCsharpType(name, type) as any;
+                type = this.convertJavascriptTypeToGoType(name, type) as any;
             }
-            return addTaskIfNeeded(`Dictionary<string, ${type}>`);
+            return addTaskIfNeeded(`map[string]${type}`);
         }
 
         return addTaskIfNeeded(wrappedType);
     }
 
-    safeCsharpName(name: string): string {
-        const csharpReservedWordsReplacement = {
-            'params': 'parameters',
-            'base': 'baseArg',
-        }
-        return csharpReservedWordsReplacement[name] || name;
+    safeGoName(name: string): string {
+        return name;
+        // const csharpReservedWordsReplacement = {
+        //     'params': 'parameters',
+        //     'base': 'baseArg',
+        // }
+        // return csharpReservedWordsReplacement[name] || name;
     }
 
     convertJavascriptParamToCsharpParam(param): string | undefined {
         const name = param.name;
-        const safeName = this.safeCsharpName(name);
+        const safeName = this.safeGoName(name);
         const isOptional =  param.optional || param.initializer !== undefined;
         const op = isOptional ? '?' : '';
         let paramType: any = undefined;
         if (param.type == undefined) {
             paramType = 'object';
         } else {
-            paramType = this.convertJavascriptTypeToCsharpType(name, param.type);
+            paramType = this.convertJavascriptTypeToGoType(name, param.type);
         }
         const isNonNullableType = this.isNumberType(param.type) || this.isBooleanType(param.type) || this.isIntegerType(param.type);
         if (isNonNullableType) {
@@ -498,10 +499,10 @@ class NewTranspiler {
                         return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
                 }
             } else {
-                return `${paramType} ${safeName}`
+                return `${safeName} ${paramType}`
             }
         }
-        return `${paramType}${op} ${safeName}`
+        return `${safeName} ${paramType}`
     }
 
     shouldCreateWrapper(methodName: string, isWs = false): boolean {
@@ -568,12 +569,12 @@ class NewTranspiler {
 
         // custom handling for now
         if (methodName === 'fetchTime'){
-            return `return (Int64)res;`;
+            return `return (res).(int64)`;
         }
 
         // handle the typescript type Dict
         if (unwrappedType === 'Dict') {
-            return `return (Dictionary<string, object>)res;`;
+            return `return res.(map[string]interface{})`;
         }
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
@@ -597,7 +598,7 @@ class NewTranspiler {
             ].join("\n");
             return returnParts;
         } else {
-            returnStatement =  needsToInstantiate ? `return new ${unwrappedType}(res);` :  `return ((${unwrappedType})res);`;            ;
+            returnStatement =  needsToInstantiate ? `return Create${this.capitalize(unwrappedType)}(res)` :  `return res.(${unwrappedType})`;            ;
         }
         return returnStatement;
     }
@@ -628,23 +629,22 @@ class NewTranspiler {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
-        const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
+        const returnType = this.convertJavascriptTypeToGoType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
-        const params = methodWrapper.parameters.map(param => this.safeCsharpName(param.name)).join(', ');
+        const params = methodWrapper.parameters.map(param => this.safeGoName(param.name)).join(', ');
 
-        const one = this.inden(1);
-        const two = this.inden(2);
+        const one = this.inden(0);
+        const two = this.inden(1);
         const methodDoc = [] as any[];
         if (csharpComments[exchangeName] && csharpComments[exchangeName][methodName]) {
             methodDoc.push(csharpComments[exchangeName][methodName]);
         }
         const method = [
-            `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
-            `${one}{`,
+            `${one}func (this *${this.capitalize(exchangeName)}) ${methodNameCapitalized}(${stringArgs}) ${returnType} {`,
             this.getDefaultParamsWrappers(methodWrapper.parameters),
-            `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
+            `${two}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params});`,
             `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
         ];
@@ -663,24 +663,23 @@ class NewTranspiler {
         return res;
     }
 
-    createCSharpWrappers(exchange:string, path: string, wrappers, ws = false) {
+    createGoWrappers(exchange:string, path: string, wrappers, ws = false) {
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         // const exchangeName = ws ? exchange + 'Ws' : exchange;
-        const namespace = ws ? 'namespace ccxt.pro;' : 'namespace ccxt;';
+        const namespace = ws ? 'package ccxt.pro;' : 'package ccxt;';
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-        const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
+        // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
+        const exchangeStruct = `type ${capitizedName} struct { ${exchange} }`;
         const file = [
             namespace,
             '',
+            exchangeStruct,
+            '',
             this.createGeneratedHeader().join('\n'),
-            capitalizeStatement,
-            `public partial class ${exchange}`,
-            '{',
+            '',
             wrappersIndented,
-            '}',
-            classes
         ].join('\n')
         log.magenta ('→', (path as any).yellow)
 
@@ -980,10 +979,10 @@ class NewTranspiler {
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
-                // const transpiled = transpiledFiles[i];
-                // const exchangeName = exchanges[i].replace('.ts','');
-                // const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.go';
-                // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
+                const transpiled = transpiledFiles[i];
+                const exchangeName = exchanges[i].replace('.ts','');
+                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '_wrapper.go';
+                // this.createGoWrappers(exchangeName, path, transpiled.methodsTypes)
             }
         } else {
             //
@@ -1036,7 +1035,6 @@ class NewTranspiler {
         }
         const capitalizedClassName = className.charAt(0).toUpperCase() + className.slice(1);
         const initMethod = `
-type ${capitalizedClassName} = ${className}\n
 func (this *${className}) Init(userConfig map[string]interface{}) {
 	this.Exchange = Exchange{}
 	this.Exchange.Init(userConfig, this.Describe().(map[string]interface{}), this)
@@ -1301,9 +1299,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         ])
 
         const mainContent = ts;
-        const csharp = this.transpiler.transpileCSharp(mainContent);
+        const go = this.transpiler.transpileGo(mainContent);
         // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
-        let contentIndentend = csharp.content;
+        let contentIndentend = go.content;
 
 
         // ad-hoc fixes
@@ -1317,22 +1315,21 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         ])
 
         const file = [
-            'using ccxt;',
-            'namespace Tests;',
+            'package main',
             '',
             this.createGeneratedHeader().join('\n'),
             contentIndentend,
         ].join('\n')
 
-        overwriteFileAndFolder (files.goharpFile, file);
+        overwriteFileAndFolder (files.goFile, file);
     }
 
     transpileExchangeTests(){
         this.transpileMainTest({
             'tsFile': './ts/src/test/tests.ts',
-            'csharpFile': BASE_TESTS_FILE,
+            'goFile': BASE_TESTS_FILE,
         });
-
+        return
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
@@ -1450,7 +1447,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
     transpileTests(){
         this.transpileBaseTestsToGo();
-        // this.transpileExchangeTests();
+        this.transpileExchangeTests();
         // this.transpileWsExchangeTests();
     }
 }
