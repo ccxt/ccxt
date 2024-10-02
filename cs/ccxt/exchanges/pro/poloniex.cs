@@ -1401,7 +1401,7 @@ public partial class poloniex : ccxt.poloniex
                     ((WebSocketClient)client).reject(e, messageHash);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                     {
-
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                     }
                 } else
                 {
@@ -1435,7 +1435,7 @@ public partial class poloniex : ccxt.poloniex
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
         return message;

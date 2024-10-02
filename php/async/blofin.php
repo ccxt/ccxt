@@ -802,23 +802,16 @@ class blofin extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate" => "0.00027815",
         //        "fundingTime" => "1634256000000",
         //        "instId" => "BTC-USD-SWAP",
-        //        "instType" => "SWAP",
-        //        "nextFundingRate" => "0.00017",
-        //        "nextFundingTime" => "1634284800000"
         //    }
         //
-        // in the response above $nextFundingRate is actually two funding rates from now
-        //
-        $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         $marketId = $this->safe_string($contract, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
-        $nextFundingRate = $this->safe_number($contract, 'nextFundingRate');
         $fundingTime = $this->safe_integer($contract, 'fundingTime');
         // > The current interest is 0.
         return array(
@@ -833,16 +826,17 @@ class blofin extends Exchange {
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
             'fundingTimestamp' => $fundingTime,
             'fundingDatetime' => $this->iso8601($fundingTime),
-            'nextFundingRate' => $nextFundingRate,
-            'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -868,9 +862,6 @@ class blofin extends Exchange {
             //                "fundingRate" => "0.00027815",
             //                "fundingTime" => "1634256000000",
             //                "instId" => "BTC-USD-SWAP",
-            //                "instType" => "SWAP",
-            //                "nextFundingRate" => "0.00017",
-            //                "nextFundingTime" => "1634284800000"
             //            }
             //        ),
             //        "msg" => ""

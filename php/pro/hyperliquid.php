@@ -24,7 +24,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
-                'watchTicker' => false,
+                'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
@@ -246,6 +246,22 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $orderbook->reset ($snapshot);
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve ($orderbook, $messageHash);
+    }
+
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+            return $tickers[$symbol];
+        }) ();
     }
 
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {

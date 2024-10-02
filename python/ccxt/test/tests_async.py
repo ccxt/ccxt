@@ -3,9 +3,37 @@
 import asyncio
 
 
-from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, baseMainTestClass, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, is_null_value, close  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, ENV_VARS, NEW_LINE, LANG, EXT, ROOT_DIR, PROXY_TEST_FILE_NAME, IS_SYNCHRONOUS, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, is_null_value, close  # noqa: F401
 
-class testMainClass(baseMainTestClass):
+class testMainClass:
+    is_synchronous = IS_SYNCHRONOUS
+    id_tests = False
+    request_tests_failed = False
+    response_tests_failed = False
+    request_tests = False
+    ws_tests = False
+    response_tests = False
+    static_tests = False
+    info = False
+    verbose = False
+    debug = False
+    private_test = False
+    private_test_only = False
+    load_keys = False
+    sandbox = False
+    proxy_test_file_name = PROXY_TEST_FILE_NAME
+    only_specific_tests = []
+    skipped_settings_for_exchange = {}
+    skipped_methods = {}
+    checked_public_tests = {}
+    test_files = {}
+    public_tests = {}
+    new_line = NEW_LINE
+    root_dir = ROOT_DIR
+    env_vars = ENV_VARS
+    ext = EXT
+    lang = LANG
+
     def parse_cli_args(self):
         self.response_tests = get_cli_arg_value('--responseTests')
         self.id_tests = get_cli_arg_value('--idTests')
@@ -117,7 +145,7 @@ class testMainClass(baseMainTestClass):
         if self.load_keys:
             self.load_credentials_from_env(exchange)
         # skipped tests
-        skipped_file = self.root_dir_for_skips + 'skip-tests.json'
+        skipped_file = self.root_dir + 'skip-tests.json'
         skipped_settings = io_file_read(skipped_file)
         self.skipped_settings_for_exchange = exchange.safe_value(skipped_settings, exchange_id, {})
         skipped_settings_for_exchange = self.skipped_settings_for_exchange

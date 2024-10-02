@@ -492,7 +492,7 @@ public partial class bitfinex : ccxt.bitfinex
             object method = this.safeString(message, "event");
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
             }
         }
     }

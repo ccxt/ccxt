@@ -1561,7 +1561,7 @@ public partial class phemex : ccxt.phemex
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
         {
             object method = getValue(((WebSocketClient)client).subscriptions, id);
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             if (isTrue(!isEqual(method, true)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -1626,7 +1626,7 @@ public partial class phemex : ccxt.phemex
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
     }

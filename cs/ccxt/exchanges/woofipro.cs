@@ -779,12 +779,14 @@ public partial class woofipro : Exchange
         //            "sum_unitary_funding": 521.367
         //         }
         //
-        //
         object symbol = this.safeString(fundingRate, "symbol");
         market = this.market(symbol);
         object nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
         object estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
         object lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
+        object fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
+        object nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return new Dictionary<string, object>() {
             { "info", fundingRate },
             { "symbol", getValue(market, "symbol") },
@@ -803,7 +805,20 @@ public partial class woofipro : Exchange
             { "previousFundingRate", this.safeNumber(fundingRate, "last_funding_rate") },
             { "previousFundingTimestamp", lastFundingRateTimestamp },
             { "previousFundingDatetime", this.iso8601(lastFundingRateTimestamp) },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -848,7 +863,7 @@ public partial class woofipro : Exchange
         /**
         * @method
         * @name woofipro#fetchFundingRates
-        * @description fetch the current funding rates
+        * @description fetch the current funding rate for multiple markets
         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
         * @param {string[]} symbols unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint

@@ -2270,8 +2270,8 @@ public partial class krakenfutures : Exchange
         /**
         * @method
         * @name krakenfutures#fetchFundingRates
+        * @description fetch the current funding rates for multiple markets
         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
-        * @description fetch the current funding rates
         * @param {string[]} symbols unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2280,7 +2280,7 @@ public partial class krakenfutures : Exchange
         await this.loadMarkets();
         object marketIds = this.marketIds(symbols);
         object response = await this.publicGetTickers(parameters);
-        object tickers = this.safeValue(response, "tickers");
+        object tickers = this.safeList(response, "tickers", new List<object>() {});
         object fundingRates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -2355,6 +2355,7 @@ public partial class krakenfutures : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

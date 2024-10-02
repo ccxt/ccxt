@@ -102,7 +102,7 @@ public partial class kucoin : ccxt.kucoin
         {
             var future = this.safeValue(getValue(this.options, "urls"), connectId);
             ((Future)future).reject(e);
-
+            ((IDictionary<string,object>)getValue(this.options, "urls")).Remove((string)connectId);
         }
         return null;
     }
@@ -751,7 +751,7 @@ public partial class kucoin : ccxt.kucoin
         {
             if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 20))) && isTrue((!isEqual(limit, 100)))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 5)))))
             {
-                throw new ExchangeError ((string)add(this.id, " watchOrderBook \'limit\' argument must be undefined, 5, 20, 50 or 100")) ;
+                throw new ExchangeError ((string)add(this.id, " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100")) ;
             }
         }
         await this.loadMarkets();
@@ -1021,7 +1021,7 @@ public partial class kucoin : ccxt.kucoin
         }
         object subscriptionHash = this.safeString(((WebSocketClient)client).subscriptions, id);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, subscriptionHash);
-
+        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
         object method = this.safeValue(subscription, "method");
         if (isTrue(!isEqual(method, null)))
         {

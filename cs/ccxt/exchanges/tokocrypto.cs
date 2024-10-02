@@ -383,7 +383,7 @@ public partial class tokocrypto : Exchange
                     { "Order would immediately match and take.", typeof(OrderImmediatelyFillable) },
                     { "Account has insufficient balance for requested action.", typeof(InsufficientFunds) },
                     { "Rest API trading is not enabled.", typeof(ExchangeNotAvailable) },
-                    { "You don\'t have permission.", typeof(PermissionDenied) },
+                    { "You don't have permission.", typeof(PermissionDenied) },
                     { "Market is closed.", typeof(ExchangeNotAvailable) },
                     { "Too many requests. Please try again later.", typeof(DDoSProtection) },
                     { "This action disabled is on this account.", typeof(AccountSuspended) },

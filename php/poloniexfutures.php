@@ -1580,7 +1580,7 @@ class poloniexfutures extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
@@ -1624,7 +1624,19 @@ class poloniexfutures extends Exchange {
             'previousFundingRate' => $this->safe_number($data, 'value'),
             'previousFundingTimestamp' => $fundingTimestamp,
             'previousFundingDatetime' => $this->iso8601($fundingTimestamp),
+            'interval' => $this->parse_funding_interval($this->safe_string($data, 'interval')),
         );
+    }
+
+    public function parse_funding_interval($interval) {
+        $intervals = array(
+            '3600000' => '1h',
+            '14400000' => '4h',
+            '28800000' => '8h',
+            '57600000' => '16h',
+            '86400000' => '24h',
+        );
+        return $this->safe_string($intervals, $interval, $interval);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

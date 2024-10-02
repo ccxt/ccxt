@@ -41,6 +41,7 @@ public partial class binanceus : binance
             { "options", new Dictionary<string, object>() {
                 { "fetchMarkets", new List<object>() {"spot"} },
                 { "defaultType", "spot" },
+                { "fetchMargins", false },
                 { "quoteOrderQty", false },
             } },
             { "has", new Dictionary<string, object>() {
