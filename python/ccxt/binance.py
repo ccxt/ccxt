@@ -5595,6 +5595,8 @@ class binance(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param boolean [params.portfolioMargin]: set to True if you would like to create an order in a portfolio margin account
         :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
+        :param str [params.positionSide]: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+        :param bool [params.hedged]: *swap and portfolio margin only* True for hedged mode, False for one way mode, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -5680,9 +5682,9 @@ class binance(Exchange, ImplicitAPI):
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'createOrder', 'papi', 'portfolioMargin', False)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         if (marketType == 'margin') or (marginMode is not None) or market['option']:
             # for swap and future reduceOnly is a string that cant be sent with close position set to True or in hedge mode
-            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             params = self.omit(params, 'reduceOnly')
             if market['option']:
                 request['reduceOnly'] = reduceOnly
@@ -5883,7 +5885,13 @@ class binance(Exchange, ImplicitAPI):
         # remove timeInForce from params because PO is only used by self.is_post_only and it's not a valid value for Binance
         if self.safe_string(params, 'timeInForce') == 'PO':
             params = self.omit(params, 'timeInForce')
-        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test'])
+        hedged = self.safe_bool(params, 'hedged', False)
+        if not market['spot'] and not market['option'] and hedged:
+            if reduceOnly:
+                params = self.omit(params, 'reduceOnly')
+                side = 'sell' if (side == 'buy') else 'buy'
+            request['positionSide'] = 'LONG' if (side == 'buy') else 'SHORT'
+        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged'])
         return self.extend(request, requestParams)
 
     def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):

@@ -342,6 +342,12 @@ public partial class mexc
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap only* true for hedged mode, false for one way mode, default is false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.leverage</term>
     /// <description>
     /// int : leverage is necessary on isolated margin

@@ -2932,7 +2932,7 @@ class okx extends Exchange {
              * @param {string} [$params->positionSide] if position mode is one-way => set to 'net', if position mode is hedge-mode => set to 'long' or 'short'
              * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
              * @param {string} [$params->tpOrdKind] 'condition' or 'limit', the default is 'condition'
-             * @param {string} [$params->hedged] true/false, to automatically set exchange-specific $params needed when trading in hedge mode
+             * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());

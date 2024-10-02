@@ -648,6 +648,12 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap and future only* true for hedged mode, false for one way mode, default is false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.reduceOnly</term>
     /// <description>
     /// bool : true or false whether the order is reduce-only

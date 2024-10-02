@@ -2795,7 +2795,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.positionSide]: if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
         :param str [params.trailingPercent]: the percent to trail away from the current market price
         :param str [params.tpOrdKind]: 'condition' or 'limit', the default is 'condition'
-        :param str [params.hedged]: True/false, to automatically set exchange-specific params needed when trading in hedge mode
+        :param bool [params.hedged]: *swap and future only* True for hedged mode, False for one way mode
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()

@@ -240,6 +240,18 @@ public partial class phemex
     /// object : *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.posSide</term>
+    /// <description>
+    /// string : *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap only* true for hedged mode, false for one way mode, default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>

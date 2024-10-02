@@ -2402,6 +2402,8 @@ class phemex(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param str [params.posSide]: *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+        :param bool [params.hedged]: *swap only* True for hedged mode, False for one way mode, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2486,13 +2488,18 @@ class phemex(Exchange, ImplicitAPI):
                 amountString = self.number_to_string(amount)
                 request['baseQtyEv'] = self.to_ev(amountString, market)
         elif market['swap']:
+            hedged = self.safe_bool(params, 'hedged', False)
+            params = self.omit(params, 'hedged')
             posSide = self.safe_string_lower(params, 'posSide')
             if posSide is None:
-                posSide = 'Merged'
+                if hedged:
+                    if reduceOnly:
+                        side = 'sell' if (side == 'buy') else 'buy'
+                    posSide = 'Long' if (side == 'buy') else 'Short'
+                else:
+                    posSide = 'Merged'
             posSide = self.capitalize(posSide)
             request['posSide'] = posSide
-            if reduceOnly is not None:
-                request['reduceOnly'] = reduceOnly
             if market['settle'] == 'USDT':
                 request['orderQtyRq'] = amount
             else:

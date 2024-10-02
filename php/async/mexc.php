@@ -2157,6 +2157,7 @@ class mexc extends Exchange {
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
              * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+             * @param {bool} [$params->hedged] *swap only* true for hedged mode, false for one way mode, default is false
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {int} [$params->leverage] *contract only* leverage is necessary on isolated margin
@@ -2299,6 +2300,7 @@ class mexc extends Exchange {
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
              * @param {bool} [$params->reduceOnly] indicates if this order is to reduce the size of a position
+             * @param {bool} [$params->hedged] *swap only* true for $hedged mode, false for one way mode, default is false
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {int} [$params->leverage] $leverage is necessary on isolated margin
@@ -2374,17 +2376,29 @@ class mexc extends Exchange {
                 }
             }
             $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-            if ($reduceOnly) {
-                $request['side'] = ($side === 'buy') ? 2 : 4;
+            $hedged = $this->safe_bool($params, 'hedged', false);
+            $sideInteger = null;
+            if ($hedged) {
+                if ($reduceOnly) {
+                    $params = $this->omit($params, 'reduceOnly'); // $hedged mode does not accept this parameter
+                    $side = ($side === 'buy') ? 'sell' : 'buy';
+                }
+                $sideInteger = ($side === 'buy') ? 1 : 3;
+                $request['positionMode'] = 1;
             } else {
-                $request['side'] = ($side === 'buy') ? 1 : 3;
+                if ($reduceOnly) {
+                    $sideInteger = ($side === 'buy') ? 2 : 4;
+                } else {
+                    $sideInteger = ($side === 'buy') ? 1 : 3;
+                }
             }
+            $request['side'] = $sideInteger;
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'externalOid');
             if ($clientOrderId !== null) {
                 $request['externalOid'] = $clientOrderId;
             }
             $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice' ));
+            $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged' ));
             $response = null;
             if ($stopPrice) {
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);

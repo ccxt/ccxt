@@ -5741,6 +5741,8 @@ class binance extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to create an order in a portfolio margin account
          * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
+         * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
+         * @param {bool} [$params->hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -5836,9 +5838,9 @@ class binance extends Exchange {
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         if (($marketType === 'margin') || ($marginMode !== null) || $market['option']) {
             // for swap and future $reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
             $params = $this->omit($params, 'reduceOnly');
             if ($market['option']) {
                 $request['reduceOnly'] = $reduceOnly;
@@ -6082,7 +6084,15 @@ class binance extends Exchange {
         if ($this->safe_string($params, 'timeInForce') === 'PO') {
             $params = $this->omit($params, 'timeInForce');
         }
-        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test' ));
+        $hedged = $this->safe_bool($params, 'hedged', false);
+        if (!$market['spot'] && !$market['option'] && $hedged) {
+            if ($reduceOnly) {
+                $params = $this->omit($params, 'reduceOnly');
+                $side = ($side === 'buy') ? 'sell' : 'buy';
+            }
+            $request['positionSide'] = ($side === 'buy') ? 'LONG' : 'SHORT';
+        }
+        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged' ));
         return $this->extend($request, $requestParams);
     }
 

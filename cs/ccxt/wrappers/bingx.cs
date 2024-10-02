@@ -589,6 +589,12 @@ public partial class bingx
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.positionSide</term>
+    /// <description>
+    /// string : *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.hedged</term>
     /// <description>
     /// boolean : *swap only* whether the order is in hedged mode or one way mode

@@ -5964,6 +5964,8 @@ public partial class binance : Exchange
         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
         * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
         * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
+        * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+        * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6093,10 +6095,10 @@ public partial class binance : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if (isTrue(isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))) || isTrue(getValue(market, "option"))))
         {
             // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             parameters = this.omit(parameters, "reduceOnly");
             if (isTrue(getValue(market, "option")))
             {
@@ -6408,7 +6410,17 @@ public partial class binance : Exchange
         {
             parameters = this.omit(parameters, "timeInForce");
         }
-        object requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test"});
+        object hedged = this.safeBool(parameters, "hedged", false);
+        if (isTrue(isTrue(!isTrue(getValue(market, "spot")) && !isTrue(getValue(market, "option"))) && isTrue(hedged)))
+        {
+            if (isTrue(reduceOnly))
+            {
+                parameters = this.omit(parameters, "reduceOnly");
+                side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+            }
+            ((IDictionary<string,object>)request)["positionSide"] = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
+        }
+        object requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged"});
         return this.extend(request, requestParams);
     }
 

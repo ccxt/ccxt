@@ -2612,6 +2612,7 @@ class bingx extends bingx$1 {
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
+         * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
          * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

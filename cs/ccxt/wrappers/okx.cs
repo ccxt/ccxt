@@ -465,7 +465,7 @@ public partial class okx
     /// <item>
     /// <term>params.hedged</term>
     /// <description>
-    /// string : true/false, to automatically set exchange-specific params needed when trading in hedge mode
+    /// bool : *swap and future only* true for hedged mode, false for one way mode
     /// </description>
     /// </item>
     /// </list>

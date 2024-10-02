@@ -1992,6 +1992,7 @@ public partial class mexc : Exchange
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
         * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+        * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
         *
         * EXCHANGE SPECIFIC PARAMETERS
         * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
@@ -2159,6 +2160,7 @@ public partial class mexc : Exchange
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
         * @param {bool} [params.reduceOnly] indicates if this order is to reduce the size of a position
+        * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
         *
         * EXCHANGE SPECIFIC PARAMETERS
         * @param {int} [params.leverage] leverage is necessary on isolated margin
@@ -2230,20 +2232,35 @@ public partial class mexc : Exchange
             }
         }
         object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        if (isTrue(reduceOnly))
+        object hedged = this.safeBool(parameters, "hedged", false);
+        object sideInteger = null;
+        if (isTrue(hedged))
         {
-            ((IDictionary<string,object>)request)["side"] = ((bool) isTrue((isEqual(side, "buy")))) ? 2 : 4;
+            if (isTrue(reduceOnly))
+            {
+                parameters = this.omit(parameters, "reduceOnly"); // hedged mode does not accept this parameter
+                side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+            }
+            sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 3;
+            ((IDictionary<string,object>)request)["positionMode"] = 1;
         } else
         {
-            ((IDictionary<string,object>)request)["side"] = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 3;
+            if (isTrue(reduceOnly))
+            {
+                sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 2 : 4;
+            } else
+            {
+                sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 3;
+            }
         }
+        ((IDictionary<string,object>)request)["side"] = sideInteger;
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "externalOid");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["externalOid"] = clientOrderId;
         }
         object stopPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice"});
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"});
         object response = null;
         if (isTrue(stopPrice))
         {

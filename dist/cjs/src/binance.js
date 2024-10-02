@@ -5839,6 +5839,8 @@ class binance extends binance$1 {
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
          * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
          * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
+         * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+         * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5947,9 +5949,9 @@ class binance extends binance$1 {
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'createOrder', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
             // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            const reduceOnly = this.safeBool(params, 'reduceOnly', false);
             params = this.omit(params, 'reduceOnly');
             if (market['option']) {
                 request['reduceOnly'] = reduceOnly;
@@ -6219,7 +6221,15 @@ class binance extends binance$1 {
         if (this.safeString(params, 'timeInForce') === 'PO') {
             params = this.omit(params, 'timeInForce');
         }
-        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test']);
+        const hedged = this.safeBool(params, 'hedged', false);
+        if (!market['spot'] && !market['option'] && hedged) {
+            if (reduceOnly) {
+                params = this.omit(params, 'reduceOnly');
+                side = (side === 'buy') ? 'sell' : 'buy';
+            }
+            request['positionSide'] = (side === 'buy') ? 'LONG' : 'SHORT';
+        }
+        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged']);
         return this.extend(request, requestParams);
     }
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
