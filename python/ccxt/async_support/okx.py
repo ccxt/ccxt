@@ -4528,32 +4528,27 @@ class okx(Exchange, ImplicitAPI):
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the network name for the deposit address
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
+        await self.load_markets()
         rawNetwork = self.safe_string_upper(params, 'network')
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string(networks, rawNetwork, rawNetwork)
         params = self.omit(params, 'network')
+        code = self.safe_currency_code(code)
+        network = self.network_id_to_code(rawNetwork, code)
         response = await self.fetch_deposit_addresses_by_network(code, params)
-        result = None
-        if network is None:
-            result = self.safe_value(response, code)
+        if network is not None:
+            result = self.safe_dict(response, network)
             if result is None:
-                alias = self.safe_string(networks, code, code)
-                result = self.safe_value(response, alias)
-                if result is None:
-                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
-                    result = self.safe_value(response, defaultNetwork)
-                    if result is None:
-                        values = list(response.values())
-                        result = self.safe_value(values, 0)
-                        if result is None:
-                            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find deposit address for ' + code)
+                raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
             return result
-        result = self.safe_value(response, network)
-        if result is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
-        return result
+        codeNetwork = self.network_id_to_code(code, code)
+        if codeNetwork in response:
+            return response[codeNetwork]
+        # if the network is not specified, return the first address
+        keys = list(response.keys())
+        first = self.safe_string(keys, 0)
+        return self.safe_dict(response, first)
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """

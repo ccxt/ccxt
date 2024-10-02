@@ -4808,38 +4808,30 @@ class okx extends Exchange {
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
              * @param {string} $code unified currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->network] the $network name for the deposit address
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
+            Async\await($this->load_markets());
             $rawNetwork = $this->safe_string_upper($params, 'network');
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
             $params = $this->omit($params, 'network');
+            $code = $this->safe_currency_code($code);
+            $network = $this->network_id_to_code($rawNetwork, $code);
             $response = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
-            $result = null;
-            if ($network === null) {
-                $result = $this->safe_value($response, $code);
+            if ($network !== null) {
+                $result = $this->safe_dict($response, $network);
                 if ($result === null) {
-                    $alias = $this->safe_string($networks, $code, $code);
-                    $result = $this->safe_value($response, $alias);
-                    if ($result === null) {
-                        $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork', 'ERC20');
-                        $result = $this->safe_value($response, $defaultNetwork);
-                        if ($result === null) {
-                            $values = is_array($response) ? array_values($response) : array();
-                            $result = $this->safe_value($values, 0);
-                            if ($result === null) {
-                                throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find deposit address for ' . $code);
-                            }
-                        }
-                    }
+                    throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
                 }
                 return $result;
             }
-            $result = $this->safe_value($response, $network);
-            if ($result === null) {
-                throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
+            $codeNetwork = $this->network_id_to_code($code, $code);
+            if (is_array($response) && array_key_exists($codeNetwork, $response)) {
+                return $response[$codeNetwork];
             }
-            return $result;
+            // if the $network is not specified, return the $first address
+            $keys = is_array($response) ? array_keys($response) : array();
+            $first = $this->safe_string($keys, 0);
+            return $this->safe_dict($response, $first);
         }) ();
     }
 

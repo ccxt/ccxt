@@ -5026,45 +5026,34 @@ public partial class okx : Exchange
         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.network] the network name for the deposit address
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object rawNetwork = this.safeStringUpper(parameters, "network");
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeString(networks, rawNetwork, rawNetwork);
         parameters = this.omit(parameters, "network");
+        code = this.safeCurrencyCode(code);
+        object network = this.networkIdToCode(rawNetwork, code);
         object response = await this.fetchDepositAddressesByNetwork(code, parameters);
-        object result = null;
-        if (isTrue(isEqual(network, null)))
+        if (isTrue(!isEqual(network, null)))
         {
-            result = this.safeValue(response, code);
+            object result = this.safeDict(response, network);
             if (isTrue(isEqual(result, null)))
             {
-                object alias = this.safeString(networks, code, code);
-                result = this.safeValue(response, alias);
-                if (isTrue(isEqual(result, null)))
-                {
-                    object defaultNetwork = this.safeString(this.options, "defaultNetwork", "ERC20");
-                    result = this.safeValue(response, defaultNetwork);
-                    if (isTrue(isEqual(result, null)))
-                    {
-                        object values = new List<object>(((IDictionary<string,object>)response).Values);
-                        result = this.safeValue(values, 0);
-                        if (isTrue(isEqual(result, null)))
-                        {
-                            throw new InvalidAddress ((string)add(add(this.id, " fetchDepositAddress() cannot find deposit address for "), code)) ;
-                        }
-                    }
-                }
+                throw new InvalidAddress ((string)add(add(add(add(this.id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)) ;
             }
             return result;
         }
-        result = this.safeValue(response, network);
-        if (isTrue(isEqual(result, null)))
+        object codeNetwork = this.networkIdToCode(code, code);
+        if (isTrue(inOp(response, codeNetwork)))
         {
-            throw new InvalidAddress ((string)add(add(add(add(this.id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)) ;
+            return getValue(response, codeNetwork);
         }
-        return result;
+        // if the network is not specified, return the first address
+        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object first = this.safeString(keys, 0);
+        return this.safeDict(response, first);
     }
 
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
