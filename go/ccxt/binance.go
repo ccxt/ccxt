@@ -1164,6 +1164,8 @@ func  (this *binance) Describe() interface{}  {
                     "repay-futures-negative-balance": 150,
                     "listenKey": 1,
                     "asset-collection": 3,
+                    "margin/repay-debt": 0.4,
+                    "um/feeBurn": 1,
                 },
                 "put": map[string]interface{} {
                     "listenKey": 1,
@@ -1227,6 +1229,7 @@ func  (this *binance) Describe() interface{}  {
         "precisionMode": TICK_SIZE,
         "options": map[string]interface{} {
             "sandboxMode": false,
+            "fetchMargins": true,
             "fetchMarkets": []interface{}{"spot", "linear", "inverse"},
             "fetchCurrencies": true,
             "defaultTimeInForce": "GTC",
@@ -2810,13 +2813,12 @@ func  (this *binance) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                 }
                 AppendToArray(&fetchMarkets,typeVar)
             }
-            var fetchMargins interface{} = false
+            var fetchMargins interface{} = this.SafeBool(this.Options, "fetchMargins", false)
             for i := 0; IsLessThan(i, GetArrayLength(fetchMarkets)); i++ {
                 var marketType interface{} = GetValue(fetchMarkets, i)
                 if IsTrue(IsEqual(marketType, "spot")) {
                     AppendToArray(&promisesRaw,this.PublicGetExchangeInfo(params))
-                    if IsTrue(IsTrue(this.CheckRequiredCredentials(false)) && !IsTrue(sandboxMode)) {
-                        fetchMargins = true
+                    if IsTrue(IsTrue(IsTrue(fetchMargins) && IsTrue(this.CheckRequiredCredentials(false))) && !IsTrue(sandboxMode)) {
                         AppendToArray(&promisesRaw,this.SapiGetMarginAllPairs(params))
                         AppendToArray(&promisesRaw,this.SapiGetMarginIsolatedAllPairs(params))
                     }
@@ -2838,7 +2840,7 @@ func  (this *binance) FetchMarkets(optionalArgs ...interface{}) <- chan interfac
                 var res interface{} = this.SafeValue(results, i)
                 if IsTrue(IsTrue(fetchMargins) && IsTrue(IsArray(res))) {
                     var keysList interface{} = ObjectKeys(this.IndexBy(res, "symbol"))
-                    var length interface{} =             GetArrayLength((ObjectKeys(GetValue(this.Options, "crossMarginPairsData"))))
+                    var length interface{} =             GetArrayLength(GetValue(this.Options, "crossMarginPairsData"))
                     // first one is the cross-margin promise
                     if IsTrue(IsEqual(length, 0)) {
                         AddElementToObject(this.Options, "crossMarginPairsData", keysList)
@@ -5843,6 +5845,8 @@ func  (this *binance) CreateOrder(symbol interface{}, typeVar interface{}, side 
             * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
             * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
             * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
+            * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+            * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
             * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
             */
             price := GetArg(optionalArgs, 0, nil)
@@ -5958,9 +5962,9 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
     marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params);
     marginMode = GetValue(marginModeparamsVariable,0);
     params = GetValue(marginModeparamsVariable,1)
+    var reduceOnly interface{} = this.SafeBool(params, "reduceOnly", false)
     if IsTrue(IsTrue(IsTrue((IsEqual(marketType, "margin"))) || IsTrue((!IsEqual(marginMode, nil)))) || IsTrue(GetValue(market, "option"))) {
         // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-        var reduceOnly interface{} = this.SafeBool(params, "reduceOnly", false)
         params = this.Omit(params, "reduceOnly")
         if IsTrue(GetValue(market, "option")) {
             AddElementToObject(request, "reduceOnly", reduceOnly)
@@ -6204,7 +6208,15 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
     if IsTrue(IsEqual(this.SafeString(params, "timeInForce"), "PO")) {
         params = this.Omit(params, "timeInForce")
     }
-    var requestParams interface{} = this.Omit(params, []interface{}{"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test"})
+    var hedged interface{} = this.SafeBool(params, "hedged", false)
+    if IsTrue(IsTrue(!IsTrue(GetValue(market, "spot")) && !IsTrue(GetValue(market, "option"))) && IsTrue(hedged)) {
+        if IsTrue(reduceOnly) {
+            params = this.Omit(params, "reduceOnly")
+            side = Ternary(IsTrue((IsEqual(side, "buy"))), "sell", "buy")
+        }
+        AddElementToObject(request, "positionSide", Ternary(IsTrue((IsEqual(side, "buy"))), "LONG", "SHORT"))
+    }
+    var requestParams interface{} = this.Omit(params, []interface{}{"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged"})
     return this.Extend(request, requestParams)
 }
 func  (this *binance) CreateMarketOrderWithCost(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) <- chan interface{} {
@@ -9344,7 +9356,7 @@ func  (this *binance) FetchFundingRateHistory(optionalArgs ...interface{}) <- ch
             * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @param {int} [params.until] timestamp in ms of the latest funding rate
-            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+            * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
             * @param {string} [params.subType] "linear" or "inverse"
             * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
             */
@@ -9436,7 +9448,7 @@ func  (this *binance) FetchFundingRates(optionalArgs ...interface{}) <- chan int
             * @param {string[]|undefined} symbols list of unified market symbols
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @param {string} [params.subType] "linear" or "inverse"
-            * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+            * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
             */
             symbols := GetArg(optionalArgs, 0, nil)
             _ = symbols
@@ -9459,12 +9471,7 @@ func  (this *binance) FetchFundingRates(optionalArgs ...interface{}) <- chan int
             } else {
                 panic(NotSupported(Add(this.Id, " fetchFundingRates() supports linear and inverse contracts only")))
             }
-            var result interface{} = []interface{}{}
-            for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-                var entry interface{} = GetValue(response, i)
-                var parsed interface{} = this.ParseFundingRate(entry)
-                AppendToArray(&result,parsed)
-            }
+            var result interface{} = this.ParseFundingRates(response)
                 ch <-this.FilterByArray(result, "symbol", symbols)
         return nil
     }()
@@ -9513,6 +9520,7 @@ func  (this *binance) ParseFundingRate(contract interface{}, optionalArgs ...int
         "previousFundingRate": nil,
         "previousFundingTimestamp": nil,
         "previousFundingDatetime": nil,
+        "interval": nil,
     }
 }
 func  (this *binance) ParseAccountPositions(account interface{}, optionalArgs ...interface{}) interface{}  {
@@ -12498,10 +12506,13 @@ func  (this *binance) RepayCrossMargin(code interface{}, amount interface{}, opt
             * @description repay borrowed margin and interest
             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
             * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+            * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
             * @param {string} code unified currency code of the currency to repay
             * @param {float} amount the amount to repay
             * @param {object} [params] extra parameters specific to the exchange API endpoint
             * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
+            * @param {string} [params.repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+            * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
             * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
             */
             params := GetArg(optionalArgs, 0, map[string]interface{} {})
@@ -12518,18 +12529,20 @@ func  (this *binance) RepayCrossMargin(code interface{}, amount interface{}, opt
             isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable,0);
             params = GetValue(isPortfolioMarginparamsVariable,1)
             if IsTrue(isPortfolioMargin) {
-                response = (<-this.PapiPostRepayLoan(this.Extend(request, params)))
+                var method interface{} = nil
+                methodparamsVariable := this.HandleOptionAndParams2(params, "repayCrossMargin", "repayCrossMarginMethod", "method");
+                method = GetValue(methodparamsVariable,0);
+                params = GetValue(methodparamsVariable,1)
+                if IsTrue(IsEqual(method, "papiPostMarginRepayDebt")) {
+                    response = (<-this.PapiPostMarginRepayDebt(this.Extend(request, params)))
+                } else {
+                    response = (<-this.PapiPostRepayLoan(this.Extend(request, params)))
+                }
             } else {
                 AddElementToObject(request, "isIsolated", "FALSE")
                 AddElementToObject(request, "type", "REPAY")
                 response = (<-this.SapiPostMarginBorrowRepay(this.Extend(request, params)))
             }
-            //
-            //     {
-            //         "tranId": 108988250265,
-            //         "clientTag":""
-            //     }
-            //
                 ch <-this.ParseMarginLoan(response, currency)
         return nil
     }()
@@ -12667,15 +12680,27 @@ func  (this *binance) ParseMarginLoan(info interface{}, optionalArgs ...interfac
     //         "clientTag":""
     //     }
     //
+    // repayCrossMargin alternative endpoint
+    //
+    //     {
+    //         "asset": "USDC",
+    //         "amount": 10,
+    //         "specifyRepayAssets": null,
+    //         "updateTime": 1727170761267,
+    //         "success": true
+    //     }
+    //
     currency := GetArg(optionalArgs, 0, nil)
     _ = currency
+    var currencyId interface{} = this.SafeString(info, "asset")
+    var timestamp interface{} = this.SafeInteger(info, "updateTime")
     return map[string]interface{} {
         "id": this.SafeInteger(info, "tranId"),
-        "currency": this.SafeCurrencyCode(nil, currency),
-        "amount": nil,
+        "currency": this.SafeCurrencyCode(currencyId, currency),
+        "amount": this.SafeNumber(info, "amount"),
         "symbol": nil,
-        "timestamp": nil,
-        "datetime": nil,
+        "timestamp": timestamp,
+        "datetime": this.Iso8601(timestamp),
         "info": info,
     }
 }

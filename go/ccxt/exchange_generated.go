@@ -1566,6 +1566,9 @@ func  (this *Exchange) GetDefaultOptions() interface{}  {
             "CRO": map[string]interface{} {
                 "CRC20": "CRONOS",
             },
+            "BRC20": map[string]interface{} {
+                "BRC20": "BTC",
+            },
         },
     }
 }
@@ -7478,8 +7481,19 @@ func  (this *Exchange) FetchPaginatedCallCursor(method interface{}, optionalArgs
                                 panic("break")
                             }
                             result = this.ArrayConcat(result, response)
-                            var last interface{} = this.SafeValue(response, Subtract(responseLength, 1))
-                            cursorValue = this.SafeValue(GetValue(last, "info"), cursorReceived)
+                            var last interface{} = this.SafeDict(response, Subtract(responseLength, 1))
+                            // cursorValue = this.safeValue (last['info'], cursorReceived);
+                            cursorValue = nil // search for the cursor
+                            for j := 0; IsLessThan(j, responseLength); j++ {
+                                var index interface{} = Subtract(Subtract(responseLength, j), 1)
+                                var entry interface{} = this.SafeDict(response, index)
+                                var info interface{} = this.SafeDict(entry, "info")
+                                var cursor interface{} = this.SafeValue(info, cursorReceived)
+                                if IsTrue(!IsEqual(cursor, nil)) {
+                                    cursorValue = cursor
+                                    panic("break")
+                                }
+                            }
                             if IsTrue(IsEqual(cursorValue, nil)) {
                                 panic("break")
                             }
