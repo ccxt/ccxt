@@ -6911,11 +6911,11 @@ public partial class Exchange
     {
         if (isTrue(inOp(client.subscriptions, unsubHash)))
         {
-
+            ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
         if (isTrue(inOp(client.subscriptions, subHash)))
         {
-
+            ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
         }
         if (isTrue(inOp(client.futures, subHash)))
         {
@@ -6940,7 +6940,7 @@ public partial class Exchange
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
                 {
-
+                    ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
                 }
             }
         } else if (isTrue(isGreaterThan(symbolsLength, 0)))
@@ -6950,13 +6950,13 @@ public partial class Exchange
                 object symbol = getValue(symbols, i);
                 if (isTrue(isEqual(topic, "trades")))
                 {
-
+                    ((IDictionary<string,object>)this.trades).Remove((string)symbol);
                 } else if (isTrue(isEqual(topic, "orderbook")))
                 {
-
+                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 } else if (isTrue(isEqual(topic, "ticker")))
                 {
-
+                    ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
                 }
             }
         } else
@@ -6968,21 +6968,21 @@ public partial class Exchange
                 object keys = new List<object>(((IDictionary<string,object>)this.myTrades).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
-
+                    ((IDictionary<string,object>)this.myTrades).Remove((string)getValue(keys, i));
                 }
             } else if (isTrue(isEqual(topic, "orders")))
             {
                 object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
                 {
-
+                    ((IDictionary<string,object>)this.orders).Remove((string)getValue(orderSymbols, i));
                 }
             } else if (isTrue(isEqual(topic, "ticker")))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
                 {
-
+                    ((IDictionary<string,object>)this.tickers).Remove((string)getValue(tickerSymbols, i));
                 }
             }
         }

@@ -106,7 +106,7 @@ public partial class currencycom : ccxt.currencycom
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
     }
 
@@ -152,7 +152,7 @@ public partial class currencycom : ccxt.currencycom
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
     }

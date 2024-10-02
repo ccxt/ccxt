@@ -931,7 +931,7 @@ public partial class binance : ccxt.binance
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }
@@ -1076,8 +1076,8 @@ public partial class binance : ccxt.binance
                 }
             } catch(Exception e)
             {
-
-
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 ((WebSocketClient)client).reject(e, messageHash);
             }
         }
@@ -1096,7 +1096,7 @@ public partial class binance : ccxt.binance
             object symbol = getValue(symbols, i);
             if (isTrue(inOp(this.orderbooks, symbol)))
             {
-
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             }
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             subscription = this.extend(subscription, new Dictionary<string, object>() {

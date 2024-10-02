@@ -555,7 +555,7 @@ public partial class kucoin : Exchange
                 { "WAX", "WAXP" },
                 { "ALT", "APTOSLAUNCHTOKEN" },
                 { "KALT", "ALT" },
-                { "FUD", "FTX Users\' Debt" },
+                { "FUD", "FTX Users' Debt" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "hf", false },

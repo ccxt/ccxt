@@ -1874,7 +1874,7 @@ public partial class coinbaseexchange : Exchange
         object account = this.safeValue(getValue(this.options, "coinbaseAccountsByCurrencyId"), currencyId);
         if (isTrue(isEqual(account, null)))
         {
-            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options[\'coinbaseAccountsByCurrencyId\']")) ;
+            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")) ;
         }
         object request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },

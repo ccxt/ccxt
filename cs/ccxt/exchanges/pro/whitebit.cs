@@ -894,7 +894,7 @@ public partial class whitebit : ccxt.whitebit
                 };
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
                 }
                 return await this.watch(url, messageHash, resubRequest, method, subscription);
             }
@@ -951,7 +951,7 @@ public partial class whitebit : ccxt.whitebit
                 await this.watch(url, messageHash, request, messageHash, subscription);
             } catch(Exception e)
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 ((Future)future).reject(e);
             }
         }
@@ -993,7 +993,7 @@ public partial class whitebit : ccxt.whitebit
                 ((WebSocketClient)client).reject(e, "authenticated");
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, "authenticated")))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
                 }
                 return false;
             }

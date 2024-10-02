@@ -3247,7 +3247,7 @@ public partial class hyperliquid : Exchange
         {
             return new List<object>() {this.walletAddress, parameters};
         }
-        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside \'params\' or the wallet address set")) ;
+        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside 'params' or the wallet address set")) ;
     }
 
     public virtual object coinToMarketId(object coin)

@@ -445,7 +445,7 @@ public partial class bitstamp : Exchange
                     { "Please update your profile with your FATCA information, before using API.", typeof(PermissionDenied) },
                     { "Order not found.", typeof(OrderNotFound) },
                     { "Price is more than 20% below market price.", typeof(InvalidOrder) },
-                    { "Bitstamp.net is under scheduled maintenance. We\'ll be back soon.", typeof(OnMaintenance) },
+                    { "Bitstamp.net is under scheduled maintenance. We'll be back soon.", typeof(OnMaintenance) },
                     { "Order could not be placed.", typeof(ExchangeNotAvailable) },
                     { "Invalid offset.", typeof(BadRequest) },
                 } },

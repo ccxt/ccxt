@@ -2325,7 +2325,7 @@ public partial class binance : Exchange
                     { "Account has insufficient balance for requested action.", typeof(InsufficientFunds) },
                     { "Rest API trading is not enabled.", typeof(PermissionDenied) },
                     { "This account may not place or cancel orders.", typeof(PermissionDenied) },
-                    { "You don\'t have permission.", typeof(PermissionDenied) },
+                    { "You don't have permission.", typeof(PermissionDenied) },
                     { "Market is closed.", typeof(MarketClosed) },
                     { "Too many requests. Please try again later.", typeof(RateLimitExceeded) },
                     { "This action is disabled on this account.", typeof(AccountSuspended) },

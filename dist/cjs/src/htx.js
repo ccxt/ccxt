@@ -4379,7 +4379,7 @@ class htx extends htx$1 {
                 await this.loadAccounts();
                 for (let i = 0; i < this.accounts.length; i++) {
                     const account = this.accounts[i];
-                    if (account['type'] === 'spot') {
+                    if (this.safeString(account, 'type') === 'spot') {
                         accountId = this.safeString(account, 'id');
                         if (accountId !== undefined) {
                             break;
@@ -5071,7 +5071,7 @@ class htx extends htx$1 {
         }
         else {
             amount = this.safeString2(order, 'volume', 'amount');
-            cost = this.safeStringN(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover']); // same typo
+            cost = this.safeStringN(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover']); // same typo here
         }
         const filled = this.safeStringN(order, ['filled-amount', 'field-amount', 'trade_volume']); // typo in their API, filled amount
         const price = this.safeString2(order, 'price', 'order_price');
