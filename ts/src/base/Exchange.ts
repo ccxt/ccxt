@@ -3615,6 +3615,8 @@ export default class Exchange {
             'baseVolume': this.parseNumber (baseVolume),
             'quoteVolume': this.parseNumber (quoteVolume),
             'previousClose': this.safeNumber (ticker, 'previousClose'),
+            'indexPrice': this.safeNumber (ticker, 'indexPrice'),
+            'markPrice': this.safeNumber (ticker, 'markPrice'),
         });
     }
 
