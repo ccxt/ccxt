@@ -879,7 +879,12 @@
                 "description": "spot orders with clientOrderId",
                 "method": "fetchOpenOrders",
                 "input": [
-                  "LTC/USDT"
+                  "LTC/USDT",
+                  null,
+                  null,
+                  {
+                    "account-id": "myaccount"
+                  }
                 ],
                 "httpResponse": {
                   "status": "ok",
