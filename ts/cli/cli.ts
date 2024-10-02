@@ -9,28 +9,26 @@ import { Agent } from 'https'
 const fsPromises = fs.promises;
 
 // #################################################################
-// ########### https://www.npmjs.com/package/yoctocolors ###########
+// ########### adopted from npmjs.com/package/yoctocolors ###########
 // #################################################################
-const format = (open, close) => {
-	const openCode = `\u001B[${open}m`, closeCode = `\u001B[${close}m`;
-	return input => {
-		const string = input + ''; 
-		let index = string.indexOf(closeCode);
-		if (index === -1) { return openCode + string + closeCode; }
-        return openCode + string.replaceAll(closeCode, openCode) + closeCode;
-	};
+
+const colorString = () => {
+    const f = (open, close) => {
+        const o = `\u001B[${open}m`, c = `\u001B[${close}m`;
+        return str => { str = str + ''; return !str.includes(c) ? o + str + c : o + str.replaceAll(c, o) + c; };
+    }
+    return {
+        reset:  f(0, 0),
+        bold:  f(1, 22), dim:  f(2, 22), italic:  f(3, 23), underline:  f(4, 24), overline:  f(53, 55), inverse:  f(7, 27), hidden:  f(8, 28), strikethrough:  f(9, 29),
+        black:  f(30, 39), red:  f(31, 39), green:  f(32, 39), yellow:  f(33, 39), blue:  f(34, 39), magenta:  f(35, 39), cyan:  f(36, 39), white:  f(37, 39), gray:  f(90, 39),
+        bgBlack:  f(40, 49), bgRed:  f(41, 49), bgGreen:  f(42, 49), bgYellow:  f(43, 49), bgBlue:  f(44, 49), bgMagenta:  f(45, 49), bgCyan:  f(46, 49), bgWhite:  f(47, 49), bgGray:  f(100, 49),
+        redBright:  f(91, 39), greenBright:  f(92, 39), yellowBright:  f(93, 39), blueBright:  f(94, 39), magentaBright:  f(95, 39), cyanBright:  f(96, 39), whiteBright:  f(97, 39),
+        bgRedBright:  f(101, 49), bgGreenBright:  f(102, 49), bgYellowBright:  f(103, 49), bgBlueBright:  f(104, 49), bgMagentaBright:  f(105, 49), bgCyanBright:  f(106, 49), bgWhiteBright:  f(107, 49)
+    }
 };
-const colorString = {
-    reset:  format(0, 0),
-    bold:  format(1, 22), dim:  format(2, 22), italic:  format(3, 23), underline:  format(4, 24), overline:  format(53, 55), inverse:  format(7, 27), hidden:  format(8, 28), strikethrough:  format(9, 29),
-    black:  format(30, 39), red:  format(31, 39), green:  format(32, 39), yellow:  format(33, 39), blue:  format(34, 39), magenta:  format(35, 39), cyan:  format(36, 39), white:  format(37, 39), gray:  format(90, 39),
-    bgBlack:  format(40, 49), bgRed:  format(41, 49), bgGreen:  format(42, 49), bgYellow:  format(43, 49), bgBlue:  format(44, 49), bgMagenta:  format(45, 49), bgCyan:  format(46, 49), bgWhite:  format(47, 49), bgGray:  format(100, 49),
-    redBright:  format(91, 39), greenBright:  format(92, 39), yellowBright:  format(93, 39), blueBright:  format(94, 39), magentaBright:  format(95, 39), cyanBright:  format(96, 39), whiteBright:  format(97, 39),
-    bgRedBright:  format(101, 49), bgGreenBright:  format(102, 49), bgYellowBright:  format(103, 49), bgBlueBright:  format(104, 49), bgMagentaBright:  format(105, 49), bgCyanBright:  format(106, 49), bgWhiteBright:  format(107, 49)
-};
-for (const key of Object.keys(colorString)) {
+for (const [key,value] of Object.entries(colorString())) {
     String.prototype.__defineGetter__(key, function(){
-        return colorString[key](this);
+        return value(this);
     });
 }
 // #################################################################
