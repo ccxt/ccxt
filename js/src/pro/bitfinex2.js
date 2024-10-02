@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import bitfinex2Rest from '../bitfinex2.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
+import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
@@ -20,6 +20,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 'watchTickers': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
@@ -37,9 +38,9 @@ export default class bitfinex2 extends bitfinex2Rest {
                 'watchOrderBook': {
                     'prec': 'P0',
                     'freq': 'F0',
+                    'checksum': true,
                 },
                 'ordersLimit': 1000,
-                'checksum': true,
             },
         });
     }
@@ -213,7 +214,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let messageHash = 'myTrade';
@@ -580,8 +581,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const prec = this.safeString(subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
         // if it is an initial snapshot
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger(subscription, 'len');
             if (isRaw) {
                 // raw order books
@@ -591,7 +591,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 // P0, P1, P2, P3, P4
                 this.orderbooks[symbol] = this.countedOrderBook({}, limit);
             }
-            orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
@@ -602,7 +602,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                     const bookside = orderbook[side];
                     const idString = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    bookside.store(price, size, idString);
+                    bookside.storeArray([price, size, idString]);
                 }
             }
             else {
@@ -615,13 +615,14 @@ export default class bitfinex2 extends bitfinex2Rest {
                     const size = (amount < 0) ? -amount : amount;
                     const side = (amount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    bookside.store(price, size, counter);
+                    bookside.storeArray([price, size, counter]);
                 }
             }
             orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else {
+            const orderbook = this.orderbooks[symbol];
             const deltas = message[1];
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
@@ -633,7 +634,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt(price, '0') ? size : '0';
                 const idString = this.safeString(deltas, 0);
-                bookside.store(this.parseNumber(price), this.parseNumber(amount), idString);
+                bookside.storeArray([this.parseNumber(price), this.parseNumber(amount), idString]);
             }
             else {
                 const amount = this.safeString(deltas, 2);
@@ -642,7 +643,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const size = Precise.stringLt(amount, '0') ? Precise.stringNeg(amount) : amount;
                 const side = Precise.stringLt(amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbookItem[side];
-                bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
+                bookside.storeArray([this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)]);
             }
             client.resolve(orderbook, messageHash);
         }
@@ -684,8 +685,13 @@ export default class bitfinex2 extends bitfinex2Rest {
         const localChecksum = this.crc32(payload, true);
         const responseChecksum = this.safeInteger(message, 2);
         if (responseChecksum !== localChecksum) {
-            const error = new InvalidNonce(this.id + ' invalid checksum');
-            client.reject(error, messageHash);
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                client.reject(error, messageHash);
+            }
         }
     }
     async watchBalance(params = {}) {
@@ -892,7 +898,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let messageHash = 'orders';

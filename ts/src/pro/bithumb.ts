@@ -3,7 +3,7 @@
 
 import bithumbRest from '../bithumb.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Ticker, Trade, Strings, Tickers } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -37,6 +37,7 @@ export default class bithumb extends bithumbRest {
          * @method
          * @name bithumb#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
@@ -46,7 +47,7 @@ export default class bithumb extends bithumbRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        const request = {
+        const request: Dict = {
             'type': 'ticker',
             'symbols': [ market['base'] + '_' + market['quote'] ],
             'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
@@ -57,8 +58,9 @@ export default class bithumb extends bithumbRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name binance#watchTickers
+         * @name bithumb#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -74,7 +76,7 @@ export default class bithumb extends bithumbRest {
             marketIds.push (market['base'] + '_' + market['quote']);
             messageHashes.push ('ticker:' + market['symbol']);
         }
-        const request = {
+        const request: Dict = {
             'type': 'ticker',
             'symbols': marketIds,
             'tickTypes': [ this.safeString (params, 'tickTypes', '24H') ],
@@ -82,7 +84,7 @@ export default class bithumb extends bithumbRest {
         const message = this.extend (request, params);
         const newTicker = await this.watchMultiple (url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[newTicker['symbol']] = newTicker;
             return result;
         }
@@ -175,6 +177,7 @@ export default class bithumb extends bithumbRest {
         /**
          * @method
          * @name bithumb#watchOrderBook
+         * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -186,7 +189,7 @@ export default class bithumb extends bithumbRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
-        const request = {
+        const request: Dict = {
             'type': 'orderbookdepth',
             'symbols': [ market['base'] + '_' + market['quote'] ],
         };
@@ -266,6 +269,7 @@ export default class bithumb extends bithumbRest {
          * @method
          * @name bithumb#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -277,7 +281,7 @@ export default class bithumb extends bithumbRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
-        const request = {
+        const request: Dict = {
             'type': 'transaction',
             'symbols': [ market['base'] + '_' + market['quote'] ],
         };
@@ -387,7 +391,7 @@ export default class bithumb extends bithumbRest {
         }
         const topic = this.safeString (message, 'type');
         if (topic !== undefined) {
-            const methods = {
+            const methods: Dict = {
                 'ticker': this.handleTicker,
                 'orderbookdepth': this.handleOrderBook,
                 'transaction': this.handleTrades,

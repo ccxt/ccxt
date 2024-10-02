@@ -651,7 +651,7 @@ public partial class bitbank : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -693,8 +693,31 @@ public partial class bitbank : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.privatePostUserSpotCancelOrder(this.extend(request, parameters));
+        //
+        //    {
+        //        "success": 1,
+        //        "data": {
+        //            "order_id": 0,
+        //            "pair": "string",
+        //            "side": "string",
+        //            "type": "string",
+        //            "start_amount": "string",
+        //            "remaining_amount": "string",
+        //            "executed_amount": "string",
+        //            "price": "string",
+        //            "post_only": false,
+        //            "average_price": "string",
+        //            "ordered_at": 0,
+        //            "expire_at": 0,
+        //            "canceled_at": 0,
+        //            "triggered_at": 0,
+        //            "trigger_price": "string",
+        //            "status": "string"
+        //        }
+        //    }
+        //
         object data = this.safeValue(response, "data");
-        return data;
+        return this.parseOrder(data);
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -704,6 +727,7 @@ public partial class bitbank : Exchange
         * @name bitbank#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -716,6 +740,28 @@ public partial class bitbank : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.privateGetUserSpotOrder(this.extend(request, parameters));
+        //
+        //    {
+        //        "success": 1,
+        //        "data": {
+        //          "order_id": 0,
+        //          "pair": "string",
+        //          "side": "string",
+        //          "type": "string",
+        //          "start_amount": "string",
+        //          "remaining_amount": "string",
+        //          "executed_amount": "string",
+        //          "price": "string",
+        //          "post_only": false,
+        //          "average_price": "string",
+        //          "ordered_at": 0,
+        //          "expire_at": 0,
+        //          "triggered_at": 0,
+        //          "triger_price": "string",
+        //          "status": "string"
+        //        }
+        //    }
+        //
         object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);
     }

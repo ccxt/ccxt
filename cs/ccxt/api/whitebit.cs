@@ -436,4 +436,49 @@ public partial class whitebit : Exchange
         return await this.callAsync ("v4PrivatePostConvertHistory",parameters);
     }
 
+    public async Task<object> v4PrivatePostSubAccountCreate (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountCreate",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountDelete (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountDelete",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountEdit (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountEdit",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountList (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountList",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountTransfer (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountTransfer",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountBlock (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountBlock",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountUnblock (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountUnblock",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountBalances (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountBalances",parameters);
+    }
+
+    public async Task<object> v4PrivatePostSubAccountTransferHistory (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostSubAccountTransferHistory",parameters);
+    }
+
 }

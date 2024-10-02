@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Transaction, Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees } from './base/types.js';
+import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -239,6 +239,7 @@ export default class yobit extends Exchange {
                 'XIN': 'XINCoin',
                 'XMT': 'SummitCoin',
                 'XRA': 'Ratecoin',
+                'BCHN': 'BSV',
             },
             'options': {
                 'maxUrlLength': 2048,
@@ -289,7 +290,7 @@ export default class yobit extends Exchange {
     parseBalance (response): Balances {
         const balances = this.safeDict (response, 'return', {});
         const timestamp = this.safeInteger (balances, 'server_time');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -458,7 +459,7 @@ export default class yobit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (limit !== undefined) {
@@ -497,7 +498,7 @@ export default class yobit extends Exchange {
             ids = this.marketIds (symbols);
             ids = ids.join ('-');
         }
-        const request = {
+        const request: Dict = {
             'pair': ids,
             // 'ignore_invalid': true,
         };
@@ -505,7 +506,7 @@ export default class yobit extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetDepthPair (this.extend (request, params));
-        const result = {};
+        const result: Dict = {};
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -515,7 +516,7 @@ export default class yobit extends Exchange {
         return result as Dictionary<OrderBook>;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "high": 0.03497582,
@@ -555,41 +556,12 @@ export default class yobit extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name yobit#fetchTickers
-         * @see https://yobit.net/en/api
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() requires "symbols" argument');
-        }
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        let ids = undefined;
-        if (symbols === undefined) {
-            ids = this.ids;
-        } else {
-            ids = this.marketIds (symbols);
-        }
-        const idsLength = ids.length;
-        const idsString = ids.join ('-');
-        const maxLength = this.safeInteger (this.options, 'maxUrlLength', 2048);
-        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-        const lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
-        const actualLength = idsString.length + lenghtOfBaseUrl;
-        if (actualLength > maxLength) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() is being requested for ' + idsLength.toString () + ' markets (which has an URL length of ' + actualLength.toString () + ' characters), but it exceedes max URL length (' + maxLength.toString () + '), please pass limisted symbols array to fetchTickers to fit in one request');
-        }
-        const request = {
+    async fetchTickersHelper (idsString: string, params = {}): Promise<Tickers> {
+        const request: Dict = {
             'pair': idsString,
         };
         const tickers = await this.publicGetTickerPair (this.extend (request, params));
-        const result = {};
+        const result: Dict = {};
         const keys = Object.keys (tickers);
         for (let k = 0; k < keys.length; k++) {
             const id = keys[k];
@@ -598,7 +570,63 @@ export default class yobit extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return result;
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name yobit#fetchTickers
+         * @see https://yobit.net/en/api
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        let allSymbols = undefined;
+        [ allSymbols, params ] = this.handleParamBool (params, 'all', false);
+        if (symbols === undefined && !allSymbols) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires "symbols" argument or use `params["all"] = true` to send multiple requests for all markets');
+        }
+        await this.loadMarkets ();
+        const promises = [];
+        const maxLength = this.safeInteger (this.options, 'maxUrlLength', 2048);
+        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        const lenghtOfBaseUrl = 40; // safe space for the url including api-base and endpoint dir is 30 chars
+        if (allSymbols) {
+            symbols = this.symbols;
+            let ids = '';
+            for (let i = 0; i < this.ids.length; i++) {
+                const id = this.ids[i];
+                const prefix = (ids === '') ? '' : '-';
+                ids += prefix + id;
+                if (ids.length > maxLength) {
+                    promises.push (this.fetchTickersHelper (ids, params));
+                    ids = '';
+                }
+            }
+            if (ids !== '') {
+                promises.push (this.fetchTickersHelper (ids, params));
+            }
+        } else {
+            symbols = this.marketSymbols (symbols);
+            const ids = this.marketIds (symbols);
+            const idsLength: number = ids.length;
+            const idsString = ids.join ('-');
+            const actualLength = idsString.length + lenghtOfBaseUrl;
+            if (actualLength > maxLength) {
+                throw new ArgumentsRequired (this.id + ' fetchTickers() is being requested for ' + idsLength.toString () + ' markets (which has an URL length of ' + actualLength.toString () + ' characters), but it exceedes max URL length (' + maxLength.toString () + '), please pass limisted symbols array to fetchTickers to fit in one request');
+            }
+            promises.push (this.fetchTickersHelper (idsString, params));
+        }
+        const resultAll = await Promise.all (promises);
+        let finalResult = {};
+        for (let i = 0; i < resultAll.length; i++) {
+            const result = this.filterByArrayTickers (resultAll[i], 'symbol', symbols);
+            finalResult = this.extend (finalResult, result);
+        }
+        return finalResult;
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -615,7 +643,7 @@ export default class yobit extends Exchange {
         return tickers[symbol] as Ticker;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -708,7 +736,7 @@ export default class yobit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
         };
         if (limit !== undefined) {
@@ -770,7 +798,7 @@ export default class yobit extends Exchange {
         //
         const pairs = this.safeDict (response, 'pairs', {});
         const marketIds = Object.keys (pairs);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const pair = this.safeDict (pairs, marketId, {});
@@ -801,7 +829,7 @@ export default class yobit extends Exchange {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -810,7 +838,7 @@ export default class yobit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'pair': market['id'],
             'type': side,
             'amount': this.amountToPrecision (symbol, amount),
@@ -854,7 +882,7 @@ export default class yobit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': parseInt (id),
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
@@ -881,8 +909,8 @@ export default class yobit extends Exchange {
         return this.parseOrder (result);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             '0': 'open',
             '1': 'closed',
             '2': 'canceled',
@@ -891,7 +919,7 @@ export default class yobit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder (private)
         //
@@ -1006,7 +1034,7 @@ export default class yobit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': parseInt (id),
         };
         const response = await this.privatePostOrderInfo (this.extend (request, params));
@@ -1047,7 +1075,7 @@ export default class yobit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const market = undefined;
         if (symbol !== undefined) {
             const marketInner = this.market (symbol);
@@ -1099,7 +1127,7 @@ export default class yobit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // some derived classes use camelcase notation for request fields
-        const request = {
+        const request: Dict = {
             // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
             // 'count': 1000, // the number of trades for display numerical, default = 1000
             // 'from_id': trade ID, from which the display starts numerical 0
@@ -1155,7 +1183,7 @@ export default class yobit extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        const request = {
+        const request: Dict = {
             'need_new': 1,
         };
         const response = await this.fetchDepositAddress (code, this.extend (request, params));
@@ -1191,7 +1219,7 @@ export default class yobit extends Exchange {
             }
             params = this.omit (params, 'network');
         }
-        const request = {
+        const request: Dict = {
             'coinName': currencyId,
             'need_new': 0,
         };
@@ -1242,7 +1270,7 @@ export default class yobit extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coinName': currency['id'],
             'amount': amount,
             'address': address,
@@ -1318,7 +1346,7 @@ export default class yobit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

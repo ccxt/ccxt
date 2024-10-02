@@ -91,8 +91,8 @@ class cryptocom extends cryptocom$1 {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
@@ -102,6 +102,7 @@ class cryptocom extends cryptocom$1 {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -137,7 +138,7 @@ class cryptocom extends cryptocom$1 {
                 'www': 'https://crypto.com/',
                 'referral': {
                     'url': 'https://crypto.com/exch/kdacthrnxt',
-                    'discount': 0.15,
+                    'discount': 0.75,
                 },
                 'doc': [
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
@@ -159,6 +160,9 @@ class cryptocom extends cryptocom$1 {
                             'public/get-valuations': 1,
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
+                        },
+                        'post': {
+                            'public/staking/get-conversion-rate': 2,
                         },
                     },
                     'private': {
@@ -189,6 +193,18 @@ class cryptocom extends cryptocom$1 {
                             'private/get-accounts': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
+                            'private/get-fee-rate': 2,
+                            'private/get-instrument-fee-rate': 2,
+                            'private/staking/stake': 2,
+                            'private/staking/unstake': 2,
+                            'private/staking/get-staking-position': 2,
+                            'private/staking/get-staking-instruments': 2,
+                            'private/staking/get-open-stake': 2,
+                            'private/staking/get-stake-history': 2,
+                            'private/staking/get-reward-history': 2,
+                            'private/staking/convert': 2,
+                            'private/staking/get-open-convert': 2,
+                            'private/staking/get-convert-history': 2,
                         },
                     },
                 },
@@ -372,7 +388,15 @@ class cryptocom extends cryptocom$1 {
                     '40006': errors.BadRequest,
                     '40007': errors.BadRequest,
                     '40101': errors.AuthenticationError,
-                    '50001': errors.BadRequest,
+                    '40102': errors.InvalidNonce,
+                    '40103': errors.AuthenticationError,
+                    '40104': errors.AuthenticationError,
+                    '40107': errors.BadRequest,
+                    '40401': errors.OrderNotFound,
+                    '40801': errors.RequestTimeout,
+                    '42901': errors.RateLimitExceeded,
+                    '43005': errors.InvalidOrder,
+                    '50001': errors.ExchangeError,
                     '9010001': errors.OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
                 'broad': {},
@@ -496,7 +520,8 @@ class cryptocom extends cryptocom$1 {
             const strike = this.safeString(market, 'strike');
             const marginBuyEnabled = this.safeValue(market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeValue(market, 'margin_sell_enabled');
-            const expiry = this.omitZero(this.safeInteger(market, 'expiry_timestamp_ms'));
+            const expiryString = this.omitZero(this.safeString(market, 'expiry_timestamp_ms'));
+            const expiry = (expiryString !== undefined) ? parseInt(expiryString) : undefined;
             let symbol = base + '/' + quote;
             let type = undefined;
             let contract = undefined;
@@ -577,7 +602,7 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
          * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -812,15 +837,26 @@ class cryptocom extends cryptocom$1 {
             'instrument_name': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
         if (limit !== undefined) {
+            if (limit > 300) {
+                limit = 300;
+            }
             request['count'] = limit;
         }
-        const until = this.safeInteger(params, 'until');
+        const now = this.microseconds();
+        const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until', now);
         params = this.omit(params, ['until']);
-        if (until !== undefined) {
+        if (since !== undefined) {
+            request['start_ts'] = since - duration * 1000;
+            if (limit !== undefined) {
+                request['end_ts'] = this.sum(since, duration * limit * 1000);
+            }
+            else {
+                request['end_ts'] = until;
+            }
+        }
+        else {
             request['end_ts'] = until;
         }
         const response = await this.v1PublicGetPublicGetCandlestick(this.extend(request, params));
@@ -1143,7 +1179,7 @@ class cryptocom extends cryptocom$1 {
          * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
@@ -1473,7 +1509,7 @@ class cryptocom extends cryptocom$1 {
          * @name cryptocom#cancelOrdersForSymbols
          * @description cancel multiple orders for multiple symbols
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
-         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1760,6 +1796,7 @@ class cryptocom extends cryptocom$1 {
          * @method
          * @name cryptocom#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1774,18 +1811,6 @@ class cryptocom extends cryptocom$1 {
             const keys = Object.keys(depositAddresses);
             return depositAddresses[keys[0]];
         }
-    }
-    safeNetwork(networkId) {
-        const networksById = {
-            'BTC': 'BTC',
-            'ETH': 'ETH',
-            'SOL': 'SOL',
-            'BNB': 'BNB',
-            'CRONOS': 'CRONOS',
-            'MATIC': 'MATIC',
-            'OP': 'OP',
-        };
-        return this.safeString(networksById, networkId, networkId);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -2368,7 +2393,7 @@ class cryptocom extends cryptocom$1 {
          * @name cryptocom#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2449,6 +2474,8 @@ class cryptocom extends cryptocom$1 {
         //
         const timestamp = this.safeInteger(item, 'event_timestamp_ms');
         const currencyId = this.safeString(item, 'instrument_name');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         let amount = this.safeString(item, 'transaction_qty');
         let direction = undefined;
         if (Precise["default"].stringLt(amount, '0')) {
@@ -2458,14 +2485,15 @@ class cryptocom extends cryptocom$1 {
         else {
             direction = 'in';
         }
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'order_id'),
             'direction': direction,
             'account': this.safeString(item, 'account_id'),
             'referenceId': this.safeString(item, 'trade_id'),
             'referenceAccount': this.safeString(item, 'trade_match_id'),
             'type': this.parseLedgerEntryType(this.safeString(item, 'journal_type')),
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': code,
             'amount': this.parseNumber(amount),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -2476,8 +2504,7 @@ class cryptocom extends cryptocom$1 {
                 'currency': undefined,
                 'cost': undefined,
             },
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {
@@ -2984,6 +3011,119 @@ class cryptocom extends cryptocom$1 {
         //
         const result = this.safeDict(response, 'result');
         return this.parseOrder(result, market);
+    }
+    async fetchTradingFee(symbol, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.v1PrivatePostPrivateGetInstrumentFeeRate(this.extend(request, params));
+        //
+        //    {
+        //        "id": 1,
+        //        "code": 0,
+        //        "method": "private/staking/unstake",
+        //        "result": {
+        //          "staking_id": "1",
+        //          "instrument_name": "SOL.staked",
+        //          "status": "NEW",
+        //          "quantity": "1",
+        //          "underlying_inst_name": "SOL",
+        //          "reason": "NO_ERROR"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'result', {});
+        return this.parseTradingFee(data, market);
+    }
+    async fetchTradingFees(params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchTradingFees
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+         * @description fetch the trading fees for multiple markets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        const response = await this.v1PrivatePostPrivateGetFeeRate(params);
+        //
+        //   {
+        //       "id": 1,
+        //       "method": "/private/get-fee-rate",
+        //       "code": 0,
+        //       "result": {
+        //         "spot_tier": "3",
+        //         "deriv_tier": "3",
+        //         "effective_spot_maker_rate_bps": "6.5",
+        //         "effective_spot_taker_rate_bps": "6.9",
+        //         "effective_deriv_maker_rate_bps": "1.1",
+        //         "effective_deriv_taker_rate_bps": "3"
+        //       }
+        //   }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseTradingFees(result);
+    }
+    parseTradingFees(response) {
+        //
+        // {
+        //         "spot_tier": "3",
+        //         "deriv_tier": "3",
+        //         "effective_spot_maker_rate_bps": "6.5",
+        //         "effective_spot_taker_rate_bps": "6.9",
+        //         "effective_deriv_maker_rate_bps": "1.1",
+        //         "effective_deriv_taker_rate_bps": "3"
+        //  }
+        //
+        const result = {};
+        result['info'] = response;
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market(symbol);
+            const isSwap = market['swap'];
+            const takerFeeKey = isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
+            const makerFeeKey = isSwap ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            const tradingFee = {
+                'info': response,
+                'symbol': symbol,
+                'maker': this.parseNumber(Precise["default"].stringDiv(this.safeString(response, makerFeeKey), '10000')),
+                'taker': this.parseNumber(Precise["default"].stringDiv(this.safeString(response, takerFeeKey), '10000')),
+                'percentage': undefined,
+                'tierBased': undefined,
+            };
+            result[symbol] = tradingFee;
+        }
+        return result;
+    }
+    parseTradingFee(fee, market = undefined) {
+        //
+        // {
+        //      "instrument_name": "BTC_USD",
+        //      "effective_maker_rate_bps": "6.5",
+        //      "effective_taker_rate_bps": "6.9"
+        // }
+        //
+        const marketId = this.safeString(fee, 'instrument_name');
+        const symbol = this.safeSymbol(marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.parseNumber(Precise["default"].stringDiv(this.safeString(fee, 'effective_maker_rate_bps'), '10000')),
+            'taker': this.parseNumber(Precise["default"].stringDiv(this.safeString(fee, 'effective_taker_rate_bps'), '10000')),
+            'percentage': undefined,
+            'tierBased': undefined,
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString(api, 0);

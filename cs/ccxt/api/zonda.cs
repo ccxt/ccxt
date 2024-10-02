@@ -171,6 +171,26 @@ public partial class zonda : Exchange
         return await this.callAsync ("v1_01PrivateGetFiatCantorHistory",parameters);
     }
 
+    public async Task<object> v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsDeposit (object parameters = null)
+    {
+        return await this.callAsync ("v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsDeposit",parameters);
+    }
+
+    public async Task<object> v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("v1_01PrivateGetClientPaymentsV2CustomerCryptoCurrencyChannelsWithdrawal",parameters);
+    }
+
+    public async Task<object> v1_01PrivateGetClientPaymentsV2CustomerCryptoDepositFee (object parameters = null)
+    {
+        return await this.callAsync ("v1_01PrivateGetClientPaymentsV2CustomerCryptoDepositFee",parameters);
+    }
+
+    public async Task<object> v1_01PrivateGetClientPaymentsV2CustomerCryptoWithdrawalFee (object parameters = null)
+    {
+        return await this.callAsync ("v1_01PrivateGetClientPaymentsV2CustomerCryptoWithdrawalFee",parameters);
+    }
+
     public async Task<object> v1_01PrivatePostTradingOfferSymbol (object parameters = null)
     {
         return await this.callAsync ("v1_01PrivatePostTradingOfferSymbol",parameters);
@@ -209,6 +229,16 @@ public partial class zonda : Exchange
     public async Task<object> v1_01PrivatePostApiPaymentsWithdrawalsFiat (object parameters = null)
     {
         return await this.callAsync ("v1_01PrivatePostApiPaymentsWithdrawalsFiat",parameters);
+    }
+
+    public async Task<object> v1_01PrivatePostClientPaymentsV2CustomerCryptoDeposit (object parameters = null)
+    {
+        return await this.callAsync ("v1_01PrivatePostClientPaymentsV2CustomerCryptoDeposit",parameters);
+    }
+
+    public async Task<object> v1_01PrivatePostClientPaymentsV2CustomerCryptoWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("v1_01PrivatePostClientPaymentsV2CustomerCryptoWithdrawal",parameters);
     }
 
     public async Task<object> v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (object parameters = null)

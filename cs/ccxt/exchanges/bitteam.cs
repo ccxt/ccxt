@@ -182,7 +182,7 @@ public partial class bitteam : Exchange
                     { "maker", this.parseNumber("0.002") },
                 } },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "networksById", new Dictionary<string, object>() {
                     { "Ethereum", "ERC20" },
@@ -347,8 +347,6 @@ public partial class bitteam : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object active = this.safeValue(market, "active");
-        object amountPrecision = this.safeInteger(market, "baseStep");
-        object pricePrecision = this.safeInteger(market, "quoteStep");
         object timeStart = this.safeString(market, "timeStart");
         object created = this.parse8601(timeStart);
         object minCost = null;
@@ -385,8 +383,8 @@ public partial class bitteam : Exchange
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "amount", amountPrecision },
-                { "price", pricePrecision },
+                { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "baseStep"))) },
+                { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "quoteStep"))) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -546,7 +544,7 @@ public partial class bitteam : Exchange
             object numericId = this.safeInteger(currency, "id");
             object code = this.safeCurrencyCode(id);
             object active = this.safeBool(currency, "active", false);
-            object precision = this.safeInteger(currency, "precision");
+            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
             object txLimits = this.safeValue(currency, "txLimits", new Dictionary<string, object>() {});
             object minWithdraw = this.safeString(txLimits, "minWithdraw");
             object maxWithdraw = this.safeString(txLimits, "maxWithdraw");
@@ -569,7 +567,7 @@ public partial class bitteam : Exchange
             object withdraw = this.safeValue(statuses, "withdrawStatus");
             object networkIds = new List<object>(((IDictionary<string,object>)feesByNetworkId).Keys);
             object networks = new Dictionary<string, object>() {};
-            object networkPrecision = this.safeInteger(currency, "decimals");
+            object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
             for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
             {
                 object networkId = getValue(networkIds, j);
@@ -1008,7 +1006,7 @@ public partial class bitteam : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the bitteam api endpoint
         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         */
@@ -2009,7 +2007,6 @@ public partial class bitteam : Exchange
         object fee = new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(feeCurrencyId) },
             { "cost", feeCost },
-            { "rate", null },
         };
         object intTs = this.parseToInt(timestamp);
         return this.safeTrade(new Dictionary<string, object>() {

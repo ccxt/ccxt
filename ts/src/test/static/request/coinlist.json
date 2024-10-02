@@ -156,6 +156,19 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders",
+                "method": "cancelOrders",
+                "url": "https://trade-api.coinlist.co/v1/orders/bulk",
+                "input": [
+                  [
+                    "024d5d0c-c952-414a-84ca-4145b8e58657"
+                  ]
+                ],
+                "output": "[\"024d5d0c-c952-414a-84ca-4145b8e58657\"]"
+            }
         ]
     }
 }

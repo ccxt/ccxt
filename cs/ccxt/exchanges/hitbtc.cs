@@ -83,6 +83,7 @@ public partial class hitbtc : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", false },
                 { "setMarginMode", false },
@@ -417,6 +418,7 @@ public partial class hitbtc : Exchange
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "spot" },
                     { "funding", "wallet" },
+                    { "swap", "derivatives" },
                     { "future", "derivatives" },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
@@ -666,8 +668,8 @@ public partial class hitbtc : Exchange
                 object network = this.safeNetwork(networkId);
                 fee = this.safeNumber(rawNetwork, "payout_fee");
                 object networkPrecision = this.safeNumber(rawNetwork, "precision_payout");
-                object payinEnabledNetwork = this.safeBool(entry, "payin_enabled", false);
-                object payoutEnabledNetwork = this.safeBool(entry, "payout_enabled", false);
+                object payinEnabledNetwork = this.safeBool(rawNetwork, "payin_enabled", false);
+                object payoutEnabledNetwork = this.safeBool(rawNetwork, "payout_enabled", false);
                 object activeNetwork = isTrue(payinEnabledNetwork) && isTrue(payoutEnabledNetwork);
                 if (isTrue(isTrue(payinEnabledNetwork) && !isTrue(depositEnabled)))
                 {
@@ -1294,8 +1296,10 @@ public partial class hitbtc : Exchange
     public virtual object parseTransactionStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "CREATED", "pending" },
             { "PENDING", "pending" },
             { "FAILED", "failed" },
+            { "ROLLED_BACK", "failed" },
             { "SUCCESS", "ok" },
         };
         return this.safeString(statuses, status, status);
@@ -2298,7 +2302,7 @@ public partial class hitbtc : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         * @param {bool} [params.margin] true for creating a margin order
@@ -2552,7 +2556,7 @@ public partial class hitbtc : Exchange
     {
         /**
         * @method
-        * @name hitbtc#fetchMarginMode
+        * @name hitbtc#fetchMarginModes
         * @description fetches margin mode of the user
         * @see https://api.hitbtc.com/#get-margin-position-parameters
         * @see https://api.hitbtc.com/#get-futures-position-parameters
@@ -2760,7 +2764,7 @@ public partial class hitbtc : Exchange
         * @see https://api.hitbtc.com/#futures-info
         * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3303,6 +3307,7 @@ public partial class hitbtc : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

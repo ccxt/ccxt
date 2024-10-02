@@ -461,7 +461,7 @@ class kuna extends Exchange {
         return $result;
     }
 
-    public function parse_currency($currency) {
+    public function parse_currency(array $currency) {
         //
         //    {
         //        "code" => "BTC",
@@ -620,7 +620,7 @@ class kuna extends Exchange {
         if ($limit !== null) {
             $request['level'] = $limit;
         }
-        $response = $this->v4PublicGetOrderPublicBookPairs (array_merge($request, $params));
+        $response = $this->v4PublicGetOrderPublicBookPairs ($this->extend($request, $params));
         //
         //      {
         //          "data" => {
@@ -651,7 +651,7 @@ class kuna extends Exchange {
         return $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 0, 1);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "pair" => "BTC_USDT",                                   // Traded pair
@@ -707,7 +707,7 @@ class kuna extends Exchange {
         $request = array(
             'pairs' => implode(',', $marketIds),
         );
-        $response = $this->v4PublicGetMarketsPublicTickersPairsPairs (array_merge($request, $params));
+        $response = $this->v4PublicGetMarketsPublicTickersPairsPairs ($this->extend($request, $params));
         //
         //    {
         //        "data" => array(
@@ -745,7 +745,7 @@ class kuna extends Exchange {
         $request = array(
             'pairs' => $market['id'],
         );
-        $response = $this->v4PublicGetMarketsPublicTickersPairsPairs (array_merge($request, $params));
+        $response = $this->v4PublicGetMarketsPublicTickersPairsPairs ($this->extend($request, $params));
         //
         //    {
         //        "data" => array(
@@ -801,7 +801,7 @@ class kuna extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v4PublicGetTradePublicBookPairs (array_merge($request, $params));
+        $response = $this->v4PublicGetTradePublicBookPairs ($this->extend($request, $params));
         //
         //    {
         //        'data' => array(
@@ -822,7 +822,7 @@ class kuna extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -876,7 +876,6 @@ class kuna extends Exchange {
             'fee' => array(
                 'cost' => $this->safe_string($trade, 'fee'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
-                'rate' => null,
             ),
         ), $market);
     }
@@ -934,7 +933,7 @@ class kuna extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          *
@@ -966,7 +965,7 @@ class kuna extends Exchange {
                 $request['type'] = 'StopLossLimit';
             }
         }
-        $response = $this->v4PrivatePostOrderPrivateCreate (array_merge($request, $params));
+        $response = $this->v4PrivatePostOrderPrivateCreate ($this->extend($request, $params));
         //
         //    {
         //        "data" => {
@@ -998,7 +997,7 @@ class kuna extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        $response = $this->v4PrivatePostOrderPrivateCancel (array_merge($request, $params));
+        $response = $this->v4PrivatePostOrderPrivateCancel ($this->extend($request, $params));
         //
         //    {
         //        "data" => {
@@ -1028,7 +1027,7 @@ class kuna extends Exchange {
         $request = array(
             'orderIds' => $ids,
         );
-        $response = $this->v4PrivatePostOrderPrivateCancelMulti (array_merge($request, $params));
+        $response = $this->v4PrivatePostOrderPrivateCancelMulti ($this->extend($request, $params));
         //
         //    {
         //        "data" => array(
@@ -1044,7 +1043,7 @@ class kuna extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Canceled' => 'canceled',
             'Closed' => 'filled',
@@ -1057,7 +1056,7 @@ class kuna extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         //
@@ -1151,7 +1150,7 @@ class kuna extends Exchange {
             'id' => $id,
             'withTrades' => true,
         );
-        $response = $this->v4PrivateGetOrderPrivateDetailsId (array_merge($request, $params));
+        $response = $this->v4PrivateGetOrderPrivateDetailsId ($this->extend($request, $params));
         //
         //    {
         //        "data" => {
@@ -1223,7 +1222,7 @@ class kuna extends Exchange {
         if ($until !== null) {
             $request['end'] = $this->iso8601($until);
         }
-        $response = $this->v4PrivateGetOrderPrivateActive (array_merge($request, $params));
+        $response = $this->v4PrivateGetOrderPrivateActive ($this->extend($request, $params));
         //
         //    {
         //        "data" => array(
@@ -1352,7 +1351,7 @@ class kuna extends Exchange {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
-        $response = $this->v4PrivateGetTradePrivateHistory (array_merge($request, $params));
+        $response = $this->v4PrivateGetTradePrivateHistory ($this->extend($request, $params));
         //
         //    {
         //        "data" => array(
@@ -1414,7 +1413,7 @@ class kuna extends Exchange {
         if ($tag !== null) {
             $request['paymentId'] = $tag;
         }
-        $response = $this->v4PrivatePostWithdrawPrivateCreate (array_merge($request, $params));
+        $response = $this->v4PrivatePostWithdrawPrivateCreate ($this->extend($request, $params));
         //
         //    {
         //        "data" => {
@@ -1465,7 +1464,7 @@ class kuna extends Exchange {
         if ($until !== null) {
             $request['dateTo'] = $this->iso8601($until);
         }
-        $response = $this->v4PrivateGetWithdrawPrivateHistory (array_merge($request, $params));
+        $response = $this->v4PrivateGetWithdrawPrivateHistory ($this->extend($request, $params));
         //
         //    {
         //        "data" => array(
@@ -1507,7 +1506,7 @@ class kuna extends Exchange {
         $request = array(
             'withdrawId' => $id,
         );
-        $response = $this->v4PrivateGetWithdrawPrivateDetailsWithdrawId (array_merge($request, $params));
+        $response = $this->v4PrivateGetWithdrawPrivateDetailsWithdrawId ($this->extend($request, $params));
         //
         //    {
         //        "data" => {
@@ -1546,7 +1545,7 @@ class kuna extends Exchange {
         $request = array(
             'source' => $currency['id'],
         );
-        $response = $this->v4PrivatePostDepositPrivateCryptoGenerateAddress (array_merge($request, $params));
+        $response = $this->v4PrivatePostDepositPrivateCryptoGenerateAddress ($this->extend($request, $params));
         //
         //    {
         //        "data" => {
@@ -1573,7 +1572,7 @@ class kuna extends Exchange {
         $request = array(
             'source' => strtoupper($currency['id']),
         );
-        $response = $this->v4PrivateGetDepositPrivateCryptoAddress (array_merge($request, $params));
+        $response = $this->v4PrivateGetDepositPrivateCryptoAddress ($this->extend($request, $params));
         //
         //    {
         //        "data" => {
@@ -1605,7 +1604,7 @@ class kuna extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'Created' => 'pending',
             'Canceled' => 'canceled',
@@ -1657,7 +1656,7 @@ class kuna extends Exchange {
         if ($until !== null) {
             $request['dateTo'] = $this->iso8601($until);
         }
-        $response = $this->v4PrivateGetDepositPrivateHistory (array_merge($request, $params));
+        $response = $this->v4PrivateGetDepositPrivateHistory ($this->extend($request, $params));
         //
         //    {
         //        "data" => array(
@@ -1703,7 +1702,7 @@ class kuna extends Exchange {
         $request = array(
             'depositId' => $id,
         );
-        $response = $this->v4PrivateGetDepositPrivateDetailsDepositId (array_merge($request, $params));
+        $response = $this->v4PrivateGetDepositPrivateDetailsDepositId ($this->extend($request, $params));
         //
         //    {
         //        "data" => {
@@ -1729,7 +1728,7 @@ class kuna extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //        "id" => "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
@@ -1874,7 +1873,7 @@ class kuna extends Exchange {
             } else {
                 $this->check_required_credentials();
                 $nonce = (string) $this->nonce();
-                $queryInner = $this->encode_params(array_merge(array(
+                $queryInner = $this->encode_params($this->extend(array(
                     'access_key' => $this->apiKey,
                     'tonce' => $nonce,
                 ), $params));
@@ -1895,7 +1894,7 @@ class kuna extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         //    {
         //        "errors" => array(

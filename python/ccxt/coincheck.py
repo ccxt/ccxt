@@ -175,7 +175,7 @@ class coincheck(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -223,7 +223,7 @@ class coincheck(Exchange, ImplicitAPI):
             result.append(self.extend(parsedOrders[i], {'status': 'open'}))
         return result
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # fetchOpenOrders
         #
@@ -283,13 +283,13 @@ class coincheck(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.publicGetOrderBooks(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "last":4192632.0,
@@ -339,7 +339,7 @@ class coincheck(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         ticker = self.publicGetTicker(self.extend(request, params))
@@ -356,7 +356,7 @@ class coincheck(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -446,7 +446,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetExchangeOrdersTransactionsPagination(self.extend(request, params))
@@ -487,7 +487,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -535,7 +535,7 @@ class coincheck(Exchange, ImplicitAPI):
         #     }
         #
         fees = self.safe_value(response, 'exchange_fees', {})
-        result = {}
+        result: dict = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
@@ -558,13 +558,13 @@ class coincheck(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if type == 'market':
@@ -592,10 +592,17 @@ class coincheck(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'id': id,
         }
-        return self.privateDeleteExchangeOrdersId(self.extend(request, params))
+        response = self.privateDeleteExchangeOrdersId(self.extend(request, params))
+        #
+        #    {
+        #        "success": True,
+        #        "id": 12345
+        #    }
+        #
+        return self.parse_order(response)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -609,7 +616,7 @@ class coincheck(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
@@ -656,7 +663,7 @@ class coincheck(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetWithdraws(self.extend(request, params))
@@ -684,8 +691,8 @@ class coincheck(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             # withdrawals
             'pending': 'pending',
             'processing': 'pending',
@@ -697,7 +704,7 @@ class coincheck(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -791,7 +798,7 @@ class coincheck(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
         #

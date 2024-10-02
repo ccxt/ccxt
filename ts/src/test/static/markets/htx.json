@@ -1145,7 +1145,7 @@
             "trade_partition": "USDT"
         }
     },
-    "BTC/USD:BTC-240628":{
+    "BTC/USD:BTC-240628": {
         "id": "BTC240628",
         "lowercaseId": "btc240628",
         "symbol": "BTC/USD:BTC-240628",
@@ -1199,5 +1199,123 @@
             "contract_status": "1",
             "settlement_time": "1710921600000"
         }
+    },
+    "ETH-USDT-240607": {
+        "id": "ETH-USDT-240607",
+        "lowercaseId": "eth-usdt-240607",
+        "symbol": "ETH/USDT:USDT-240607",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "eth",
+        "quoteId": "usdt",
+        "settleId": "usdt",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 0.01,
+        "expiry": 1717747200000,
+        "expiryDatetime": "2024-06-07T08:00:00.000Z",
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1,
+                "superMax": 1
+            },
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1716508800000,
+        "info": {
+            "symbol": "ETH",
+            "contract_code": "ETH-USDT-240607",
+            "contract_size": "0.010000000000000000",
+            "price_tick": "0.010000000000000000",
+            "delivery_date": "20240607",
+            "delivery_time": "1717747200000",
+            "create_date": "20240524",
+            "contract_status": "1",
+            "settlement_date": "1717747200000",
+            "support_margin_mode": "cross",
+            "business_type": "futures",
+            "pair": "ETH-USDT",
+            "contract_type": "next_week",
+            "trade_partition": "USDT"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
+    },
+    "XRP/USD:XRP": {
+        "id": "XRP-USD",
+        "lowercaseId": "xrp-usd",
+        "symbol": "XRP/USD:XRP",
+        "base": "XRP",
+        "quote": "USD",
+        "settle": "XRP",
+        "baseId": "xrp",
+        "quoteId": "usd",
+        "settleId": "xrp",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 10,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 1,
+                "superMax": 1
+            },
+            "amount": {},
+            "price": {},
+            "cost": {
+                "min": 10
+            }
+        },
+        "created": 1586476800000,
+        "info": {
+            "symbol": "XRP",
+            "contract_code": "XRP-USD",
+            "contract_size": "10.000000000000000000",
+            "price_tick": "0.000010000000000000",
+            "delivery_time": "",
+            "create_date": "20200410",
+            "contract_status": "1",
+            "settlement_date": "1716998400000"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
     }
 }

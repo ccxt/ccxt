@@ -5,7 +5,7 @@ import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -21,6 +21,7 @@ export default class ascendex extends ascendexRest {
                 'watchOrders': true,
                 'watchTicker': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -52,12 +53,23 @@ export default class ascendex extends ascendexRest {
     async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id.toString (),
             'op': 'sub',
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchPublicMultiple (messageHashes, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const id = this.nonce ();
+        const request: Dict = {
+            'id': id.toString (),
+            'op': 'sub',
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     async watchPrivate (channel, messageHash, params = {}) {
@@ -66,7 +78,7 @@ export default class ascendex extends ascendexRest {
         let url = this.urls['api']['ws']['private'];
         url = this.implodeParams (url, { 'accountGroup': accountGroup });
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id.toString (),
             'op': 'sub',
             'ch': channel,
@@ -81,6 +93,7 @@ export default class ascendex extends ascendexRest {
          * @method
          * @name ascendex#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://ascendex.github.io/ascendex-pro-api/#channel-bar-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -148,22 +161,49 @@ export default class ascendex extends ascendexRest {
          * @method
          * @name ascendex#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name ascendex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const channel = 'trades' + ':' + market['id'];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const marketIds = [];
+        const messageHashes = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                marketIds.push (market['id']);
+                messageHashes.push ('trades:' + market['id']);
+            }
+        }
+        const channel = 'trades:' + marketIds.join (',');
         params = this.extend (params, {
             'ch': channel,
         });
-        const trades = await this.watchPublic (channel, params);
+        const trades = await this.watchPublicMultiple (messageHashes, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -211,6 +251,7 @@ export default class ascendex extends ascendexRest {
          * @method
          * @name ascendex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://ascendex.github.io/ascendex-pro-api/#channel-level-2-order-book-updates
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -307,10 +348,10 @@ export default class ascendex extends ascendexRest {
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = channel + ':' + marketId;
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
         } else {
@@ -374,6 +415,7 @@ export default class ascendex extends ascendexRest {
          * @method
          * @name ascendex#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -888,7 +930,7 @@ export default class ascendex extends ascendexRest {
         // }
         //
         const subject = this.safeString (message, 'm');
-        const methods = {
+        const methods: Dict = {
             'ping': this.handlePing,
             'auth': this.handleAuthenticate,
             'sub': this.handleSubscriptionStatus,
@@ -974,7 +1016,7 @@ export default class ascendex extends ascendexRest {
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), secret, sha256, 'base64');
-            const request = {
+            const request: Dict = {
                 'op': 'auth',
                 'id': this.nonce ().toString (),
                 't': timestamp,

@@ -134,6 +134,9 @@ class upbit(Exchange, ImplicitAPI):
                         'orders/chance',
                         'order',
                         'orders',
+                        'orders/closed',
+                        'orders/open',
+                        'orders/uuids',
                         'withdraws',
                         'withdraw',
                         'withdraws/chance',
@@ -210,7 +213,7 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_currency_by_id(self, id: str, params={}):
         # self method is for retrieving funding fees and limits per currency
         # it requires private access and API keys properly set up
-        request = {
+        request: dict = {
             'currency': id,
         }
         response = await self.privateGetWithdrawsChance(self.extend(request, params))
@@ -304,7 +307,7 @@ class upbit(Exchange, ImplicitAPI):
     async def fetch_market_by_id(self, id: str, params={}):
         # self method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
-        request = {
+        request: dict = {
             'market': id,
         }
         response = await self.privateGetOrdersChance(self.extend(request, params))
@@ -423,7 +426,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'market')
         quoteId, baseId = id.split('-')
         base = self.safe_currency_code(baseId)
@@ -481,7 +484,7 @@ class upbit(Exchange, ImplicitAPI):
         })
 
     def parse_balance(self, response) -> Balances:
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -539,7 +542,7 @@ class upbit(Exchange, ImplicitAPI):
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
-        request = {
+        request: dict = {
             'markets': ids,
         }
         response = await self.publicGetOrderbook(self.extend(request, params))
@@ -571,7 +574,7 @@ class upbit(Exchange, ImplicitAPI):
         #                               "ask_size": 2.752,
         #                               "bid_size": 0.4650305}    ]}   ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             orderbook = response[i]
             marketId = self.safe_string(orderbook, 'market')
@@ -599,7 +602,7 @@ class upbit(Exchange, ImplicitAPI):
         orderbooks = await self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #       {               market: "BTC-ETH",
         #                    "trade_date": "20181122",
@@ -675,7 +678,7 @@ class upbit(Exchange, ImplicitAPI):
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
-        request = {
+        request: dict = {
             'markets': ids,
         }
         response = await self.publicGetTicker(self.extend(request, params))
@@ -707,7 +710,7 @@ class upbit(Exchange, ImplicitAPI):
         #           "lowest_52_week_date": "2017-12-08",
         #                     "timestamp":  1542883543813  }]
         #
-        result = {}
+        result: dict = {}
         for t in range(0, len(response)):
             ticker = self.parse_ticker(response[t])
             symbol = ticker['symbol']
@@ -725,7 +728,7 @@ class upbit(Exchange, ImplicitAPI):
         tickers = await self.fetch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #
@@ -807,7 +810,7 @@ class upbit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 200
-        request = {
+        request: dict = {
             'market': market['id'],
             'count': limit,
         }
@@ -846,7 +849,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         response = await self.privateGetOrdersChance(self.extend(request, params))
@@ -941,7 +944,7 @@ class upbit(Exchange, ImplicitAPI):
         timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
         if limit is None:
             limit = 200
-        request = {
+        request: dict = {
             'market': market['id'],
             'timeframe': timeframeValue,
             'count': limit,
@@ -997,7 +1000,7 @@ class upbit(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: for market buy orders, the quote quantity that can be used alternative for the amount
         :param str [params.timeInForce]: 'IOC' or 'FOK'
@@ -1012,7 +1015,7 @@ class upbit(Exchange, ImplicitAPI):
             orderSide = 'ask'
         else:
             raise InvalidOrder(self.id + ' createOrder() allows buy or sell side only!')
-        request = {
+        request: dict = {
             'market': market['id'],
             'side': orderSide,
         }
@@ -1084,7 +1087,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'uuid': id,
         }
         response = await self.privateDeleteOrder(self.extend(request, params))
@@ -1120,7 +1123,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             # 'page': 1,
             # 'order_by': 'asc',  # 'desc'
         }
@@ -1160,7 +1163,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'uuid': id,
         }
         currency = None
@@ -1196,7 +1199,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             # 'state': 'submitting',  # 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
         }
         currency = None
@@ -1236,7 +1239,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'uuid': id,
         }
         currency = None
@@ -1261,8 +1264,8 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'submitting': 'pending',  # 처리 중
             'submitted': 'pending',  # 처리 완료
             'almost_accepted': 'pending',  # 출금대기중
@@ -1274,7 +1277,7 @@ class upbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits, fetchDeposit
         #
@@ -1340,15 +1343,15 @@ class upbit(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1390,6 +1393,28 @@ class upbit(Exchange, ImplicitAPI):
         #                 "side": "bid",
         #             },
         #         ],
+        #     }
+        #
+        # fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        #
+        #     {
+        #         "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        #         "side": "ask",
+        #         "ord_type": "limit",
+        #         "price": "1.5",
+        #         "state": "wait",
+        #         "market": "SGD-XRP",
+        #         "created_at": "2024-06-05T09:37:10Z",
+        #         "volume": "10",
+        #         "remaining_volume": "10",
+        #         "reserved_fee": "0",
+        #         "remaining_fee": "0",
+        #         "paid_fee": "0",
+        #         "locked": "10",
+        #         "executed_volume": "0",
+        #         "executed_funds": "0",
+        #         "trades_count": 0,
+        #         "time_in_force": "ioc"
         #     }
         #
         id = self.safe_string(order, 'uuid')
@@ -1453,7 +1478,7 @@ class upbit(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': None,
+            'timeInForce': self.safe_string_upper(order, 'time_in_force'),
             'postOnly': None,
             'side': side,
             'price': price,
@@ -1469,77 +1494,149 @@ class upbit(Exchange, ImplicitAPI):
             'trades': trades,
         })
 
-    async def fetch_orders_by_state(self, state, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all unfilled currently open orders
+        :see: https://global-docs.upbit.com/reference/open-order
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.state]: default is 'wait', set to 'watch' for stop limit orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         await self.load_markets()
-        request = {
-            # 'market': self.market_id(symbol),
-            'state': state,
-            # 'page': 1,
-            # 'order_by': 'asc',
+        request: dict = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetOrdersOpen(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        #             "side": "ask",
+        #             "ord_type": "limit",
+        #             "price": "1.5",
+        #             "state": "wait",
+        #             "market": "SGD-XRP",
+        #             "created_at": "2024-06-05T09:37:10Z",
+        #             "volume": "10",
+        #             "remaining_volume": "10",
+        #             "reserved_fee": "0",
+        #             "remaining_fee": "0",
+        #             "paid_fee": "0",
+        #             "locked": "10",
+        #             "executed_volume": "0",
+        #             "executed_funds": "0",
+        #             "trades_count": 0
+        #         }
+        #     ]
+        #
+        return self.parse_orders(response, market, since, limit)
+
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple closed orders made by the user
+        :see: https://global-docs.upbit.com/reference/closed-order
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest order
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request: dict = {
+            'state': 'done',
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        response = await self.privateGetOrders(self.extend(request, params))
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('end_time', request, params)
+        response = await self.privateGetOrdersClosed(self.extend(request, params))
         #
         #     [
         #         {
-        #             "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        #             "side": "bid",
+        #             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        #             "side": "ask",
         #             "ord_type": "limit",
-        #             "price": "17417000.0",
+        #             "price": "1.5",
         #             "state": "done",
-        #             "market": "KRW-BTC",
-        #             "created_at": "2018-04-05T14:09:14+09:00",
-        #             "volume": "1.0",
-        #             "remaining_volume": "0.0",
-        #             "reserved_fee": "26125.5",
-        #             "remaining_fee": "25974.0",
-        #             "paid_fee": "151.5",
-        #             "locked": "17341974.0",
-        #             "executed_volume": "1.0",
-        #             "trades_count":2
-        #         },
+        #             "market": "SGD-XRP",
+        #             "created_at": "2024-06-05T09:37:10Z",
+        #             "volume": "10",
+        #             "remaining_volume": "10",
+        #             "reserved_fee": "0",
+        #             "remaining_fee": "0",
+        #             "paid_fee": "0",
+        #             "locked": "10",
+        #             "executed_volume": "0",
+        #             "executed_funds": "0",
+        #             "trades_count": 0,
+        #             "time_in_force": "ioc"
+        #         }
         #     ]
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        """
-        :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
-        fetch all unfilled currently open orders
-        :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        return await self.fetch_orders_by_state('wait', symbol, since, limit, params)
-
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        """
-        :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
-        fetches information on multiple closed orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        return await self.fetch_orders_by_state('done', symbol, since, limit, params)
-
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetches information on multiple canceled orders made by the user
+        :see: https://global-docs.upbit.com/reference/closed-order
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest order
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        return await self.fetch_orders_by_state('cancel', symbol, since, limit, params)
+        await self.load_markets()
+        request: dict = {
+            'state': 'cancel',
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('end_time', request, params)
+        response = await self.privateGetOrdersClosed(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        #             "side": "ask",
+        #             "ord_type": "limit",
+        #             "price": "1.5",
+        #             "state": "cancel",
+        #             "market": "SGD-XRP",
+        #             "created_at": "2024-06-05T09:37:10Z",
+        #             "volume": "10",
+        #             "remaining_volume": "10",
+        #             "reserved_fee": "0",
+        #             "remaining_fee": "0",
+        #             "paid_fee": "0",
+        #             "locked": "10",
+        #             "executed_volume": "0",
+        #             "executed_funds": "0",
+        #             "trades_count": 0,
+        #             "time_in_force": "ioc"
+        #         }
+        #     ]
+        #
+        return self.parse_orders(response, market, since, limit)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1550,7 +1647,7 @@ class upbit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'uuid': id,
         }
         response = await self.privateGetOrder(self.extend(request, params))
@@ -1599,7 +1696,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_deposit_addresses(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         """
         :see: https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
         fetch deposit addresses for multiple currencies and chain types
@@ -1692,7 +1789,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         # https://github.com/ccxt/ccxt/issues/6452
@@ -1732,7 +1829,7 @@ class upbit(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'amount': amount,
         }
         response = None
@@ -1782,26 +1879,28 @@ class upbit(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
+            headers = {}
             nonce = self.uuid()
-            request = {
+            request: dict = {
                 'access_key': self.apiKey,
                 'nonce': nonce,
             }
-            if query:
-                auth = self.urlencode(query)
+            hasQuery = query
+            auth = None
+            if (method != 'GET') and (method != 'DELETE'):
+                body = self.json(params)
+                headers['Content-Type'] = 'application/json'
+            if hasQuery:
+                auth = self.rawencode(query)
+            if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')
                 request['query_hash'] = hash
                 request['query_hash_alg'] = 'SHA512'
             token = self.jwt(request, self.encode(self.secret), 'sha256')
-            headers = {
-                'Authorization': 'Bearer ' + token,
-            }
-            if (method != 'GET') and (method != 'DELETE'):
-                body = self.json(params)
-                headers['Content-Type'] = 'application/json'
+            headers['Authorization'] = 'Bearer ' + token
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         #

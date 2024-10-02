@@ -506,6 +506,21 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateSpotGetV2SpotAccountTransferRecords",parameters);
     }
 
+    public async Task<object> privateSpotGetV2AccountFundingAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2AccountFundingAssets",parameters);
+    }
+
+    public async Task<object> privateSpotGetV2AccountBotAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2AccountBotAssets",parameters);
+    }
+
+    public async Task<object> privateSpotGetV2AccountAllAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2AccountAllAccountBalance",parameters);
+    }
+
     public async Task<object> privateSpotGetV2SpotWalletDepositAddress (object parameters = null)
     {
         return await this.callAsync ("privateSpotGetV2SpotWalletDepositAddress",parameters);
@@ -2474,6 +2489,11 @@ public partial class bitget : Exchange
     public async Task<object> privateEarnGetV2EarnLoanReduces (object parameters = null)
     {
         return await this.callAsync ("privateEarnGetV2EarnLoanReduces",parameters);
+    }
+
+    public async Task<object> privateEarnGetV2EarnAccountAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateEarnGetV2EarnAccountAssets",parameters);
     }
 
     public async Task<object> privateEarnPostV2EarnSavingsSubscribe (object parameters = null)

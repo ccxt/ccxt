@@ -631,7 +631,7 @@ public partial class coinspot : Exchange
         * @param {string} type must be 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -671,11 +671,23 @@ public partial class coinspot : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
         }
         parameters = this.omit(parameters, "side");
-        object method = add(add("privatePostMy", this.capitalize(side)), "Cancel");
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(side, "buy")))
+        {
+            response = await this.privatePostMyBuyCancel(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privatePostMySellCancel(this.extend(request, parameters));
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

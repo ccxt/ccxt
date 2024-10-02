@@ -1004,7 +1004,7 @@ export default class bitopro extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1088,6 +1088,22 @@ export default class bitopro extends Exchange {
         //
         return this.parseOrder(response, market);
     }
+    parseCancelOrders(data) {
+        const dataKeys = Object.keys(data);
+        const orders = [];
+        for (let i = 0; i < dataKeys.length; i++) {
+            const marketId = dataKeys[i];
+            const orderIds = data[marketId];
+            for (let j = 0; j < orderIds.length; j++) {
+                orders.push(this.safeOrder({
+                    'info': orderIds[j],
+                    'id': orderIds[j],
+                    'symbol': this.safeSymbol(marketId),
+                }));
+            }
+        }
+        return orders;
+    }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         /**
          * @method
@@ -1118,7 +1134,8 @@ export default class bitopro extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict(response, 'data');
+        return this.parseCancelOrders(data);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1143,7 +1160,7 @@ export default class bitopro extends Exchange {
         else {
             response = await this.privateDeleteOrdersAll(this.extend(request, params));
         }
-        const result = this.safeValue(response, 'data', {});
+        const data = this.safeValue(response, 'data', {});
         //
         //     {
         //         "data":{
@@ -1154,7 +1171,7 @@ export default class bitopro extends Exchange {
         //         }
         //     }
         //
-        return result;
+        return this.parseCancelOrders(data);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1162,6 +1179,7 @@ export default class bitopro extends Exchange {
          * @name bitopro#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

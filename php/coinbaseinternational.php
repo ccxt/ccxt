@@ -62,7 +62,7 @@ class coinbaseinternational extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -80,7 +80,7 @@ class coinbaseinternational extends Exchange {
                 'fetchMyBuys' => true,
                 'fetchMySells' => true,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -99,8 +99,10 @@ class coinbaseinternational extends Exchange {
                 'fetchTrades' => false,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMargin' => true,
                 'setMarginMode' => false,
@@ -140,7 +142,7 @@ class coinbaseinternational extends Exchange {
                             'instruments/{instrument}',
                             'instruments/{instrument}/quote',
                             'instruments/{instrument}/funding',
-                            '',
+                            'instruments/{instrument}/candles',
                         ),
                     ),
                     'private' => array(
@@ -350,6 +352,80 @@ class coinbaseinternational extends Exchange {
         );
     }
 
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): array {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch, default 100 max 10000
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 10000);
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument' => $market['id'],
+            'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+        );
+        if ($since !== null) {
+            $request['start'] = $this->iso8601($since);
+        } else {
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument');
+        }
+        $unitl = $this->safe_integer($params, 'until');
+        if ($unitl !== null) {
+            $params = $this->omit($params, 'until');
+            $request['end'] = $this->iso8601($unitl);
+        }
+        $response = $this->v1PublicGetInstrumentsInstrumentCandles ($this->extend($request, $params));
+        //
+        //   {
+        //       "aggregations" => array(
+        //         {
+        //           "start" => "2024-04-23T00:00:00Z",
+        //           "open" => "62884.4",
+        //           "high" => "64710.6",
+        //           "low" => "62884.4",
+        //           "close" => "63508.4",
+        //           "volume" => "3253.9983"
+        //         }
+        //       )
+        //   }
+        //
+        $candles = $this->safe_list($response, 'aggregations', array());
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+        //
+        //   {
+        //     "start" => "2024-04-23T00:00:00Z",
+        //     "open" => "62884.4",
+        //     "high" => "64710.6",
+        //     "low" => "62884.4",
+        //     "close" => "63508.4",
+        //     "volume" => "3253.9983"
+        //   }
+        //
+        return array(
+            $this->parse8601($this->safe_string_2($ohlcv, 'start', 'time')),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
+        );
+    }
+
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
@@ -381,7 +457,7 @@ class coinbaseinternational extends Exchange {
         if ($limit !== null) {
             $request['result_limit'] = $limit;
         }
-        $response = $this->v1PublicGetInstrumentsInstrumentFunding (array_merge($request, $params));
+        $response = $this->v1PublicGetInstrumentsInstrumentFunding ($this->extend($request, $params));
         //
         //    {
         //        "pagination":array(
@@ -438,6 +514,173 @@ class coinbaseinternational extends Exchange {
         );
     }
 
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'type' => 'FUNDING',
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $portfolios = null;
+        list($portfolios, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'portfolios');
+        if ($portfolios !== null) {
+            $request['portfolios'] = $portfolios;
+        }
+        if ($since !== null) {
+            $request['time_from'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['result_limit'] = $limit;
+        } else {
+            $request['result_limit'] = 100;
+        }
+        $response = $this->v1PrivateGetTransfers ($this->extend($request, $params));
+        $fundings = $this->safe_list($response, 'results', array());
+        return $this->parse_incomes($fundings, $market, $since, $limit);
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":array(
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     ),
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":array(
+        //        "name":"CB_FUND"
+        //     ),
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $datetime = $this->safe_integer($income, 'created_at');
+        $timestamp = $this->parse8601($datetime);
+        $currencyId = $this->safe_string($income, 'asset');
+        $code = $this->safe_currency_code($currencyId);
+        return array(
+            'info' => $income,
+            'symbol' => $market['symbol'],
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'transfer_uuid'),
+            'amount' => $this->safe_number($income, 'amount'),
+            'rate' => null,
+        );
+    }
+
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch a history of internal $transfers made on an account
+         * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch $transfers for
+         * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         */
+        $this->load_markets();
+        $request = array(
+            'type' => 'INTERNAL',
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $portfolios = null;
+        list($portfolios, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'portfolios');
+        if ($portfolios !== null) {
+            $request['portfolios'] = $portfolios;
+        }
+        if ($since !== null) {
+            $request['time_from'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['result_limit'] = $limit;
+        } else {
+            $request['result_limit'] = 100;
+        }
+        $response = $this->v1PrivateGetTransfers ($this->extend($request, $params));
+        $transfers = $this->safe_list($response, 'results', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit);
+    }
+
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":array(
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     ),
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":array(
+        //        "name":"CB_FUND"
+        //     ),
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        $datetime = $this->safe_integer($transfer, 'created_at');
+        $timestamp = $this->parse8601($datetime);
+        $currencyId = $this->safe_string($transfer, 'asset');
+        $code = $this->safe_currency_code($currencyId);
+        $fromPorfolio = $this->safe_dict($transfer, 'from_portfolio', array());
+        $fromId = $this->safe_string($fromPorfolio, 'id');
+        $toPorfolio = $this->safe_dict($transfer, 'to_portfolio', array());
+        $toId = $this->safe_string($toPorfolio, 'id');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'transfer_uuid'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $code,
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
+            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'status')),
+        );
+    }
+
+    public function parse_transfer_status(?string $status): ?string {
+        $statuses = array(
+            'FAILED' => 'failed',
+            'PROCESSED' => 'ok',
+            'NEW' => 'pending',
+            'STARTED' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit $address
@@ -464,7 +707,7 @@ class coinbaseinternational extends Exchange {
             list($networkId, $params) = $this->handle_network_id_and_params($code, 'createDepositAddress', $params);
             $request['network_arn_id'] = $networkId;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -519,7 +762,7 @@ class coinbaseinternational extends Exchange {
     public function parse_networks($networks, $params = array ()) {
         $result = array();
         for ($i = 0; $i < count($networks); $i++) {
-            $network = array_merge($this->parse_network($networks[$i]), $params);
+            $network = $this->extend($this->parse_network($networks[$i]), $params);
             $result[$network['network']] = $network;
         }
         return $result;
@@ -544,11 +787,12 @@ class coinbaseinternational extends Exchange {
         $currencyId = $this->safe_string($network, 'asset_name');
         $currencyCode = $this->safe_currency_code($currencyId);
         $networkId = $this->safe_string($network, 'network_arn_id');
+        $networkIdForCode = $this->safe_string_n($network, array( 'network_name', 'display_name', 'network_arn_id' ), '');
         return $this->safe_network(array(
             'info' => $network,
             'id' => $networkId,
             'name' => $this->safe_string($network, 'display_name'),
-            'network' => $this->network_id_to_code($this->safe_string_n($network, array( 'network_name', 'display_name', 'network_arn_id' ), ''), $currencyCode),
+            'network' => $this->network_id_to_code($networkIdForCode, $currencyCode),
             'active' => null,
             'deposit' => null,
             'withdraw' => null,
@@ -585,7 +829,7 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
             'margin_override' => $amount,
         );
-        return $this->v1PrivatePostPortfoliosMargin (array_merge($request, $params));
+        return $this->v1PrivatePostPortfoliosMargin ($this->extend($request, $params));
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -633,7 +877,7 @@ class coinbaseinternational extends Exchange {
         if ($until !== null) {
             $request['time_to'] = $this->iso8601($until);
         }
-        $response = $this->v1PrivateGetTransfers (array_merge($request, $params));
+        $response = $this->v1PrivateGetTransfers ($this->extend($request, $params));
         //
         //    {
         //        "pagination":array(
@@ -680,7 +924,7 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
             'instrument' => $this->market_id($symbol),
         );
-        $position = $this->v1PrivateGetPortfoliosPortfolioPositionsInstrument (array_merge($request, $params));
+        $position = $this->v1PrivateGetPortfoliosPortfolioPositionsInstrument ($this->extend($request, $params));
         //
         //    {
         //        "symbol":"BTC-PERP",
@@ -699,7 +943,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_position($position);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //       "symbol":"BTC-PERP",
@@ -765,7 +1009,7 @@ class coinbaseinternational extends Exchange {
         $request = array(
             'portfolio' => $portfolio,
         );
-        $response = $this->v1PrivateGetPortfoliosPortfolioPositions (array_merge($request, $params));
+        $response = $this->v1PrivateGetPortfoliosPortfolioPositions ($this->extend($request, $params));
         //
         //    array(
         //        {
@@ -830,7 +1074,7 @@ class coinbaseinternational extends Exchange {
         return $this->fetch_deposits_withdrawals($code, $since, $limit, $params);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'PROCESSED' => 'ok',
             'NEW' => 'pending',
@@ -840,7 +1084,7 @@ class coinbaseinternational extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -876,7 +1120,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //    {
         //       "portfolio_id":"1wp37qsc-1-0",
@@ -991,7 +1235,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //   {
         //       "instrument_id":"149264164756389888",
@@ -1134,7 +1378,7 @@ class coinbaseinternational extends Exchange {
         return $result;
     }
 
-    public function parse_currency($currency) {
+    public function parse_currency(array $currency) {
         //
         //    {
         //       "asset_id":"1",
@@ -1199,7 +1443,7 @@ class coinbaseinternational extends Exchange {
         $request = array(
             'instrument' => $this->market_id($symbol),
         );
-        $ticker = $this->v1PublicGetInstrumentsInstrumentQuote (array_merge($request, $params));
+        $ticker = $this->v1PublicGetInstrumentsInstrumentQuote ($this->extend($request, $params));
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -1260,7 +1504,7 @@ class coinbaseinternational extends Exchange {
         $request = array(
             'portfolio' => $portfolio,
         );
-        $balances = $this->v1PrivateGetPortfoliosPortfolioBalances (array_merge($request, $params));
+        $balances = $this->v1PrivateGetPortfoliosPortfolioBalances ($this->extend($request, $params));
         //
         //    array(
         //        {
@@ -1331,7 +1575,7 @@ class coinbaseinternational extends Exchange {
             'from' => $fromAccount,
             'to' => $toAccount,
         );
-        $response = $this->v1PrivatePostPortfoliosTransfer (array_merge($request, $params));
+        $response = $this->v1PrivatePostPortfoliosTransfer ($this->extend($request, $params));
         $success = $this->safe_bool($response, 'success');
         return array(
             'info' => $response,
@@ -1414,7 +1658,7 @@ class coinbaseinternational extends Exchange {
         }
         $request['tif'] = $tif;
         $params = $this->omit($params, array( 'client_order_id', 'user', 'postOnly', 'timeInForce' ));
-        $response = $this->v1PrivatePostOrders (array_merge($request, $params));
+        $response = $this->v1PrivatePostOrders ($this->extend($request, $params));
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1441,7 +1685,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1500,7 +1744,7 @@ class coinbaseinternational extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'PARTIAL_FILLED' => 'open',
@@ -1516,7 +1760,7 @@ class coinbaseinternational extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(?string $type) {
         if ($type === 'UNKNOWN_ORDER_TYPE') {
             return null;
         }
@@ -1549,7 +1793,7 @@ class coinbaseinternational extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $orders = $this->v1PrivateDeleteOrdersId (array_merge($request, $params));
+        $orders = $this->v1PrivateDeleteOrdersId ($this->extend($request, $params));
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1594,7 +1838,7 @@ class coinbaseinternational extends Exchange {
             $market = $this->market($symbol);
             $request['instrument'] = $market['id'];
         }
-        $orders = $this->v1PrivateDeleteOrders (array_merge($request, $params));
+        $orders = $this->v1PrivateDeleteOrders ($this->extend($request, $params));
         return $this->parse_orders($orders, $market);
     }
 
@@ -1607,7 +1851,7 @@ class coinbaseinternational extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} $params->clientOrderId client $order $id
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -1637,7 +1881,7 @@ class coinbaseinternational extends Exchange {
             throw new BadRequest($this->id . ' editOrder() requires a $clientOrderId parameter');
         }
         $request['client_order_id'] = $clientOrderId;
-        $order = $this->v1PrivatePutOrdersId (array_merge($request, $params));
+        $order = $this->v1PrivatePutOrdersId ($this->extend($request, $params));
         return $this->parse_order($order, $market);
     }
 
@@ -1661,7 +1905,7 @@ class coinbaseinternational extends Exchange {
             'id' => $id,
             'portfolio' => $portfolio,
         );
-        $order = $this->v1PrivateGetOrdersId (array_merge($request, $params));
+        $order = $this->v1PrivateGetOrdersId ($this->extend($request, $params));
         //
         //    {
         //        "order_id":"1x96skvg-1-0",
@@ -1733,7 +1977,7 @@ class coinbaseinternational extends Exchange {
         if ($since !== null) {
             $request['ref_datetime'] = $this->iso8601($since);
         }
-        $response = $this->v1PrivateGetOrders (array_merge($request, $params));
+        $response = $this->v1PrivateGetOrders ($this->extend($request, $params));
         //
         //    {
         //        "pagination":array(
@@ -1815,7 +2059,7 @@ class coinbaseinternational extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['ref_datetime'] = $this->iso8601($until);
         }
-        $response = $this->v1PrivateGetPortfoliosFills (array_merge($request, $params));
+        $response = $this->v1PrivateGetPortfoliosFills ($this->extend($request, $params));
         //
         //    {
         //        "pagination":array(
@@ -1895,7 +2139,7 @@ class coinbaseinternational extends Exchange {
             'network_arn_id' => $networkId,
             'nonce' => $this->nonce(),
         );
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -1977,7 +2221,7 @@ class coinbaseinternational extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         //    {
         //        "title":"io.javalin.http.BadRequestResponse => Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",

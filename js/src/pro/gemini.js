@@ -9,6 +9,7 @@ import geminiRest from '../gemini.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
+import Precise from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
     describe() {
@@ -387,10 +388,11 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook();
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
         }
+        const orderbook = this.orderbooks[symbol];
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
             const price = this.safeNumber(delta, 1);
@@ -472,10 +474,11 @@ export default class gemini extends geminiRest {
             const entry = rawBidAskChanges[i];
             const rawSide = this.safeString(entry, 'side');
             const price = this.safeNumber(entry, 'price');
-            const size = this.safeNumber(entry, 'remaining');
-            if (size === 0) {
+            const sizeString = this.safeString(entry, 'remaining');
+            if (Precise.stringEq(sizeString, '0')) {
                 continue;
             }
+            const size = this.parseNumber(sizeString);
             if (rawSide === 'bid') {
                 currentBidAsk['bid'] = price;
                 currentBidAsk['bidVolume'] = size;

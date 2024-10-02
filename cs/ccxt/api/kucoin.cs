@@ -91,6 +91,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("publicGetMarkPriceSymbolCurrent",parameters);
     }
 
+    public async Task<object> publicGetMarkPriceAllSymbols (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarkPriceAllSymbols",parameters);
+    }
+
     public async Task<object> publicGetMarginConfig (object parameters = null)
     {
         return await this.callAsync ("publicGetMarginConfig",parameters);
@@ -246,6 +251,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("privateGetHfOrdersActiveSymbols",parameters);
     }
 
+    public async Task<object> privateGetHfMarginOrderActiveSymbols (object parameters = null)
+    {
+        return await this.callAsync ("privateGetHfMarginOrderActiveSymbols",parameters);
+    }
+
     public async Task<object> privateGetHfOrdersDone (object parameters = null)
     {
         return await this.callAsync ("privateGetHfOrdersDone",parameters);
@@ -381,6 +391,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("privateGetIsolatedSymbols",parameters);
     }
 
+    public async Task<object> privateGetMarginSymbols (object parameters = null)
+    {
+        return await this.callAsync ("privateGetMarginSymbols",parameters);
+    }
+
     public async Task<object> privateGetIsolatedAccountSymbol (object parameters = null)
     {
         return await this.callAsync ("privateGetIsolatedAccountSymbol",parameters);
@@ -424,6 +439,16 @@ public partial class kucoin : Exchange
     public async Task<object> privateGetBrokerApiRebaseDownload (object parameters = null)
     {
         return await this.callAsync ("privateGetBrokerApiRebaseDownload",parameters);
+    }
+
+    public async Task<object> privateGetMigrateUserAccountStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateGetMigrateUserAccountStatus",parameters);
+    }
+
+    public async Task<object> privateGetAffiliateInviterStatistics (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAffiliateInviterStatistics",parameters);
     }
 
     public async Task<object> privatePostSubUserCreated (object parameters = null)
@@ -584,6 +609,11 @@ public partial class kucoin : Exchange
     public async Task<object> privatePostBulletPrivate (object parameters = null)
     {
         return await this.callAsync ("privatePostBulletPrivate",parameters);
+    }
+
+    public async Task<object> privatePostPositionUpdateUserLeverage (object parameters = null)
+    {
+        return await this.callAsync ("privatePostPositionUpdateUserLeverage",parameters);
     }
 
     public async Task<object> privateDeleteSubApiKey (object parameters = null)
@@ -966,6 +996,26 @@ public partial class kucoin : Exchange
         return await this.callAsync ("brokerGetBrokerNdRebaseDownload",parameters);
     }
 
+    public async Task<object> brokerGetAssetNdbrokerDepositList (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetAssetNdbrokerDepositList",parameters);
+    }
+
+    public async Task<object> brokerGetBrokerNdTransferDetail (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetBrokerNdTransferDetail",parameters);
+    }
+
+    public async Task<object> brokerGetBrokerNdDepositDetail (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetBrokerNdDepositDetail",parameters);
+    }
+
+    public async Task<object> brokerGetBrokerNdWithdrawDetail (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetBrokerNdWithdrawDetail",parameters);
+    }
+
     public async Task<object> brokerPostBrokerNdTransfer (object parameters = null)
     {
         return await this.callAsync ("brokerPostBrokerNdTransfer",parameters);
@@ -989,6 +1039,61 @@ public partial class kucoin : Exchange
     public async Task<object> brokerDeleteBrokerNdAccountApikey (object parameters = null)
     {
         return await this.callAsync ("brokerDeleteBrokerNdAccountApikey",parameters);
+    }
+
+    public async Task<object> earnGetOtcLoanLoan (object parameters = null)
+    {
+        return await this.callAsync ("earnGetOtcLoanLoan",parameters);
+    }
+
+    public async Task<object> earnGetOtcLoanAccounts (object parameters = null)
+    {
+        return await this.callAsync ("earnGetOtcLoanAccounts",parameters);
+    }
+
+    public async Task<object> earnGetEarnRedeemPreview (object parameters = null)
+    {
+        return await this.callAsync ("earnGetEarnRedeemPreview",parameters);
+    }
+
+    public async Task<object> earnGetEarnSavingProducts (object parameters = null)
+    {
+        return await this.callAsync ("earnGetEarnSavingProducts",parameters);
+    }
+
+    public async Task<object> earnGetEarnHoldAssets (object parameters = null)
+    {
+        return await this.callAsync ("earnGetEarnHoldAssets",parameters);
+    }
+
+    public async Task<object> earnGetEarnPromotionProducts (object parameters = null)
+    {
+        return await this.callAsync ("earnGetEarnPromotionProducts",parameters);
+    }
+
+    public async Task<object> earnGetEarnKcsStakingProducts (object parameters = null)
+    {
+        return await this.callAsync ("earnGetEarnKcsStakingProducts",parameters);
+    }
+
+    public async Task<object> earnGetEarnStakingProducts (object parameters = null)
+    {
+        return await this.callAsync ("earnGetEarnStakingProducts",parameters);
+    }
+
+    public async Task<object> earnGetEarnEthStakingProducts (object parameters = null)
+    {
+        return await this.callAsync ("earnGetEarnEthStakingProducts",parameters);
+    }
+
+    public async Task<object> earnPostEarnOrders (object parameters = null)
+    {
+        return await this.callAsync ("earnPostEarnOrders",parameters);
+    }
+
+    public async Task<object> earnDeleteEarnOrders (object parameters = null)
+    {
+        return await this.callAsync ("earnDeleteEarnOrders",parameters);
     }
 
 }

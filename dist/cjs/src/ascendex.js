@@ -91,6 +91,7 @@ class ascendex extends ascendex$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -281,26 +282,17 @@ class ascendex extends ascendex$1 {
                     'SOL': 'Solana',
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
-                    'TRC': 'TRC20',
+                    // 'TRC': 'TRC20',
                     'TRX': 'TRC20',
-                    'ERC': 'ERC20',
-                },
-                'networksById': {
-                    'BEP20 (BSC)': 'BSC',
-                    'arbitrum': 'ARB',
-                    'Solana': 'SOL',
-                    'avalanche C chain': 'AVAX',
-                    'Omni': 'OMNI',
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'GO20': 'GO20',
                     'BEP2': 'BEP2',
-                    'Bitcoin': 'BTC',
-                    'Bitcoin ABC': 'BCH',
-                    'Litecoin': 'LTC',
-                    'Matic Network': 'MATIC',
-                    'xDai': 'STAKE',
-                    'Akash': 'AKT',
+                    'BTC': 'Bitcoin',
+                    'BCH': 'Bitcoin ABC',
+                    'LTC': 'Litecoin',
+                    'MATIC': 'Matic Network',
+                    'AKT': 'Akash',
                 },
             },
             'exceptions': {
@@ -393,7 +385,7 @@ class ascendex extends ascendex$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const assets = await this.v1PublicGetAssets(params);
+        const assetsPromise = this.v1PublicGetAssets(params);
         //
         //     {
         //         "code":0,
@@ -410,7 +402,7 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        const margin = await this.v1PublicGetMarginAssets(params);
+        const marginPromise = this.v1PublicGetMarginAssets(params);
         //
         //     {
         //         "code":0,
@@ -430,7 +422,7 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        const cash = await this.v1PublicGetCashAssets(params);
+        const cashPromise = this.v1PublicGetCashAssets(params);
         //
         //     {
         //         "code":0,
@@ -447,9 +439,10 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        const assetsData = this.safeValue(assets, 'data', []);
-        const marginData = this.safeValue(margin, 'data', []);
-        const cashData = this.safeValue(cash, 'data', []);
+        const [assets, margin, cash] = await Promise.all([assetsPromise, marginPromise, cashPromise]);
+        const assetsData = this.safeList(assets, 'data', []);
+        const marginData = this.safeList(margin, 'data', []);
+        const cashData = this.safeList(cash, 'data', []);
         const assetsById = this.indexBy(assetsData, 'assetCode');
         const marginById = this.indexBy(marginData, 'assetCode');
         const cashById = this.indexBy(cashData, 'assetCode');
@@ -501,7 +494,7 @@ class ascendex extends ascendex$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const products = await this.v1PublicGetProducts(params);
+        const productsPromise = this.v1PublicGetProducts(params);
         //
         //     {
         //         "code": 0,
@@ -522,7 +515,7 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        const cash = await this.v1PublicGetCashProducts(params);
+        const cashPromise = this.v1PublicGetCashProducts(params);
         //
         //     {
         //         "code": 0,
@@ -552,7 +545,7 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        const perpetuals = await this.v2PublicGetFuturesContract(params);
+        const perpetualsPromise = this.v2PublicGetFuturesContract(params);
         //
         //    {
         //        "code": 0,
@@ -590,10 +583,11 @@ class ascendex extends ascendex$1 {
         //        ]
         //    }
         //
-        const productsData = this.safeValue(products, 'data', []);
+        const [products, cash, perpetuals] = await Promise.all([productsPromise, cashPromise, perpetualsPromise]);
+        const productsData = this.safeList(products, 'data', []);
         const productsById = this.indexBy(productsData, 'symbol');
-        const cashData = this.safeValue(cash, 'data', []);
-        const perpetualsData = this.safeValue(perpetuals, 'data', []);
+        const cashData = this.safeList(cash, 'data', []);
+        const perpetualsData = this.safeList(perpetuals, 'data', []);
         const cashAndPerpetualsData = this.arrayConcat(cashData, perpetualsData);
         const cashAndPerpetualsById = this.indexBy(cashAndPerpetualsData, 'symbol');
         const dataById = this.deepExtend(productsById, cashAndPerpetualsById);
@@ -602,7 +596,7 @@ class ascendex extends ascendex$1 {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = dataById[id];
-            const settleId = this.safeValue(market, 'settlementAsset');
+            const settleId = this.safeString(market, 'settlementAsset');
             const settle = this.safeCurrencyCode(settleId);
             const status = this.safeString(market, 'status');
             const domain = this.safeString(market, 'domain');
@@ -625,10 +619,10 @@ class ascendex extends ascendex$1 {
             const quote = this.safeCurrencyCode(quoteId);
             let symbol = base + '/' + quote;
             if (swap) {
-                const lotSizeFilter = this.safeValue(market, 'lotSizeFilter');
+                const lotSizeFilter = this.safeDict(market, 'lotSizeFilter');
                 minQty = this.safeNumber(lotSizeFilter, 'minQty');
                 maxQty = this.safeNumber(lotSizeFilter, 'maxQty');
-                const priceFilter = this.safeValue(market, 'priceFilter');
+                const priceFilter = this.safeDict(market, 'priceFilter');
                 minPrice = this.safeNumber(priceFilter, 'minPrice');
                 maxPrice = this.safeNumber(priceFilter, 'maxPrice');
                 symbol = base + '/' + quote + ':' + settle;
@@ -711,7 +705,7 @@ class ascendex extends ascendex$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.safeInteger(data, 'requestReceiveAt');
     }
     async fetchAccounts(params = {}) {
@@ -742,7 +736,7 @@ class ascendex extends ascendex$1 {
             //         }
             //     }
             //
-            const data = this.safeValue(response, 'data', {});
+            const data = this.safeDict(response, 'data', {});
             accountGroup = this.safeString(data, 'accountGroup');
             this.options['account-group'] = accountGroup;
         }
@@ -761,7 +755,7 @@ class ascendex extends ascendex$1 {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeValue(response, 'data', []);
+        const balances = this.safeList(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode(this.safeString(balance, 'asset'));
@@ -778,7 +772,7 @@ class ascendex extends ascendex$1 {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeValue(response, 'data', []);
+        const balances = this.safeList(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode(this.safeString(balance, 'asset'));
@@ -798,8 +792,8 @@ class ascendex extends ascendex$1 {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeValue(response, 'data', {});
-        const collaterals = this.safeValue(data, 'collaterals', []);
+        const data = this.safeDict(response, 'data', {});
+        const collaterals = this.safeList(data, 'collaterals', []);
         for (let i = 0; i < collaterals.length; i++) {
             const balance = collaterals[i];
             const code = this.safeCurrencyCode(this.safeString(balance, 'asset'));
@@ -832,9 +826,9 @@ class ascendex extends ascendex$1 {
         const isCross = marginMode === 'cross';
         marketType = (isMargin || isCross) ? 'margin' : marketType;
         params = this.omit(params, 'margin');
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, marketType, 'cash');
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -947,8 +941,8 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const orderbook = this.safeValue(data, 'data', {});
+        const data = this.safeDict(response, 'data', {});
+        const orderbook = this.safeDict(data, 'data', {});
         const timestamp = this.safeInteger(orderbook, 'ts');
         const result = this.parseOrderBook(orderbook, symbol, timestamp);
         result['nonce'] = this.safeInteger(orderbook, 'seqnum');
@@ -974,8 +968,8 @@ class ascendex extends ascendex$1 {
         const delimiter = (type === 'spot') ? '/' : undefined;
         const symbol = this.safeSymbol(marketId, market, delimiter);
         const close = this.safeString(ticker, 'close');
-        const bid = this.safeValue(ticker, 'bid', []);
-        const ask = this.safeValue(ticker, 'ask', []);
+        const bid = this.safeList(ticker, 'bid', []);
+        const ask = this.safeList(ticker, 'ask', []);
         const open = this.safeString(ticker, 'open');
         return this.safeTicker({
             'symbol': symbol,
@@ -1049,7 +1043,7 @@ class ascendex extends ascendex$1 {
         const request = {};
         let market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeValue(symbols, 0);
+            const symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             const marketIds = this.marketIds(symbols);
             request['symbol'] = marketIds.join(',');
@@ -1066,22 +1060,20 @@ class ascendex extends ascendex$1 {
         //
         //     {
         //         "code":0,
-        //         "data":[
-        //             {
-        //                 "symbol":"QTUM/BTC",
-        //                 "open":"0.00016537",
-        //                 "close":"0.00019077",
-        //                 "high":"0.000192",
-        //                 "low":"0.00016537",
-        //                 "volume":"846.6",
-        //                 "ask":["0.00018698","26.2"],
-        //                 "bid":["0.00018408","503.7"],
-        //                 "type":"spot"
-        //             }
-        //         ]
+        //         "data": {
+        //             "symbol":"QTUM/BTC",
+        //             "open":"0.00016537",
+        //             "close":"0.00019077",
+        //             "high":"0.000192",
+        //             "low":"0.00016537",
+        //             "volume":"846.6",
+        //             "ask":["0.00018698","26.2"],
+        //             "bid":["0.00018408","503.7"],
+        //             "type":"spot"
+        //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         if (!Array.isArray(data)) {
             return this.parseTickers([data], symbols);
         }
@@ -1103,7 +1095,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(ohlcv, 'data', {});
+        const data = this.safeDict(ohlcv, 'data', {});
         return [
             this.safeInteger(data, 'ts'),
             this.safeNumber(data, 'o'),
@@ -1134,7 +1126,7 @@ class ascendex extends ascendex$1 {
         // if since and limit are not specified
         // the exchange will return just 1 last candle by default
         const duration = this.parseTimeframe(timeframe);
-        const options = this.safeValue(this.options, 'fetchOHLCV', {});
+        const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const defaultLimit = this.safeInteger(options, 'limit', 500);
         if (since !== undefined) {
             request['from'] = since;
@@ -1242,7 +1234,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const records = this.safeValue(response, 'data', []);
+        const records = this.safeDict(response, 'data', {});
         const trades = this.safeList(records, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -1402,7 +1394,7 @@ class ascendex extends ascendex$1 {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.safeNumber(order, 'stopPrice');
+        const stopPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         let reduceOnly = undefined;
         const execInst = this.safeString(order, 'execInst');
         if (execInst === 'reduceOnly') {
@@ -1448,7 +1440,7 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -1470,14 +1462,14 @@ class ascendex extends ascendex$1 {
         //         }
         //      }
         //
-        const data = this.safeValue(response, 'data', {});
-        const fees = this.safeValue(data, 'fees', []);
+        const data = this.safeDict(response, 'data', {});
+        const fees = this.safeList(data, 'fees', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const marketId = this.safeString(fee, 'symbol');
             const symbol = this.safeSymbol(marketId, undefined, '/');
-            const takerMaker = this.safeValue(fee, 'fee', {});
+            const takerMaker = this.safeDict(fee, 'fee', {});
             result[symbol] = {
                 'info': fee,
                 'symbol': symbol,
@@ -1499,7 +1491,7 @@ class ascendex extends ascendex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -1511,13 +1503,13 @@ class ascendex extends ascendex$1 {
         let marketType = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('createOrderRequest', params);
         [marketType, params] = this.handleMarketTypeAndParams('createOrderRequest', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         let accountCategory = this.safeString(accountsByType, marketType, 'cash');
         if (marginMode !== undefined) {
             accountCategory = 'margin';
         }
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'id');
         const request = {
             'account-group': accountGroup,
@@ -1535,7 +1527,7 @@ class ascendex extends ascendex$1 {
         const timeInForce = this.safeString(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const stopPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
@@ -1588,7 +1580,7 @@ class ascendex extends ascendex$1 {
          * @param {string} type "limit" or "market"
          * @param {string} side "buy" or "sell"
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -1673,8 +1665,8 @@ class ascendex extends ascendex$1 {
         //          }
         //      }
         //
-        const data = this.safeValue(response, 'data', {});
-        const order = this.safeValue2(data, 'order', 'info', {});
+        const data = this.safeDict(response, 'data', {});
+        const order = this.safeDict2(data, 'order', 'info', {});
         return this.parseOrder(order, market);
     }
     async createOrders(orders, params = {}) {
@@ -1709,9 +1701,9 @@ class ascendex extends ascendex$1 {
             }
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
@@ -1728,13 +1720,13 @@ class ascendex extends ascendex$1 {
             ordersRequests.push(orderRequest);
         }
         const market = this.market(symbol);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         let accountCategory = this.safeString(accountsByType, market['type'], 'cash');
         if (marginMode !== undefined) {
             accountCategory = 'margin';
         }
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {};
         let response = undefined;
         if (market['swap']) {
@@ -1772,7 +1764,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const info = this.safeList(data, 'info', []);
         return this.parseOrders(info, market);
     }
@@ -1783,6 +1775,7 @@ class ascendex extends ascendex$1 {
          * @description fetches information on an order made by the user
          * @see https://ascendex.github.io/ascendex-pro-api/#query-order
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1794,10 +1787,10 @@ class ascendex extends ascendex$1 {
             market = this.market(symbol);
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash');
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1904,10 +1897,10 @@ class ascendex extends ascendex$1 {
             market = this.market(symbol);
             symbol = market['symbol'];
         }
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const [type, query] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash');
         const request = {
             'account-group': accountGroup,
@@ -1991,7 +1984,7 @@ class ascendex extends ascendex$1 {
         //     ]
         // }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         if (accountCategory === 'futures') {
             return this.parseOrders(data, market, since, limit);
         }
@@ -2019,8 +2012,8 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {
         // 'category': accountCategory,
         // 'symbol': market['id'],
@@ -2038,7 +2031,7 @@ class ascendex extends ascendex$1 {
             request['symbol'] = market['id'];
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
-        const options = this.safeValue(this.options, 'fetchClosedOrders', {});
+        const options = this.safeDict(this.options, 'fetchClosedOrders', {});
         const defaultMethod = this.safeString(options, 'method', 'v2PrivateDataGetOrderHist');
         const method = this.getSupportedMapping(type, {
             'spot': defaultMethod,
@@ -2052,7 +2045,7 @@ class ascendex extends ascendex$1 {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash'); // margin, futures
         let response = undefined;
         if (method === 'v1PrivateAccountCategoryGetOrderHistCurrent') {
@@ -2172,10 +2165,10 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        let data = this.safeValue(response, 'data');
+        let data = this.safeList(response, 'data', []);
         const isArray = Array.isArray(data);
         if (!isArray) {
-            data = this.safeValue(data, 'data', []);
+            data = this.safeList(data, 'data', []);
         }
         return this.parseOrders(data, market, since, limit);
     }
@@ -2198,10 +2191,10 @@ class ascendex extends ascendex$1 {
         await this.loadAccounts();
         const market = this.market(symbol);
         const [type, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash');
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -2291,8 +2284,8 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const order = this.safeValue2(data, 'order', 'info', {});
+        const data = this.safeDict(response, 'data', {});
+        const order = this.safeDict2(data, 'order', 'info', {});
         return this.parseOrder(order, market);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -2304,7 +2297,7 @@ class ascendex extends ascendex$1 {
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
          */
         await this.loadMarkets();
         await this.loadAccounts();
@@ -2313,10 +2306,10 @@ class ascendex extends ascendex$1 {
             market = this.market(symbol);
         }
         const [type, query] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash');
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -2370,7 +2363,9 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        return response;
+        return this.safeOrder({
+            'info': response,
+        });
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -2400,10 +2395,6 @@ class ascendex extends ascendex$1 {
             'network': network,
             'info': depositAddress,
         };
-    }
-    safeNetwork(networkId) {
-        const networksById = this.safeDict(this.options, 'networksById');
-        return this.safeString(networksById, networkId, networkId);
     }
     async fetchDepositAddress(code, params = {}) {
         /**
@@ -2570,7 +2561,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const transactions = this.safeList(data, 'data', []);
         return this.parseTransactions(transactions, currency, since, limit);
     }
@@ -2602,7 +2593,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const destAddress = this.safeValue(transaction, 'destAddress', {});
+        const destAddress = this.safeDict(transaction, 'destAddress', {});
         const address = this.safeString(destAddress, 'address');
         const tag = this.safeString(destAddress, 'destTag');
         const timestamp = this.safeInteger(transaction, 'time');
@@ -2649,7 +2640,7 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -2694,8 +2685,8 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const position = this.safeValue(data, 'contracts', []);
+        const data = this.safeDict(response, 'data', {});
+        const position = this.safeList(data, 'contracts', []);
         const result = [];
         for (let i = 0; i < position.length; i++) {
             result.push(this.parsePosition(position[i]));
@@ -2803,6 +2794,7 @@ class ascendex extends ascendex$1 {
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingRateTimestamp,
             'fundingDatetime': this.iso8601(nextFundingRateTimestamp),
+            'interval': undefined,
         };
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
@@ -2812,7 +2804,7 @@ class ascendex extends ascendex$1 {
          * @description fetch the funding rate for multiple markets
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2841,8 +2833,8 @@ class ascendex extends ascendex$1 {
         //          }
         //      }
         //
-        const data = this.safeValue(response, 'data', {});
-        const contracts = this.safeValue(data, 'contracts', []);
+        const data = this.safeDict(response, 'data', {});
+        const contracts = this.safeList(data, 'contracts', []);
         const result = this.parseFundingRates(contracts);
         return this.filterByArray(result, 'symbol', symbols);
     }
@@ -2850,7 +2842,7 @@ class ascendex extends ascendex$1 {
         await this.loadMarkets();
         await this.loadAccounts();
         const market = this.market(symbol);
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         amount = this.amountToPrecision(symbol, amount);
         const request = {
@@ -2944,7 +2936,7 @@ class ascendex extends ascendex$1 {
         if (!market['swap']) {
             throw new errors.BadSymbol(this.id + ' setLeverage() supports swap contracts only');
         }
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -2977,7 +2969,7 @@ class ascendex extends ascendex$1 {
         await this.loadMarkets();
         await this.loadAccounts();
         const market = this.market(symbol);
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -3028,7 +3020,7 @@ class ascendex extends ascendex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
@@ -3060,7 +3052,7 @@ class ascendex extends ascendex$1 {
         //        ]
         //    }
         //
-        const marginRequirements = this.safeValue(info, 'marginRequirements', []);
+        const marginRequirements = this.safeList(info, 'marginRequirements', []);
         const id = this.safeString(info, 'symbol');
         market = this.safeMarket(id, market);
         const tiers = [];
@@ -3099,7 +3091,7 @@ class ascendex extends ascendex$1 {
         //     ]
         // }
         //
-        const blockChains = this.safeValue(fee, 'blockChain', []);
+        const blockChains = this.safeList(fee, 'blockChain', []);
         const blockChainsLength = blockChains.length;
         const result = {
             'info': fee,
@@ -3158,11 +3150,10 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         if (fromId !== 'cash' && toId !== 'cash') {
@@ -3170,7 +3161,7 @@ class ascendex extends ascendex$1 {
         }
         const request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -3179,7 +3170,7 @@ class ascendex extends ascendex$1 {
         //
         //    { "code": "0" }
         //
-        const transferOptions = this.safeValue(this.options, 'transfer', {});
+        const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
         if (fillResponseFromRequest) {
@@ -3194,7 +3185,7 @@ class ascendex extends ascendex$1 {
         //
         //    { "code": "0" }
         //
-        const status = this.safeInteger(transfer, 'code');
+        const status = this.safeString(transfer, 'code');
         const currencyCode = this.safeCurrencyCode(undefined, currency);
         return {
             'info': transfer,
@@ -3209,7 +3200,7 @@ class ascendex extends ascendex$1 {
         };
     }
     parseTransferStatus(status) {
-        if (status === 0) {
+        if (status === '0') {
             return 'ok';
         }
         return 'failed';
@@ -3234,7 +3225,7 @@ class ascendex extends ascendex$1 {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchFundingHistory', symbol, since, limit, params, 'page', 25);
         }
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -3266,7 +3257,7 @@ class ascendex extends ascendex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const rows = this.safeList(data, 'data', []);
         return this.parseIncomes(rows, market, since, limit);
     }
@@ -3294,7 +3285,7 @@ class ascendex extends ascendex$1 {
     async fetchMarginModes(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name ascendex#fetchMarginMode
+         * @name ascendex#fetchMarginModes
          * @description fetches the set margin mode of the user
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {string[]} [symbols] a list of unified market symbols
@@ -3303,7 +3294,7 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -3374,7 +3365,7 @@ class ascendex extends ascendex$1 {
          */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,

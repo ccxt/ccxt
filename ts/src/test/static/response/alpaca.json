@@ -1,0 +1,478 @@
+{
+    "exchange": "alpaca",
+    "skipKeys": [],
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "timestamp": "2024-07-18T04:10:33.389152169-04:00",
+                    "is_open": false,
+                    "next_open": "2024-07-18T09:30:00-04:00",
+                    "next_close": "2024-07-18T16:00:00-04:00"
+                },
+                "parsedResponse": "1721290233389"
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "ff2ec3b7-b581-4a5f-8f75-a98a68ed8332",
+                        "class": "crypto",
+                        "exchange": "CRYPTO",
+                        "symbol": "DOGE/USDC",
+                        "name": "Dogecoin / USD Coin",
+                        "status": "active",
+                        "tradable": true,
+                        "marginable": false,
+                        "maintenance_margin_requirement": 100,
+                        "margin_requirement_long": "100",
+                        "margin_requirement_short": "100",
+                        "shortable": false,
+                        "easy_to_borrow": false,
+                        "fractionable": true,
+                        "attributes": [],
+                        "min_order_size": "9.33706816",
+                        "min_trade_increment": "0.000000001",
+                        "price_increment": "0.000000001"
+                    },
+                    {
+                        "id": "8588af33-3a8e-4a09-bb6c-ba4226dc7aff",
+                        "class": "crypto",
+                        "exchange": "CRYPTO",
+                        "symbol": "AAVE/USD",
+                        "name": "Aave / US Dollar",
+                        "status": "active",
+                        "tradable": true,
+                        "marginable": false,
+                        "maintenance_margin_requirement": 100,
+                        "margin_requirement_long": "100",
+                        "margin_requirement_short": "100",
+                        "shortable": false,
+                        "easy_to_borrow": false,
+                        "fractionable": true,
+                        "attributes": [],
+                        "min_order_size": "0.010186515",
+                        "min_trade_increment": "0.000000001",
+                        "price_increment": "0.01"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "DOGE/USDC",
+                        "symbol": "DOGE/USDC",
+                        "base": "DOGE",
+                        "quote": "USDC",
+                        "settle": null,
+                        "baseId": "DOGE",
+                        "quoteId": "USDC",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": null,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-9,
+                            "price": 1e-9
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 9.33706816,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "ff2ec3b7-b581-4a5f-8f75-a98a68ed8332",
+                            "class": "crypto",
+                            "exchange": "CRYPTO",
+                            "symbol": "DOGE/USDC",
+                            "name": "Dogecoin / USD Coin",
+                            "status": "active",
+                            "tradable": true,
+                            "marginable": false,
+                            "maintenance_margin_requirement": 100,
+                            "margin_requirement_long": "100",
+                            "margin_requirement_short": "100",
+                            "shortable": false,
+                            "easy_to_borrow": false,
+                            "fractionable": true,
+                            "attributes": [],
+                            "min_order_size": "9.33706816",
+                            "min_trade_increment": "0.000000001",
+                            "price_increment": "0.000000001"
+                        }
+                    },
+                    {
+                        "id": "AAVE/USD",
+                        "symbol": "AAVE/USD",
+                        "base": "AAVE",
+                        "quote": "USD",
+                        "settle": null,
+                        "baseId": "AAVE",
+                        "quoteId": "USD",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": null,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-9,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.010186515,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "8588af33-3a8e-4a09-bb6c-ba4226dc7aff",
+                            "class": "crypto",
+                            "exchange": "CRYPTO",
+                            "symbol": "AAVE/USD",
+                            "name": "Aave / US Dollar",
+                            "status": "active",
+                            "tradable": true,
+                            "marginable": false,
+                            "maintenance_margin_requirement": 100,
+                            "margin_requirement_long": "100",
+                            "margin_requirement_short": "100",
+                            "shortable": false,
+                            "easy_to_borrow": false,
+                            "fractionable": true,
+                            "attributes": [],
+                            "min_order_size": "0.010186515",
+                            "min_trade_increment": "0.000000001",
+                            "price_increment": "0.01"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "next_page_token": null,
+                    "trades": {
+                        "BTC/USD": [
+                            {
+                                "i": 2880534893454904000,
+                                "p": 64625.4,
+                                "s": 0.015155213,
+                                "t": "2024-07-18T05:02:23.898910982Z",
+                                "tks": "B"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "i": 2880534893454904000,
+                            "p": 64625.4,
+                            "s": 0.015155213,
+                            "t": "2024-07-18T05:02:23.898910982Z",
+                            "tks": "B"
+                        },
+                        "id": "2880534893454904000",
+                        "timestamp": 1721278943898,
+                        "datetime": "2024-07-18T05:02:23.898Z",
+                        "symbol": "BTC/USD",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 64625.4,
+                        "amount": 0.015155213,
+                        "cost": 979.4117022102,
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USD"
+                ],
+                "httpResponse": {
+                    "orderbooks": {
+                        "BTC/USD": {
+                            "a": [
+                                {
+                                    "p": 64767.7,
+                                    "s": 0.2754
+                                }
+                            ],
+                            "b": [
+                                {
+                                    "p": 64709.3,
+                                    "s": 0.2801
+                                }
+                            ],
+                            "t": "2024-07-18T08:22:41.607595222Z"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD",
+                    "bids": [
+                        [
+                            64709.3,
+                            0.2801
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            64767.7,
+                            0.2754
+                        ]
+                    ],
+                    "timestamp": 1721290961607,
+                    "datetime": "2024-07-18T08:22:41.607Z",
+                    "nonce": null
+                }
+            },
+            {
+                "description": "Fetch order book with limit",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "orderbooks": {
+                        "BTC/USDT": {
+                            "a": [
+                                {
+                                    "p": "63874.3",
+                                    "s": "0.1779"
+                                },
+                                {
+                                    "p": "63887.615",
+                                    "s": "0.3543"
+                                },
+                                {
+                                    "p": "63952.8",
+                                    "s": "0.540044"
+                                },
+                                {
+                                    "p": "64007.34",
+                                    "s": "0.72083"
+                                },
+                                {
+                                    "p": "64179.8",
+                                    "s": "0.892218"
+                                },
+                                {
+                                    "p": "64532.9",
+                                    "s": "1.06787"
+                                },
+                                {
+                                    "p": "65172.36",
+                                    "s": "1.239"
+                                }
+                            ],
+                            "b": [
+                                {
+                                    "p": "63726.61",
+                                    "s": "0.1773"
+                                },
+                                {
+                                    "p": "63720.3",
+                                    "s": "0.35846"
+                                },
+                                {
+                                    "p": "63667.25",
+                                    "s": "0.54042"
+                                },
+                                {
+                                    "p": "63581.425",
+                                    "s": "0.7172"
+                                },
+                                {
+                                    "p": "63405",
+                                    "s": "0.897117"
+                                },
+                                {
+                                    "p": "63101.56",
+                                    "s": "1.07915"
+                                },
+                                {
+                                    "p": "62446.443",
+                                    "s": "1.241"
+                                }
+                            ],
+                            "t": "2024-08-26T12:24:21.026648354Z"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            63726.61,
+                            0.1773
+                        ],
+                        [
+                            63720.3,
+                            0.35846
+                        ],
+                        [
+                            63667.25,
+                            0.54042
+                        ],
+                        [
+                            63581.425,
+                            0.7172
+                        ],
+                        [
+                            63405,
+                            0.897117
+                        ],
+                        [
+                            63101.56,
+                            1.07915
+                        ],
+                        [
+                            62446.443,
+                            1.241
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            63874.3,
+                            0.1779
+                        ],
+                        [
+                            63887.615,
+                            0.3543
+                        ],
+                        [
+                            63952.8,
+                            0.540044
+                        ],
+                        [
+                            64007.34,
+                            0.72083
+                        ],
+                        [
+                            64179.8,
+                            0.892218
+                        ],
+                        [
+                            64532.9,
+                            1.06787
+                        ],
+                        [
+                            65172.36,
+                            1.239
+                        ]
+                    ],
+                    "timestamp": 1724675061026,
+                    "datetime": "2024-08-26T12:24:21.026Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USD",
+                    "1m"
+                ],
+                "httpResponse": {
+                    "bars": {
+                        "BTC/USD": [
+                            {
+                                "c": 64616.2175,
+                                "h": 64625.4,
+                                "l": 64598.55,
+                                "n": 1,
+                                "o": 64625.4,
+                                "t": "2024-07-18T05:02:00Z",
+                                "v": 0.015155213,
+                                "vw": 64625.4
+                            }
+                        ]
+                    },
+                    "next_page_token": null
+                },
+                "parsedResponse": [
+                    [
+                        1721278920000,
+                        64625.4,
+                        64625.4,
+                        64598.55,
+                        64616.2175,
+                        0.015155213
+                    ]
+                ]
+            }
+        ]
+    }
+}

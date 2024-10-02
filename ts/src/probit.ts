@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/probit.js';
-import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, MarketClosed, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -88,6 +88,7 @@ export default class probit extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -180,7 +181,7 @@ export default class probit extends Exchange {
                     'RATE_LIMIT_EXCEEDED': RateLimitExceeded, // You are sending requests too frequently. Please try it later.
                     'MARKET_UNAVAILABLE': ExchangeNotAvailable, // Market is closed today
                     'INVALID_MARKET': BadSymbol, // Requested market is not exist
-                    'MARKET_CLOSED': BadSymbol, // {"errorCode":"MARKET_CLOSED"}
+                    'MARKET_CLOSED': MarketClosed, // {"errorCode":"MARKET_CLOSED"}
                     'MARKET_NOT_FOUND': BadSymbol, // {"errorCode":"MARKET_NOT_FOUND","message":"8e2b8496-0a1e-5beb-b990-a205b902eabe","details":{}}
                     'INVALID_CURRENCY': BadRequest, // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection, // Too many open orders
@@ -206,41 +207,22 @@ export default class probit extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'AUTO': 'Cube',
-                'AZU': 'Azultec',
-                'BCC': 'BCC',
-                'BDP': 'BidiPass',
-                'BIRD': 'Birdchain',
-                'BTCBEAR': 'BEAR',
-                'BTCBULL': 'BULL',
+                'BB': 'Baby Bali',
                 'CBC': 'CryptoBharatCoin',
-                'CHE': 'Chellit',
-                'CLR': 'Color Platform',
                 'CTK': 'Cryptyk',
                 'CTT': 'Castweet',
-                'DIP': 'Dipper',
                 'DKT': 'DAKOTA',
                 'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX': 'Fanzy',
-                'GDT': 'Gorilla Diamond',
                 'GM': 'GM Holding',
                 'GOGOL': 'GOL',
                 'GOL': 'Goldofir',
-                'GRB': 'Global Reward Bank',
-                'HBC': 'Hybrid Bank Cash',
                 'HUSL': 'The Hustle App',
                 'LAND': 'Landbox',
-                'LBK': 'Legal Block',
-                'ORC': 'Oracle System',
-                'PXP': 'PIXSHOP COIN',
-                'PYE': 'CreamPYE',
-                'ROOK': 'Reckoon',
-                'SOC': 'Soda Coin',
                 'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
                 'TOR': 'Torex',
-                'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
                 'UNISWAP': 'UNI',
             },
@@ -285,7 +267,7 @@ export default class probit extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'id');
         const baseId = this.safeString (market, 'base_currency_id');
         const quoteId = this.safeString (market, 'quote_currency_id');
@@ -417,7 +399,7 @@ export default class probit extends Exchange {
         //     }
         //
         const currencies = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'id');
@@ -427,7 +409,7 @@ export default class probit extends Exchange {
             const platforms = this.safeValue (currency, 'platform', []);
             const platformsByPriority = this.sortBy (platforms, 'priority');
             let platform = undefined;
-            const networkList = {};
+            const networkList: Dict = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
                 const idInner = this.safeString (network, 'id');
@@ -526,7 +508,7 @@ export default class probit extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -582,7 +564,7 @@ export default class probit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_id': market['id'],
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
@@ -611,7 +593,7 @@ export default class probit extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
             request['market_ids'] = marketIds.join (',');
@@ -649,7 +631,7 @@ export default class probit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_ids': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -677,7 +659,7 @@ export default class probit extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "last":"0.022902",
@@ -736,7 +718,7 @@ export default class probit extends Exchange {
         await this.loadMarkets ();
         let market: Market = undefined;
         const now = this.milliseconds ();
-        const request = {
+        const request: Dict = {
             'limit': 100,
             'start_time': this.iso8601 (now - 31536000000), // -365 days
             'end_time': this.iso8601 (now),
@@ -790,7 +772,7 @@ export default class probit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_id': market['id'],
             'start_time': '1970-01-01T00:00:00.000Z',
             'end_time': this.iso8601 (this.milliseconds ()),
@@ -830,7 +812,7 @@ export default class probit extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -970,7 +952,7 @@ export default class probit extends Exchange {
         limit = (limit === undefined) ? 100 : limit;
         let requestLimit = this.sum (limit, 1);
         requestLimit = Math.min (1000, requestLimit); // max 1000
-        const request = {
+        const request: Dict = {
             'market_ids': market['id'],
             'interval': interval,
             'sort': 'asc', // 'asc' will always include the start_time, 'desc' will always include end_time
@@ -1056,7 +1038,7 @@ export default class probit extends Exchange {
          */
         await this.loadMarkets ();
         since = this.parse8601 (since);
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1080,7 +1062,7 @@ export default class probit extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'start_time': this.iso8601 (0),
             'end_time': this.iso8601 (this.milliseconds ()),
             'limit': 100,
@@ -1107,6 +1089,7 @@ export default class probit extends Exchange {
          * @name probit#fetchOrder
          * @see https://docs-en.probit.com/reference/order-3
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1116,7 +1099,7 @@ export default class probit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_id': market['id'],
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
@@ -1132,8 +1115,8 @@ export default class probit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'open': 'open',
             'cancelled': 'canceled',
             'filled': 'closed',
@@ -1141,7 +1124,7 @@ export default class probit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         id,
@@ -1221,7 +1204,7 @@ export default class probit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1231,7 +1214,7 @@ export default class probit extends Exchange {
         const options = this.safeValue (this.options, 'timeInForce');
         const defaultTimeInForce = this.safeValue (options, type);
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', defaultTimeInForce);
-        const request = {
+        const request: Dict = {
             'market_id': market['id'],
             'type': type,
             'side': side,
@@ -1322,7 +1305,7 @@ export default class probit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_id': market['id'],
             'order_id': id,
         };
@@ -1360,7 +1343,7 @@ export default class probit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency_id': currency['id'],
             // 'platform_id': 'TRON', (undocumented)
         };
@@ -1403,7 +1386,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddress (firstAddress, currency);
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchDepositAddresses
@@ -1414,7 +1397,7 @@ export default class probit extends Exchange {
          * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         if (codes) {
             const currencyIds = [];
             for (let i = 0; i < codes.length; i++) {
@@ -1452,7 +1435,7 @@ export default class probit extends Exchange {
         if (tag === undefined) {
             tag = '';
         }
-        const request = {
+        const request: Dict = {
             'currency_id': currency['id'],
             // 'platform_id': 'ETH', // if omitted it will use the default platform for the currency
             'address': address,
@@ -1487,7 +1470,7 @@ export default class probit extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {
+        const request: Dict = {
             'type': 'deposit',
         };
         const result = await this.fetchTransactions (code, since, limit, this.extend (request, params));
@@ -1505,7 +1488,7 @@ export default class probit extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        const request = {
+        const request: Dict = {
             'type': 'withdrawal',
         };
         const result = await this.fetchTransactions (code, since, limit, this.extend (request, params));
@@ -1527,7 +1510,7 @@ export default class probit extends Exchange {
          */
         await this.loadMarkets ();
         let currency: Currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency_id'] = currency['id'];
@@ -1578,7 +1561,7 @@ export default class probit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1643,8 +1626,8 @@ export default class probit extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
             'requested': 'pending',
             'pending': 'pending',
             'confirming': 'pending',
@@ -1765,7 +1748,7 @@ export default class probit extends Exchange {
         //
         const depositWithdrawFee = this.depositWithdrawFee ({});
         const platforms = this.safeValue (fee, 'platform', []);
-        const depositResult = {
+        const depositResult: Dict = {
             'fee': undefined,
             'percentage': undefined,
         };
@@ -1776,7 +1759,7 @@ export default class probit extends Exchange {
             const withdrawalFees = this.safeValue (network, 'withdrawal_fee', {});
             const withdrawFee = this.safeNumber (withdrawalFees[0], 'amount');
             if (withdrawalFees.length) {
-                const withdrawResult = {
+                const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
                 };
@@ -1854,7 +1837,7 @@ export default class probit extends Exchange {
          * @returns response from exchange
          */
         this.checkRequiredCredentials ();
-        const request = {
+        const request: Dict = {
             'grant_type': 'client_credentials', // the only supported value
         };
         const response = await this.accountsPostToken (this.extend (request, params));
@@ -1872,17 +1855,22 @@ export default class probit extends Exchange {
         return response;
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         if ('errorCode' in response) {
             const errorCode = this.safeString (response, 'errorCode');
-            const message = this.safeString (response, 'message');
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                const errMessage = this.safeString (response, 'message', '');
+                const details = this.safeValue (response, 'details');
+                const feedback = this.id + ' ' + errorCode + ' ' + errMessage + ' ' + this.json (details);
+                if ('exact' in this.exceptions) {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                }
+                if ('broad' in this.exceptions) {
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], errMessage, feedback);
+                }
                 throw new ExchangeError (feedback);
             }
         }

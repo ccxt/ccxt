@@ -18,10 +18,10 @@
         "taker": 0.001,
         "maker": 0,
         "precision": {
-            "amount": 6,
-            "price": 2,
-            "base": 6,
-            "quote": 2
+            "amount": 0.000001,
+            "price": 0.01,
+            "base": 0.000001,
+            "quote": 0.01
         },
         "limits": {
             "leverage": {},
@@ -61,10 +61,10 @@
         "taker": 0.001,
         "maker": 0,
         "precision": {
-            "amount": 2,
-            "price": 2,
-            "base": 2,
-            "quote": 2
+            "amount": 0.01,
+            "price": 0.01,
+            "base": 0.01,
+            "quote": 0.01
         },
         "limits": {
             "leverage": {},
@@ -104,10 +104,10 @@
         "taker": 0.001,
         "maker": 0,
         "precision": {
-            "amount": 1,
-            "price": 2,
-            "base": 1,
-            "quote": 2
+            "amount": 0.1,
+            "price": 0.01,
+            "base": 0.1,
+            "quote": 0.01
         },
         "limits": {
             "leverage": {},
@@ -147,10 +147,10 @@
         "taker": 0.001,
         "maker": 0,
         "precision": {
-            "amount": 4,
-            "price": 2,
-            "base": 4,
-            "quote": 2
+            "amount": 0.0001,
+            "price": 0.01,
+            "base": 0.0001,
+            "quote": 0.01
         },
         "limits": {
             "leverage": {},
@@ -190,10 +190,10 @@
         "taker": 0.001,
         "maker": 0,
         "precision": {
-            "amount": 1,
-            "price": 2,
-            "base": 1,
-            "quote": 2
+            "amount": 0.1,
+            "price": 0.01,
+            "base": 0.1,
+            "quote": 0.01
         },
         "limits": {
             "leverage": {},
@@ -233,10 +233,10 @@
         "taker": 0.001,
         "maker": 0,
         "precision": {
-            "amount": 4,
-            "price": 2,
-            "base": 4,
-            "quote": 2
+            "amount": 0.0001,
+            "price": 0.01,
+            "base": 0.0001,
+            "quote": 0.01
         },
         "limits": {
             "leverage": {},

@@ -24,6 +24,7 @@ class lbank extends \ccxt\async\lbank {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -516,7 +517,7 @@ class lbank extends \ccxt\async\lbank {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+             * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-$orders
              * get the list of trades associated with the user
              * @param {string} [$symbol] unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -713,7 +714,6 @@ class lbank extends \ccxt\async\lbank {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://www.lbank.com/en-US/docs/index.html#$market-depth
-             * @see https://www.lbank.com/en-US/docs/index.html#$market-increment-depth
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
@@ -802,11 +802,11 @@ class lbank extends \ccxt\async\lbank {
         $orderBook = $this->safe_value($message, 'depth', $message);
         $datetime = $this->safe_string($message, 'TS');
         $timestamp = $this->parse8601($datetime);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'bids', 'asks');
         $orderbook->reset ($snapshot);
         $messageHash = 'orderbook:' . $symbol;
@@ -895,7 +895,7 @@ class lbank extends \ccxt\async\lbank {
                     $request = array(
                         'subscribeKey' => $authenticated['key'],
                     );
-                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey (array_merge($request, $params)));
+                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey ($this->extend($request, $params)));
                     //
                     //    array("result" => "true")
                     //

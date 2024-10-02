@@ -11,6 +11,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class gemini(ccxt.async_support.gemini):
@@ -56,7 +57,7 @@ class gemini(ccxt.async_support.gemini):
         market = self.market(symbol)
         messageHash = 'trades:' + market['symbol']
         marketId = market['id']
-        request = {
+        request: dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -225,7 +226,7 @@ class gemini(ccxt.async_support.gemini):
     def handle_trades_for_multidata(self, client: Client, trades, timestamp: Int):
         if trades is not None:
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            storesForSymbols = {}
+            storesForSymbols: dict = {}
             for i in range(0, len(trades)):
                 marketId = trades[i]['symbol']
                 market = self.safe_market(marketId.lower())
@@ -260,7 +261,7 @@ class gemini(ccxt.async_support.gemini):
         await self.load_markets()
         market = self.market(symbol)
         timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
-        request = {
+        request: dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -344,7 +345,7 @@ class gemini(ccxt.async_support.gemini):
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         marketId = market['id']
-        request = {
+        request: dict = {
             'type': 'subscribe',
             'subscriptions': [
                 {
@@ -366,9 +367,10 @@ class gemini(ccxt.async_support.gemini):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
+        # orderbook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
         for i in range(0, len(changes)):
             delta = changes[i]
             price = self.safe_number(delta, 1)
@@ -444,9 +446,10 @@ class gemini(ccxt.async_support.gemini):
             entry = rawBidAskChanges[i]
             rawSide = self.safe_string(entry, 'side')
             price = self.safe_number(entry, 'price')
-            size = self.safe_number(entry, 'remaining')
-            if size == 0:
+            sizeString = self.safe_string(entry, 'remaining')
+            if Precise.string_eq(sizeString, '0'):
                 continue
+            size = self.parse_number(sizeString)
             if rawSide == 'bid':
                 currentBidAsk['bid'] = price
                 currentBidAsk['bidVolume'] = size
@@ -580,7 +583,7 @@ class gemini(ccxt.async_support.gemini):
         """
         url = self.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked'
         await self.load_markets()
-        authParams = {
+        authParams: dict = {
             'url': url,
         }
         await self.authenticate(authParams)
@@ -714,7 +717,7 @@ class gemini(ccxt.async_support.gemini):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'accepted': 'open',
             'booked': 'open',
             'fill': 'closed',
@@ -725,7 +728,7 @@ class gemini(ccxt.async_support.gemini):
         return self.safe_string(statuses, status, status)
 
     def parse_ws_order_type(self, type):
-        types = {
+        types: dict = {
             'exchange limit': 'limit',
             'market buy': 'market',
             'market sell': 'market',
@@ -784,7 +787,7 @@ class gemini(ccxt.async_support.gemini):
         reason = self.safe_string(message, 'reason')
         if reason == 'error':
             self.handle_error(client, message)
-        methods = {
+        methods: dict = {
             'l2_updates': self.handle_l2_updates,
             'trade': self.handle_trade,
             'subscription_ack': self.handle_subscription,
@@ -838,13 +841,13 @@ class gemini(ccxt.async_support.gemini):
         urlLength = len(url)
         endIndex = urlParamsIndex if (urlParamsIndex >= 0) else urlLength
         request = url[startIndex:endIndex]
-        payload = {
+        payload: dict = {
             'request': request,
             'nonce': self.nonce(),
         }
         b64 = self.string_to_base64(self.json(payload))
         signature = self.hmac(self.encode(b64), self.encode(self.secret), hashlib.sha384, 'hex')
-        defaultOptions = {
+        defaultOptions: dict = {
             'ws': {
                 'options': {
                     'headers': {},
@@ -854,7 +857,7 @@ class gemini(ccxt.async_support.gemini):
         # self.options = self.extend(defaultOptions, self.options)
         self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
-        headers = {
+        headers: dict = {
             'X-GEMINI-APIKEY': self.apiKey,
             'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,

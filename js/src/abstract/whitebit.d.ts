@@ -86,6 +86,15 @@ interface Exchange {
     v4PrivatePostConvertEstimate(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostConvertConfirm(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostConvertHistory(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountCreate(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountDelete(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountEdit(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountList(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountTransfer(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountBlock(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountUnblock(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountBalances(params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostSubAccountTransferHistory(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

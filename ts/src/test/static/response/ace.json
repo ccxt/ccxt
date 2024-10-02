@@ -2,6 +2,89 @@
     "exchange": "ace",
     "skipKeys": [],
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "disabled": true,
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "base": "BTC",
+                        "baseCurrencyId": "2",
+                        "quote": "USDT",
+                        "quoteCurrencyId": "14",
+                        "basePrecision": "4",
+                        "quotePrecision": "2",
+                        "minLimitBaseAmount": "3.3e-05",
+                        "maxLimitBaseAmount": "100.0"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "BTC/USDT",
+                        "uppercaseId": null,
+                        "symbol": "BTC/USDT",
+                        "base": "BTC",
+                        "baseId": "2",
+                        "quote": "USDT",
+                        "quoteId": "14",
+                        "settle": null,
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "limits": {
+                            "amount": {
+                                "min": 0.000033,
+                                "max": 100
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "precision": {
+                            "price": 0.01,
+                            "amount": 0.0001
+                        },
+                        "active": null,
+                        "created": null,
+                        "info": {
+                            "symbol": "BTC/USDT",
+                            "base": "BTC",
+                            "baseCurrencyId": "2",
+                            "quote": "USDT",
+                            "quoteCurrencyId": "14",
+                            "basePrecision": "4",
+                            "quotePrecision": "2",
+                            "minLimitBaseAmount": "3.3e-05",
+                            "maxLimitBaseAmount": "100.0"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "public spot ticker",
@@ -10,78 +93,6 @@
                     "BTC/USDT"
                 ],
                 "httpResponse": {
-                    "ACEX/USDT": {
-                        "base_volume": "8516.7",
-                        "changeRate": "0.0",
-                        "last_price": "0.0093",
-                        "quote_volume": "79.20531"
-                    },
-                    "ADA/TWD": {
-                        "base_volume": "19551.38",
-                        "changeRate": "2.23",
-                        "last_price": "24.295",
-                        "quote_volume": "465532.35082"
-                    },
-                    "ADA/USDT": {
-                        "base_volume": "12313.4",
-                        "changeRate": "2.51",
-                        "last_price": "0.7671",
-                        "quote_volume": "9240.18972"
-                    },
-                    "ANKR/USDT": {
-                        "base_volume": "82718.8",
-                        "changeRate": "5.86",
-                        "last_price": "0.05585",
-                        "quote_volume": "4504.015994"
-                    },
-                    "APE/TWD": {
-                        "base_volume": "8471.97",
-                        "changeRate": "14.04",
-                        "last_price": "81.08",
-                        "quote_volume": "645402.9133"
-                    },
-                    "APE/USDT": {
-                        "base_volume": "4828.96",
-                        "changeRate": "13.94",
-                        "last_price": "2.5516",
-                        "quote_volume": "11014.026434"
-                    },
-                    "ARB/TWD": {
-                        "base_volume": "20665.59",
-                        "changeRate": "10.05",
-                        "last_price": "69.893",
-                        "quote_volume": "1378411.11426"
-                    },
-                    "AVAX/USDT": {
-                        "base_volume": "221.09",
-                        "changeRate": "12.36",
-                        "last_price": "53.83",
-                        "quote_volume": "11912.27"
-                    },
-                    "AXS/USDT": {
-                        "base_volume": "227.92",
-                        "changeRate": "1.91",
-                        "last_price": "12.78",
-                        "quote_volume": "2826.8303"
-                    },
-                    "BNB/TWD": {
-                        "base_volume": "18.51",
-                        "changeRate": "11.1",
-                        "last_price": "18666.4",
-                        "quote_volume": "320300.5282"
-                    },
-                    "BNB/USDT": {
-                        "base_volume": "53.824",
-                        "changeRate": "10.41",
-                        "last_price": "586.6",
-                        "quote_volume": "28929.9801"
-                    },
-                    "BONK/TWD": {
-                        "base_volume": "1263989997.0",
-                        "changeRate": "2.05",
-                        "last_price": "0.00096221",
-                        "quote_volume": "1188860.69073643"
-                    },
                     "BTC/TWD": {
                         "base_volume": "5.24888",
                         "changeRate": "1.88",
@@ -93,216 +104,6 @@
                         "changeRate": "1.79",
                         "last_price": "73390.0",
                         "quote_volume": "9005897.861012"
-                    },
-                    "CHZ/USDT": {
-                        "base_volume": "13808.0",
-                        "changeRate": "4.05",
-                        "last_price": "0.1617",
-                        "quote_volume": "2167.1806"
-                    },
-                    "DOGE/TWD": {
-                        "base_volume": "67564.73",
-                        "changeRate": "0.33",
-                        "last_price": "5.445",
-                        "quote_volume": "362980.35877"
-                    },
-                    "DOGE/USDT": {
-                        "base_volume": "125613.0",
-                        "changeRate": "0.67",
-                        "last_price": "0.17196",
-                        "quote_volume": "21278.73588"
-                    },
-                    "DOT/TWD": {
-                        "base_volume": "886.98",
-                        "changeRate": "4.86",
-                        "last_price": "354.88",
-                        "quote_volume": "305803.6453"
-                    },
-                    "DOT/USDT": {
-                        "base_volume": "926.01",
-                        "changeRate": "4.06",
-                        "last_price": "11.088",
-                        "quote_volume": "9946.31891"
-                    },
-                    "DYDX/USDT": {
-                        "base_volume": "1345.99",
-                        "changeRate": "2.18",
-                        "last_price": "4.024",
-                        "quote_volume": "5384.92895"
-                    },
-                    "ETH/BTC": {
-                        "base_volume": "147.599",
-                        "changeRate": "-0.88",
-                        "last_price": "0.055254",
-                        "quote_volume": "8.219134154"
-                    },
-                    "ETH/TWD": {
-                        "base_volume": "60.0",
-                        "changeRate": "0.79",
-                        "last_price": "128637.7",
-                        "quote_volume": "7604499.5058"
-                    },
-                    "ETH/USDT": {
-                        "base_volume": "1361.792",
-                        "changeRate": "0.89",
-                        "last_price": "4054.82",
-                        "quote_volume": "5427992.12367"
-                    },
-                    "FTM/TWD": {
-                        "base_volume": "27431.6",
-                        "changeRate": "5.37",
-                        "last_price": "26.363",
-                        "quote_volume": "712954.34773"
-                    },
-                    "FTM/USDT": {
-                        "base_volume": "7282.0",
-                        "changeRate": "5.01",
-                        "last_price": "0.8273",
-                        "quote_volume": "5899.6453"
-                    },
-                    "GALA/TWD": {
-                        "base_volume": "147944.4",
-                        "changeRate": "8.19",
-                        "last_price": "2.393",
-                        "quote_volume": "337414.09719"
-                    },
-                    "GALA/USDT": {
-                        "base_volume": "215732.0",
-                        "changeRate": "7.11",
-                        "last_price": "0.07532",
-                        "quote_volume": "15368.42576"
-                    },
-                    "LINK/USDT": {
-                        "base_volume": "360.68",
-                        "changeRate": "1.07",
-                        "last_price": "20.82",
-                        "quote_volume": "7395.34377"
-                    },
-                    "LTC/TWD": {
-                        "base_volume": "50.559",
-                        "changeRate": "0.18",
-                        "last_price": "3127.76",
-                        "quote_volume": "156822.60675"
-                    },
-                    "LTC/USDT": {
-                        "base_volume": "28.526",
-                        "changeRate": "-0.86",
-                        "last_price": "97.45",
-                        "quote_volume": "2769.46476"
-                    },
-                    "MATIC/TWD": {
-                        "base_volume": "7665.13",
-                        "changeRate": "4.5",
-                        "last_price": "39.501",
-                        "quote_volume": "290121.48512"
-                    },
-                    "MATIC/USDT": {
-                        "base_volume": "8473.1",
-                        "changeRate": "3.63",
-                        "last_price": "1.2343",
-                        "quote_volume": "10079.29176"
-                    },
-                    "SAND/TWD": {
-                        "base_volume": "7243.08",
-                        "changeRate": "2.88",
-                        "last_price": "24.63",
-                        "quote_volume": "173600.4986"
-                    },
-                    "SAND/USDT": {
-                        "base_volume": "6631.0",
-                        "changeRate": "1.86",
-                        "last_price": "0.7681",
-                        "quote_volume": "5024.6218"
-                    },
-                    "SHIB/TWD": {
-                        "base_volume": "5110794700.0",
-                        "changeRate": "-1.47",
-                        "last_price": "0.00103268",
-                        "quote_volume": "5181480.62704659"
-                    },
-                    "SHIB/USDT": {
-                        "base_volume": "1113145672.0",
-                        "changeRate": "-0.09",
-                        "last_price": "3.283e-05",
-                        "quote_volume": "36062.45594269"
-                    },
-                    "SOL/TWD": {
-                        "base_volume": "177.33",
-                        "changeRate": "0.64",
-                        "last_price": "4877.48",
-                        "quote_volume": "840671.5158"
-                    },
-                    "SOL/USDT": {
-                        "base_volume": "306.03",
-                        "changeRate": "0.71",
-                        "last_price": "153.0",
-                        "quote_volume": "45936.5633"
-                    },
-                    "SSV/TWD": {
-                        "base_volume": "410.06",
-                        "changeRate": "33.78",
-                        "last_price": "1700.0",
-                        "quote_volume": "578709.5303"
-                    },
-                    "TRX/TWD": {
-                        "base_volume": "81808.9",
-                        "changeRate": "0.57",
-                        "last_price": "4.2288",
-                        "quote_volume": "344819.65881"
-                    },
-                    "TRX/USDT": {
-                        "base_volume": "103105.3",
-                        "changeRate": "-0.51",
-                        "last_price": "0.13171",
-                        "quote_volume": "13624.746538"
-                    },
-                    "USDC/TWD": {
-                        "base_volume": "4012.01",
-                        "changeRate": "-1.08",
-                        "last_price": "31.641",
-                        "quote_volume": "127827.1714"
-                    },
-                    "USDT/TWD": {
-                        "base_volume": "2134970.0",
-                        "changeRate": "0.03",
-                        "last_price": "31.77",
-                        "quote_volume": "67892964.4809"
-                    },
-                    "VSC/USDT": {
-                        "base_volume": "2588963.64",
-                        "changeRate": "-1.66",
-                        "last_price": "0.03074",
-                        "quote_volume": "79730.4021523"
-                    },
-                    "WOO/TWD": {
-                        "base_volume": "28725.62",
-                        "changeRate": "4.37",
-                        "last_price": "18.334",
-                        "quote_volume": "527269.87829"
-                    },
-                    "WOO/USDT": {
-                        "base_volume": "17002.9",
-                        "changeRate": "4.35",
-                        "last_price": "0.57725",
-                        "quote_volume": "9649.5761979"
-                    },
-                    "XRP/TWD": {
-                        "base_volume": "17965.0",
-                        "changeRate": "0.26",
-                        "last_price": "22.186",
-                        "quote_volume": "392481.8822"
-                    },
-                    "XRP/USDT": {
-                        "base_volume": "22487.0",
-                        "changeRate": "0.26",
-                        "last_price": "0.6986",
-                        "quote_volume": "15714.8882"
-                    },
-                    "YFI/USDT": {
-                        "base_volume": "0.59434",
-                        "changeRate": "-1.71",
-                        "last_price": "10291",
-                        "quote_volume": "6104.66797"
                     }
                 },
                 "parsedResponse": {
@@ -330,6 +131,739 @@
                         "changeRate": "1.79",
                         "last_price": "73390.0",
                         "quote_volume": "9005897.861012"
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "BTC/USDT": {
+                        "base_volume": "87.5876",
+                        "changeRate": "3.64",
+                        "last_price": "65340.45",
+                        "quote_volume": "5643084.033087"
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 64427.8874302641,
+                        "open": null,
+                        "close": 65340.45,
+                        "last": 65340.45,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": 87.5876,
+                        "quoteVolume": 5643084.033087,
+                        "info": {
+                            "base_volume": "87.5876",
+                            "changeRate": "3.64",
+                            "last_price": "65340.45",
+                            "quote_volume": "5643084.033087"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "attachment": {
+                        "baseCurrencyId": "2",
+                        "quoteCurrencyId": "14",
+                        "baseCurrencyName": "BTC",
+                        "quoteCurrencyName": "USDT",
+                        "bids": [
+                            [
+                                "0.0301",
+                                "65328.58"
+                            ],
+                            [
+                                "0.349",
+                                "65328.15"
+                            ],
+                            [
+                                "0.0287",
+                                "65328.05"
+                            ],
+                            [
+                                "0.0328",
+                                "65327.8"
+                            ],
+                            [
+                                "0.0308",
+                                "65327.32"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "0.0124",
+                                "65381.03"
+                            ],
+                            [
+                                "0.3013",
+                                "65382.51"
+                            ],
+                            [
+                                "0.0153",
+                                "65385.25"
+                            ],
+                            [
+                                "0.0138",
+                                "65385.47"
+                            ],
+                            [
+                                "0.0328",
+                                "65387"
+                            ]
+                        ]
+                    },
+                    "status": 200,
+                    "message": null,
+                    "parameters": null
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            0.349,
+                            65328.15
+                        ],
+                        [
+                            0.0328,
+                            65327.8
+                        ],
+                        [
+                            0.0308,
+                            65327.32
+                        ],
+                        [
+                            0.0301,
+                            65328.58
+                        ],
+                        [
+                            0.0287,
+                            65328.05
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            0.0124,
+                            65381.03
+                        ],
+                        [
+                            0.0138,
+                            65385.47
+                        ],
+                        [
+                            0.0153,
+                            65385.25
+                        ],
+                        [
+                            0.0328,
+                            65387
+                        ],
+                        [
+                            0.3013,
+                            65382.51
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "httpResponse": {
+                    "attachment": [
+                        {
+                            "current": "65394.06",
+                            "volume": "0.049",
+                            "changeRate": "0.02",
+                            "highPrice": "65394.06",
+                            "lowPrice": "65374.74",
+                            "openPrice": "65374.75",
+                            "closePrice": "65394.06",
+                            "currentTime": 1721202600000,
+                            "createTime": "2024-07-17 15:50:00"
+                        },
+                        {
+                            "current": "65364.63",
+                            "volume": "0.0246",
+                            "changeRate": "-0.04",
+                            "highPrice": "65394.06",
+                            "lowPrice": "65364.63",
+                            "openPrice": "65394.06",
+                            "closePrice": "65364.63",
+                            "currentTime": 1721202660000,
+                            "createTime": "2024-07-17 15:51:00"
+                        },
+                        {
+                            "current": "65358",
+                            "volume": "0.0118",
+                            "changeRate": "-0.01",
+                            "highPrice": "65373",
+                            "lowPrice": "65358",
+                            "openPrice": "65364.63",
+                            "closePrice": "65358",
+                            "currentTime": 1721202720000,
+                            "createTime": "2024-07-17 15:52:00"
+                        },
+                        {
+                            "current": "65272.01",
+                            "volume": "0.0292",
+                            "changeRate": "-0.13",
+                            "highPrice": "65358.01",
+                            "lowPrice": "65272.01",
+                            "openPrice": "65358.01",
+                            "closePrice": "65272.01",
+                            "currentTime": 1721202780000,
+                            "createTime": "2024-07-17 15:53:00"
+                        },
+                        {
+                            "current": "65272.01",
+                            "volume": "0.0002",
+                            "changeRate": "0",
+                            "highPrice": "65272.01",
+                            "lowPrice": "65272.01",
+                            "openPrice": "65272.01",
+                            "closePrice": "65272.01",
+                            "currentTime": 1721202840000,
+                            "createTime": "2024-07-17 15:54:00"
+                        }
+                    ],
+                    "status": 200,
+                    "message": null,
+                    "parameters": null
+                },
+                "parsedResponse": [
+                    [
+                        1721202600000,
+                        65374.75,
+                        65394.06,
+                        65374.74,
+                        65394.06,
+                        0.049
+                    ],
+                    [
+                        1721202660000,
+                        65394.06,
+                        65394.06,
+                        65364.63,
+                        65364.63,
+                        0.0246
+                    ],
+                    [
+                        1721202720000,
+                        65364.63,
+                        65373,
+                        65358,
+                        65358,
+                        0.0118
+                    ],
+                    [
+                        1721202780000,
+                        65358.01,
+                        65358.01,
+                        65272.01,
+                        65272.01,
+                        0.0292
+                    ],
+                    [
+                        1721202840000,
+                        65272.01,
+                        65272.01,
+                        65272.01,
+                        65272.01,
+                        0.0002
+                    ]
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0007,
+                    55000
+                ],
+                "httpResponse": {
+                    "attachment": {
+                        "orderNo": "17212032439241780067851100275773",
+                        "customOrderId": null
+                    },
+                    "status": 200,
+                    "message": null,
+                    "parameters": null
+                },
+                "parsedResponse": {
+                    "id": "17212032439241780067851100275773",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "orderNo": "17212032439241780067851100275773",
+                        "customOrderId": null
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "input": [
+                    "17212032439241780067851100275773"
+                ],
+                "httpResponse": {
+                    "attachment": 200,
+                    "status": 200,
+                    "message": null,
+                    "parameters": null
+                },
+                "parsedResponse": {
+                    "attachment": 200,
+                    "status": 200,
+                    "message": null,
+                    "parameters": null
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "17212032439241780067851100275773"
+                ],
+                "httpResponse": {
+                    "attachment": {
+                        "buyOrSell": 1,
+                        "averagePrice": "0.00000000",
+                        "num": "0.00070000",
+                        "orderTime": "2024-07-17 16:00:43.928",
+                        "price": "55000.00000000",
+                        "status": 0,
+                        "tradeNum": "0.00000000",
+                        "remainNum": "0.00070000",
+                        "baseCurrencyId": 2,
+                        "baseCurrencyName": "BTC",
+                        "quoteCurrencyId": 14,
+                        "quoteCurrencyName": "USDT",
+                        "orderNo": "17212032439241780067851100275773",
+                        "customOrderId": null,
+                        "type": 1
+                    },
+                    "status": 200,
+                    "message": null,
+                    "parameters": null
+                },
+                "parsedResponse": {
+                    "id": "17212032439241780067851100275773",
+                    "clientOrderId": null,
+                    "timestamp": 1721203243928,
+                    "datetime": "2024-07-17T08:00:43.928Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 55000,
+                    "stopPrice": null,
+                    "amount": 0.0007,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.0007,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "buyOrSell": 1,
+                        "averagePrice": "0.00000000",
+                        "num": "0.00070000",
+                        "orderTime": "2024-07-17 16:00:43.928",
+                        "price": "55000.00000000",
+                        "status": 0,
+                        "tradeNum": "0.00000000",
+                        "remainNum": "0.00070000",
+                        "baseCurrencyId": 2,
+                        "baseCurrencyName": "BTC",
+                        "quoteCurrencyId": 14,
+                        "quoteCurrencyName": "USDT",
+                        "orderNo": "17212032439241780067851100275773",
+                        "customOrderId": null,
+                        "type": 1
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "attachment": [
+                        {
+                            "uid": 135637,
+                            "orderNo": "17212032439241780067851100275773",
+                            "customOrderId": null,
+                            "orderTime": "2024-07-17 16:00:43",
+                            "orderTimeStamp": 1721203243928,
+                            "quoteCurrencyId": 14,
+                            "quoteCurrencyName": "USDT",
+                            "baseCurrencyId": 2,
+                            "baseCurrencyName": "BTC",
+                            "buyOrSell": "1",
+                            "num": "0.0007000000000000",
+                            "price": "55000.0000000000000000",
+                            "remainNum": "0.0007000000000000",
+                            "tradeNum": "0.0000000000000000",
+                            "tradePrice": "0.0000000000000000",
+                            "tradeAmount": "0.000000000000000000000000000000",
+                            "tradeRate": "0.00000000000000000000",
+                            "status": 0,
+                            "type": 1
+                        }
+                    ],
+                    "status": 200,
+                    "message": null,
+                    "parameters": null
+                },
+                "parsedResponse": [
+                    {
+                        "id": "17212032439241780067851100275773",
+                        "clientOrderId": null,
+                        "timestamp": 1721203243928,
+                        "datetime": "2024-07-17T08:00:43.928Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/USDT",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 55000,
+                        "stopPrice": null,
+                        "amount": 0.0007,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.0007,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "uid": 135637,
+                            "orderNo": "17212032439241780067851100275773",
+                            "customOrderId": null,
+                            "orderTime": "2024-07-17 16:00:43",
+                            "orderTimeStamp": 1721203243928,
+                            "quoteCurrencyId": 14,
+                            "quoteCurrencyName": "USDT",
+                            "baseCurrencyId": 2,
+                            "baseCurrencyName": "BTC",
+                            "buyOrSell": "1",
+                            "num": "0.0007000000000000",
+                            "price": "55000.0000000000000000",
+                            "remainNum": "0.0007000000000000",
+                            "tradeNum": "0.0000000000000000",
+                            "tradePrice": "0.0000000000000000",
+                            "tradeAmount": "0.000000000000000000000000000000",
+                            "tradeRate": "0.00000000000000000000",
+                            "status": 0,
+                            "type": 1
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades",
+                "method": "fetchOrderTrades",
+                "input": [
+                    "17212032439241780067851100275773",
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "attachment": {
+                        "order": {
+                            "buyOrSell": 1,
+                            "averagePrice": "0.00000000",
+                            "num": "0.00070000",
+                            "orderTime": "2024-07-17 16:00:43.928",
+                            "price": "55000.00000000",
+                            "status": 0,
+                            "tradeNum": "0.00000000",
+                            "remainNum": "0.00070000",
+                            "baseCurrencyId": 2,
+                            "baseCurrencyName": "BTC",
+                            "quoteCurrencyId": 14,
+                            "quoteCurrencyName": "USDT",
+                            "orderNo": "17212032439241780067851100275773",
+                            "customOrderId": null,
+                            "type": 1
+                        },
+                        "trades": [
+                            {
+                                "price": "55000.00000000",
+                                "num": "0.00070000",
+                                "time": "2022-11-29 18:32:25.789",
+                                "tradeNo": "16697179457897791471461000223437",
+                                "amount": "7970.57815028"
+                            }
+                        ]
+                    },
+                    "status": 200,
+                    "message": null,
+                    "parameters": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "price": "55000.00000000",
+                            "num": "0.00070000",
+                            "time": "2022-11-29 18:32:25.789",
+                            "tradeNo": "16697179457897791471461000223437",
+                            "amount": "7970.57815028"
+                        },
+                        "id": "16697179457897791471461000223437",
+                        "order": null,
+                        "symbol": "BTC/USDT",
+                        "side": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "price": 55000,
+                        "amount": 0.0007,
+                        "cost": 38.5,
+                        "fee": {"cost": null, "currency": null },
+                        "timestamp": 1669717945789,
+                        "datetime": "2022-11-29T10:32:25.789Z",
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "attachment": [
+                        {
+                            "buyOrSell": 1,
+                            "orderNo": "16708156853695560053601100247906",
+                            "num": "1",
+                            "price": "16895",
+                            "orderAmount": "16895",
+                            "tradeNum": "0.1",
+                            "tradePrice": "16895",
+                            "tradeAmount": "1689.5",
+                            "fee": "0",
+                            "feeSave": "0",
+                            "status": 1,
+                            "isSelf": false,
+                            "tradeNo": "16708186395087940051961000274150",
+                            "tradeTime": "2022-12-1212:17:19",
+                            "tradeTimestamp": 1670818639508,
+                            "quoteCurrencyId": 14,
+                            "quoteCurrencyName": "USDT",
+                            "baseCurrencyId": 2,
+                            "baseCurrencyName": "BTC"
+                        }
+                    ],
+                    "message": null,
+                    "parameters": null,
+                    "status": 200
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "buyOrSell": 1,
+                            "orderNo": "16708156853695560053601100247906",
+                            "num": "1",
+                            "price": "16895",
+                            "orderAmount": "16895",
+                            "tradeNum": "0.1",
+                            "tradePrice": "16895",
+                            "tradeAmount": "1689.5",
+                            "fee": "0",
+                            "feeSave": "0",
+                            "status": 1,
+                            "isSelf": false,
+                            "tradeNo": "16708186395087940051961000274150",
+                            "tradeTime": "2022-12-1212:17:19",
+                            "tradeTimestamp": 1670818639508,
+                            "quoteCurrencyId": 14,
+                            "quoteCurrencyName": "USDT",
+                            "baseCurrencyId": 2,
+                            "baseCurrencyName": "BTC"
+                        },
+                        "id": "16708186395087940051961000274150",
+                        "order": "16708156853695560053601100247906",
+                        "symbol": "BTC/USDT",
+                        "side": "buy",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "price": 16895,
+                        "amount": 1,
+                        "cost": 16895,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "timestamp": 1670818639508,
+                        "datetime": "2022-12-12T04:17:19.508Z",
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "attachment": [
+                        {
+                            "uid": 135637,
+                            "currencyId": 14,
+                            "currencyName": "USDT",
+                            "amount": "61.80956201",
+                            "cashAmount": "61.56456201"
+                        },
+                        {
+                            "uid": 135637,
+                            "currencyId": 7,
+                            "currencyName": "LTC",
+                            "amount": "0.0935535",
+                            "cashAmount": "0.0935535"
+                        }
+                    ],
+                    "status": 200,
+                    "message": null,
+                    "parameters": null
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "uid": 135637,
+                            "currencyId": 14,
+                            "currencyName": "USDT",
+                            "amount": "61.80956201",
+                            "cashAmount": "61.56456201"
+                        },
+                        {
+                            "uid": 135637,
+                            "currencyId": 7,
+                            "currencyName": "LTC",
+                            "amount": "0.0935535",
+                            "cashAmount": "0.0935535"
+                        }
+                    ],
+                    "USDT": {
+                        "free": 61.56456201,
+                        "total": 61.80956201,
+                        "used": 0.245
+                    },
+                    "LTC": {
+                        "free": 0.0935535,
+                        "total": 0.0935535,
+                        "used": 0
+                    },
+                    "free": {
+                        "USDT": 61.56456201,
+                        "LTC": 0.0935535
+                    },
+                    "used": {
+                        "USDT": 0.245,
+                        "LTC": 0
+                    },
+                    "total": {
+                        "USDT": 61.80956201,
+                        "LTC": 0.0935535
                     }
                 }
             }

@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -453,7 +453,7 @@ export default class delta extends Exchange {
         //     }
         //
         const currencies = this.safeList (response, 'result', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
@@ -502,7 +502,7 @@ export default class delta extends Exchange {
     }
 
     indexByStringifiedNumericId (input) {
-        const result = {};
+        const result: Dict = {};
         if (input === undefined) {
             return undefined;
         }
@@ -829,7 +829,7 @@ export default class delta extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -986,7 +986,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTickersSymbol (this.extend (request, params));
@@ -1262,7 +1262,7 @@ export default class delta extends Exchange {
         //     }
         //
         const tickers = this.safeList (response, 'result', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
             const symbol = ticker['symbol'];
@@ -1284,7 +1284,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1313,7 +1313,7 @@ export default class delta extends Exchange {
         return this.parseOrderBook (result, market['symbol'], undefined, 'buy', 'sell', 'price', 'size');
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1427,7 +1427,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTradesSymbol (this.extend (request, params));
@@ -1486,7 +1486,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
@@ -1526,7 +1526,7 @@ export default class delta extends Exchange {
 
     parseBalance (response): Balances {
         const balances = this.safeList (response, 'result', []);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1588,7 +1588,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_id': market['numericId'],
         };
         const response = await this.privateGetPositions (this.extend (request, params));
@@ -1643,7 +1643,7 @@ export default class delta extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // fetchPosition
         //
@@ -1713,8 +1713,8 @@ export default class delta extends Exchange {
         });
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'open': 'open',
             'pending': 'open',
             'closed': 'closed',
@@ -1723,7 +1723,7 @@ export default class delta extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -1820,7 +1820,7 @@ export default class delta extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1828,7 +1828,7 @@ export default class delta extends Exchange {
         await this.loadMarkets ();
         const orderType = type + '_order';
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_id': market['numericId'],
             // 'limit_price': this.priceToPrecision (market['symbol'], price),
             'size': this.amountToPrecision (market['symbol'], amount),
@@ -1904,13 +1904,13 @@ export default class delta extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': parseInt (id),
             'product_id': market['numericId'],
             // "limit_price": this.priceToPrecision (symbol, price),
@@ -1960,7 +1960,7 @@ export default class delta extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': parseInt (id),
             'product_id': market['numericId'],
         };
@@ -2020,7 +2020,7 @@ export default class delta extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_id': market['numericId'],
             // 'cancel_limit_orders': 'true',
             // 'cancel_stop_orders': 'true',
@@ -2032,7 +2032,11 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        return response;
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2067,7 +2071,7 @@ export default class delta extends Exchange {
 
     async fetchOrdersWithMethod (method, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'product_ids': market['id'], // comma-separated
             // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
             // 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
@@ -2134,7 +2138,7 @@ export default class delta extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'product_ids': market['id'], // comma-separated
             // 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
             // 'start_time': since * 1000,
@@ -2204,20 +2208,20 @@ export default class delta extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name delta#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.delta.exchange/#get-wallet-transactions
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'asset_id': currency['numericId'],
             // 'end_time': this.seconds (),
             // 'after': 'string', // after cursor for pagination
@@ -2259,7 +2263,7 @@ export default class delta extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',
             'withdrawal': 'transaction',
@@ -2274,7 +2278,7 @@ export default class delta extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "amount":"29.889184",
@@ -2312,7 +2316,7 @@ export default class delta extends Exchange {
         const after = this.safeString (item, 'balance');
         const before = Precise.stringMax ('0', Precise.stringSub (after, amount));
         const status = 'ok';
-        return {
+        return this.safeLedgerEntry ({
             'info': item,
             'id': id,
             'direction': direction,
@@ -2328,7 +2332,7 @@ export default class delta extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
-        };
+        }, currency) as LedgerEntry;
     }
 
     async fetchDepositAddress (code: string, params = {}) {
@@ -2343,7 +2347,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset_symbol': currency['id'],
         };
         const networkCode = this.safeStringUpper (params, 'network');
@@ -2401,7 +2405,7 @@ export default class delta extends Exchange {
         };
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name delta#fetchFundingRate
@@ -2416,7 +2420,7 @@ export default class delta extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTickersSymbol (this.extend (request, params));
@@ -2469,7 +2473,7 @@ export default class delta extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name delta#fetchFundingRates
@@ -2477,11 +2481,11 @@ export default class delta extends Exchange {
          * @see https://docs.delta.exchange/#get-tickers-for-products
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {
+        const request: Dict = {
             'contract_types': 'perpetual_futures',
         };
         const response = await this.publicGetTickers (this.extend (request, params));
@@ -2537,7 +2541,7 @@ export default class delta extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "close": 30600.5,
@@ -2602,7 +2606,8 @@ export default class delta extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
@@ -2640,7 +2645,7 @@ export default class delta extends Exchange {
         if (type === 'reduce') {
             amount = Precise.stringMul (amount, '-1');
         }
-        const request = {
+        const request: Dict = {
             'product_id': market['numericId'],
             'delta_margin': amount,
         };
@@ -2672,7 +2677,7 @@ export default class delta extends Exchange {
         return this.parseMarginModification (result, market);
     }
 
-    parseMarginModification (data, market: Market = undefined): MarginModification {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //     {
         //         "auto_topup": false,
@@ -2724,7 +2729,7 @@ export default class delta extends Exchange {
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTickersSymbol (this.extend (request, params));
@@ -2860,7 +2865,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_id': market['numericId'],
         };
         const response = await this.privateGetProductsProductIdOrdersLeverage (this.extend (request, params));
@@ -2881,7 +2886,7 @@ export default class delta extends Exchange {
         return this.parseLeverage (result, market);
     }
 
-    parseLeverage (leverage, market = undefined): Leverage {
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'index_symbol');
         const leverageValue = this.safeInteger (leverage, 'leverage');
         return {
@@ -2909,7 +2914,7 @@ export default class delta extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'product_id': market['numericId'],
             'leverage': leverage,
         };
@@ -2944,7 +2949,7 @@ export default class delta extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'states': 'expired',
         };
         if (limit !== undefined) {
@@ -3100,7 +3105,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTickersSymbol (this.extend (request, params));
@@ -3160,7 +3165,7 @@ export default class delta extends Exchange {
         return this.parseGreeks (result, market);
     }
 
-    parseGreeks (greeks, market: Market = undefined) {
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
         //
         //     {
         //         "close": 6793.0,
@@ -3249,7 +3254,7 @@ export default class delta extends Exchange {
          * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'close_all_portfolio': true,
             'close_all_isolated': true,
             // 'user_id': 12345,
@@ -3345,7 +3350,7 @@ export default class delta extends Exchange {
         return this.parseMarginMode (result, market);
     }
 
-    parseMarginMode (marginMode, market = undefined): MarginMode {
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -3369,7 +3374,7 @@ export default class delta extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetTickersSymbol (this.extend (request, params));
@@ -3429,7 +3434,7 @@ export default class delta extends Exchange {
         return this.parseOption (result, undefined, market);
     }
 
-    parseOption (chain, currency: Currency = undefined, market: Market = undefined) {
+    parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
         //
         //     {
         //         "close": 6793.0,
@@ -3537,7 +3542,7 @@ export default class delta extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

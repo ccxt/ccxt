@@ -4,10 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
@@ -18,10 +19,15 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'watchLiquidations': False,
+                'watchLiquidatinsForSymbols': False,
+                'watchMyLiquidations': None,
+                'watchMyLiquidationsForSymbols': None,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchBidsAsks': True,
                 'watchTrades': True,
+                'watchOHLCV': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchBalance': True,
@@ -32,6 +38,21 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 'watchOrderBookForSymbols': True,
             },
             'options': {
+                'timeframes': {
+                    '1m': '1min',
+                    '3m': '1min',
+                    '5m': '5min',
+                    '15m': '15min',
+                    '30m': '30min',
+                    '1h': '1hour',
+                    '2h': '2hour',
+                    '4h': '4hour',
+                    '8h': '8hour',
+                    '12h': '12hour',
+                    '1d': '1day',
+                    '1w': '1week',
+                    '1M': '1month',
+                },
                 'accountsByType': {
                     'swap': 'future',
                     'cross': 'margin',
@@ -129,14 +150,14 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     async def subscribe(self, url, messageHash, subscriptionHash, subscription, params={}):
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': subscriptionHash,
             'response': True,
         }
         message = self.extend(request, params)
-        subscriptionRequest = {
+        subscriptionRequest: dict = {
             'id': requestId,
         }
         if subscription is None:
@@ -147,13 +168,31 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params={}):
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': topic,
             'response': True,
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), subscriptionHashes, subscriptionArgs)
+
+    async def un_subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription: dict = None):
+        requestId = str(self.request_id())
+        request: dict = {
+            'id': requestId,
+            'type': 'unsubscribe',
+            'topic': topic,
+            'response': True,
+        }
+        message = self.extend(request, params)
+        if subscription is not None:
+            subscription[requestId] = requestId
+        client = self.client(url)
+        for i in range(0, len(subscriptionHashes)):
+            subscriptionHash = subscriptionHashes[i]
+            if not (subscriptionHash in client.subscriptions):
+                client.subscriptions[requestId] = subscriptionHash
+        return await self.watch_multiple(url, messageHashes, message, subscriptionHashes, subscription)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -180,7 +219,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         await self.load_markets()
         ticker = await self.watch_multi_request('watchTickers', '/contractMarket/ticker:', symbols, params)
         if self.newUpdates:
-            tickers = {}
+            tickers: dict = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -224,7 +263,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         """
         ticker = await self.watch_multi_request('watchBidsAsks', '/contractMarket/tickerV2:', symbols, params)
         if self.newUpdates:
-            tickers = {}
+            tickers: dict = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
@@ -247,13 +286,13 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         marketIds = self.market_ids(symbols)
         joined = ','.join(marketIds)
         requestId = str(self.request_id())
-        request = {
+        request: dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': channelName + joined,
             'response': True,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscription)
@@ -311,14 +350,14 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         url = await self.negotiate(True)
         market = self.market(symbol)
         topic = '/contract/position:' + market['id']
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'position:' + market['symbol']
         client = self.client(url)
         self.set_position_cache(client, symbol)
         fetchPositionSnapshot = self.handle_option('watchPosition', 'fetchPositionSnapshot', True)
-        awaitPositionSnapshot = self.safe_bool('watchPosition', 'awaitPositionSnapshot', True)
+        awaitPositionSnapshot = self.handle_option('watchPosition', 'awaitPositionSnapshot', True)
         currentPosition = self.get_current_position(symbol)
         if fetchPositionSnapshot and awaitPositionSnapshot and currentPosition is None:
             snapshot = await client.future('fetchPositionSnapshot:' + symbol)
@@ -506,6 +545,44 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unWatches trades stream
+        :see: https://docs.kucoin.com/futures/#execution-data
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        return await self.un_watch_trades_for_symbols([symbol], params)
+
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        url = await self.negotiate(False)
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        topic = '/contractMarket/execution:' + ','.join(marketIds)
+        subscriptionHashes = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            messageHashes.append('unsubscribe:trades:' + symbol)
+            subscriptionHashes.append('trades:' + symbol)
+        subscription = {
+            'messageHashes': messageHashes,
+            'subMessageHashes': subscriptionHashes,
+            'topic': 'trades',
+            'unsubscribe': True,
+            'symbols': symbols,
+        }
+        return await self.un_subscribe_multiple(url, messageHashes, topic, messageHashes, params, subscription)
+
     def handle_trade(self, client: Client, message):
         #
         #    {
@@ -540,6 +617,77 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.resolve(trades, messageHash)
         return message
 
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+        """
+        :see: https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
+        url = await self.negotiate(False)
+        marketId = self.market_id(symbol)
+        timeframes = self.safe_dict(self.options, 'timeframes')
+        timeframeId = self.safe_string(timeframes, timeframe, timeframe)
+        topic = '/contractMarket/limitCandle:' + marketId + '_' + timeframeId
+        messageHash = 'ohlcv::' + symbol + '_' + timeframe
+        ohlcv = await self.subscribe(url, messageHash, topic, None, params)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    def handle_ohlcv(self, client: Client, message):
+        #
+        #    {
+        #        "topic":"/contractMarket/limitCandle:LTCUSDTM_1min",
+        #        "type":"message",
+        #        "data":{
+        #            "symbol":"LTCUSDTM",
+        #            "candles":[
+        #                "1715470980",
+        #                "81.38",
+        #                "81.38",
+        #                "81.38",
+        #                "81.38",
+        #                "61.0",
+        #                "61"
+        #            ],
+        #            "time":1715470994801
+        #        },
+        #        "subject":"candle.stick"
+        #    }
+        #
+        topic = self.safe_string(message, 'topic')
+        parts = topic.split('_')
+        timeframeId = self.safe_string(parts, 1)
+        data = self.safe_dict(message, 'data')
+        timeframes = self.safe_dict(self.options, 'timeframes')
+        timeframe = self.find_timeframe(timeframeId, timeframes)
+        marketId = self.safe_string(data, 'symbol')
+        symbol = self.safe_symbol(marketId)
+        messageHash = 'ohlcv::' + symbol + '_' + timeframe
+        ohlcv = self.safe_list(data, 'candles')
+        parsed = [
+            self.safe_integer(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 6),  # Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+        ]
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
+        if not (timeframe in self.ohlcvs[symbol]):
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
+        stored = self.ohlcvs[symbol][timeframe]
+        stored.append(parsed)
+        client.resolve(stored, messageHash)
+
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -560,6 +708,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.kucoin.com/futures/#level-2-market-data
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -576,7 +725,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         marketIds = self.market_ids(symbols)
         url = await self.negotiate(False)
         topic = '/contractMarket/level2:' + ','.join(marketIds)
-        subscriptionArgs = {
+        subscriptionArgs: dict = {
             'limit': limit,
         }
         subscriptionHashes = []
@@ -588,6 +737,43 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             subscriptionHashes.append('/contractMarket/level2:' + marketId)
         orderbook = await self.subscribe_multiple(url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params)
         return orderbook.limit()
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.kucoin.com/futures/#level-2-market-data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        return await self.un_watch_order_book_for_symbols([symbol], params)
+
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str[] symbols: unified array of symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        url = await self.negotiate(False)
+        topic = '/contractMarket/level2:' + ','.join(marketIds)
+        subscriptionHashes = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            messageHashes.append('unsubscribe:orderbook:' + symbol)
+            subscriptionHashes.append('orderbook:' + symbol)
+        subscription = {
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'unsubscribe': True,
+            'topic': 'orderbook',
+            'subMessageHashes': subscriptionHashes,
+        }
+        return await self.un_subscribe_multiple(url, messageHashes, topic, messageHashes, params, subscription)
 
     def handle_delta(self, orderbook, delta):
         orderbook['nonce'] = self.safe_integer(delta, 'sequence')
@@ -703,7 +889,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         await self.load_markets()
         url = await self.negotiate(True)
         topic = '/contractMarket/tradeOrders'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
         messageHash = 'orders'
@@ -717,7 +903,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'open': 'open',
             'filled': 'closed',
             'match': 'open',
@@ -816,10 +1002,10 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         await self.load_markets()
         url = await self.negotiate(True)
         topic = '/contractAccount/wallet'
-        request = {
+        request: dict = {
             'privateChannel': True,
         }
-        subscription = {
+        subscription: dict = {
             'method': self.handle_balance_subscription,
         }
         messageHash = 'balance'
@@ -861,7 +1047,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         self.check_required_credentials()
         messageHash = 'balance'
         selectedType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'swap')  # spot, margin, main, funding, future, mining, trade, contract, pool
-        params = {
+        params: dict = {
             'type': selectedType,
         }
         snapshot = await self.fetch_balance(params)
@@ -920,9 +1106,10 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         #    }
         #
         subject = self.safe_string(message, 'subject')
-        methods = {
+        methods: dict = {
             'level2': self.handle_order_book,
             'ticker': self.handle_ticker,
+            'candle.stick': self.handle_ohlcv,
             'tickerV2': self.handle_bid_ask,
             'availableBalance.change': self.handle_balance,
             'match': self.handle_trade,
@@ -943,7 +1130,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         else:
             return elementName + 's@all'
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # kucoin does not support built-in ws protocol-level ping-pong
         # instead it requires a custom json-based text ping-pong
         # https://docs.kucoin.com/#ping
@@ -975,14 +1162,41 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             self.options['urls'][type] = None
         self.handle_errors(None, None, client.url, None, None, data, message, None, None)
 
+    def handle_subscription_status(self, client: Client, message):
+        #
+        #     {
+        #         "id": "1578090438322",
+        #         "type": "ack"
+        #     }
+        #
+        id = self.safe_string(message, 'id')
+        if not (id in client.subscriptions):
+            return
+        subscriptionHash = self.safe_string(client.subscriptions, id)
+        subscription = self.safe_value(client.subscriptions, subscriptionHash)
+        del client.subscriptions[id]
+        method = self.safe_value(subscription, 'method')
+        if method is not None:
+            method(client, message, subscription)
+        isUnSub = self.safe_bool(subscription, 'unsubscribe', False)
+        if isUnSub:
+            messageHashes = self.safe_list(subscription, 'messageHashes', [])
+            subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+            for i in range(0, len(messageHashes)):
+                messageHash = messageHashes[i]
+                subHash = subMessageHashes[i]
+                self.clean_unsubscription(client, subHash, messageHash)
+            self.clean_cache(subscription)
+
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             # 'heartbeat': self.handleHeartbeat,
             'welcome': self.handle_system_status,
             'message': self.handle_subject,
             'pong': self.handle_pong,
             'error': self.handle_error_message,
+            'ack': self.handle_subscription_status,
         }
         method = self.safe_value(methods, type)
         if method is not None:

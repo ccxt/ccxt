@@ -8,6 +8,9 @@
         "newClientStrategyId"
     ],
     "outputType": "urlencoded",
+    "options": {
+        "leverageBrackets":{"BTC/USDT:USDT":[["0","0.004"],["50000","0.005"],["250000","0.01"],["3000000","0.025"],["20000000","0.05"],["40000000","0.1"],["100000000","0.125"],["120000000","0.15"],["200000000","0.25"],["300000000","0.5"]],"ETH/USDT:USDT":[["0","0.005"],["100000","0.0065"],["250000","0.01"],["2000000","0.02"],["15000000","0.05"],["30000000","0.1"],["60000000","0.125"],["80000000","0.15"],["100000000","0.25"],["150000000","0.5"]],"LTC/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]],"ADA/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]],"BTC/USD:BTC":[["0","0.004"],["5","0.005"],["10","0.01"],["20","0.025"],["50","0.05"],["100","0.1"],["200","0.125"],["400","0.15"],["1000","0.25"],["1500","0.5"]]}
+    },
     "methods": {
         "createOrder": [
             {
@@ -51,6 +54,58 @@
                     }
                 ],
                 "output": "timestamp=1707174812474&symbol=LTCUSDT&side=BUY&newOrderRespType=FULL&newClientOrderId=x-R4BD3S8281350e594e8f4383a36f19&type=LIMIT_MAKER&quantity=0.2&price=50&recvWindow=10000&signature=4e01e6b644312f26fce0be6524ed2eda08079dec6b6f1f2670a685362e39c6f1"
+            },
+            {
+                "description": "spot order with weird amount",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0007856509959147719,
+                  55000
+                ],
+                "output": "timestamp=1714835089402&symbol=BTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8248a31eddb97c4bd496a6b0&newOrderRespType=FULL&type=LIMIT&quantity=0.00078&price=55000&timeInForce=GTC&recvWindow=10000&signature=50aeda30bb2261723ead2d178f4fa1c8a270af2ec9d787cf4ae8cfe44c11516f"
+            },
+            {
+                "description": "spot order with weird price/amount",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.4234234234,
+                  55.324242343
+                ],
+                "output": "timestamp=1714922933332&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82bf9e78bb5d9948fa89b20d&newOrderRespType=FULL&type=LIMIT&quantity=0.423&price=55.32&timeInForce=GTC&recvWindow=10000&signature=84f7265b067e1fd1a244e6b1af168109652359c1204942330a6ac77ba7f7c93e"
+            },
+            {
+                "description": "spot limit buy with weird price/amount",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.4234234234,
+                  55.324242343
+                ],
+                "output": "timestamp=1714923006076&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu8cef5fd759c2493f8eff0b&newOrderRespType=RESULT&type=LIMIT&quantity=0.423&price=55.32&timeInForce=GTC&recvWindow=10000&signature=e0c49a6da870de7264a84603c2a5f33bb5d8e24b8935cb4fdb303ee2dbf39d79"
+            },
+            {
+                "description": "swap limit buy with weird price/amount",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.132434234,
+                  50.234234234
+                ],
+                "output": "timestamp=1718723127466&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu29733e7109944f4b825049&newOrderRespType=RESULT&type=LIMIT&quantity=0.132&price=50.23&timeInForce=GTC&recvWindow=10000&signature=31ec4a15ca25663539a8d29991b663a90d3354ed8cad3e8360e1aa92677d5c97"
             },
             {
                 "description": "Swap market buy order",
@@ -349,6 +404,142 @@
                     }
                 ],
                 "output": "timestamp=1708360882808&symbol=LTCUSDT&side=BUY&newOrderRespType=RESULT&newClientOrderId=x-xcKtGhcu6f60e2c1e1ed4166838709&type=LIMIT&quantity=0.2&timeInForce=GTC&priceMatch=OPPONENT&recvWindow=10000&signature=b73ae983cc2d4995d48e98841152c802ba0b420ee79fc501bde0b6eeee4817ab"
+            },
+            {
+                "description": "spot create a trailing limit stop loss order",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  55000,
+                  {
+                    "trailingPercent": 5,
+                    "stopLossOrTakeProfit": "stopLoss"
+                  }
+                ],
+                "output": "timestamp=1715064034670&symbol=BTCUSDT&side=SELL&trailingDelta=500&newClientOrderId=x-R4BD3S827b685798989f41d5802a06&newOrderRespType=FULL&type=STOP_LOSS_LIMIT&quantity=0.1&price=55000&timeInForce=GTC&recvWindow=10000&signature=57d9051c3a5ef532f6124922f104bfd35e73b553b8e46d54598a3fdbb9463cb5"
+            },
+            {
+                "description": "spot create a trailing limit take profit order",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "sell",
+                  0.1,
+                  70000,
+                  {
+                    "trailingPercent": 5,
+                    "stopLossOrTakeProfit": "takeProfit"
+                  }
+                ],
+                "output": "timestamp=1715064136268&symbol=BTCUSDT&side=SELL&trailingDelta=500&newClientOrderId=x-R4BD3S829874c25a35ce4766a6c7bc&newOrderRespType=FULL&type=TAKE_PROFIT_LIMIT&quantity=0.1&price=70000&timeInForce=GTC&recvWindow=10000&signature=221d429c7db5a26495d5c0d9287f6e6a08fb59f45b3f71c3c6bfe8e319e35341"
+            },
+            {
+                "description": "spot portfolioMargin postOnly order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/margin/order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.25,
+                  50.1,
+                  {
+                    "portfolioMargin": true,
+                    "postOnly": true
+                  }
+                ],
+                "output": "timestamp=1716470235123&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S8270e7c9840bb6463fb08c23&newOrderRespType=RESULT&type=LIMIT_MAKER&quantity=0.25&price=50.1&recvWindow=10000&signature=444e202f5d5916737d7fb6386199d06e8dcf86fae0605b631f4cf170497d98e5"
+            },
+            {
+                "description": "swap portfolioMargin postOnly order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/um/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.41,
+                  50,
+                  {
+                    "portfolioMargin": true,
+                    "postOnly": true,
+                    "positionSide": "LONG"
+                  }
+                ],
+                "output": "timestamp=1716470360382&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu08549492ddff403d8a6466&timeInForce=GTX&newOrderRespType=RESULT&type=LIMIT&quantity=0.41&price=50&positionSide=LONG&recvWindow=10000&signature=e9499c199ddedd7dec114f6b0491f6e41789b0fe0e6130b539b5ad6f9f0a549b"
+            },
+            {
+                "description": "swap limit bbo order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  null,
+                  {
+                    "priceMatch": "OPPONENT"
+                  }
+                ],
+                "output": "timestamp=1717843341137&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcud3bc1226a44e4652b326a8&newOrderRespType=RESULT&type=LIMIT&quantity=0.1&timeInForce=GTC&priceMatch=OPPONENT&recvWindow=10000&signature=0683954e1707e361a26c80395574bbf38829fb35c4a0fa634c7a56f7f2617843"
+            },
+            {
+                "description": "swap trigger bbo order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  null,
+                  {
+                    "triggerPrice": 100,
+                    "priceMatch": "OPPONENT"
+                  }
+                ],
+                "output": "timestamp=1717843608802&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu918489f4e5334421a68067&newOrderRespType=RESULT&type=STOP&quantity=0.1&stopPrice=100&priceMatch=OPPONENT&recvWindow=10000&signature=1c87a4c108577d3fee3b3081295424c2ffeaf0454ca3cbff46ed7b84a1d62671"
+            },
+            {
+                "description": "swap hedged reduceOnly market sell order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.01,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "timestamp=1727850641135&symbol=BTCUSDT&side=SELL&newClientOrderId=x-xcKtGhcua9d0397424bb4452a90901&newOrderRespType=RESULT&type=MARKET&quantity=0.01&positionSide=LONG&recvWindow=10000&signature=1fc5d67df418e595a5041c8e200644689d14c4de3bae2e997cff65571dbd4fe2"
+            },
+            {
+                "description": "swap hedged reduceOnly market buy order",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.01,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "timestamp=1727850728450&symbol=BTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu7115017eb3284b84905830&newOrderRespType=RESULT&type=MARKET&quantity=0.01&positionSide=SHORT&recvWindow=10000&signature=5709d8de55d46bce7ef997580b9a223d3145772c1d5c22160b53e4539246b9b2"
             }
         ],
         "createOrders": [
@@ -400,6 +591,16 @@
                     15
                 ],
                 "output": "timestamp=1702677315563&symbol=BTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82166697aa19d7484fb68378&newOrderRespType=FULL&type=MARKET&quoteOrderQty=15&recvWindow=10000&signature=64f817d988900608171a22a906a68da7ef58b401b8ec6514c0e141f2c262c8fa"
+            },
+            {
+                "description": "market buy order with weird cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                  "LTC/USDT",
+                  5.3243423423423
+                ],
+                "output": "timestamp=1718723820863&symbol=LTCUSDT&side=BUY&newClientOrderId=x-R4BD3S82844b9678d33a487c9d1a81&newOrderRespType=FULL&type=MARKET&quoteOrderQty=5.32&recvWindow=10000&signature=bae9de654740b296d76fcea43e907a64c3339a76b924f797dbc4ce54b21e832f"
             }
         ],
         "createMarketSellOrderWithCost": [
@@ -412,6 +613,16 @@
                     15
                 ],
                 "output": "timestamp=1702677379657&symbol=BTCUSDT&side=SELL&newClientOrderId=x-R4BD3S82e9114f80b9124f96817cc1&newOrderRespType=FULL&type=MARKET&quoteOrderQty=15&recvWindow=10000&signature=c71dc764642f5e6b7a96d04b7d820058ec204557ec43ce64ff102d25df4423b8"
+            },
+            {
+                "description": "market sell with weird cost",
+                "method": "createMarketSellOrderWithCost",
+                "url": "https://api.binance.com/api/v3/order",
+                "input": [
+                  "LTC/USDT",
+                  5.3243423423423
+                ],
+                "output": "timestamp=1718723859404&symbol=LTCUSDT&side=SELL&newClientOrderId=x-R4BD3S8211e624263fc64745ba2215&newOrderRespType=FULL&type=MARKET&quoteOrderQty=5.32&recvWindow=10000&signature=370d368512813304333bd7510e6ae62d89ba877ed6a829ac5595a9c26b0ba265"
             }
         ],
         "editOrder": [
@@ -556,6 +767,19 @@
                 ]
             },
             {
+                "description": "Linear swap portfolio margin trigger cancel order",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/order?timestamp=1707269945072&symbol=BTCUSDT&strategyId=3733207&recvWindow=10000&signature=b5ec95255493898e91209894976c9883d22a3de188b62ea177bf1c23efcd0db5",
+                "input": [
+                    3733207,
+                    "BTC/USDT:USDT",
+                    {
+                        "portfolioMargin": true,
+                        "trigger": true
+                    }
+                ]
+            },
+            {
                 "description": "Inverse swap portfolio margin conditional cancel order",
                 "method": "cancelOrder",
                 "url": "https://papi.binance.com/papi/v1/cm/conditional/order?timestamp=1707270382591&symbol=ETHUSD_PERP&strategyId=1423466&recvWindow=10000&signature=4c5d4d9522fef4c07eab511eb42359bbfd9b929b312c247b3d64fdd1b0684a3f",
@@ -567,13 +791,26 @@
                         "stop": true
                     }
                 ]
+            },
+            {
+                "description": "Inverse swap portfolio margin trigger cancel order",
+                "method": "cancelOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/order?timestamp=1707270382591&symbol=ETHUSD_PERP&strategyId=1423466&recvWindow=10000&signature=4c5d4d9522fef4c07eab511eb42359bbfd9b929b312c247b3d64fdd1b0684a3f",
+                "input": [
+                    1423466,
+                    "ETH/USD:ETH",
+                    {
+                        "portfolioMargin": true,
+                        "trigger": true
+                    }
+                ]
             }
         ],
         "cancelOrders": [
             {
                 "description": "Swap cancelOrders",
                 "method": "cancelOrders",
-                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1699384523218&symbol=LTCUSDT&recvWindow=10000&orderidlist=[652511506]&signature=ced41362438af4b529b81484e1713dc0108b2715453e403d3e46fa93ba8a0a83",
+                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1699384523218&symbol=LTCUSDT&recvWindow=10000&orderidlist=%5B652511506%5D&signature=ced41362438af4b529b81484e1713dc0108b2715453e403d3e46fa93ba8a0a83",
                 "input": [
                     [
                         "652511506"
@@ -684,7 +921,7 @@
             {
                 "description": "Swap fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
+                "url": "https://testnet.binancefuture.com/fapi/v3/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
                 "input": [
                     {
                         "type": "swap"
@@ -1380,7 +1617,7 @@
             {
                 "description": "fetch default positions",
                 "method": "fetchPositions",
-                "url": "https://testnet.binancefuture.com/fapi/v2/positionRisk?timestamp=1699381878017&recvWindow=10000&signature=f654a95fde9ee5ee6004b1ded1adb3671333ac84eeab7f3b11c27b12848a28c2",
+                "url": "https://testnet.binancefuture.com/fapi/v3/positionRisk?timestamp=1699381878017&recvWindow=10000&signature=f654a95fde9ee5ee6004b1ded1adb3671333ac84eeab7f3b11c27b12848a28c2",
                 "input": []
             },
             {
@@ -1397,12 +1634,25 @@
             {
                 "description": "fetch account positions",
                 "method": "fetchPositions",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1706118171133&recvWindow=10000&signature=6c1048179b4cfc725c45991f61b13da9321ba96f5149ac359ca956a4e8dd33ea",
+                "url": "https://testnet.binancefuture.com/fapi/v3/account?timestamp=1706118171133&recvWindow=10000&signature=6c1048179b4cfc725c45991f61b13da9321ba96f5149ac359ca956a4e8dd33ea",
                 "input": [
                     null,
                     {
                         "method": "account"
                     }
+                ]
+            },
+            {
+                "description": "fetchPositions using v2 endpoint",
+                "method": "fetchPositions",
+                "url": "https://testnet.binancefuture.com/fapi/v2/positionRisk?timestamp=1723707952699&recvWindow=10000&signature=dff9cc68edcb97f55d93a978daa862eb3caf36ccf053943467995603ba453b7c",
+                "input": [
+                  [
+                    "LTC/USDT:USDT"
+                  ],
+                  {
+                    "useV2": true
+                  }
                 ]
             }
         ],
@@ -1520,6 +1770,18 @@
                     "ADA/USDT"
                 ],
                 "output": "timestamp=1704968820014&asset=USDT&amount=1&type=ISOLATEDMARGIN_ISOLATEDMARGIN&fromSymbol=LTCUSDT&toSymbol=ADAUSDT&recvWindow=10000&signature=190b3acf1286fe5ab2e41d2024d8fe1cc81eb9a30bccf77386275d37d8cc81c5"
+            },
+            {
+                "description": "transfer main funding with weird amount",
+                "method": "transfer",
+                "url": "https://api.binance.com/sapi/v1/asset/transfer",
+                "input": [
+                  "USDT",
+                  1.23434223,
+                  "main",
+                  "funding"
+                ],
+                "output": "timestamp=1718723373536&asset=USDT&amount=1.23434223&type=MAIN_FUNDING&recvWindow=10000&signature=731b5bbe83853c1cb5b3715a569fd67554e39681ecf5098c1646264e9c98a555"
             }
         ],
         "fetchDeposits": [
@@ -1948,6 +2210,34 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "ohlcv with since and until should use maxLimit spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.binance.com/api/v3/klines?interval=1h&limit=1500&symbol=BTCUSDT&startTime=1714921949000&endTime=1725549149000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1714921949000,
+                  null,
+                  {
+                    "until": 1725549149000
+                  }
+                ]
+            },
+            {
+                "description": "ohlcv with since and until should use maxLimit swap",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.binance.com/fapi/v1/klines?interval=1h&limit=1500&symbol=BTCUSDT&startTime=1714921949000&endTime=1725549149000",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1h",
+                  1714921949000,
+                  null,
+                  {
+                    "until": 1725549149000
+                  }
+                ]
             }
         ],
         "fetchTradingFees": [
@@ -1964,7 +2254,7 @@
             {
                 "description": "Fetch Trading Fees - linear",
                 "method": "fetchTradingFees",
-                "url": "https://api.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "url": "https://api.binance.com/fapi/v1/accountConfig?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
                 "input": [
                     {
                         "type": "swap",
@@ -2214,7 +2504,7 @@
             {
                 "description": "Fetch Positions Risk - linear",
                 "method": "fetchPositionsRisk",
-                "url": "https://fapi.binance.com/fapi/v2/positionRisk?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "url": "https://fapi.binance.com/fapi/v3/positionRisk?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
                 "input": [
                     null,
                     {
@@ -2266,11 +2556,23 @@
             {
                 "description": "Fetch Account Positions - linear",
                 "method": "fetchAccountPositions",
-                "url": "https://fapi.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "url": "https://fapi.binance.com/fapi/v3/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
                 "input": [
                     null,
                     {
                         "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Account Positions - linear",
+                "method": "fetchAccountPositions",
+                "url": "https://fapi.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear",
+                        "useV2": true
                     }
                 ]
             },
@@ -2312,7 +2614,7 @@
             {
                 "description": "account positions with filterClosed option",
                 "method": "fetchAccountPositions",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1711968805532&filterClosed=true&recvWindow=10000&signature=d70e7146e12dff30106d51e77574cda0b75aa353c505746b1a78a5c086a7ac19",
+                "url": "https://testnet.binancefuture.com/fapi/v3/account?timestamp=1711968805532&filterClosed=true&recvWindow=10000&signature=d70e7146e12dff30106d51e77574cda0b75aa353c505746b1a78a5c086a7ac19",
                 "input": [
                   null,
                   {
@@ -2511,6 +2813,20 @@
                     }
                 ],
                 "output": "timestamp=1707370050475&asset=USDT&amount=5&recvWindow=10000&signature=25ac0418c9c3e2830f2b231da826c7d5deb816f58d0b31f654fe0f80c63561b7"
+            },
+            {
+                "description": "Portfolio margin repay cross margin with an alternative endpoint",
+                "method": "repayCrossMargin",
+                "url": "https://papi.binance.com/papi/v1/margin/repay-debt",
+                "input": [
+                  "USDC",
+                  10,
+                  {
+                    "method": "papiPostMarginRepayDebt",
+                    "papi": true
+                  }
+                ],
+                "output": "timestamp=1727170759618&asset=USDC&amount=10&recvWindow=10000&signature=b9f6e7773fb5639f4d7c33556841287091ca35278560528f3bbebd54e00d4c1a"
             }
         ],
         "fetchMyDustTrades": [
@@ -2544,6 +2860,19 @@
                 "method": "fetchTransfers",
                 "url": "https://api.binance.com/sapi/v1/asset/transfer?timestamp=1706094571953&type=MAIN_UMFUTURE&recvWindow=10000&signature=a8edc2192088ef3aff0fd3687e8c222eb2f45ba83cd9a4c589f561202466be8f",
                 "input": []
+            },
+            {
+                "description": "internal transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.binance.com/sapi/v1/pay/transactions?timestamp=1718096776515&recvWindow=10000&signature=b9fe81491ea542195571f617280e2bef60e5971926be6ce646e4bb25ac18d80e",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "internal": true
+                  }
+                ]
             }
         ],
         "fetchMyLiquidations": [
@@ -2790,6 +3119,19 @@
                 ]
             },
             {
+                "description": "Linear portfolio margin trigger fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/openOrder?timestamp=1707894696072&symbol=BTCUSDT&strategyId=4084339&recvWindow=10000&signature=22ae21d4e6cca439461b2deae7750b973f8b307025e2124e779e93eb86bcb1cd",
+                "input": [
+                    "4084339",
+                    "BTC/USDT:USDT",
+                    {
+                        "portfolioMargin": true,
+                        "trigger": true
+                    }
+                ]
+            },
+            {
                 "description": "Inverse portfolio margin conditional fetch open order",
                 "method": "fetchOpenOrder",
                 "url": "https://papi.binance.com/papi/v1/cm/conditional/openOrder?timestamp=1707894959489&symbol=ETHUSD_PERP&strategyId=1423501&recvWindow=10000&signature=83acda806cf655ebbcecabaa76d6c024a30daf49ad9d6bceeb939807d22964a7",
@@ -2799,6 +3141,20 @@
                     {
                         "portfolioMargin": true,
                         "stop": true
+                    }
+                ]
+            },
+            
+            {
+                "description": "Inverse portfolio margin trigger fetch open order",
+                "method": "fetchOpenOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/openOrder?timestamp=1707894959489&symbol=ETHUSD_PERP&strategyId=1423501&recvWindow=10000&signature=83acda806cf655ebbcecabaa76d6c024a30daf49ad9d6bceeb939807d22964a7",
+                "input": [
+                    "1423501",
+                    "ETH/USD:ETH",
+                    {
+                        "portfolioMargin": true,
+                        "trigger": true
                     }
                 ]
             }
@@ -2871,7 +3227,7 @@
             {
                 "description": "fetch leverage",
                 "method": "fetchLeverage",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709136468103&recvWindow=10000&signature=b24aa2014e8f5e24af708947eac62196161221c58f303a67e6755f725a7ab650",
+                "url": "https://testnet.binancefuture.com/fapi/v1/symbolConfig?timestamp=1709136468103&recvWindow=10000&signature=b24aa2014e8f5e24af708947eac62196161221c58f303a67e6755f725a7ab650",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -2881,7 +3237,7 @@
             {
                 "description": "Linear swap fetch all set leverages",
                 "method": "fetchLeverages",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709365967532&recvWindow=10000&signature=0ba690bc39cc0f098fc8adfab9a10e991a239b02b59e92c7cc88281c74b7ec1e",
+                "url": "https://testnet.binancefuture.com/fapi/v1/symbolConfig?timestamp=1709365967532&recvWindow=10000&signature=0ba690bc39cc0f098fc8adfab9a10e991a239b02b59e92c7cc88281c74b7ec1e",
                 "input": []
             }
         ],
@@ -2889,7 +3245,7 @@
             {
                 "description": "Fetch Margin Modes with linear subType and symbol list",
                 "method": "fetchMarginModes",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709152197362&recvWindow=10000&signature=e03e51e9eaf6ccadbe8171e52d588d13e389861804104ee7948d768609713aaf",
+                "url": "https://testnet.binancefuture.com/fapi/v1/symbolConfig?timestamp=1709152197362&recvWindow=10000&signature=e03e51e9eaf6ccadbe8171e52d588d13e389861804104ee7948d768609713aaf",
                 "input": [
                     [
                         "BTC/USDT:USDT"
@@ -3076,6 +3432,150 @@
                   4
                 ],
                 "output": "timestamp=1713536455384&quoteId=844f131de9994643a0b6ce7805d08cfb&recvWindow=10000&signature=39e6351a5061356643aa48f6e335b6d3c903710206f2543bd9443af07885948b"
+            }
+        ],
+        "fetchIsolatedBorrowRate": [
+            {
+                "description": "fetchIsolatedBorrowRate",
+                "method": "fetchIsolatedBorrowRate",
+                "url": "https://api.binance.com/sapi/v1/margin/isolatedMarginData?timestamp=1714664548704&symbol=BTCUSDT&recvWindow=10000&signature=6bed3101b0139a52896c5ac2cba8c9c16371153e133ecdef782c7cd398bb470f",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchIsolatedBorrowRates": [
+            {
+                "description": "fetchIsolatedBorrowRates",
+                "method": "fetchIsolatedBorrowRates",
+                "url": "https://api.binance.com/sapi/v1/margin/isolatedMarginData?timestamp=1714664627834&recvWindow=10000&signature=9b4fa07568a385ee7a642e31375bb1c6e0640d1491508b2f5bbd4e36ce31f117",
+                "input": []
+            }
+        ],
+        "fetchPremiumIndexOHLCV": [
+            {
+                "description": "fetchPremiumIndexOHLCV linear",
+                "method": "fetchPremiumIndexOHLCV",
+                "url": "https://fapi.binance.com/fapi/v1/premiumIndexKlines?interval=1m&limit=500&symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetchPremiumIndexOHLCV inverse",
+                "method": "fetchPremiumIndexOHLCV",
+                "url": "https://dapi.binance.com/dapi/v1/premiumIndexKlines?interval=1m&limit=500&symbol=BTCUSD_PERP",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw using trc20 network",
+                "method": "withdraw",
+                "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
+                "input": [
+                  "USDT",
+                  10.34332,
+                  "TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "output": "timestamp=1718724487672&coin=USDT&address=TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N&amount=10.34332&network=TRX&recvWindow=10000&signature=d9a2ecdfd7a207b2e7770b45a1971a3ea6bfcdb9c0796691b6528a7a7b77fe02"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "disabled": true,
+                "description": "fetchCurrencies, temnporary disabled because of multi promise",
+                "method": "fetchCurrencies",
+                "url": "https://api.binance.com/sapi/v1/capital/config/getall?timestamp=1721628239072&recvWindow=10000&signature=sig",
+                "input": []
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://api.binance.com/sapi/v1/system/status",
+                "input": []
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress",
+                "method": "fetchDepositAddress",
+                "url": "https://api.binance.com/sapi/v1/capital/deposit/address?timestamp=1721628239072&recvWindow=10000&signature=sig&coin=BTC",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchTransactionFees": [
+            {
+                "description": "fetchTransactionFees",
+                "method": "fetchTransactionFees",
+                "url": "https://api.binance.com/sapi/v1/capital/config/getall?timestamp=1721628239072&recvWindow=10000&signature=sig",
+                "input": []
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "fetchDepositWithdrawFees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.binance.com/sapi/v1/capital/config/getall?timestamp=1721628239072&recvWindow=10000&signature=sig",
+                "input": []
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://eapi.binance.com/eapi/v1/position?timestamp=1721628239072&recvWindow=10000&signature=sig&symbol=ETH-231229-800-C",
+                "input": [
+                    "ETH/USDT:USDT-231229-800-C"
+                ]
+            }
+        ],
+        "fetchOptionPositions": [
+            {
+                "description": "fetchOptionPositions",
+                "method": "fetchOptionPositions",
+                "url": "https://eapi.binance.com/eapi/v1/position?timestamp=1721628239072&recvWindow=10000&signature=sig",
+                "input": []
+            }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "fetchSettlementHistory",
+                "method": "fetchSettlementHistory",
+                "url": "https://eapi.binance.com/eapi/v1/exerciseHistory?underlying=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT-231229-800-C"
+                ]
+            }
+        ],
+        "fetchMySettlementHistory": [
+            {
+                "description": "fetchMySettlementHistory",
+                "method": "fetchMySettlementHistory",
+                "url": "https://eapi.binance.com/eapi/v1/exerciseRecord?timestamp=1721628239072&recvWindow=10000&signature=sig&symbol=ETH-231229-800-C",
+                "input": [
+                    "ETH/USDT:USDT-231229-800-C"
+                ]
+            }
+        ],
+        "fetchBorrowRateHistory": [
+            {
+                "description": "fetchBorrowRateHistory",
+                "method": "fetchBorrowRateHistory",
+                "url": "https://eapi.binance.com/sapi/v1/margin/interestRateHistory?timestamp=1721628239072&recvWindow=10000&signature=sig&asset=BTC&limit=93",
+                "input": [
+                    "BTC"
+                ]
             }
         ]
     }

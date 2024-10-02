@@ -80,6 +80,7 @@ public partial class probit : Exchange
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -169,7 +170,7 @@ public partial class probit : Exchange
                     { "RATE_LIMIT_EXCEEDED", typeof(RateLimitExceeded) },
                     { "MARKET_UNAVAILABLE", typeof(ExchangeNotAvailable) },
                     { "INVALID_MARKET", typeof(BadSymbol) },
-                    { "MARKET_CLOSED", typeof(BadSymbol) },
+                    { "MARKET_CLOSED", typeof(MarketClosed) },
                     { "MARKET_NOT_FOUND", typeof(BadSymbol) },
                     { "INVALID_CURRENCY", typeof(BadRequest) },
                     { "TOO_MANY_OPEN_ORDERS", typeof(DDoSProtection) },
@@ -195,41 +196,22 @@ public partial class probit : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "AUTO", "Cube" },
-                { "AZU", "Azultec" },
-                { "BCC", "BCC" },
-                { "BDP", "BidiPass" },
-                { "BIRD", "Birdchain" },
-                { "BTCBEAR", "BEAR" },
-                { "BTCBULL", "BULL" },
+                { "BB", "Baby Bali" },
                 { "CBC", "CryptoBharatCoin" },
-                { "CHE", "Chellit" },
-                { "CLR", "Color Platform" },
                 { "CTK", "Cryptyk" },
                 { "CTT", "Castweet" },
-                { "DIP", "Dipper" },
                 { "DKT", "DAKOTA" },
                 { "EGC", "EcoG9coin" },
                 { "EPS", "Epanus" },
                 { "FX", "Fanzy" },
-                { "GDT", "Gorilla Diamond" },
                 { "GM", "GM Holding" },
                 { "GOGOL", "GOL" },
                 { "GOL", "Goldofir" },
-                { "GRB", "Global Reward Bank" },
-                { "HBC", "Hybrid Bank Cash" },
                 { "HUSL", "The Hustle App" },
                 { "LAND", "Landbox" },
-                { "LBK", "Legal Block" },
-                { "ORC", "Oracle System" },
-                { "PXP", "PIXSHOP COIN" },
-                { "PYE", "CreamPYE" },
-                { "ROOK", "Reckoon" },
-                { "SOC", "Soda Coin" },
                 { "SST", "SocialSwap" },
                 { "TCT", "Top Coin Token" },
                 { "TOR", "Torex" },
-                { "TPAY", "Tetra Pay" },
                 { "UNI", "UNICORN Token" },
                 { "UNISWAP", "UNI" },
             } },
@@ -1157,6 +1139,7 @@ public partial class probit : Exchange
         * @name probit#fetchOrder
         * @see https://docs-en.probit.com/reference/order-3
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1281,7 +1264,7 @@ public partial class probit : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2010,12 +1993,19 @@ public partial class probit : Exchange
         if (isTrue(inOp(response, "errorCode")))
         {
             object errorCode = this.safeString(response, "errorCode");
-            object message = this.safeString(response, "message");
             if (isTrue(!isEqual(errorCode, null)))
             {
-                object feedback = add(add(this.id, " "), body);
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                object errMessage = this.safeString(response, "message", "");
+                object details = this.safeValue(response, "details");
+                object feedback = add(add(add(add(add(add(this.id, " "), errorCode), " "), errMessage), " "), this.json(details));
+                if (isTrue(inOp(this.exceptions, "exact")))
+                {
+                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                }
+                if (isTrue(inOp(this.exceptions, "broad")))
+                {
+                    this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errMessage, feedback);
+                }
                 throw new ExchangeError ((string)feedback) ;
             }
         }

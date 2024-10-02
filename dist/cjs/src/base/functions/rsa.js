@@ -25,22 +25,22 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
         request['iat'] = header['iat'];
         delete header['iat'];
     }
-    const encodedHeader = encode.urlencodeBase64(encode.stringToBase64(JSON.stringify(header)));
-    const encodedData = encode.urlencodeBase64(encode.stringToBase64(JSON.stringify(request)));
+    const encodedHeader = encode.urlencodeBase64(JSON.stringify(header));
+    const encodedData = encode.urlencodeBase64(JSON.stringify(request));
     const token = [encodedHeader, encodedData].join('.');
     const algoType = alg.slice(0, 2);
     let signature = undefined;
     if (algoType === 'HS') {
-        signature = encode.urlencodeBase64(crypto.hmac(token, secret, hash, 'base64'));
+        signature = encode.urlencodeBase64(crypto.hmac(token, secret, hash, 'binary'));
     }
     else if (isRSA || algoType === 'RS') {
-        signature = encode.urlencodeBase64(rsa(token, index.utf8.encode(secret), hash));
+        signature = encode.urlencodeBase64(encode.base64ToBinary(rsa(token, index.utf8.encode(secret), hash)));
     }
     else if (algoType === 'ES') {
         const signedHash = crypto.ecdsa(token, index.utf8.encode(secret), p256.P256, hash);
         const r = signedHash.r.padStart(64, '0');
         const s = signedHash.s.padStart(64, '0');
-        signature = encode.urlencodeBase64(encode.binaryToBase64(encode.base16ToBinary(r + s)));
+        signature = encode.urlencodeBase64(encode.base16ToBinary(r + s));
     }
     return [token, signature].join('.');
 }

@@ -1481,7 +1481,7 @@ public partial class huobijp : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1655,7 +1655,70 @@ public partial class huobijp : Exchange
         //         }
         //     }
         //
-        return response;
+        return this.parseCancelOrders(response);
+    }
+
+    public virtual object parseCancelOrders(object orders)
+    {
+        //
+        //    {
+        //        "success": [
+        //            "5983466"
+        //        ],
+        //        "failed": [
+        //            {
+        //                "err-msg": "Incorrect order state",
+        //                "order-state": 7,
+        //                "order-id": "",
+        //                "err-code": "order-orderstate-error",
+        //                "client-order-id": "first"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        //    {
+        //        "errors": [
+        //            {
+        //                "order_id": "769206471845261312",
+        //                "err_code": 1061,
+        //                "err_msg": "This order doesnt exist."
+        //            }
+        //        ],
+        //        "successes": "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        object successes = this.safeString(orders, "successes");
+        object success = null;
+        if (isTrue(!isEqual(successes, null)))
+        {
+            success = ((string)successes).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+        } else
+        {
+            success = this.safeList(orders, "success", new List<object>() {});
+        }
+        object failed = this.safeList2(orders, "errors", "failed", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
+        {
+            object order = getValue(success, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", order },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        {
+            object order = getValue(failed, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", this.safeString2(order, "order-id", "order_id") },
+                { "status", "failed" },
+                { "clientOrderId", this.safeString(order, "client-order-id") },
+            }));
+        }
+        return result;
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1688,24 +1751,15 @@ public partial class huobijp : Exchange
         //         }
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", data },
+})};
     }
 
     public override object currencyToPrecision(object code, object fee, object networkCode = null)
     {
         return this.decimalToPrecision(fee, 0, getValue(getValue(this.currencies, code), "precision"), this.precisionMode);
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object lastCharacterIndex = subtract(getArrayLength(networkId), 1);
-        object lastCharacter = getValue(networkId, lastCharacterIndex);
-        if (isTrue(isEqual(lastCharacter, "1")))
-        {
-            networkId = slice(networkId, 0, lastCharacterIndex);
-        }
-        object networksById = new Dictionary<string, object>() {};
-        return this.safeString(networksById, networkId, networkId);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

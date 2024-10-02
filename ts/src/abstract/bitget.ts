@@ -108,6 +108,9 @@ interface Exchange {
     privateSpotGetV2SpotAccountSubaccountAssets (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotAccountBills (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotAccountTransferRecords (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetV2AccountFundingAssets (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetV2AccountBotAssets (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetV2AccountAllAccountBalance (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotWalletDepositAddress (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotWalletDepositRecords (params?: {}): Promise<implicitReturnType>;
     privateSpotGetV2SpotWalletWithdrawalRecords (params?: {}): Promise<implicitReturnType>;
@@ -502,6 +505,7 @@ interface Exchange {
     privateEarnGetV2EarnLoanBorrowHistory (params?: {}): Promise<implicitReturnType>;
     privateEarnGetV2EarnLoanDebts (params?: {}): Promise<implicitReturnType>;
     privateEarnGetV2EarnLoanReduces (params?: {}): Promise<implicitReturnType>;
+    privateEarnGetV2EarnAccountAssets (params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnSavingsSubscribe (params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnSavingsRedeem (params?: {}): Promise<implicitReturnType>;
     privateEarnPostV2EarnSharkfinSubscribe (params?: {}): Promise<implicitReturnType>;

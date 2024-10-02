@@ -16,6 +16,7 @@ public partial class wazirx : ccxt.wazirx
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -307,6 +308,7 @@ public partial class wazirx : ccxt.wazirx
         * @method
         * @name wazirx#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://docs.wazirx.com/#trade-streams
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -417,6 +419,7 @@ public partial class wazirx : ccxt.wazirx
         * @method
         * @name wazirx#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://docs.wazirx.com/#kline-candlestick-stream
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -567,22 +570,22 @@ public partial class wazirx : ccxt.wazirx
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object currentOrderBook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(currentOrderBook, null)))
+        // const currentOrderBook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
-            object orderBook = this.orderBook(snapshot);
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderBook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(snapshot);
         } else
         {
-            object asks = this.safeValue(data, "a", new List<object>() {});
-            object bids = this.safeValue(data, "b", new List<object>() {});
-            this.handleDeltas(getValue(currentOrderBook, "asks"), asks);
-            this.handleDeltas(getValue(currentOrderBook, "bids"), bids);
-            ((IDictionary<string,object>)currentOrderBook)["nonce"] = timestamp;
-            ((IDictionary<string,object>)currentOrderBook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)currentOrderBook)["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = currentOrderBook;
+            object orderbook = getValue(this.orderbooks, symbol);
+            object asks = this.safeList(data, "a", new List<object>() {});
+            object bids = this.safeList(data, "b", new List<object>() {});
+            this.handleDeltas(getValue(orderbook, "asks"), asks);
+            this.handleDeltas(getValue(orderbook, "bids"), bids);
+            ((IDictionary<string,object>)orderbook)["nonce"] = timestamp;
+            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.orderbooks, symbol), messageHash});
     }

@@ -30,8 +30,10 @@ interface Exchange {
     privatePostWithdrawals(params?: {}): Promise<implicitReturnType>;
     privatePostSend(params?: {}): Promise<implicitReturnType>;
     privatePostOauth2Grant(params?: {}): Promise<implicitReturnType>;
+    privatePostBeneficiaries(params?: {}): Promise<implicitReturnType>;
     privatePutAccountsIdName(params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsId(params?: {}): Promise<implicitReturnType>;
+    privateDeleteBeneficiariesId(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

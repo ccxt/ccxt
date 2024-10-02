@@ -17,7 +17,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import MarginModeAlreadySet
-from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -30,8 +29,9 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import BadResponse
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -234,7 +234,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     'maker': self.parse_number('0.0075'),  # 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'options': {
                 # 'fetchTradesMethod': 'binanceGetTrades',  # binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice': True,
@@ -707,7 +707,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     active = False
                     break
             isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed', False)
-            entry = {
+            entry: dict = {
                 'id': id,
                 'lowercaseId': lowercaseId,
                 'symbol': symbol,
@@ -734,10 +734,10 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'quantityPrecision'),
-                    'price': self.safe_integer(market, 'pricePrecision'),
-                    'base': self.safe_integer(market, 'baseAssetPrecision'),
-                    'quote': self.safe_integer(market, 'quotePrecision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                    'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -762,8 +762,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             }
             if 'PRICE_FILTER' in filtersByType:
                 filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-                tickSize = self.safe_string(filter, 'tickSize')
-                entry['precision']['price'] = self.precision_from_string(tickSize)
+                entry['precision']['price'] = self.safe_number(filter, 'tickSize')
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
@@ -772,11 +771,10 @@ class tokocrypto(Exchange, ImplicitAPI):
                     'min': self.safe_number(filter, 'minPrice'),
                     'max': self.safe_number(filter, 'maxPrice'),
                 }
-                entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
+                entry['precision']['price'] = filter['tickSize']
             if 'LOT_SIZE' in filtersByType:
                 filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-                stepSize = self.safe_string(filter, 'stepSize')
-                entry['precision']['amount'] = self.precision_from_string(stepSize)
+                entry['precision']['amount'] = self.safe_number(filter, 'stepSize')
                 entry['limits']['amount'] = {
                     'min': self.safe_number(filter, 'minQty'),
                     'max': self.safe_number(filter, 'maxQty'),
@@ -804,7 +802,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         response = None
@@ -849,7 +847,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'lastUpdateId')
         return orderbook
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # aggregate trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -1002,7 +1000,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': self.get_market_id_by_type(market),
             # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
             # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
@@ -1088,7 +1086,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "ETHBTC",
@@ -1198,7 +1196,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['baseId'] + market['quoteId'],
         }
         response = self.binanceGetTicker24hr(self.extend(request, params))
@@ -1286,7 +1284,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['price', 'until'])
         limit = defaultLimit if (limit is None) else min(limit, maxLimit)
-        request = {
+        request: dict = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
         }
@@ -1329,7 +1327,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
         marginMode = self.safe_string_lower(params, 'marginMode', defaultMarginMode)
-        request = {}
+        request: dict = {}
         response = self.privateGetOpenV1AccountSpot(self.extend(request, params))
         #
         # spot
@@ -1359,7 +1357,7 @@ class tokocrypto(Exchange, ImplicitAPI):
 
     def parse_balance_custom(self, response, type=None, marginMode=None):
         timestamp = self.safe_integer(response, 'updateTime')
-        result = {
+        result: dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1376,8 +1374,8 @@ class tokocrypto(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             '-2': 'open',
             '0': 'open',  # NEW
             '1': 'open',  # PARTIALLY_FILLED
@@ -1396,7 +1394,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # spot
         #
@@ -1549,7 +1547,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_type(self, status):
-        statuses = {
+        statuses: dict = {
             '2': 'market',
             '1': 'limit',
             '4': 'limit',
@@ -1566,7 +1564,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order would be triggered
         :param float [params.cost]: for spot market buy orders, the quote quantity that can be used alternative for the amount
@@ -1595,7 +1593,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
             else:
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
-        reverseOrderTypeMapping = {
+        reverseOrderTypeMapping: dict = {
             'LIMIT': 1,
             'MARKET': 2,
             'STOP_LOSS': 3,
@@ -1604,7 +1602,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'TAKE_PROFIT_LIMIT': 6,
             'LIMIT_MAKER': 7,
         }
-        request = {
+        request: dict = {
             'symbol': market['baseId'] + '_' + market['quoteId'],
             'type': self.safe_string(reverseOrderTypeMapping, uppercaseType),
         }
@@ -1723,7 +1721,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'orderId': id,
         }
         response = self.privateGetOpenV1Orders(self.extend(request, params))
@@ -1776,7 +1774,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             # 'type': -1,  # -1 = all, 1 = open, 2 = closed
             # 'side': 1,  # or 2
@@ -1838,7 +1836,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {'type': 1}  # -1 = all, 1 = open, 2 = closed
+        request: dict = {'type': 1}  # -1 = all, 1 = open, 2 = closed
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1851,7 +1849,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {'type': 2}  # -1 = all, 1 = open, 2 = closed
+        request: dict = {'type': 2}  # -1 = all, 1 = open, 2 = closed
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1863,7 +1861,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'orderId': id,
         }
         response = self.privatePostOpenV1OrdersCancel(self.extend(request, params))
@@ -1911,7 +1909,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         endTime = self.safe_integer_2(params, 'until', 'endTime')
@@ -1962,7 +1960,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             # 'network': 'ETH',  # 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         }
@@ -2017,7 +2015,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = None
-        request = {}
+        request: dict = {}
         until = self.safe_integer(params, 'until')
         if code is not None:
             currency = self.currency(code)
@@ -2070,7 +2068,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -2112,7 +2110,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         return self.parse_transactions(withdrawals, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
-        statusesByType = {
+        statusesByType: dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -2130,7 +2128,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2252,7 +2250,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'asset': currency['id'],
             # 'clientId': 'string',  # # client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
             # 'network': 'string',
@@ -2331,7 +2329,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}

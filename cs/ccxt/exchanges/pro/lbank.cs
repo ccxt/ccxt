@@ -20,6 +20,7 @@ public partial class lbank : ccxt.lbank
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", false },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -529,7 +530,7 @@ public partial class lbank : ccxt.lbank
         /**
         * @method
         * @name lbank#watchOrders
-        * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+        * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
         * @description get the list of trades associated with the user
         * @param {string} [symbol] unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -706,7 +707,7 @@ public partial class lbank : ccxt.lbank
     {
         /**
         * @method
-        * @name lbank#watchOrderBook
+        * @name lbank#fetchOrderBookWs
         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -740,7 +741,6 @@ public partial class lbank : ccxt.lbank
         * @method
         * @name lbank#watchOrderBook
         * @see https://www.lbank.com/en-US/docs/index.html#market-depth
-        * @see https://www.lbank.com/en-US/docs/index.html#market-increment-depth
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -831,12 +831,12 @@ public partial class lbank : ccxt.lbank
         object orderBook = this.safeValue(message, "depth", message);
         object datetime = this.safeString(message, "TS");
         object timestamp = this.parse8601(datetime);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
         (orderbook as IOrderBook).reset(snapshot);
         object messageHash = add("orderbook:", symbol);

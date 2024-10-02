@@ -84,6 +84,8 @@ export default class gate extends Exchange {
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrder': true,
                 'createMarketOrderWithCost': false,
@@ -160,6 +162,7 @@ export default class gate extends Exchange {
                 'reduceMargin': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': true,
@@ -593,22 +596,25 @@ export default class gate extends Exchange {
             },
             // copied from gatev2
             'commonCurrencies': {
+                'ORT': 'XREATORS',
+                'ASS': 'ASSF',
                 '88MPH': 'MPH',
-                'AXIS': 'Axis DeFi',
-                'BIFI': 'Bitcoin File',
-                'BOX': 'DefiBox',
-                'BYN': 'BeyondFi',
-                'EGG': 'Goose Finance',
-                'GTC': 'Game.com',
-                'GTC_HT': 'Game.com HT',
-                'GTC_BSC': 'Game.com BSC',
-                'HIT': 'HitChain',
-                'MM': 'Million',
-                'MPH': 'Morpher',
-                'POINT': 'GatePoint',
-                'RAI': 'Rai Reflex Index',
-                'SBTC': 'Super Bitcoin',
-                'TNC': 'Trinity Network Credit',
+                'AXIS': 'AXISDEFI',
+                'BIFI': 'BITCOINFILE',
+                'BOX': 'DEFIBOX',
+                'BYN': 'BEYONDFI',
+                'EGG': 'GOOSEFINANCE',
+                'GTC': 'GAMECOM',
+                'GTC_HT': 'GAMECOM_HT',
+                'GTC_BSC': 'GAMECOM_BSC',
+                'HIT': 'HITCHAIN',
+                'MM': 'MILLION',
+                'MPH': 'MORPHER',
+                'POINT': 'GATEPOINT',
+                'RAI': 'RAIREFLEXINDEX',
+                'RED': 'RedLang',
+                'SBTC': 'SUPERBITCOIN',
+                'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',
                 'TRAC': 'TRACO', // conflict with OriginTrail (TRAC)
             },
@@ -624,7 +630,10 @@ export default class gate extends Exchange {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
+                'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
+                    'LINEA': 'LINEAETH',
+                    'KON': 'KONET',
                     'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
                     'EOS': 'EOS',
@@ -637,6 +646,9 @@ export default class gate extends Exchange {
                     'OPTIMISM': 'OPETH',
                     'POLKADOT': 'DOTSM',
                     'TRC20': 'TRX',
+                    'LUNA': 'LUNC',
+                    'BASE': 'BASEEVM',
+                    'BRC20': 'BTCBRC',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -781,6 +793,7 @@ export default class gate extends Exchange {
                     'NOT_ACCEPTABLE': BadRequest,
                     'METHOD_NOT_ALLOWED': BadRequest,
                     'NOT_FOUND': ExchangeError,
+                    'AUTHENTICATION_FAILED': AuthenticationError,
                     'INVALID_CREDENTIALS': AuthenticationError,
                     'INVALID_KEY': AuthenticationError,
                     'IP_FORBIDDEN': AuthenticationError,
@@ -979,8 +992,9 @@ export default class gate extends Exchange {
         return this.arrayConcat(markets, optionMarkets);
     }
     async fetchSpotMarkets(params = {}) {
-        const marginResponse = await this.publicMarginGetCurrencyPairs(params);
-        const spotMarketsResponse = await this.publicSpotGetCurrencyPairs(params);
+        const marginPromise = this.publicMarginGetCurrencyPairs(params);
+        const spotMarketsPromise = this.publicSpotGetCurrencyPairs(params);
+        const [marginResponse, spotMarketsResponse] = await Promise.all([marginPromise, spotMarketsPromise]);
         const marginMarkets = this.indexBy(marginResponse, 'id');
         //
         //  Spot
@@ -1736,7 +1750,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1840,6 +1854,7 @@ export default class gate extends Exchange {
         const fundingRate = this.safeNumber(contract, 'funding_rate');
         const fundingTime = this.safeTimestamp(contract, 'funding_next_apply');
         const fundingRateIndicative = this.safeNumber(contract, 'funding_rate_indicative');
+        const fundingInterval = Precise.stringMul('1000', this.safeString(contract, 'funding_interval'));
         return {
             'info': contract,
             'symbol': symbol,
@@ -1858,7 +1873,18 @@ export default class gate extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(fundingInterval),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     async fetchNetworkDepositAddress(code, params = {}) {
         await this.loadMarkets();
@@ -2325,7 +2351,7 @@ export default class gate extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'currency_pair': market['id'],
         //         'interval': '0', // depth, 0 means no aggregation is applied, default to 0
         //         'limit': limit, // maximum number of order depth data in asks or bids
@@ -3090,7 +3116,7 @@ export default class gate extends Exchange {
         //
         // spot
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'currency_pair': market['id'],
         //         'limit': limit, // maximum number of records to be returned in a single list
         //         'last_id': 'id', // specify list staring point using the id of last record in previous list-query results
@@ -3099,7 +3125,7 @@ export default class gate extends Exchange {
         //
         // swap, future
         //
-        //     const request = {
+        //     const request: Dict = {
         //         'settle': market['settleId'],
         //         'contract': market['id'],
         //         'limit': limit, // maximum number of records to be returned in a single list
@@ -3465,8 +3491,8 @@ export default class gate extends Exchange {
         const side = this.safeString2(trade, 'side', 'type', contractSide);
         const orderId = this.safeString(trade, 'order_id');
         const feeAmount = this.safeString(trade, 'fee');
-        const gtFee = this.safeString(trade, 'gt_fee');
-        const pointFee = this.safeString(trade, 'point_fee');
+        const gtFee = this.omitZero(this.safeString(trade, 'gt_fee'));
+        const pointFee = this.omitZero(this.safeString(trade, 'point_fee'));
         const fees = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString(trade, 'fee_currency');
@@ -3757,7 +3783,7 @@ export default class gate extends Exchange {
          * @param {string} type 'limit' or 'market' *"market" is contract only*
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
@@ -3881,19 +3907,16 @@ export default class gate extends Exchange {
         //
         return this.parseOrder(response, market);
     }
-    async createOrders(orders, params = {}) {
-        /**
-         * @method
-         * @name gate#createOrders
-         * @description create a list of trade orders
-         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
-         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
-         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets();
+    createOrdersRequest(orders, params = {}) {
         const ordersRequests = [];
         const orderSymbols = [];
+        const ordersLength = orders.length;
+        if (ordersLength === 0) {
+            throw new BadRequest(this.id + ' createOrders() requires at least one order');
+        }
+        if (ordersLength > 10) {
+            throw new BadRequest(this.id + ' createOrders() accepts a maximum of 10 orders at a time');
+        }
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
@@ -3917,6 +3940,23 @@ export default class gate extends Exchange {
         if (market['future'] || market['option']) {
             throw new NotSupported(this.id + ' createOrders() does not support futures or options markets');
         }
+        return ordersRequests;
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name gate#createOrders
+         * @description create a list of trade orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = this.createOrdersRequest(orders, params);
+        const firstOrder = orders[0];
+        const market = this.market(firstOrder['symbol']);
         let response = undefined;
         if (market['spot']) {
             response = await this.privateSpotPostBatchOrders(ordersRequests);
@@ -4000,10 +4040,10 @@ export default class gate extends Exchange {
                     request['settle'] = market['settleId']; // filled in prepareRequest above
                 }
                 if (isMarketOrder) {
-                    request['price'] = price; // set to 0 for market orders
+                    request['price'] = '0'; // set to 0 for market orders
                 }
                 else {
-                    request['price'] = this.priceToPrecision(symbol, price);
+                    request['price'] = (price === 0) ? '0' : this.priceToPrecision(symbol, price);
                 }
                 if (reduceOnly !== undefined) {
                     request['reduce_only'] = reduceOnly;
@@ -4094,8 +4134,8 @@ export default class gate extends Exchange {
                 request = {
                     'initial': {
                         'contract': market['id'],
-                        'size': amount,
-                        'price': this.priceToPrecision(symbol, price), // set to 0 to use market price
+                        'size': amount, // positive = buy, negative = sell, set to 0 to close the position
+                        // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
                         // 'close': false, // set to true if trying to close the position
                         // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
                         // 'text': clientOrderId, // web, api, app
@@ -4103,6 +4143,12 @@ export default class gate extends Exchange {
                     },
                     'settle': market['settleId'],
                 };
+                if (type === 'market') {
+                    request['initial']['price'] = '0';
+                }
+                else {
+                    request['initial']['price'] = (price === 0) ? '0' : this.priceToPrecision(symbol, price);
+                }
                 if (trigger === undefined) {
                     let rule = undefined;
                     let triggerOrderPrice = undefined;
@@ -4199,6 +4245,43 @@ export default class gate extends Exchange {
         params['createMarketBuyOrderRequiresPrice'] = false;
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
+    editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        const market = this.market(symbol);
+        const [marketType, query] = this.handleMarketTypeAndParams('editOrder', market, params);
+        const account = this.convertTypeToAccount(marketType);
+        const isLimitOrder = (type === 'limit');
+        if (account === 'spot') {
+            if (!isLimitOrder) {
+                // exchange doesn't have market orders for spot
+                throw new InvalidOrder(this.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets');
+            }
+        }
+        const request = {
+            'order_id': id.toString(),
+            'currency_pair': market['id'],
+            'account': account,
+        };
+        if (amount !== undefined) {
+            if (market['spot']) {
+                request['amount'] = this.amountToPrecision(symbol, amount);
+            }
+            else {
+                if (side === 'sell') {
+                    request['size'] = this.parseToNumeric(Precise.stringNeg(this.amountToPrecision(symbol, amount)));
+                }
+                else {
+                    request['size'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                }
+            }
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision(symbol, price);
+        }
+        if (!market['spot']) {
+            request['settle'] = market['settleId'];
+        }
+        return this.extend(request, query);
+    }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
@@ -4211,49 +4294,19 @@ export default class gate extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('editOrder', market, params);
-        const account = this.convertTypeToAccount(marketType);
-        const isLimitOrder = (type === 'limit');
-        if (account === 'spot') {
-            if (!isLimitOrder) {
-                // exchange doesn't have market orders for spot
-                throw new InvalidOrder(this.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets');
-            }
-        }
-        const request = {
-            'order_id': id,
-            'currency_pair': market['id'],
-            'account': account,
-        };
-        if (amount !== undefined) {
-            if (market['spot']) {
-                request['amount'] = this.amountToPrecision(symbol, amount);
-            }
-            else {
-                if (side === 'sell') {
-                    request['size'] = Precise.stringNeg(this.amountToPrecision(symbol, amount));
-                }
-                else {
-                    request['size'] = this.amountToPrecision(symbol, amount);
-                }
-            }
-        }
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision(symbol, price);
-        }
+        const extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['spot']) {
-            response = await this.privateSpotPatchOrdersOrderId(this.extend(request, query));
+            response = await this.privateSpotPatchOrdersOrderId(extendedRequest);
         }
         else {
-            request['settle'] = market['settleId'];
-            response = await this.privateFuturesPutSettleOrdersOrderId(this.extend(request, query));
+            response = await this.privateFuturesPutSettleOrdersOrderId(extendedRequest);
         }
         //
         //     {
@@ -4446,6 +4499,8 @@ export default class gate extends Exchange {
         //        "message": "Not enough balance"
         //    }
         //
+        //  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
+        //
         const succeeded = this.safeBool(order, 'succeeded', true);
         if (!succeeded) {
             // cancelOrders response
@@ -4453,6 +4508,7 @@ export default class gate extends Exchange {
                 'clientOrderId': this.safeString(order, 'text'),
                 'info': order,
                 'status': 'rejected',
+                'id': this.safeString(order, 'id'),
             });
         }
         const put = this.safeValue2(order, 'put', 'initial', {});
@@ -4567,6 +4623,25 @@ export default class gate extends Exchange {
             'info': order,
         }, market);
     }
+    fetchOrderRequest(id, symbol = undefined, params = {}) {
+        const market = (symbol === undefined) ? undefined : this.market(symbol);
+        const stop = this.safeBoolN(params, ['trigger', 'is_stop_order', 'stop'], false);
+        params = this.omit(params, ['is_stop_order', 'stop', 'trigger']);
+        let clientOrderId = this.safeString2(params, 'text', 'clientOrderId');
+        let orderId = id;
+        if (clientOrderId !== undefined) {
+            params = this.omit(params, ['text', 'clientOrderId']);
+            if (clientOrderId[0] !== 't') {
+                clientOrderId = 't-' + clientOrderId;
+            }
+            orderId = clientOrderId;
+        }
+        const [type, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
+        const contract = (type === 'swap') || (type === 'future') || (type === 'option');
+        const [request, requestParams] = contract ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, stop, query);
+        request['order_id'] = orderId.toString();
+        return [request, requestParams];
+    }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -4579,29 +4654,18 @@ export default class gate extends Exchange {
          * @param {string} id Order id
          * @param {string} symbol Unified market symbol, *required for spot and margin*
          * @param {object} [params] Parameters specified by the exchange api
-         * @param {bool} [params.stop] True if the order being fetched is a trigger order
+         * @param {bool} [params.trigger] True if the order being fetched is a trigger order
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        const stop = this.safeValue2(params, 'is_stop_order', 'stop', false);
-        params = this.omit(params, ['is_stop_order', 'stop']);
-        let clientOrderId = this.safeString2(params, 'text', 'clientOrderId');
-        let orderId = id;
-        if (clientOrderId !== undefined) {
-            params = this.omit(params, ['text', 'clientOrderId']);
-            if (clientOrderId[0] !== 't') {
-                clientOrderId = 't-' + clientOrderId;
-            }
-            orderId = clientOrderId;
-        }
         const market = (symbol === undefined) ? undefined : this.market(symbol);
-        const [type, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        const contract = (type === 'swap') || (type === 'future') || (type === 'option');
-        const [request, requestParams] = contract ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, stop, query);
-        request['order_id'] = orderId;
+        const result = this.handleMarketTypeAndParams('fetchOrder', market, params);
+        const type = this.safeString(result, 0);
+        const stop = this.safeBoolN(params, ['trigger', 'is_stop_order', 'stop'], false);
+        const [request, requestParams] = this.fetchOrderRequest(id, symbol, params);
         let response = undefined;
         if (type === 'spot' || type === 'margin') {
             if (stop) {
@@ -4664,6 +4728,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4671,9 +4736,74 @@ export default class gate extends Exchange {
          * @param {bool} [params.stop] true for fetching stop orders
          * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+         * @param {boolean} [params.historical] *swap only* true for using historical endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.fetchOrdersByStatus('finished', symbol, since, limit, params);
+        await this.loadMarkets();
+        const until = this.safeInteger(params, 'until');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            symbol = market['symbol'];
+        }
+        const res = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
+        const type = this.safeString(res, 0);
+        let useHistorical = false;
+        [useHistorical, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'historical', false);
+        if (!useHistorical && ((since === undefined && until === undefined) || (type !== 'swap'))) {
+            return await this.fetchOrdersByStatus('finished', symbol, since, limit, params);
+        }
+        params = this.omit(params, 'type');
+        let request = {};
+        [request, params] = this.prepareRequest(market, type, params);
+        if (since !== undefined) {
+            request['from'] = this.parseToInt(since / 1000);
+        }
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['to'] = this.parseToInt(until / 1000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateFuturesGetSettleOrdersTimerange(this.extend(request, params));
+        return this.parseOrders(response, market, since, limit);
+    }
+    prepareOrdersByStatusRequest(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            symbol = market['symbol'];
+        }
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
+        const spot = (type === 'spot') || (type === 'margin');
+        let request = {};
+        [request, params] = spot ? this.multiOrderSpotPrepareRequest(market, stop, params) : this.prepareRequest(market, type, params);
+        if (status === 'closed') {
+            status = 'finished';
+        }
+        request['status'] = status;
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (spot) {
+            if (since !== undefined) {
+                request['from'] = this.parseToInt(since / 1000);
+            }
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['to'] = this.parseToInt(until / 1000);
+            }
+        }
+        const [lastId, finalParams] = this.handleParamString2(params, 'lastId', 'last_id');
+        if (lastId !== undefined) {
+            request['last_id'] = lastId;
+        }
+        return [request, finalParams];
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -4682,21 +4812,13 @@ export default class gate extends Exchange {
             market = this.market(symbol);
             symbol = market['symbol'];
         }
-        const stop = this.safeValue(params, 'stop');
-        params = this.omit(params, 'stop');
-        const [type, query] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        params = this.omit(params, ['trigger', 'stop']);
+        const res = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
+        const type = this.safeString(res, 0);
+        params['type'] = type;
+        const [request, requestParams] = this.prepareOrdersByStatusRequest(status, symbol, since, limit, params);
         const spot = (type === 'spot') || (type === 'margin');
-        const [request, requestParams] = spot ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
-        if (status === 'closed') {
-            status = 'finished';
-        }
-        request['status'] = status;
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined && spot) {
-            request['from'] = this.parseToInt(since / 1000);
-        }
         const openSpotOrders = spot && (status === 'open') && !stop;
         let response = undefined;
         if (type === 'spot' || type === 'margin') {
@@ -4906,8 +5028,8 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
-        const stop = this.safeValue2(params, 'is_stop_order', 'stop', false);
-        params = this.omit(params, ['is_stop_order', 'stop']);
+        const stop = this.safeBoolN(params, ['is_stop_order', 'stop', 'trigger'], false);
+        params = this.omit(params, ['is_stop_order', 'stop', 'trigger']);
         const [type, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         const [request, requestParams] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
         request['order_id'] = id;
@@ -5024,6 +5146,91 @@ export default class gate extends Exchange {
         //     }
         //
         return this.parseOrder(response, market);
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#cancelOrders
+         * @description cancel multiple orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let type = undefined;
+        const defaultSettle = (market === undefined) ? 'usdt' : market['settle'];
+        const settle = this.safeStringLower(params, 'settle', defaultSettle);
+        [type, params] = this.handleMarketTypeAndParams('cancelOrders', market, params);
+        const isSpot = (type === 'spot');
+        if (isSpot && (symbol === undefined)) {
+            throw new ArgumentsRequired(this.id + ' cancelOrders requires a symbol argument for spot markets');
+        }
+        if (isSpot) {
+            const ordersRequests = [];
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const orderItem = {
+                    'id': id,
+                    'symbol': symbol,
+                };
+                ordersRequests.push(orderItem);
+            }
+            return await this.cancelOrdersForSymbols(ordersRequests, params);
+        }
+        const request = {
+            'settle': settle,
+        };
+        const finalList = [request]; // hacky but needs to be done here
+        for (let i = 0; i < ids.length; i++) {
+            finalList.push(ids[i]);
+        }
+        const response = await this.privateFuturesPostSettleBatchCancelOrders(finalList);
+        return this.parseOrders(response);
+    }
+    async cancelOrdersForSymbols(orders, params = {}) {
+        /**
+         * @method
+         * @name gate#cancelOrdersForSymbols
+         * @description cancel multiple orders for multiple symbols
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+         * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const symbol = this.safeString(order, 'symbol');
+            const market = this.market(symbol);
+            if (!market['spot']) {
+                throw new NotSupported(this.id + ' cancelOrdersForSymbols() supports only spot markets');
+            }
+            const id = this.safeString(order, 'id');
+            const orderItem = {
+                'id': id,
+                'currency_pair': market['id'],
+            };
+            ordersRequests.push(orderItem);
+        }
+        const response = await this.privateSpotPostCancelBatchOrders(ordersRequests);
+        //
+        // [
+        //     {
+        //       "currency_pair": "BTC_USDT",
+        //       "id": "123456"
+        //     }
+        // ]
+        //
+        return this.parseOrders(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -6029,7 +6236,22 @@ export default class gate extends Exchange {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit(params, this.extractParams(path));
-        if (Array.isArray(params)) {
+        const containsSettle = path.indexOf('settle') > -1;
+        if (containsSettle && path.endsWith('batch_cancel_orders')) { // weird check to prevent $settle in php and converting {settle} to array(settle)
+            // special case where we need to extract the settle from the path
+            // but the body is an array of strings
+            const settle = this.safeDict(params, 0);
+            path = this.implodeParams(path, settle);
+            // remove the first element from params
+            const newParams = [];
+            const anyParams = params;
+            for (let i = 1; i < anyParams.length; i++) {
+                newParams.push(params[i]);
+            }
+            params = newParams;
+            query = newParams;
+        }
+        else if (Array.isArray(params)) {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
@@ -6466,12 +6688,12 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] end time in ms
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -6628,6 +6850,7 @@ export default class gate extends Exchange {
             direction = 'in';
         }
         const currencyId = this.safeString(item, 'currency');
+        currency = this.safeCurrency(currencyId, currency);
         const type = this.safeString(item, 'type');
         const rawTimestamp = this.safeString(item, 'time');
         let timestamp = undefined;
@@ -6640,7 +6863,8 @@ export default class gate extends Exchange {
         const balanceString = this.safeString(item, 'balance');
         const changeString = this.safeString(item, 'change');
         const before = this.parseNumber(Precise.stringSub(balanceString, changeString));
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'id'),
             'direction': direction,
             'account': undefined,
@@ -6655,8 +6879,7 @@ export default class gate extends Exchange {
             'after': this.safeNumber(item, 'balance'),
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {
@@ -7502,6 +7725,7 @@ export default class gate extends Exchange {
         //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
         //    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
         //    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
+        //    {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
         const label = this.safeString(response, 'label');
         if (label !== undefined) {

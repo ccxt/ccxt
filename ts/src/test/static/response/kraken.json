@@ -286,9 +286,7 @@
                             "amount": null,
                             "price": null,
                             "cost": null,
-                            "fee": {
-                                "cost": null
-                            }
+                            "fee": {"cost": null, "currency": null }
                         }
                     ],
                     "fees": [
@@ -380,7 +378,7 @@
                         "status": "open",
                         "symbol": "LTC/USDT",
                         "type": "market",
-                        "timeInForce": "IOC",
+                        "timeInForce": null,
                         "postOnly": false,
                         "side": "sell",
                         "price": null,
@@ -786,7 +784,7 @@
                         "price": 73324.4,
                         "amount": 0.010309,
                         "cost": 755.9012396,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -858,7 +856,7 @@
                     "previousClose": null,
                     "change": 1929.9,
                     "percentage": 2.701023223005513,
-                    "average": 72415.65,
+                    "average": 72415.6,
                     "baseVolume": 598.03698452,
                     "quoteVolume": 42760586.42103802,
                     "info": {
@@ -966,6 +964,144 @@
                     "marginRatio": null,
                     "stopLossPrice": null,
                     "takeProfitPrice": null
+                  }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [
+                  "USDT",
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": [
+                    {
+                      "method": "Tether USD (TRC20)",
+                      "aclass": "currency",
+                      "asset": "USDT",
+                      "refid": "54435345",
+                      "txid": "534jh34jk5h34jk",
+                      "info": "T43j5h345j5jh34jksdhjke",
+                      "amount": "9.00000000",
+                      "fee": "0.00000000",
+                      "time": "1714923561",
+                      "status": "Success"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "type": "deposit",
+                      "method": "Tether USD (TRC20)",
+                      "aclass": "currency",
+                      "asset": "USDT",
+                      "refid": "54435345",
+                      "txid": "534jh34jk5h34jk",
+                      "info": "T43j5h345j5jh34jksdhjke",
+                      "amount": "9.00000000",
+                      "fee": "0.00000000",
+                      "time": "1714923561",
+                      "status": "Success"
+                    },
+                    "id": "54435345",
+                    "currency": "USDT",
+                    "amount": 9,
+                    "network": null,
+                    "address": "T43j5h345j5jh34jksdhjke",
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "status": "ok",
+                    "type": "deposit",
+                    "updated": null,
+                    "txid": "534jh34jk5h34jk",
+                    "timestamp": 1714923561000,
+                    "datetime": "2024-05-05T15:39:21.000Z",
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                      "currency": "USDT",
+                      "cost": 0
+                    }
+                  }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                  "USDT",
+                  null,
+                  1
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": [
+                    {
+                      "method": "Tether USD (TRC20)",
+                      "aclass": "currency",
+                      "asset": "USDT",
+                      "refid": "FTM6UXZ-5jh345jkhfkdsjfhkjdf",
+                      "txid": "45j43kh54jk3h",
+                      "info": "4h5j43kh5j3k4hjk5h34jk5",
+                      "amount": "10.00000000",
+                      "fee": "3.00000000",
+                      "time": "1714923602",
+                      "status": "Success",
+                      "key": "new Binance",
+                      "network": "Tron"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "type": "withdrawal",
+                      "method": "Tether USD (TRC20)",
+                      "aclass": "currency",
+                      "asset": "USDT",
+                      "refid": "FTM6UXZ-5jh345jkhfkdsjfhkjdf",
+                      "txid": "45j43kh54jk3h",
+                      "info": "4h5j43kh5j3k4hjk5h34jk5",
+                      "amount": "10.00000000",
+                      "fee": "3.00000000",
+                      "time": "1714923602",
+                      "status": "Success",
+                      "key": "new Binance",
+                      "network": "Tron"
+                    },
+                    "id": "FTM6UXZ-5jh345jkhfkdsjfhkjdf",
+                    "currency": "USDT",
+                    "amount": 10,
+                    "network": "TRC20",
+                    "address": "4h5j43kh5j3k4hjk5h34jk5",
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "status": "ok",
+                    "type": "withdrawal",
+                    "updated": null,
+                    "txid": "45j43kh54jk3h",
+                    "timestamp": 1714923602000,
+                    "datetime": "2024-05-05T15:40:02.000Z",
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                      "currency": "USDT",
+                      "cost": 3
+                    }
                   }
                 ]
             }

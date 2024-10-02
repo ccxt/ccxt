@@ -49,6 +49,27 @@ public partial class bitget
         return new Tickers(res);
     }
     /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// watches historical candlestick data containing the open, high, low, close price, and the volume of a market
     /// </summary>
     /// <remarks>
@@ -268,12 +289,24 @@ public partial class bitget
     /// <item>
     /// <term>params.marginMode</term>
     /// <description>
-    /// string : 'isolated' or 'cross' for watching spot margin orders
+    /// string : 'isolated' or 'cross' for watching spot margin orders]
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot', 'swap'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : 'linear', 'inverse'
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

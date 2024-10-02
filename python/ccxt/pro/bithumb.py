@@ -37,6 +37,7 @@ class bithumb(ccxt.async_support.bithumb):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
@@ -46,7 +47,7 @@ class bithumb(ccxt.async_support.bithumb):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
-        request = {
+        request: dict = {
             'type': 'ticker',
             'symbols': [market['base'] + '_' + market['quote']],
             'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
@@ -56,6 +57,7 @@ class bithumb(ccxt.async_support.bithumb):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :see: https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -70,7 +72,7 @@ class bithumb(ccxt.async_support.bithumb):
             market = self.market(symbol)
             marketIds.append(market['base'] + '_' + market['quote'])
             messageHashes.append('ticker:' + market['symbol'])
-        request = {
+        request: dict = {
             'type': 'ticker',
             'symbols': marketIds,
             'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
@@ -78,7 +80,7 @@ class bithumb(ccxt.async_support.bithumb):
         message = self.extend(request, params)
         newTicker = await self.watch_multiple(url, messageHashes, message, messageHashes)
         if self.newUpdates:
-            result = {}
+            result: dict = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -165,6 +167,7 @@ class bithumb(ccxt.async_support.bithumb):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
+        :see: https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -176,7 +179,7 @@ class bithumb(ccxt.async_support.bithumb):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook' + ':' + symbol
-        request = {
+        request: dict = {
             'type': 'orderbookdepth',
             'symbols': [market['base'] + '_' + market['quote']],
         }
@@ -248,6 +251,7 @@ class bithumb(ccxt.async_support.bithumb):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -259,7 +263,7 @@ class bithumb(ccxt.async_support.bithumb):
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
-        request = {
+        request: dict = {
             'type': 'transaction',
             'symbols': [market['base'] + '_' + market['quote']],
         }
@@ -358,7 +362,7 @@ class bithumb(ccxt.async_support.bithumb):
             return
         topic = self.safe_string(message, 'type')
         if topic is not None:
-            methods = {
+            methods: dict = {
                 'ticker': self.handle_ticker,
                 'orderbookdepth': self.handle_order_book,
                 'transaction': self.handle_trades,

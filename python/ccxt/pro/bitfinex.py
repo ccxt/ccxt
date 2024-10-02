@@ -24,6 +24,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                 'watchTickers': False,
                 'watchOrderBook': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': False,  # for now
                 'watchOHLCV': False,  # missing on the exchange side in v1
             },
@@ -51,7 +52,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         url = self.urls['api']['ws']['public']
         messageHash = channel + ':' + marketId
         # channel = 'trades'
-        request = {
+        request: dict = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
@@ -62,6 +63,7 @@ class bitfinex(ccxt.async_support.bitfinex):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://docs.bitfinex.com/v1/reference/ws-public-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -78,6 +80,7 @@ class bitfinex(ccxt.async_support.bitfinex):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://docs.bitfinex.com/v1/reference/ws-public-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -238,6 +241,7 @@ class bitfinex(ccxt.async_support.bitfinex):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://docs.bitfinex.com/v1/reference/ws-public-order-books
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -249,7 +253,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         options = self.safe_value(self.options, 'watchOrderBook', {})
         prec = self.safe_string(options, 'prec', 'P0')
         freq = self.safe_string(options, 'freq', 'F0')
-        request = {
+        request: dict = {
             # "event": "subscribe",  # added in subscribe()
             # "channel": channel,  # added in subscribe()
             # "symbol": marketId,  # added in subscribe()
@@ -311,7 +315,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                     size = -delta2Value if (delta2Value < 0) else delta2Value
                     side = 'asks' if (delta2Value < 0) else 'bids'
                     bookside = orderbook[side]
-                    bookside.store(price, size, id)
+                    bookside.storeArray([price, size, id])
             else:
                 deltas = message[1]
                 for i in range(0, len(deltas)):
@@ -320,7 +324,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                     size = -delta2 if (delta2 < 0) else delta2
                     side = 'asks' if (delta2 < 0) else 'bids'
                     countedBookSide = orderbook[side]
-                    countedBookSide.store(delta[0], size, delta[1])
+                    countedBookSide.storeArray([delta[0], size, delta[1]])
             client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
@@ -333,13 +337,13 @@ class bitfinex(ccxt.async_support.bitfinex):
                 bookside = orderbook[side]
                 # price = 0 means that you have to remove the order from your book
                 amount = size if Precise.string_gt(price, '0') else '0'
-                bookside.store(self.parse_number(price), self.parse_number(amount), id)
+                bookside.storeArray([self.parse_number(price), self.parse_number(amount), id])
             else:
                 message3Value = message[3]
                 size = -message3Value if (message3Value < 0) else message3Value
                 side = 'asks' if (message3Value < 0) else 'bids'
                 countedBookSide = orderbook[side]
-                countedBookSide.store(message[1], size, message[2])
+                countedBookSide.storeArray([message[1], size, message[2]])
             client.resolve(orderbook, messageHash)
 
     def handle_heartbeat(self, client: Client, message):
@@ -393,7 +397,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             nonce = self.milliseconds()
             payload = 'AUTH' + str(nonce)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
-            request = {
+            request: dict = {
                 'apiKey': self.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
@@ -430,6 +434,8 @@ class bitfinex(ccxt.async_support.bitfinex):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+        :see: https://docs.bitfinex.com/v1/reference/ws-auth-order-updates
+        :see: https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -504,7 +510,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             client.resolve(self.orders, 'os')
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
         }
@@ -586,7 +592,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             subscription = self.safe_value(client.subscriptions, channelId, {})
             channel = self.safe_string(subscription, 'channel')
             name = self.safe_string(message, 1)
-            methods = {
+            methods: dict = {
                 'book': self.handle_order_book,
                 # 'ohlc': self.handleOHLCV,
                 'ticker': self.handle_ticker,
@@ -610,7 +616,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             #
             event = self.safe_string(message, 'event')
             if event is not None:
-                methods = {
+                methods: dict = {
                     'info': self.handle_system_status,
                     # 'book': 'handleOrderBook',
                     'subscribed': self.handle_subscription_status,

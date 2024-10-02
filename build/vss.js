@@ -50,6 +50,7 @@ async function vssEverything () {
     vss ('./ts/ccxt.ts',                                 "const version = '{version}'",                            version)
     vss ('./js/ccxt.js',                                 "const version = '{version}'",                            version)
     vss ('./dist/ccxt.browser.js',                       "const version = '{version}'",                            version)
+    vss ('./dist/ccxt.browser.min.js',                   "const ps=\"{version}\"",                                 version)
     vss ('./dist/cjs/ccxt.js',                           "const version = '{version}'",                            version)
     vss ('./php/Exchange.php',                           "$version = '{version}'",                                 version)
     vss ('./php/async/Exchange.php',                     "VERSION = '{version}'",                                  version)

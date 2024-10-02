@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 /**
  * @class bitfinex2
  * @augments Exchange
@@ -9,8 +9,8 @@ export default class bitfinex2 extends Exchange {
     isFiat(code: any): boolean;
     getCurrencyId(code: any): string;
     getCurrencyName(code: any): any;
-    amountToPrecision(symbol: any, amount: any): any;
-    priceToPrecision(symbol: any, price: any): any;
+    amountToPrecision(symbol: any, amount: any): string;
+    priceToPrecision(symbol: any, price: any): string;
     fetchStatus(params?: {}): Promise<{
         status: string;
         updated: any;
@@ -20,34 +20,23 @@ export default class bitfinex2 extends Exchange {
     }>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    safeNetwork(networkId: any): string;
     fetchBalance(params?: {}): Promise<Balances>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        id: any;
-        timestamp: number;
-        datetime: string;
-        status: string;
-        amount: number;
-        currency: string;
-        fromAccount: string;
-        toAccount: string;
-        info: any;
-    };
-    parseTransferStatus(status: any): string;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    parseTransferStatus(status: Str): Str;
     convertDerivativesId(currency: any, type: any): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    parseOrderStatus(status: any): any;
+    parseOrderStatus(status: Str): string;
     parseOrderFlags(flags: any): any;
     parseTimeInForce(orderType: any): string;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -74,13 +63,13 @@ export default class bitfinex2 extends Exchange {
         network: any;
         info: any;
     }>;
-    parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    parseTransactionStatus(status: Str): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
+    parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
@@ -89,47 +78,12 @@ export default class bitfinex2 extends Exchange {
         headers: any;
     };
     handleErrors(statusCode: any, statusText: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    parseLedgerEntryType(type: any): any;
-    parseLedgerEntry(item: any, currency?: Currency): {
-        id: string;
-        direction: any;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
-        type: any;
-        currency: string;
-        amount: number;
-        timestamp: number;
-        datetime: string;
-        before: any;
-        after: number;
-        status: any;
-        fee: any;
-        info: any;
-    };
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchFundingRate(symbol: string, params?: {}): Promise<any>;
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
+    parseLedgerEntryType(type: Str): string;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    parseFundingRate(contract: any, market?: Market): {
-        info: any;
-        symbol: string;
-        markPrice: number;
-        indexPrice: number;
-        interestRate: any;
-        estimatedSettlePrice: any;
-        timestamp: number;
-        datetime: string;
-        fundingRate: number;
-        fundingTimestamp: any;
-        fundingDatetime: any;
-        nextFundingRate: number;
-        nextFundingTimestamp: number;
-        nextFundingDatetime: string;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
-    };
+    parseFundingRate(contract: any, market?: Market): FundingRate;
     parseFundingRateHistory(contract: any, market?: Market): {
         info: any;
         symbol: string;

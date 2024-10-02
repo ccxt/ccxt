@@ -34,14 +34,14 @@ function run_tests {
   if [ -z "$rest_pid" ]; then
     if [ -z "$rest_args" ] || { [ -n "$rest_args" ] && [ "$rest_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests --js --python-async --php-async --csharp --useProxy $rest_args &
+      npm run live-tests -- --js --python-async --php-async --csharp $rest_args &
       local rest_pid=$!
     fi
   fi
   if [ -z "$ws_pid" ]; then
     if [ -z "$ws_args" ] || { [ -n "$ws_args" ] && [ "$ws_args" != "skip" ]; }; then
       # shellcheck disable=SC2086
-      node run-tests --ws --js --python-async --php-async --csharp --useProxy $ws_args &
+      npm run live-tests -- --js --python-async --php-async --csharp --ws $ws_args &
       local ws_pid=$!
     fi
   fi
@@ -80,9 +80,12 @@ build_and_test_all () {
       #   cd  ..
       # fi
     fi
-    npm run test-base
+    npm run test-base-rest
     npm run test-base-ws
-    node ./utils/test-commonjs.cjs
+    npm run id-tests
+    npm run request-tests
+    npm run response-tests
+    npm run commonjs-test
     npm run package-test
     npm run test-freshness
     if [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
@@ -179,7 +182,7 @@ npm run check-php-syntax
 # only run the python linter if exchange related files are changed
 if [ ${#PYTHON_FILES[@]} -gt 0 ]; then
   echo "$msgPrefix Linting python files: ${PYTHON_FILES[*]}"
-  ruff "${PYTHON_FILES[@]}"
+  ruff check "${PYTHON_FILES[@]}"
 fi
 
 
@@ -197,7 +200,7 @@ npm run buildCS
 
 # run base tests (base js,py,php, brokerId )
 # npm run test-base
-npm run test-js-base && npm run test-python-base && npm run test-php-base && npm run id-tests
+npm run test-base-rest && npm run test-base-ws && npm run id-tests
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
@@ -208,16 +211,16 @@ ws_args=$(IFS=" " ; echo "${WS_EXCHANGES[*]}") || "skip"
 #request static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run request-js -- $exchange
-  npm run request-py -- $exchange
-  php php/test/test_async.php $exchange --requestTests
+  npm run request-py-sync -- $exchange && npm run request-py-async -- $exchange
+  npm run request-php-sync -- $exchange && npm run request-php-async -- $exchange
   npm run request-cs -- $exchange
 done
 
 #response static tests
 for exchange in "${REST_EXCHANGES[@]}"; do
   npm run response-js -- $exchange
-  npm run response-py -- $exchange
-  php php/test/test_async.php $exchange --responseTests
+  npm run response-py-sync -- $exchange && npm run response-py-async -- $exchange
+  npm run response-php-sync -- $exchange && npm run response-php-async -- $exchange
   npm run response-cs -- $exchange
 done
 

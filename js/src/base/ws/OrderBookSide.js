@@ -101,8 +101,8 @@ class OrderBookSide extends Array {
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 // this class stores vector arrays of values indexed by price
 class CountedOrderBookSide extends OrderBookSide {
-    store(price, size, count) {
-        this.storeArray([price, size, count]);
+    store(price, size) {
+        throw new Error('CountedOrderBookSide.store() is not supported, use storeArray([price, size, count]) instead');
     }
     storeArray(delta) {
         const price = delta[0];
@@ -166,8 +166,8 @@ class IndexedOrderBookSide extends Array {
             this.storeArray(deltas[i].slice()); // slice is muy importante
         }
     }
-    store(price, size, id) {
-        this.storeArray([price, size, id]);
+    store(price, size) {
+        throw new Error('IndexedOrderBook.store() is not supported, use storeArray([price, size, id]) instead');
     }
     storeArray(delta) {
         const price = delta[0];

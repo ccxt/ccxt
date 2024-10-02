@@ -233,7 +233,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'baseAsset');
         $quoteId = $this->safe_string($market, 'quoteAsset');
@@ -338,7 +338,7 @@ class wazirx extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->publicGetKlines (array_merge($request, $params)));
+            $response = Async\await($this->publicGetKlines ($this->extend($request, $params)));
             //
             //    [
             //        [1669014360,1402001,1402001,1402001,1402001,0],
@@ -381,7 +381,7 @@ class wazirx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // [1, 5, 10, 20, 50, 100, 500, 1000]
             }
-            $response = Async\await($this->publicGetDepth (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDepth ($this->extend($request, $params)));
             //
             //     {
             //          "timestamp":1559561187,
@@ -414,7 +414,7 @@ class wazirx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $ticker = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
+            $ticker = Async\await($this->publicGetTicker24hr ($this->extend($request, $params)));
             //
             // {
             //     "symbol":"wrxinr",
@@ -495,9 +495,9 @@ class wazirx extends Exchange {
             $method = $this->safe_string($this->options, 'fetchTradesMethod', 'publicGetTrades');
             $response = null;
             if ($method === 'privateGetHistoricalTrades') {
-                $response = Async\await($this->privateGetHistoricalTrades (array_merge($request, $params)));
+                $response = Async\await($this->privateGetHistoricalTrades ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+                $response = Async\await($this->publicGetTrades ($this->extend($request, $params)));
             }
             // array(
             //     array(
@@ -513,7 +513,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "id":322307791,
@@ -594,7 +594,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //        "symbol":"btcinr",
@@ -707,7 +707,7 @@ class wazirx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetAllOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAllOrders ($this->extend($request, $params)));
             //
             //   array(
             //       array(
@@ -761,7 +761,7 @@ class wazirx extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetOpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOpenOrders ($this->extend($request, $params)));
             // array(
             //     array(
             //         "id" => 28,
@@ -811,7 +811,26 @@ class wazirx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            return Async\await($this->privateDeleteOpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOpenOrders ($this->extend($request, $params)));
+            //
+            //    array(
+            //        {
+            //            id => "4565421197",
+            //            $symbol => "adausdt",
+            //            type => "limit",
+            //            side => "buy",
+            //            status => "wait",
+            //            price => "0.41",
+            //            origQty => "11.00",
+            //            executedQty => "0.00",
+            //            avgPrice => "0.00",
+            //            createdTime => "1718089507000",
+            //            updatedTime => "1718089507000",
+            //            clientOrderId => "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+            //        }
+            //    )
+            //
+            return $this->parse_orders($response);
         }) ();
     }
 
@@ -834,7 +853,7 @@ class wazirx extends Exchange {
                 'symbol' => $market['id'],
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateDeleteOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -848,7 +867,7 @@ class wazirx extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -873,7 +892,7 @@ class wazirx extends Exchange {
                 $request['type'] = 'stop_limit';
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
-            $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrder ($this->extend($request, $params)));
             // {
             //     "id" => 28,
             //     "symbol" => "wrxinr",
@@ -890,19 +909,23 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
-        // array(
-        //     "id":1949417813,
-        //     "symbol":"ltcusdt",
-        //     "type":"limit",
-        //     "side":"sell",
-        //     "status":"done",
-        //     "price":"146.2",
-        //     "origQty":"0.05",
-        //     "executedQty":"0.05",
-        //     "createdTime":1641252564000,
-        //     "updatedTime":1641252564000
-        // ),
+    public function parse_order(array $order, ?array $market = null): array {
+        //
+        //    {
+        //        "id" => 1949417813,
+        //        "symbol" => "ltcusdt",
+        //        "type" => "limit",
+        //        "side" => "sell",
+        //        "status" => "done",
+        //        "price" => "146.2",
+        //        "origQty" => "0.05",
+        //        "executedQty" => "0.05",
+        //        "avgPrice" =>  "0.00",
+        //        "createdTime" => 1641252564000,
+        //        "updatedTime" => 1641252564000
+        //        "clientOrderId" => "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+        //    }
+        //
         $created = $this->safe_integer($order, 'createdTime');
         $updated = $this->safe_integer($order, 'updatedTime');
         $marketId = $this->safe_string($order, 'symbol');
@@ -917,7 +940,7 @@ class wazirx extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'timestamp' => $created,
             'datetime' => $this->iso8601($created),
             'lastTradeTimestamp' => $updated,
@@ -933,12 +956,12 @@ class wazirx extends Exchange {
             'remaining' => null,
             'cost' => null,
             'fee' => null,
-            'average' => null,
+            'average' => $this->safe_string($order, 'avgPrice'),
             'trades' => array(),
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',
@@ -1119,7 +1142,7 @@ class wazirx extends Exchange {
                 'coin' => $currency['id'],
                 'network' => $this->network_code_to_id($networkCode, $code),
             );
-            $response = Async\await($this->privateGetCryptoDepositsAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetCryptoDepositsAddress ($this->extend($request, $params)));
             //
             //     {
             //         "address" => "bc1qrzpyzh69pfclpqy7c3yg8rkjsy49se7642v4q3",
@@ -1167,7 +1190,7 @@ class wazirx extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->privateGetCryptoWithdraws (array_merge($request, $params)));
+            $response = Async\await($this->privateGetCryptoWithdraws ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1190,7 +1213,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '0' => 'ok',
             '1' => 'fail',
@@ -1200,7 +1223,7 @@ class wazirx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
@@ -1264,7 +1287,7 @@ class wazirx extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->milliseconds();
-            $data = array_merge(array( 'recvWindow' => $this->options['recvWindow'], 'timestamp' => $timestamp ), $params);
+            $data = $this->extend(array( 'recvWindow' => $this->options['recvWindow'], 'timestamp' => $timestamp ), $params);
             $data = $this->keysort($data);
             $signature = $this->hmac($this->encode($this->urlencode($data)), $this->encode($this->secret), 'sha256');
             $url .= '?' . $this->urlencode($data);
@@ -1277,7 +1300,7 @@ class wazirx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         // array("code":2098,"message":"Request out of receiving window.")
         //

@@ -123,8 +123,8 @@ public partial class zonda : Exchange
                     { "get", new List<object>() {"trading/ticker", "trading/ticker/{symbol}", "trading/stats", "trading/stats/{symbol}", "trading/orderbook/{symbol}", "trading/transactions/{symbol}", "trading/candle/history/{symbol}/{resolution}"} },
                 } },
                 { "v1_01Private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"api_payments/deposits/crypto/addresses", "payments/withdrawal/{detailId}", "payments/deposit/{detailId}", "trading/offer", "trading/stop/offer", "trading/config/{symbol}", "trading/history/transactions", "balances/BITBAY/history", "balances/BITBAY/balance", "fiat_cantor/rate/{baseId}/{quoteId}", "fiat_cantor/history"} },
-                    { "post", new List<object>() {"trading/offer/{symbol}", "trading/stop/offer/{symbol}", "trading/config/{symbol}", "balances/BITBAY/balance", "balances/BITBAY/balance/transfer/{source}/{destination}", "fiat_cantor/exchange", "api_payments/withdrawals/crypto", "api_payments/withdrawals/fiat"} },
+                    { "get", new List<object>() {"api_payments/deposits/crypto/addresses", "payments/withdrawal/{detailId}", "payments/deposit/{detailId}", "trading/offer", "trading/stop/offer", "trading/config/{symbol}", "trading/history/transactions", "balances/BITBAY/history", "balances/BITBAY/balance", "fiat_cantor/rate/{baseId}/{quoteId}", "fiat_cantor/history", "client_payments/v2/customer/crypto/{currency}/channels/deposit", "client_payments/v2/customer/crypto/{currency}/channels/withdrawal", "client_payments/v2/customer/crypto/deposit/fee", "client_payments/v2/customer/crypto/withdrawal/fee"} },
+                    { "post", new List<object>() {"trading/offer/{symbol}", "trading/stop/offer/{symbol}", "trading/config/{symbol}", "balances/BITBAY/balance", "balances/BITBAY/balance/transfer/{source}/{destination}", "fiat_cantor/exchange", "api_payments/withdrawals/crypto", "api_payments/withdrawals/fiat", "client_payments/v2/customer/crypto/deposit", "client_payments/v2/customer/crypto/withdrawal"} },
                     { "delete", new List<object>() {"trading/offer/{symbol}/{id}/{side}/{price}", "trading/stop/offer/{symbol}/{id}/{side}/{price}"} },
                     { "put", new List<object>() {"balances/BITBAY/balance/{id}"} },
                 } },
@@ -344,6 +344,13 @@ public partial class zonda : Exchange
         //         "firstBalanceId": "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
         //         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        status: "Ok",
+        //        errors: []
+        //    }
         //
         object marketId = this.safeString(order, "market");
         object symbol = this.safeSymbol(marketId, market, "-");
@@ -662,11 +669,11 @@ public partial class zonda : Exchange
         /**
         * @method
         * @name zonda#fetchLedger
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.zondacrypto.exchange/reference/operations-history
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -968,6 +975,7 @@ public partial class zonda : Exchange
         object timestamp = this.safeInteger(item, "time");
         object balance = this.safeValue(item, "balance", new Dictionary<string, object>() {});
         object currencyId = this.safeString(balance, "currency");
+        currency = this.safeCurrency(currencyId, currency);
         object change = this.safeValue(item, "change", new Dictionary<string, object>() {});
         object amount = this.safeString(change, "total");
         object direction = "in";
@@ -980,7 +988,7 @@ public partial class zonda : Exchange
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
         object fundsBefore = this.safeValue(item, "fundsBefore", new Dictionary<string, object>() {});
         object fundsAfter = this.safeValue(item, "fundsAfter", new Dictionary<string, object>() {});
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", this.safeString(item, "historyId") },
             { "direction", direction },
@@ -996,7 +1004,7 @@ public partial class zonda : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "fee", null },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -1220,7 +1228,7 @@ public partial class zonda : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1378,9 +1386,10 @@ public partial class zonda : Exchange
             { "side", side },
             { "price", price },
         };
+        object response = await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, parameters));
         // { status: "Fail", errors: [ "NOT_RECOGNIZED_OFFER_TYPE" ] }  -- if required params are missing
         // { status: "Ok", errors: [] }
-        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, parameters));
+        return this.parseOrder(response);
     }
 
     public virtual object isFiat(object currency)

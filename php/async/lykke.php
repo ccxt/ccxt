@@ -361,7 +361,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -449,9 +449,9 @@ class lykke extends Exchange {
             $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetTickers');
             $response = null;
             if ($method === 'publicGetPrices') {
-                $response = Async\await($this->publicGetPrices (array_merge($request, $params)));
+                $response = Async\await($this->publicGetPrices ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+                $response = Async\await($this->publicGetTickers ($this->extend($request, $params)));
             }
             $ticker = $this->safe_value($response, 'payload', array());
             //
@@ -542,7 +542,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit; // default 0
             }
-            $response = Async\await($this->publicGetOrderbooks (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbooks ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload', array());
             //
             //     {
@@ -573,7 +573,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //  public fetchTrades
         //
@@ -651,7 +651,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['take'] = $limit;
             }
-            $response = Async\await($this->publicGetTradesPublicAssetPairId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradesPublicAssetPairId ($this->extend($request, $params)));
             $result = $this->safe_value($response, 'payload', array());
             //
             //     {
@@ -689,9 +689,9 @@ class lykke extends Exchange {
             $currencyId = $this->safe_string($balance, 'assetId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $free = $this->safe_string($balance, 'available');
+            $total = $this->safe_string($balance, 'available');
             $used = $this->safe_string($balance, 'reserved');
-            $account['free'] = $free;
+            $account['total'] = $total;
             $account['used'] = $used;
             $result[$code] = $account;
         }
@@ -726,7 +726,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Open' => 'open',
             'Pending' => 'open',
@@ -741,7 +741,7 @@ class lykke extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -807,7 +807,7 @@ class lykke extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -823,9 +823,9 @@ class lykke extends Exchange {
             }
             $result = null;
             if ($this->capitalize($type) === 'Market') {
-                $result = Async\await($this->privatePostOrdersMarket (array_merge($query, $params)));
+                $result = Async\await($this->privatePostOrdersMarket ($this->extend($query, $params)));
             } else {
-                $result = Async\await($this->privatePostOrdersLimit (array_merge($query, $params)));
+                $result = Async\await($this->privatePostOrdersLimit ($this->extend($query, $params)));
             }
             //
             // $market
@@ -894,7 +894,10 @@ class lykke extends Exchange {
             //         "error":null
             //     }
             //
-            return Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrdersOrderId ($this->extend($request, $params)));
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -922,7 +925,12 @@ class lykke extends Exchange {
             //         "error":null
             //     }
             //
-            return Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 
@@ -939,7 +947,7 @@ class lykke extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersOrderId ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload');
             //
             //     {
@@ -987,7 +995,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['take'] = $limit;
             }
-            $response = Async\await($this->privateGetOrdersActive (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersActive ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload');
             //
             //     {
@@ -1037,7 +1045,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['take'] = $limit;
             }
-            $response = Async\await($this->privateGetOrdersClosed (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersClosed ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload');
             //
             //     {
@@ -1093,7 +1101,7 @@ class lykke extends Exchange {
             if ($since !== null) {
                 $request['from'] = $since;
             }
-            $response = Async\await($this->privateGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTrades ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload');
             //
             //     {
@@ -1140,7 +1148,7 @@ class lykke extends Exchange {
             $request = array(
                 'assetId' => $this->safe_string($currency, 'id'),
             );
-            $response = Async\await($this->privateGetOperationsDepositsAddressesAssetId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOperationsDepositsAddressesAssetId ($this->extend($request, $params)));
             //
             //     {
             //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
@@ -1164,7 +1172,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
@@ -1244,7 +1252,7 @@ class lykke extends Exchange {
             if ($limit !== null) {
                 $request['take'] = $limit;
             }
-            $response = Async\await($this->privateGetOperations (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOperations ($this->extend($request, $params)));
             $payload = $this->safe_value($response, 'payload', array());
             //
             //     {
@@ -1293,7 +1301,7 @@ class lykke extends Exchange {
             if ($tag !== null) {
                 $request['destinationAddressExtension'] = $tag;
             }
-            $response = Async\await($this->privatePostOperationsWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOperationsWithdrawals ($this->extend($request, $params)));
             //
             //     "3035b1ad-2005-4587-a986-1f7966be78e0"
             //
@@ -1332,7 +1340,7 @@ class lykke extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

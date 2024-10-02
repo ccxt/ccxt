@@ -26,6 +26,7 @@ class bitopro(ccxt.async_support.bitopro):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
             },
             'urls': {
                 'ws': {
@@ -176,7 +177,7 @@ class bitopro(ccxt.async_support.bitopro):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -231,7 +232,7 @@ class bitopro(ccxt.async_support.bitopro):
         client.resolve(trades, messageHash)
         client.resolve(trades, messageHash + ':' + symbol)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "base": "usdt",
@@ -357,7 +358,7 @@ class bitopro(ccxt.async_support.bitopro):
         })
         payload = self.string_to_base64(rawData)
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
-        defaultOptions = {
+        defaultOptions: dict = {
             'ws': {
                 'options': {
                     'headers': {},
@@ -367,7 +368,7 @@ class bitopro(ccxt.async_support.bitopro):
         # self.options = self.extend(defaultOptions, self.options)
         self.extend_exchange_options(defaultOptions)
         originalHeaders = self.options['ws']['options']['headers']
-        headers = {
+        headers: dict = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': self.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
@@ -414,7 +415,7 @@ class bitopro(ccxt.async_support.bitopro):
         timestamp = self.safe_integer(message, 'timestamp')
         datetime = self.safe_string(message, 'datetime')
         currencies = list(data.keys())
-        result = {
+        result: dict = {
             'info': data,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -432,7 +433,7 @@ class bitopro(ccxt.async_support.bitopro):
         client.resolve(self.balance, event)
 
     def handle_message(self, client: Client, message):
-        methods = {
+        methods: dict = {
             'TRADE': self.handle_trade,
             'TICKER': self.handle_ticker,
             'ORDER_BOOK': self.handle_order_book,

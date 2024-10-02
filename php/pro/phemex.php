@@ -18,7 +18,7 @@ class phemex extends \ccxt\async\phemex {
             'has' => array(
                 'ws' => true,
                 'watchTicker' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
@@ -29,6 +29,7 @@ class phemex extends \ccxt\async\phemex {
                 'watchOrderBookForSymbols' => false,
                 'watchTradesForSymbols' => false,
                 'watchOHLCVForSymbols' => false,
+                'watchBalance' => true,
             ),
             'urls' => array(
                 'test' => array(
@@ -43,7 +44,7 @@ class phemex extends \ccxt\async\phemex {
                 'OHLCVLimit' => 1000,
             ),
             'streaming' => array(
-                'keepAlive' => 10000,
+                'keepAlive' => 9000,
             ),
         ));
     }
@@ -538,6 +539,51 @@ class phemex extends \ccxt\async\phemex {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#$subscribe-24-hours-$ticker
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#$subscribe-24-hours-$ticker
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#$subscribe-24-hours-$ticker
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} [$symbols] unified symbol of the $market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->channel] the channel to $subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $first = $symbols[0];
+            $market = $this->market($first);
+            $isSwap = $market['swap'];
+            $settleIsUSDT = $market['settle'] === 'USDT';
+            $name = 'spot_market24h';
+            if ($isSwap) {
+                $name = $settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
+            }
+            $url = $this->urls['api']['ws'];
+            $requestId = $this->request_id();
+            $subscriptionHash = $name . '.subscribe';
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $messageHashes[] = 'ticker:' . $symbols[$i];
+            }
+            $subscribe = array(
+                'method' => $subscriptionHash,
+                'id' => $requestId,
+                'params' => array(),
+            );
+            $request = $this->deep_extend($subscribe, $params);
+            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
+            if ($this->newUpdates) {
+                $result = array();
+                $result[$ticker['symbol']] = $ticker;
+                return $result;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -726,11 +772,11 @@ class phemex extends \ccxt\async\phemex {
             $this->orderbooks[$symbol] = $orderbook;
             $client->resolve ($orderbook, $messageHash);
         } else {
-            $orderbook = $this->safe_value($this->orderbooks, $symbol);
-            if ($orderbook !== null) {
-                $changes = $this->safe_value_2($message, 'book', 'orderbook_p', array());
-                $asks = $this->safe_value($changes, 'asks', array());
-                $bids = $this->safe_value($changes, 'bids', array());
+            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                $orderbook = $this->orderbooks[$symbol];
+                $changes = $this->safe_dict_2($message, 'book', 'orderbook_p', array());
+                $asks = $this->safe_list($changes, 'asks', array());
+                $bids = $this->safe_list($changes, 'bids', array());
                 $this->custom_handle_deltas($orderbook['asks'], $asks, $market);
                 $this->custom_handle_deltas($orderbook['bids'], $bids, $market);
                 $orderbook['nonce'] = $nonce;
@@ -750,7 +796,7 @@ class phemex extends \ccxt\async\phemex {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -761,7 +807,7 @@ class phemex extends \ccxt\async\phemex {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . $market['symbol'];
                 if ($market['settle'] === 'USDT') {
-                    $params = array_merge($params);
+                    $params = $this->extend($params);
                     $params['settle'] = 'USDT';
                 }
             }
@@ -926,7 +972,7 @@ class phemex extends \ccxt\async\phemex {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . $market['symbol'];
                 if ($market['settle'] === 'USDT') {
-                    $params = array_merge($params);
+                    $params = $this->extend($params);
                     $params['settle'] = 'USDT';
                 }
             }
@@ -1509,7 +1555,7 @@ class phemex extends \ccxt\async\phemex {
                 'method' => $channel,
                 'params' => array(),
             );
-            $request = array_merge($request, $params);
+            $request = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $request, $channel));
         }) ();
     }
@@ -1534,7 +1580,7 @@ class phemex extends \ccxt\async\phemex {
                     'id' => $requestId,
                 );
                 $subscriptionHash = (string) $requestId;
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
                     $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
                 }

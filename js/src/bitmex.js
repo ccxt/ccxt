@@ -10,6 +10,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { totp } from './base/functions/totp.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmex
@@ -58,7 +59,7 @@ export default class bitmex extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -91,6 +92,7 @@ export default class bitmex extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': undefined,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': undefined,
                 'setMarginMode': true,
@@ -243,6 +245,7 @@ export default class bitmex extends Exchange {
                     'orderQty is invalid': InvalidOrder,
                     'Invalid price': InvalidOrder,
                     'Invalid stopPx for ordType': InvalidOrder,
+                    'Account is restricted': PermissionDenied, // {"error":{"message":"Account is restricted","name":"HTTPError"}}
                 },
                 'broad': {
                     'Signature not valid': AuthenticationError,
@@ -884,6 +887,7 @@ export default class bitmex extends Exchange {
          * @name bitmex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1142,6 +1146,7 @@ export default class bitmex extends Exchange {
         const type = this.parseLedgerEntryType(this.safeString(item, 'transactType'));
         const currencyId = this.safeString(item, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const amountString = this.safeString(item, 'amount');
         let amount = this.convertToRealAmount(code, amountString);
         let timestamp = this.parse8601(this.safeString(item, 'transactTime'));
@@ -1156,14 +1161,14 @@ export default class bitmex extends Exchange {
             feeCost = this.convertToRealAmount(code, feeCost);
         }
         const fee = {
-            'cost': this.parseNumber(feeCost),
+            'cost': this.parseToNumeric(feeCost),
             'currency': code,
         };
         let after = this.safeString(item, 'walletBalance');
         if (after !== undefined) {
             after = this.convertToRealAmount(code, after);
         }
-        const before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
+        const before = this.parseToNumeric(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         let direction = undefined;
         if (Precise.stringLt(amountString, '0')) {
             direction = 'out';
@@ -1173,9 +1178,9 @@ export default class bitmex extends Exchange {
             direction = 'in';
         }
         const status = this.parseTransactionStatus(this.safeString(item, 'transactStatus'));
-        return {
-            'id': id,
+        return this.safeLedgerEntry({
             'info': item,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'direction': direction,
@@ -1184,22 +1189,22 @@ export default class bitmex extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseToNumeric(amount),
             'before': before,
-            'after': this.parseNumber(after),
+            'after': this.parseToNumeric(after),
             'status': status,
             'fee': fee,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -1490,7 +1495,7 @@ export default class bitmex extends Exchange {
         }
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
-        // let filter = { 'key': 'value' };
+        // let filter: Dict = { 'key': 'value' };
         // send a bare series (e.g. XBU) to nearest expiring contract in that series
         // you can also send a timeframe, e.g. XBU:monthly
         // timeframes: daily, weekly, monthly, quarterly, and biquarterly
@@ -1863,7 +1868,7 @@ export default class bitmex extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
@@ -2456,6 +2461,9 @@ export default class bitmex extends Exchange {
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
+        if (this.twofa !== undefined) {
+            request['otpToken'] = totp(this.twofa);
+        }
         const response = await this.privatePostUserRequestWithdrawal(this.extend(request, params));
         //
         //     {
@@ -2484,7 +2492,7 @@ export default class bitmex extends Exchange {
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.publicGetInstrumentActiveAndIndices(params);
@@ -2518,7 +2526,7 @@ export default class bitmex extends Exchange {
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': this.safeNumber(contract, 'fundingRate'),
-            'fundingTimestamp': this.iso8601(fundingDatetime),
+            'fundingTimestamp': this.parseToNumeric(this.iso8601(fundingDatetime)),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': this.safeNumber(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': undefined,
@@ -2526,6 +2534,7 @@ export default class bitmex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

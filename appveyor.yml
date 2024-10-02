@@ -17,8 +17,8 @@ install:
   - set PATH=C:\Program Files\curl;%PATH%
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
-  - cinst -y php --version 8.1.12 --allow-empty-checksums
-  - cinst composer -i -y
+  - choco install -y php --version 8.1.12 --allow-empty-checksums
+  - choco install composer -i -y
   # - php -i | findstr "php.ini"
   - cd c:\tools\php81
   - copy php.ini-production php.ini

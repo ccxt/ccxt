@@ -1576,7 +1576,7 @@ class digifinex extends digifinex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -1733,7 +1733,7 @@ class digifinex extends digifinex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
@@ -1932,8 +1932,38 @@ class digifinex extends digifinex$1 {
             if (numCanceledOrders !== 1) {
                 throw new errors.OrderNotFound(this.id + ' cancelOrder() ' + id + ' not found');
             }
+            const orders = this.parseCancelOrders(response);
+            return this.safeDict(orders, 0);
         }
-        return response;
+        else {
+            return this.safeOrder({
+                'info': response,
+                'orderId': this.safeString(response, 'data'),
+            });
+        }
+    }
+    parseCancelOrders(response) {
+        const success = this.safeList(response, 'success');
+        const error = this.safeList(response, 'error');
+        const result = [];
+        for (let i = 0; i < success.length; i++) {
+            const order = success[i];
+            result.push(this.safeOrder({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < error.length; i++) {
+            const order = error[i];
+            result.push(this.safeOrder({
+                'info': order,
+                'id': this.safeString2(order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': this.safeString(order, 'client-order-id'),
+            }));
+        }
+        return result;
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         /**
@@ -1966,12 +1996,7 @@ class digifinex extends digifinex$1 {
         //         ]
         //     }
         //
-        const canceledOrders = this.safeValue(response, 'success', []);
-        const numCanceledOrders = canceledOrders.length;
-        if (numCanceledOrders < 1) {
-            throw new errors.OrderNotFound(this.id + ' cancelOrders() error');
-        }
-        return response;
+        return this.parseCancelOrders(response);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -2574,14 +2599,16 @@ class digifinex extends digifinex$1 {
         //     }
         //
         const type = this.parseLedgerEntryType(this.safeString2(item, 'type', 'finance_type'));
-        const code = this.safeCurrencyCode(this.safeString2(item, 'currency_mark', 'currency'), currency);
+        const currencyId = this.safeString2(item, 'currency_mark', 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const amount = this.safeNumber2(item, 'num', 'change');
         const after = this.safeNumber(item, 'balance');
         let timestamp = this.safeTimestamp(item, 'time');
         if (timestamp === undefined) {
             timestamp = this.safeInteger(item, 'timestamp');
         }
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': undefined,
             'direction': undefined,
@@ -2597,18 +2624,18 @@ class digifinex extends digifinex$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fee': undefined,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -3236,6 +3263,9 @@ class digifinex extends digifinex$1 {
         const marketId = this.safeString(contract, 'instrument_id');
         const timestamp = this.safeInteger(contract, 'funding_time');
         const nextTimestamp = this.safeInteger(contract, 'next_funding_time');
+        const fundingTimeString = this.safeString(contract, 'funding_time');
+        const nextFundingTimeString = this.safeString(contract, 'next_funding_time');
+        const millisecondsInterval = Precise["default"].stringSub(nextFundingTimeString, fundingTimeString);
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market),
@@ -3248,13 +3278,24 @@ class digifinex extends digifinex$1 {
             'fundingRate': this.safeNumber(contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': this.iso8601(timestamp),
-            'nextFundingRate': this.safeString(contract, 'next_funding_rate'),
+            'nextFundingRate': this.safeNumber(contract, 'next_funding_rate'),
             'nextFundingTimestamp': nextTimestamp,
             'nextFundingDatetime': this.iso8601(nextTimestamp),
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(millisecondsInterval),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

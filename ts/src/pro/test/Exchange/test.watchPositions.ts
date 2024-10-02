@@ -2,15 +2,16 @@
 import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchPositions (exchange, skippedProperties, symbol) {
+async function testWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchPositions';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
         try {
-            response = await exchange.watchPositions (symbol);
+            response = await exchange.watchPositions ([ symbol ]);
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;

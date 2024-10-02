@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import bitmartRest from '../bitmart.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Asks, Bids } from '../base/ws/OrderBookSide.js';
 
@@ -26,6 +26,7 @@ export default class bitmart extends bitmartRest {
                 'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -43,8 +44,8 @@ export default class bitmart extends bitmartRest {
                             'private': 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
                         },
                         'swap': {
-                            'public': 'wss://openapi-ws.{hostname}/api?protocol=1.1',
-                            'private': 'wss://openapi-ws.{hostname}/user?protocol=1.1',
+                            'public': 'wss://openapi-ws-v2.{hostname}/api?protocol=1.1',
+                            'private': 'wss://openapi-ws-v2.{hostname}/user?protocol=1.1',
                         },
                     },
                 },
@@ -128,7 +129,7 @@ export default class bitmart extends bitmartRest {
         if ((type !== 'spot') && (channel === 'ticker')) {
             rawSubscriptions = [ channelType + '/' + channel ];
         }
-        const request = {
+        const request: Dict = {
             'args': rawSubscriptions,
         };
         request[actionType] = 'subscribe';
@@ -140,7 +141,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchBalance
          * @see https://developer-pro.bitmart.com/en/spot/#private-balance-change
-         * @see https://developer-pro.bitmart.com/en/futures/#private-assets-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -276,7 +277,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchTrades
          * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#public-trade-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -329,6 +330,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchTicker
          * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -344,7 +346,8 @@ export default class bitmart extends bitmartRest {
         /**
          * @method
          * @name bitmart#watchTickers
-         * @see https://developer-pro.bitmart.com/en/futures/#overview
+         * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -356,20 +359,100 @@ export default class bitmart extends bitmartRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const ticker = await this.subscribeMultiple ('ticker', marketType, symbols, params);
         if (this.newUpdates) {
-            const tickers = {};
+            const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name bitmart#watchBidsAsks
+         * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
+        const url = this.implodeHostname (this.urls['api']['ws'][marketType]['public']);
+        const channelType = (marketType === 'spot') ? 'spot' : 'futures';
+        const actionType = (marketType === 'spot') ? 'op' : 'action';
+        let rawSubscriptions = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            rawSubscriptions.push (channelType + '/ticker:' + market['id']);
+            messageHashes.push ('bidask:' + symbols[i]);
+        }
+        if (marketType !== 'spot') {
+            rawSubscriptions = [ channelType + '/ticker' ];
+        }
+        const request: Dict = {
+            'args': rawSubscriptions,
+        };
+        request[actionType] = 'subscribe';
+        const newTickers = await this.watchMultiple (url, messageHashes, request, rawSubscriptions);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[newTickers['symbol']] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        const table = this.safeString (message, 'table');
+        const isSpot = (table !== undefined);
+        let rawTickers = [];
+        if (isSpot) {
+            rawTickers = this.safeList (message, 'data', []);
+        } else {
+            rawTickers = [ this.safeValue (message, 'data', {}) ];
+        }
+        if (!rawTickers.length) {
+            return;
+        }
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = this.parseWsBidAsk (rawTickers[i]);
+            const symbol = ticker['symbol'];
+            this.bidsasks[symbol] = ticker;
+            const messageHash = 'bidask:' + symbol;
+            client.resolve (ticker, messageHash);
+        }
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (ticker, 'ms_t');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeString2 (ticker, 'ask_px', 'ask_price'),
+            'askVolume': this.safeString2 (ticker, 'ask_sz', 'ask_vol'),
+            'bid': this.safeString2 (ticker, 'bid_px', 'bid_price'),
+            'bidVolume': this.safeString2 (ticker, 'bid_sz', 'bid_vol'),
+            'info': ticker,
+        }, market);
+    }
+
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmart#watchOrders
-         * @see https://developer-pro.bitmart.com/en/spot/#private-order-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
          * @description watches information on multiple orders made by the user
+         * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -389,12 +472,15 @@ export default class bitmart extends bitmartRest {
         await this.authenticate (type, params);
         let request = undefined;
         if (type === 'spot') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument for spot markets');
+            let argsRequest = 'spot/user/order:';
+            if (symbol !== undefined) {
+                argsRequest += market['id'];
+            } else {
+                argsRequest = 'spot/user/orders:ALL_SYMBOLS';
             }
             request = {
                 'op': 'subscribe',
-                'args': [ 'spot/user/order:' + market['id'] ],
+                'args': [ argsRequest ],
             };
         } else {
             request = {
@@ -470,7 +556,7 @@ export default class bitmart extends bitmartRest {
         }
         const ordersLength = orders.length;
         const newOrders = [];
-        const symbols = {};
+        const symbols: Dict = {};
         if (ordersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
@@ -495,7 +581,7 @@ export default class bitmart extends bitmartRest {
         client.resolve (newOrders, messageHash);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    parseWsOrder (order: Dict, market: Market = undefined) {
         //
         // spot
         //    {
@@ -628,7 +714,7 @@ export default class bitmart extends bitmartRest {
     }
 
     parseWsOrderStatus (statusId) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'closed', // match deal
             '2': 'open', // submit order
             '3': 'canceled', // cancel order
@@ -643,7 +729,7 @@ export default class bitmart extends bitmartRest {
     }
 
     parseWsOrderSide (sideId) {
-        const sides = {
+        const sides: Dict = {
             '1': 'buy', // buy_open_long
             '2': 'buy', // buy_close_short
             '3': 'sell', // sell_close_long
@@ -671,7 +757,7 @@ export default class bitmart extends bitmartRest {
             messageHash += '::' + symbols.join (',');
         }
         const subscriptionHash = 'futures/position';
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'args': [ 'futures/position' ],
         };
@@ -767,8 +853,8 @@ export default class bitmart extends bitmartRest {
         const symbol = market['symbol'];
         const openTimestamp = this.safeInteger (position, 'create_time');
         const timestamp = this.safeInteger (position, 'update_time');
-        const side = this.safeNumber (position, 'position_type');
-        const marginModeId = this.safeNumber (position, 'open_type');
+        const side = this.safeInteger (position, 'position_type');
+        const marginModeId = this.safeInteger (position, 'open_type');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -870,7 +956,7 @@ export default class bitmart extends bitmartRest {
         return symbol;
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    parseWsTrade (trade: Dict, market: Market = undefined) {
         // spot
         //    {
         //        "price": "52700.50",
@@ -946,6 +1032,7 @@ export default class bitmart extends bitmartRest {
         //            }
         //    }
         //
+        this.handleBidAsk (client, message);
         const table = this.safeString (message, 'table');
         const isSpot = (table !== undefined);
         let rawTickers = [];
@@ -1009,7 +1096,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchOHLCV
          * @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#public-klinebin-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1137,7 +1224,7 @@ export default class bitmart extends bitmartRest {
          * @name bitmart#watchOrderBook
          * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
          * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#public-depth-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -1338,7 +1425,7 @@ export default class bitmart extends bitmartRest {
                 this.orderbooks[symbol] = ob;
             }
             const orderbook = this.orderbooks[symbol];
-            const way = this.safeNumber (data, 'way');
+            const way = this.safeInteger (data, 'way');
             const side = (way === 1) ? 'bids' : 'asks';
             if (way === 1) {
                 orderbook[side] = new Bids ([], limit);
@@ -1545,7 +1632,7 @@ export default class bitmart extends bitmartRest {
         if (!isDataUpdate) {
             const event = this.safeString2 (message, 'event', 'action');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     // 'info': this.handleSystemStatus,
                     'login': this.handleAuthenticate,
                     'access': this.handleAuthenticate,
@@ -1558,7 +1645,7 @@ export default class bitmart extends bitmartRest {
             }
         } else {
             const channel = this.safeString2 (message, 'table', 'group');
-            const methods = {
+            const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,

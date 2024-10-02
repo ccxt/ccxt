@@ -24,6 +24,7 @@ class bitopro extends \ccxt\async\bitopro {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
             ),
             'urls' => array(
                 'ws' => array(
@@ -194,7 +195,7 @@ class bitopro extends \ccxt\async\bitopro {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -255,7 +256,7 @@ class bitopro extends \ccxt\async\bitopro {
         $client->resolve ($trades, $messageHash . ':' . $symbol);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "base" => "usdt",
@@ -399,7 +400,7 @@ class bitopro extends \ccxt\async\bitopro {
                 ),
             ),
         );
-        // $this->options = array_merge($defaultOptions, $this->options);
+        // $this->options = $this->extend($defaultOptions, $this->options);
         $this->extend_exchange_options($defaultOptions);
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(

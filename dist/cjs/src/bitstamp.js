@@ -219,7 +219,7 @@ class bitstamp extends bitstamp$1 {
                         'uni_withdrawal/': 1,
                         'uni_address/': 1,
                         'yfi_withdrawal/': 1,
-                        'yfi_address': 1,
+                        'yfi_address/': 1,
                         'audio_withdrawal/': 1,
                         'audio_address/': 1,
                         'crv_withdrawal/': 1,
@@ -228,7 +228,7 @@ class bitstamp extends bitstamp$1 {
                         'algo_address/': 1,
                         'comp_withdrawal/': 1,
                         'comp_address/': 1,
-                        'grt_withdrawal': 1,
+                        'grt_withdrawal/': 1,
                         'grt_address/': 1,
                         'usdt_withdrawal/': 1,
                         'usdt_address/': 1,
@@ -366,6 +366,22 @@ class bitstamp extends bitstamp$1 {
                         'vchf_address/': 1,
                         'veur_withdrawal/': 1,
                         'veur_address/': 1,
+                        'truf_withdrawal/': 1,
+                        'truf_address/': 1,
+                        'wif_withdrawal/': 1,
+                        'wif_address/': 1,
+                        'smt_withdrawal/': 1,
+                        'smt_address/': 1,
+                        'sui_withdrawal/': 1,
+                        'sui_address/': 1,
+                        'jup_withdrawal/': 1,
+                        'jup_address/': 1,
+                        'ondo_withdrawal/': 1,
+                        'ondo_address/': 1,
+                        'boba_withdrawal/': 1,
+                        'boba_address/': 1,
+                        'pyth_withdrawal/': 1,
+                        'pyth_address/': 1,
                     },
                 },
             },
@@ -373,46 +389,34 @@ class bitstamp extends bitstamp$1 {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber('0.005'),
-                    'maker': this.parseNumber('0.005'),
+                    'taker': this.parseNumber('0.004'),
+                    'maker': this.parseNumber('0.004'),
                     'tiers': {
                         'taker': [
-                            [this.parseNumber('0'), this.parseNumber('0.005')],
-                            [this.parseNumber('20000'), this.parseNumber('0.0025')],
-                            [this.parseNumber('100000'), this.parseNumber('0.0024')],
-                            [this.parseNumber('200000'), this.parseNumber('0.0022')],
-                            [this.parseNumber('400000'), this.parseNumber('0.0020')],
-                            [this.parseNumber('600000'), this.parseNumber('0.0015')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.0014')],
-                            [this.parseNumber('2000000'), this.parseNumber('0.0013')],
-                            [this.parseNumber('4000000'), this.parseNumber('0.0012')],
-                            [this.parseNumber('20000000'), this.parseNumber('0.0011')],
-                            [this.parseNumber('50000000'), this.parseNumber('0.0010')],
-                            [this.parseNumber('100000000'), this.parseNumber('0.0007')],
-                            [this.parseNumber('500000000'), this.parseNumber('0.0005')],
-                            [this.parseNumber('2000000000'), this.parseNumber('0.0003')],
-                            [this.parseNumber('6000000000'), this.parseNumber('0.0001')],
-                            [this.parseNumber('20000000000'), this.parseNumber('0.00005')],
-                            [this.parseNumber('20000000001'), this.parseNumber('0')],
+                            [this.parseNumber('0'), this.parseNumber('0.004')],
+                            [this.parseNumber('10000'), this.parseNumber('0.003')],
+                            [this.parseNumber('100000'), this.parseNumber('0.002')],
+                            [this.parseNumber('500000'), this.parseNumber('0.0018')],
+                            [this.parseNumber('1500000'), this.parseNumber('0.0016')],
+                            [this.parseNumber('5000000'), this.parseNumber('0.0012')],
+                            [this.parseNumber('20000000'), this.parseNumber('0.001')],
+                            [this.parseNumber('50000000'), this.parseNumber('0.0008')],
+                            [this.parseNumber('100000000'), this.parseNumber('0.0006')],
+                            [this.parseNumber('250000000'), this.parseNumber('0.0005')],
+                            [this.parseNumber('1000000000'), this.parseNumber('0.0003')],
                         ],
                         'maker': [
-                            [this.parseNumber('0'), this.parseNumber('0.005')],
-                            [this.parseNumber('20000'), this.parseNumber('0.0025')],
-                            [this.parseNumber('100000'), this.parseNumber('0.0024')],
-                            [this.parseNumber('200000'), this.parseNumber('0.0022')],
-                            [this.parseNumber('400000'), this.parseNumber('0.0020')],
-                            [this.parseNumber('600000'), this.parseNumber('0.0015')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.0014')],
-                            [this.parseNumber('2000000'), this.parseNumber('0.0013')],
-                            [this.parseNumber('4000000'), this.parseNumber('0.0012')],
-                            [this.parseNumber('20000000'), this.parseNumber('0.0011')],
-                            [this.parseNumber('50000000'), this.parseNumber('0.0010')],
-                            [this.parseNumber('100000000'), this.parseNumber('0.0007')],
-                            [this.parseNumber('500000000'), this.parseNumber('0.0005')],
-                            [this.parseNumber('2000000000'), this.parseNumber('0.0003')],
-                            [this.parseNumber('6000000000'), this.parseNumber('0.0001')],
-                            [this.parseNumber('20000000000'), this.parseNumber('0.00005')],
-                            [this.parseNumber('20000000001'), this.parseNumber('0')],
+                            [this.parseNumber('0'), this.parseNumber('0.003')],
+                            [this.parseNumber('10000'), this.parseNumber('0.002')],
+                            [this.parseNumber('100000'), this.parseNumber('0.001')],
+                            [this.parseNumber('500000'), this.parseNumber('0.0008')],
+                            [this.parseNumber('1500000'), this.parseNumber('0.0006')],
+                            [this.parseNumber('5000000'), this.parseNumber('0.0003')],
+                            [this.parseNumber('20000000'), this.parseNumber('0.002')],
+                            [this.parseNumber('50000000'), this.parseNumber('0.0001')],
+                            [this.parseNumber('100000000'), this.parseNumber('0')],
+                            [this.parseNumber('250000000'), this.parseNumber('0')],
+                            [this.parseNumber('1000000000'), this.parseNumber('0')],
                         ],
                     },
                 },
@@ -1382,7 +1386,7 @@ class bitstamp extends bitstamp$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1443,7 +1447,17 @@ class bitstamp extends bitstamp$1 {
         const request = {
             'id': id,
         };
-        return await this.privatePostCancelOrder(this.extend(request, params));
+        const response = await this.privatePostCancelOrder(this.extend(request, params));
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
+        //
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1468,7 +1482,23 @@ class bitstamp extends bitstamp$1 {
         else {
             response = await this.privatePostCancelAllOrders(this.extend(request, params));
         }
-        return response;
+        //
+        //    {
+        //        "canceled": [
+        //            {
+        //                "id": 1453282316578816,
+        //                "amount": "0.02035278",
+        //                "price": "2100.45",
+        //                "type": 0,
+        //                "currency_pair": "BTC/USD",
+        //                "market": "BTC/USD"
+        //            }
+        //        ],
+        //        "success": true
+        //    }
+        //
+        const canceled = this.safeList(response, 'canceled');
+        return this.parseOrders(canceled);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1499,6 +1529,7 @@ class bitstamp extends bitstamp$1 {
          * @name bitstamp#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1845,6 +1876,16 @@ class bitstamp extends bitstamp$1 {
         //           "id": "2814205012"
         //       }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "id": 1453282316578816,
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "type": 0,
+        //        "market": "BTC/USD"
+        //    }
+        //
         const id = this.safeString(order, 'id');
         const clientOrderId = this.safeString(order, 'client_order_id');
         let side = this.safeString(order, 'type');
@@ -1937,9 +1978,9 @@ class bitstamp extends bitstamp$1 {
                 market = this.getMarketFromTrade(item);
             }
             const direction = (parsedTrade['side'] === 'buy') ? 'in' : 'out';
-            return {
-                'id': parsedTrade['id'],
+            return this.safeLedgerEntry({
                 'info': item,
+                'id': parsedTrade['id'],
                 'timestamp': parsedTrade['timestamp'],
                 'datetime': parsedTrade['datetime'],
                 'direction': direction,
@@ -1953,7 +1994,7 @@ class bitstamp extends bitstamp$1 {
                 'after': undefined,
                 'status': 'ok',
                 'fee': parsedTrade['fee'],
-            };
+            }, currency);
         }
         else {
             const parsedTransaction = this.parseTransaction(item, currency);
@@ -1968,9 +2009,9 @@ class bitstamp extends bitstamp$1 {
                 const amount = this.safeString(item, currency['id']);
                 direction = Precise["default"].stringGt(amount, '0') ? 'in' : 'out';
             }
-            return {
-                'id': parsedTransaction['id'],
+            return this.safeLedgerEntry({
                 'info': item,
+                'id': parsedTransaction['id'],
                 'timestamp': parsedTransaction['timestamp'],
                 'datetime': parsedTransaction['datetime'],
                 'direction': direction,
@@ -1984,18 +2025,18 @@ class bitstamp extends bitstamp$1 {
                 'after': undefined,
                 'status': parsedTransaction['status'],
                 'fee': parsedTransaction['fee'],
-            };
+            }, currency);
         }
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -2151,10 +2192,8 @@ class bitstamp extends bitstamp$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
-        amount = this.parseToNumeric(amount);
         const request = {
-            'amount': amount,
+            'amount': this.parseToNumeric(this.currencyToPrecision(code, amount)),
             'currency': currency['id'].toUpperCase(),
         };
         let response = undefined;

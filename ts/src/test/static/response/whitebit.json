@@ -42,7 +42,7 @@
                         "price": 73236.67,
                         "amount": 0.003212,
                         "cost": 0.00023523618404,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -82,12 +82,12 @@
                     "askVolume": null,
                     "vwap": 71364.44266502108,
                     "open": 72165.04,
-                    "close": null,
-                    "last": null,
+                    "close": 73363.07,
+                    "last": 73363.07,
                     "previousClose": null,
-                    "change": 1197.939664,
+                    "change": 1198.03,
                     "percentage": 1.66,
-                    "average": null,
+                    "average": 72764.05,
                     "baseVolume": 17340.923796,
                     "quoteVolume": 1237525361.9981415,
                     "info": {

@@ -77,7 +77,6 @@ class p2b extends p2b$1 {
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPermissions': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -475,7 +474,7 @@ class p2b extends p2b$1 {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name p2bfutures#fetchOrderBook
+         * @name p2b#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -644,7 +643,7 @@ class p2b extends p2b$1 {
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name poloniexfutures#fetchOHLCV
+         * @name p2b#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -784,7 +783,7 @@ class p2b extends p2b$1 {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

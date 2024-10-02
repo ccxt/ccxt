@@ -222,12 +222,12 @@ class coinspot extends Exchange {
             $request = array(
                 'cointype' => $market['id'],
             );
-            $orderbook = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $orderbook = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'buyorders', 'sellorders', 'rate', 'amount');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "btc":{
@@ -355,7 +355,7 @@ class coinspot extends Exchange {
             $request = array(
                 'cointype' => $market['id'],
             );
-            $response = Async\await($this->privatePostOrdersHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrdersHistory ($this->extend($request, $params)));
             //
             //     {
             //         "status":"ok",
@@ -389,7 +389,7 @@ class coinspot extends Exchange {
             if ($since !== null) {
                 $request['startdate'] = $this->yyyymmdd($since);
             }
-            $response = Async\await($this->privatePostRoMyTransactions (array_merge($request, $params)));
+            $response = Async\await($this->privatePostRoMyTransactions ($this->extend($request, $params)));
             //  {
             //   "status" => "ok",
             //   "buyorders" => array(
@@ -429,7 +429,7 @@ class coinspot extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -508,7 +508,7 @@ class coinspot extends Exchange {
              * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -523,7 +523,7 @@ class coinspot extends Exchange {
                 'amount' => $amount,
                 'rate' => $price,
             );
-            return Async\await($this->$method (array_merge($request, $params)));
+            return Async\await($this->$method ($this->extend($request, $params)));
         }) ();
     }
 
@@ -543,11 +543,21 @@ class coinspot extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
             }
             $params = $this->omit($params, 'side');
-            $method = 'privatePostMy' . $this->capitalize($side) . 'Cancel';
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($side === 'buy') {
+                $response = Async\await($this->privatePostMyBuyCancel ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostMySellCancel ($this->extend($request, $params)));
+            }
+            //
+            // status - ok, error
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -556,7 +566,7 @@ class coinspot extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $body = $this->json(array_merge(array( 'nonce' => $nonce ), $params));
+            $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             $headers = array(
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,

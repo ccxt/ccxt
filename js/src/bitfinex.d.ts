@@ -1,12 +1,12 @@
 import Exchange from './abstract/bitfinex.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFees } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFees, Dict, int } from './base/types.js';
 /**
  * @class bitfinex
  * @augments Exchange
  */
 export default class bitfinex extends Exchange {
     describe(): any;
-    fetchTransactionFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: Strings, params?: {}): Promise<Dict>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         withdraw: {
@@ -22,35 +22,25 @@ export default class bitfinex extends Exchange {
     };
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    amountToPrecision(symbol: any, amount: any): any;
-    priceToPrecision(symbol: any, price: any): any;
+    amountToPrecision(symbol: any, amount: any): string;
+    priceToPrecision(symbol: any, price: any): string;
     fetchBalance(params?: {}): Promise<Balances>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
-        currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
-    };
-    parseTransferStatus(status: any): string;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    parseTransferStatus(status: Str): Str;
     convertDerivativesId(currencyId: any, type: any): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: any, market?: Market): Ticker;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    parseOrder(order: any, market?: Market): Order;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -72,8 +62,8 @@ export default class bitfinex extends Exchange {
         info: any;
     }>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseTransactionStatus(status: Str): string;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<any>;
     nonce(): number;
@@ -83,5 +73,5 @@ export default class bitfinex extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

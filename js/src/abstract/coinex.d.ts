@@ -144,6 +144,8 @@ interface Exchange {
     v2PublicGetFuturesPositionLevel(params?: {}): Promise<implicitReturnType>;
     v2PublicGetFuturesLiquidationHistory(params?: {}): Promise<implicitReturnType>;
     v2PublicGetFuturesBasisHistory(params?: {}): Promise<implicitReturnType>;
+    v2PublicGetAssetsDepositWithdrawConfig(params?: {}): Promise<implicitReturnType>;
+    v2PublicGetAssetsAllDepositWithdrawConfig(params?: {}): Promise<implicitReturnType>;
     v2PrivateGetAccountSubs(params?: {}): Promise<implicitReturnType>;
     v2PrivateGetAccountSubsApiDetail(params?: {}): Promise<implicitReturnType>;
     v2PrivateGetAccountSubsInfo(params?: {}): Promise<implicitReturnType>;
@@ -162,7 +164,6 @@ interface Exchange {
     v2PrivateGetAssetsDepositAddress(params?: {}): Promise<implicitReturnType>;
     v2PrivateGetAssetsDepositHistory(params?: {}): Promise<implicitReturnType>;
     v2PrivateGetAssetsWithdraw(params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAssetsDepositWithdrawConfig(params?: {}): Promise<implicitReturnType>;
     v2PrivateGetAssetsTransferHistory(params?: {}): Promise<implicitReturnType>;
     v2PrivateGetSpotOrderStatus(params?: {}): Promise<implicitReturnType>;
     v2PrivateGetSpotBatchOrderStatus(params?: {}): Promise<implicitReturnType>;

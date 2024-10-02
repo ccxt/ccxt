@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -20,7 +20,7 @@ class phemex(ccxt.async_support.phemex):
             'has': {
                 'ws': True,
                 'watchTicker': True,
-                'watchTickers': False,  # for now
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchMyTrades': True,
                 'watchOrders': True,
@@ -31,6 +31,7 @@ class phemex(ccxt.async_support.phemex):
                 'watchOrderBookForSymbols': False,
                 'watchTradesForSymbols': False,
                 'watchOHLCVForSymbols': False,
+                'watchBalance': True,
             },
             'urls': {
                 'test': {
@@ -45,7 +46,7 @@ class phemex(ccxt.async_support.phemex):
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
         })
 
@@ -111,7 +112,7 @@ class phemex(ccxt.async_support.phemex):
             change = self.parse_number(Precise.string_sub(lastString, openString))
             average = self.parse_number(Precise.string_div(Precise.string_add(lastString, openString), '2'))
             percentage = self.parse_number(Precise.string_mul(Precise.string_sub(Precise.string_div(lastString, openString), '1'), '100'))
-        result = {
+        result: dict = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -168,7 +169,7 @@ class phemex(ccxt.async_support.phemex):
             change = self.parse_number(Precise.string_sub(lastString, openString))
             average = self.parse_number(Precise.string_div(Precise.string_add(lastString, openString), '2'))
             percentage = self.parse_number(Precise.string_mul(Precise.string_sub(Precise.string_div(lastString, openString), '1'), '100'))
-        result = {
+        result: dict = {
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
@@ -495,13 +496,52 @@ class phemex(ccxt.async_support.phemex):
         requestId = self.request_id()
         subscriptionHash = name + '.subscribe'
         messageHash = 'ticker:' + symbol
-        subscribe = {
+        subscribe: dict = {
             'method': subscriptionHash,
             'id': requestId,
             'params': [],
         }
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, subscriptionHash)
+
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-24-hours-ticker
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-24-hours-ticker
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-24-hours-ticker
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        first = symbols[0]
+        market = self.market(first)
+        isSwap = market['swap']
+        settleIsUSDT = market['settle'] == 'USDT'
+        name = 'spot_market24h'
+        if isSwap:
+            name = 'perp_market24h_pack_p' if settleIsUSDT else 'market24h'
+        url = self.urls['api']['ws']
+        requestId = self.request_id()
+        subscriptionHash = name + '.subscribe'
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            messageHashes.append('ticker:' + symbols[i])
+        subscribe: dict = {
+            'method': subscriptionHash,
+            'id': requestId,
+            'params': [],
+        }
+        request = self.deep_extend(subscribe, params)
+        ticker = await self.watch_multiple(url, messageHashes, request, messageHashes)
+        if self.newUpdates:
+            result: dict = {}
+            result[ticker['symbol']] = ticker
+            return result
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -525,7 +565,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'trade_p' if (isSwap and settleIsUSDT) else 'trade'
         messageHash = 'trade:' + symbol
         method = name + '.subscribe'
-        subscribe = {
+        subscribe: dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -560,7 +600,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'orderbook_p' if (isSwap and settleIsUSDT) else 'orderbook'
         messageHash = 'orderbook:' + symbol
         method = name + '.subscribe'
-        subscribe = {
+        subscribe: dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -594,7 +634,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'kline_p' if (isSwap and settleIsUSDT) else 'kline'
         messageHash = 'kline:' + timeframe + ':' + symbol
         method = name + '.subscribe'
-        subscribe = {
+        subscribe: dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -677,11 +717,11 @@ class phemex(ccxt.async_support.phemex):
             self.orderbooks[symbol] = orderbook
             client.resolve(orderbook, messageHash)
         else:
-            orderbook = self.safe_value(self.orderbooks, symbol)
-            if orderbook is not None:
-                changes = self.safe_value_2(message, 'book', 'orderbook_p', {})
-                asks = self.safe_value(changes, 'asks', [])
-                bids = self.safe_value(changes, 'bids', [])
+            if symbol in self.orderbooks:
+                orderbook = self.orderbooks[symbol]
+                changes = self.safe_dict_2(message, 'book', 'orderbook_p', {})
+                asks = self.safe_list(changes, 'asks', [])
+                bids = self.safe_list(changes, 'bids', [])
                 self.custom_handle_deltas(orderbook['asks'], asks, market)
                 self.custom_handle_deltas(orderbook['bids'], bids, market)
                 orderbook['nonce'] = nonce
@@ -697,7 +737,7 @@ class phemex(ccxt.async_support.phemex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = None
@@ -821,7 +861,7 @@ class phemex(ccxt.async_support.phemex):
         if cachedTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
-        marketIds = {}
+        marketIds: dict = {}
         type = None
         for i in range(0, len(message)):
             rawTrade = message[i]
@@ -1055,7 +1095,7 @@ class phemex(ccxt.async_support.phemex):
                 parsedOrders.append(parsedOrder)
         self.handle_my_trades(client, trades)
         limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-        marketIds = {}
+        marketIds: dict = {}
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
         type = None
@@ -1427,7 +1467,7 @@ class phemex(ccxt.async_support.phemex):
             payload = self.apiKey + str(expiration)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             method = 'user.auth'
-            request = {
+            request: dict = {
                 'method': method,
                 'params': ['API', self.apiKey, signature, expiration],
                 'id': requestId,

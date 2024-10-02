@@ -305,10 +305,10 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// dead man's switch, cancel all orders after the given timeout
@@ -505,7 +505,7 @@ public partial class krakenfutures
         return new Balances(res);
     }
     /// <summary>
-    /// fetch the current funding rates
+    /// fetch the current funding rates for multiple markets
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers"/>  <br/>
@@ -519,10 +519,10 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
@@ -562,7 +562,7 @@ public partial class krakenfutures
     /// Fetches current contract trading positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions"/>  <br/>
+    /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -593,10 +593,10 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LeverageTiers(res);
     }
     public async Task<TransferEntry> TransferOut(string code, object amount, Dictionary<string, object> parameters = null)
     {
@@ -659,7 +659,7 @@ public partial class krakenfutures
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverages(symbols, parameters);
         return new Leverages(res);

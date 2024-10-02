@@ -13,7 +13,8 @@ class binanceus extends \ccxt\pro\binance {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\binanceus ();
         $restDescribe = $restInstance->describe ();
-        $extended = $this->deep_extend($restDescribe, parent::describe());
+        $parentWsDescribe = parent::describe_data();
+        $extended = $this->deep_extend($restDescribe, $parentWsDescribe);
         return $this->deep_extend($extended, array(
             'id' => 'binanceus',
             'name' => 'Binance US',
@@ -43,14 +44,6 @@ class binanceus extends \ccxt\pro\binance {
                 'quoteOrderQty' => false,
                 'defaultType' => 'spot',
                 'fetchMarkets' => array( 'spot' ),
-            ),
-            'fees' => array(
-                'trading' => array(
-                    'tierBased' => false,
-                    'percentage' => true,
-                    'taker' => 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker' => 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
-                ),
             ),
         ));
     }

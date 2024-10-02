@@ -90,6 +90,7 @@ class hollaex extends Exchange {
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -455,7 +456,7 @@ class hollaex extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetOrderbook (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbook ($this->extend($request, $params)));
             //
             //     {
             //         "btc-usdt" => array(
@@ -495,7 +496,7 @@ class hollaex extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             //     {
             //         "open" => 8615.55,
@@ -542,21 +543,21 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_tickers($response, ?array $symbols = null, $params = array ()) {
+    public function parse_tickers($tickers, ?array $symbols = null, $params = array ()): array {
         $result = array();
-        $keys = is_array($response) ? array_keys($response) : array();
+        $keys = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $ticker = $response[$key];
+            $ticker = $tickers[$key];
             $marketId = $this->safe_string($ticker, 'symbol', $key);
             $market = $this->safe_market($marketId, null, '-');
             $symbol = $market['symbol'];
-            $result[$symbol] = array_merge($this->parse_ticker($ticker, $market), $params);
+            $result[$symbol] = $this->extend($this->parse_ticker($ticker, $market), $params);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -628,7 +629,7 @@ class hollaex extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTrades ($this->extend($request, $params)));
             //
             //     {
             //         "btc-usdt" => array(
@@ -647,7 +648,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -801,7 +802,7 @@ class hollaex extends Exchange {
                     $request['to'] = $this->sum($start, $duration * $limit);
                 }
             }
-            $response = Async\await($this->publicGetChart (array_merge($request, $params)));
+            $response = Async\await($this->publicGetChart ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -900,7 +901,7 @@ class hollaex extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrder ($this->extend($request, $params)));
             //
             //     {
             //         "id" => "string",
@@ -943,7 +944,7 @@ class hollaex extends Exchange {
             $request = array(
                 'open' => true,
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -961,7 +962,7 @@ class hollaex extends Exchange {
             $request = array(
                 'open' => false,
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -978,7 +979,7 @@ class hollaex extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrder ($this->extend($request, $params)));
             //             {
             //                 "id" => "string",
             //                 "side" => "sell",
@@ -1044,7 +1045,7 @@ class hollaex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 50, max 100
             }
-            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             //
             //     {
             //         "count" => 1,
@@ -1079,7 +1080,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'new' => 'open',
             'pfilled' => 'open',
@@ -1089,7 +1090,7 @@ class hollaex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
         //
@@ -1166,7 +1167,7 @@ class hollaex extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -1199,7 +1200,7 @@ class hollaex extends Exchange {
                 $request['meta'] = array( 'post_only' => true );
             }
             $params = $this->omit($params, array( 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ));
-            $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrder ($this->extend($request, $params)));
             //
             //     {
             //         "fee" => 0,
@@ -1241,7 +1242,7 @@ class hollaex extends Exchange {
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateDeleteOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrder ($this->extend($request, $params)));
             //
             //     {
             //         "title" => "string",
@@ -1276,7 +1277,7 @@ class hollaex extends Exchange {
             $market = null;
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $response = Async\await($this->privateDeleteOrderAll (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteOrderAll ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1328,7 +1329,7 @@ class hollaex extends Exchange {
             if ($since !== null) {
                 $request['start_date'] = $this->iso8601($since);
             }
-            $response = Async\await($this->privateGetUserTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserTrades ($this->extend($request, $params)));
             //
             //     {
             //         "count" => 1,
@@ -1476,7 +1477,7 @@ class hollaex extends Exchange {
             if ($since !== null) {
                 $request['start_date'] = $this->iso8601($since);
             }
-            $response = Async\await($this->privateGetUserDeposits (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserDeposits ($this->extend($request, $params)));
             //
             //     {
             //         "count" => 1,
@@ -1524,7 +1525,7 @@ class hollaex extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
-            $response = Async\await($this->privateGetUserWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserWithdrawals ($this->extend($request, $params)));
             //
             //     {
             //         "count" => 1,
@@ -1586,7 +1587,7 @@ class hollaex extends Exchange {
             if ($since !== null) {
                 $request['start_date'] = $this->iso8601($since);
             }
-            $response = Async\await($this->privateGetUserWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserWithdrawals ($this->extend($request, $params)));
             //
             //     {
             //         "count" => 1,
@@ -1615,7 +1616,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchWithdrawals, fetchDeposits
         //
@@ -1744,7 +1745,7 @@ class hollaex extends Exchange {
                 'address' => $address,
                 'network' => $this->network_code_to_id($network, $code),
             );
-            $response = Async\await($this->privatePostUserWithdrawal (array_merge($request, $params)));
+            $response = Async\await($this->privatePostUserWithdrawal ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "Withdrawal $request is in the queue and will be processed.",
@@ -1916,7 +1917,7 @@ class hollaex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

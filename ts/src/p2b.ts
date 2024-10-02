@@ -5,7 +5,7 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int } from './base/types.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
@@ -80,7 +80,6 @@ export default class p2b extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPermissions': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -280,7 +279,7 @@ export default class p2b extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const marketId = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         const quoteId = this.safeString (market, 'money');
@@ -393,7 +392,7 @@ export default class p2b extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -489,7 +488,7 @@ export default class p2b extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name p2bfutures#fetchOrderBook
+         * @name p2b#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -502,7 +501,7 @@ export default class p2b extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -558,7 +557,7 @@ export default class p2b extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTrades () requires an extra parameter params["lastId"]');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'lastId': lastId,
         };
@@ -589,7 +588,7 @@ export default class p2b extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined) {
+    parseTrade (trade: Dict, market: Market = undefined) {
         //
         // fetchTrades
         //
@@ -660,7 +659,7 @@ export default class p2b extends Exchange {
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name poloniexfutures#fetchOHLCV
+         * @name p2b#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -673,7 +672,7 @@ export default class p2b extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'interval': timeframe,
         };
@@ -775,7 +774,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const keys = Object.keys (response);
@@ -785,7 +784,7 @@ export default class p2b extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const used = this.safeString (balance, 'freeze');
             const available = this.safeString (balance, 'available');
-            const account = {
+            const account: Dict = {
                 'free': available,
                 'used': used,
             };
@@ -804,7 +803,7 @@ export default class p2b extends Exchange {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -813,7 +812,7 @@ export default class p2b extends Exchange {
             throw new BadRequest (this.id + ' createOrder () can only accept orders with type "limit"');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
@@ -862,7 +861,7 @@ export default class p2b extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'orderId': id,
         };
@@ -913,7 +912,7 @@ export default class p2b extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -967,7 +966,7 @@ export default class p2b extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         if (limit !== undefined) {
@@ -1038,7 +1037,7 @@ export default class p2b extends Exchange {
             throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'startTime': this.parseToInt (since / 1000),
             'endTime': this.parseToInt (until / 1000),
@@ -1114,7 +1113,7 @@ export default class p2b extends Exchange {
         if ((until - since) > 86400000) {
             throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
-        const request = {
+        const request: Dict = {
             'startTime': this.parseToInt (since / 1000),
             'endTime': this.parseToInt (until / 1000),
         };
@@ -1163,7 +1162,7 @@ export default class p2b extends Exchange {
         return orders;
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //
@@ -1255,7 +1254,7 @@ export default class p2b extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

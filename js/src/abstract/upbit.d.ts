@@ -23,6 +23,9 @@ interface Exchange {
     privateGetOrdersChance(params?: {}): Promise<implicitReturnType>;
     privateGetOrder(params?: {}): Promise<implicitReturnType>;
     privateGetOrders(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersClosed(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersOpen(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersUuids(params?: {}): Promise<implicitReturnType>;
     privateGetWithdraws(params?: {}): Promise<implicitReturnType>;
     privateGetWithdraw(params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawsChance(params?: {}): Promise<implicitReturnType>;

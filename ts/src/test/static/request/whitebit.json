@@ -104,6 +104,22 @@
                     }
                 ],
                 "output": "{\"request\":\"/api/v4/order/collateral/trigger-market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\"}"
+            },
+            {
+                "description": "market buy +cost",
+                "method": "createOrder",
+                "url": "https://whitebit.com/api/v4/order/market",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "buy",
+                  0,
+                  null,
+                  {
+                    "cost": 7.1
+                  }
+                ],
+                "output": "{\"request\":\"/api/v4/order/market\",\"nonce\":\"1716315544734\",\"market\":\"BTC_USDT\",\"side\":\"buy\",\"amount\":\"7.1\",\"clientOrderId\":\"ccxt014ab638a4a5883b\"}"
             }
         ],
         "editOrder": [

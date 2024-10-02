@@ -317,11 +317,12 @@ public partial class kucoin
     /// See <see href="https://docs.kucoin.com/spot-hf/#place-hf-order"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -438,6 +439,12 @@ public partial class kucoin
     /// bool : set to true to test an order, no order will be created but the request will be validated
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.sync</term>
+    /// <description>
+    /// bool : set to true to use the hf sync call
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -513,6 +520,7 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -524,6 +532,12 @@ public partial class kucoin
     /// <term>params.hf</term>
     /// <description>
     /// bool : false, // true for hf orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.sync</term>
+    /// <description>
+    /// bool : false, // true to use the hf sync call
     /// </description>
     /// </item>
     /// </list>
@@ -549,7 +563,7 @@ public partial class kucoin
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -584,6 +598,8 @@ public partial class kucoin
     /// See <see href="https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2"/>  <br/>
     /// See <see href="https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid"/>  <br/>
     /// See <see href="https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -603,13 +619,19 @@ public partial class kucoin
     /// bool : false, // true for hf order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.sync</term>
+    /// <description>
+    /// bool : false, // true to use the hf sync call
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel all open orders
@@ -1292,13 +1314,19 @@ public partial class kucoin
         return new TransferEntry(res);
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1308,7 +1336,7 @@ public partial class kucoin
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -1332,18 +1360,18 @@ public partial class kucoin
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// fetch the interest owed by the user for borrowing currency for margin trading
@@ -1496,6 +1524,26 @@ public partial class kucoin
     public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// set the level of leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
 }

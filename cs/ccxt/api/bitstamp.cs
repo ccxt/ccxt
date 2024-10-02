@@ -1201,4 +1201,84 @@ public partial class bitstamp : Exchange
         return await this.callAsync ("privatePostVeurAddress",parameters);
     }
 
+    public async Task<object> privatePostTrufWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTrufWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostTrufAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTrufAddress",parameters);
+    }
+
+    public async Task<object> privatePostWifWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostWifWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostWifAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostWifAddress",parameters);
+    }
+
+    public async Task<object> privatePostSmtWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSmtWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostSmtAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSmtAddress",parameters);
+    }
+
+    public async Task<object> privatePostSuiWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSuiWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostSuiAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSuiAddress",parameters);
+    }
+
+    public async Task<object> privatePostJupWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostJupWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostJupAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostJupAddress",parameters);
+    }
+
+    public async Task<object> privatePostOndoWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOndoWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostOndoAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOndoAddress",parameters);
+    }
+
+    public async Task<object> privatePostBobaWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBobaWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostBobaAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBobaAddress",parameters);
+    }
+
+    public async Task<object> privatePostPythWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostPythWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostPythAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostPythAddress",parameters);
+    }
+
 }

@@ -429,7 +429,7 @@ export default class bit2c extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -467,7 +467,8 @@ export default class bit2c extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostOrderCancelOrder(this.extend(request, params));
+        const response = await this.privatePostOrderCancelOrder(this.extend(request, params));
+        return this.parseOrder(response);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -501,6 +502,7 @@ export default class bit2c extends Exchange {
          * @name bit2c#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://bit2c.co.il/home/api#getoid
+         * @param {string} id the order id
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

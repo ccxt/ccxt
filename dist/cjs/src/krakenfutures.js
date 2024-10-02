@@ -71,6 +71,7 @@ class krakenfutures extends krakenfutures$1 {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -80,6 +81,7 @@ class krakenfutures extends krakenfutures$1 {
                     'public': 'https://demo-futures.kraken.com/derivatives/api/',
                     'private': 'https://demo-futures.kraken.com/derivatives/api/',
                     'charts': 'https://demo-futures.kraken.com/api/charts/',
+                    'history': 'https://demo-futures.kraken.com/api/history/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -120,6 +122,8 @@ class krakenfutures extends krakenfutures$1 {
                         'transfers',
                         'leveragepreferences',
                         'pnlpreferences',
+                        'assignmentprogram/current',
+                        'assignmentprogram/history',
                     ],
                     'post': [
                         'sendorder',
@@ -129,7 +133,9 @@ class krakenfutures extends krakenfutures$1 {
                         'batchorder',
                         'cancelallorders',
                         'cancelallordersafter',
-                        'withdrawal', // for futures wallet -> kraken spot wallet
+                        'withdrawal',
+                        'assignmentprogram/add',
+                        'assignmentprogram/delete',
                     ],
                     'put': [
                         'leveragepreferences',
@@ -1268,7 +1274,46 @@ class krakenfutures extends krakenfutures$1 {
             request['symbol'] = this.marketId(symbol);
         }
         const response = await this.privatePostCancelallorders(this.extend(request, params));
-        return response;
+        //
+        //    {
+        //        result: 'success',
+        //        cancelStatus: {
+        //          receivedTime: '2024-06-06T01:12:44.814Z',
+        //          cancelOnly: 'PF_XRPUSD',
+        //          status: 'cancelled',
+        //          cancelledOrders: [ { order_id: '272fd0ac-45c0-4003-b84d-d39b9e86bd36' } ],
+        //          orderEvents: [
+        //            {
+        //              uid: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        //              order: {
+        //                orderId: '272fd0ac-45c0-4003-b84d-d39b9e86bd36',
+        //                cliOrdId: null,
+        //                type: 'lmt',
+        //                symbol: 'PF_XRPUSD',
+        //                side: 'buy',
+        //                quantity: '10',
+        //                filled: '0',
+        //                limitPrice: '0.4',
+        //                reduceOnly: false,
+        //                timestamp: '2024-06-06T01:11:16.045Z',
+        //                lastUpdateTimestamp: '2024-06-06T01:11:16.045Z'
+        //              },
+        //              type: 'CANCEL'
+        //            }
+        //          ]
+        //        },
+        //        serverTime: '2024-06-06T01:12:44.814Z'
+        //    }
+        //
+        const cancelStatus = this.safeDict(response, 'cancelStatus');
+        const orderEvents = this.safeList(cancelStatus, 'orderEvents', []);
+        const orders = [];
+        for (let i = 0; i < orderEvents.length; i++) {
+            const orderEvent = this.safeDict(orderEvents, 0);
+            const order = this.safeDict(orderEvent, 'order', {});
+            orders.push(order);
+        }
+        return this.parseOrders(orders);
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         /**
@@ -1636,6 +1681,22 @@ class krakenfutures extends krakenfutures$1 {
         //        ]
         //    }
         //
+        // cancelAllOrders
+        //
+        //    {
+        //        "orderId": "85c40002-3f20-4e87-9302-262626c3531b",
+        //        "cliOrdId": null,
+        //        "type": "lmt",
+        //        "symbol": "pi_xbtusd",
+        //        "side": "buy",
+        //        "quantity": 1000,
+        //        "filled": 0,
+        //        "limitPrice": 10144,
+        //        "stopPrice": null,
+        //        "reduceOnly": false,
+        //        "timestamp": "2019-08-01T15:26:27.790Z"
+        //    }
+        //
         // FETCH OPEN ORDERS
         //
         //    {
@@ -1706,17 +1767,19 @@ class krakenfutures extends krakenfutures$1 {
                 }
                 // Final order (after placement / editing / execution / canceling)
                 const orderTrigger = this.safeValue(item, 'orderTrigger');
-                details = this.safeValue2(item, 'new', 'order', orderTrigger);
-                if (details !== undefined) {
-                    isPrior = false;
-                    fixed = true;
-                }
-                else if (!fixed) {
-                    const orderPriorExecution = this.safeValue(item, 'orderPriorExecution');
-                    details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
-                    price = this.safeString(orderPriorExecution, 'limitPrice');
+                if (details === undefined) {
+                    details = this.safeValue2(item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {
-                        isPrior = true;
+                        isPrior = false;
+                        fixed = true;
+                    }
+                    else if (!fixed) {
+                        const orderPriorExecution = this.safeValue(item, 'orderPriorExecution');
+                        details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
+                        price = this.safeString(orderPriorExecution, 'limitPrice');
+                        if (details !== undefined) {
+                            isPrior = true;
+                        }
                     }
                 }
             }
@@ -1815,7 +1878,7 @@ class krakenfutures extends krakenfutures$1 {
             'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
-            'reduceOnly': this.safeValue(details, 'reduceOnly'),
+            'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
             'side': this.safeString(details, 'side'),
             'price': price,
             'stopPrice': this.safeString(details, 'triggerPrice'),
@@ -2099,8 +2162,8 @@ class krakenfutures extends krakenfutures$1 {
         /**
          * @method
          * @name krakenfutures#fetchFundingRates
+         * @description fetch the current funding rates for multiple markets
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
-         * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2108,7 +2171,7 @@ class krakenfutures extends krakenfutures$1 {
         await this.loadMarkets();
         const marketIds = this.marketIds(symbols);
         const response = await this.publicGetTickers(params);
-        const tickers = this.safeValue(response, 'tickers');
+        const tickers = this.safeList(response, 'tickers', []);
         const fundingRates = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
@@ -2178,6 +2241,7 @@ class krakenfutures extends krakenfutures$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2236,7 +2300,7 @@ class krakenfutures extends krakenfutures$1 {
         /**
          * @method
          * @name krakenfutures#fetchPositions
-         * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
          * @description Fetches current contract trading positions
          * @param {string[]} symbols List of unified symbols
          * @param {object} [params] Not used by krakenfutures

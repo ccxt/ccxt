@@ -228,7 +228,7 @@ public partial class oceanex
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -461,5 +461,25 @@ public partial class oceanex
     {
         var res = await this.cancelAllOrders(symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetch the deposit addresses for a currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api.oceanex.pro/doc/v1/#deposit-addresses-post"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
+        return ((Dictionary<string, object>)res);
     }
 }

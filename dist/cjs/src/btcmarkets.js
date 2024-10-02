@@ -153,16 +153,17 @@ class btcmarkets extends btcmarkets$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
-                '3': errors.InvalidOrder,
-                '6': errors.DDoSProtection,
-                'InsufficientFund': errors.InsufficientFunds,
-                'InvalidPrice': errors.InvalidOrder,
-                'InvalidAmount': errors.InvalidOrder,
-                'MissingArgument': errors.InvalidOrder,
-                'OrderAlreadyCancelled': errors.InvalidOrder,
-                'OrderNotFound': errors.OrderNotFound,
-                'OrderStatusIsFinal': errors.InvalidOrder,
-                'InvalidPaginationParameter': errors.BadRequest,
+                'exact': {
+                    'InsufficientFund': errors.InsufficientFunds,
+                    'InvalidPrice': errors.InvalidOrder,
+                    'InvalidAmount': errors.InvalidOrder,
+                    'MissingArgument': errors.BadRequest,
+                    'OrderAlreadyCancelled': errors.InvalidOrder,
+                    'OrderNotFound': errors.OrderNotFound,
+                    'OrderStatusIsFinal': errors.InvalidOrder,
+                    'InvalidPaginationParameter': errors.BadRequest,
+                },
+                'broad': {},
             },
             'fees': {
                 'percentage': true,
@@ -377,7 +378,8 @@ class btcmarkets extends btcmarkets$1 {
         //             "minOrderAmount":"0.00007",
         //             "maxOrderAmount":"1000000",
         //             "amountDecimals":"8",
-        //             "priceDecimals":"2"
+        //             "priceDecimals":"2",
+        //             "status": "Online"
         //         }
         //     ]
         //
@@ -394,6 +396,7 @@ class btcmarkets extends btcmarkets$1 {
         const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
         const minAmount = this.safeNumber(market, 'minOrderAmount');
         const maxAmount = this.safeNumber(market, 'maxOrderAmount');
+        const status = this.safeString(market, 'status');
         let minPrice = undefined;
         if (quote === 'AUD') {
             minPrice = pricePrecision;
@@ -413,7 +416,7 @@ class btcmarkets extends btcmarkets$1 {
             'swap': false,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': (status === 'Online'),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -788,7 +791,7 @@ class btcmarkets extends btcmarkets$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -897,7 +900,29 @@ class btcmarkets extends btcmarkets$1 {
         const request = {
             'ids': ids,
         };
-        return await this.privateDeleteBatchordersIds(this.extend(request, params));
+        const response = await this.privateDeleteBatchordersIds(this.extend(request, params));
+        //
+        //    {
+        //       "cancelOrders": [
+        //            {
+        //               "orderId": "414186",
+        //               "clientOrderId": "6"
+        //            },
+        //            ...
+        //        ],
+        //        "unprocessedRequests": [
+        //            {
+        //               "code": "OrderAlreadyCancelled",
+        //               "message": "order is already cancelled.",
+        //               "requestId": "1"
+        //            }
+        //        ]
+        //    }
+        //
+        const cancelOrders = this.safeList(response, 'cancelOrders', []);
+        const unprocessedRequests = this.safeList(response, 'unprocessedRequests', []);
+        const orders = this.arrayConcat(cancelOrders, unprocessedRequests);
+        return this.parseOrders(orders);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -914,7 +939,14 @@ class btcmarkets extends btcmarkets$1 {
         const request = {
             'id': id,
         };
-        return await this.privateDeleteOrdersId(this.extend(request, params));
+        const response = await this.privateDeleteOrdersId(this.extend(request, params));
+        //
+        //    {
+        //        "orderId": "7524",
+        //        "clientOrderId": "123-456"
+        //    }
+        //
+        return this.parseOrder(response);
     }
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         /**
@@ -1037,6 +1069,7 @@ class btcmarkets extends btcmarkets$1 {
          * @name btcmarkets#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.btcmarkets.net/v3/#operation/getOrderById
+         * @param {string} id the order id
          * @param {string} symbol not used by btcmarkets fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1251,22 +1284,18 @@ class btcmarkets extends btcmarkets$1 {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('success' in response) {
-            if (!response['success']) {
-                const error = this.safeString(response, 'errorCode');
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException(this.exceptions, error, feedback);
-                throw new errors.ExchangeError(feedback);
-            }
-        }
-        // v3 api errors
-        if (code >= 400) {
-            const errorCode = this.safeString(response, 'code');
-            const message = this.safeString(response, 'message');
+        //
+        //     {"code":"UnAuthorized","message":"invalid access token"}
+        //     {"code":"MarketNotFound","message":"invalid marketId"}
+        //
+        const errorCode = this.safeString(response, 'code');
+        const message = this.safeString(response, 'message');
+        if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions, message, feedback);
-            throw new errors.ExchangeError(feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;
     }

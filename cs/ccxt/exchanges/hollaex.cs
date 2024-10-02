@@ -80,6 +80,7 @@ public partial class hollaex : Exchange
                 { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -545,15 +546,15 @@ public partial class hollaex : Exchange
         return this.parseTickers(response, symbols);
     }
 
-    public override object parseTickers(object response, object symbols = null, object parameters = null)
+    public override object parseTickers(object tickers, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object ticker = getValue(response, key);
+            object ticker = getValue(tickers, key);
             object marketId = this.safeString(ticker, "symbol", key);
             object market = this.safeMarket(marketId, null, "-");
             object symbol = getValue(market, "symbol");
@@ -1193,7 +1194,7 @@ public partial class hollaex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately

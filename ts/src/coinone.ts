@@ -6,7 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -20,8 +20,7 @@ export default class coinone extends Exchange {
             'id': 'coinone',
             'name': 'CoinOne',
             'countries': [ 'KR' ], // Korea
-            // 'enableRateLimit': false,
-            'rateLimit': 667,
+            'rateLimit': 50,
             'version': 'v2',
             'pro': false,
             'has': {
@@ -193,10 +192,10 @@ export default class coinone extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
-                '104': OrderNotFound, // {"errorCode":"104","errorMsg":"Order id is not exist","result":"error"}
-                '108': BadSymbol, // {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
-                '107': BadRequest, // {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
+                '104': OrderNotFound,
+                '107': BadRequest,
+                '108': BadSymbol,
+                '405': OnMaintenance,
             },
             'commonCurrencies': {
                 'SOC': 'Soda Coin',
@@ -234,7 +233,7 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const currencies = this.safeValue (response, 'currencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
@@ -280,7 +279,7 @@ export default class coinone extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const request = {
+        const request: Dict = {
             'quote_currency': 'KRW',
         };
         const response = await this.v2PublicGetTickerNewQuoteCurrency (request);
@@ -381,7 +380,7 @@ export default class coinone extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.omit (response, [
             'errorCode',
             'result',
@@ -427,7 +426,7 @@ export default class coinone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         };
@@ -475,7 +474,7 @@ export default class coinone extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {
+        const request: Dict = {
             'quote_currency': 'KRW',
         };
         let market = undefined;
@@ -538,7 +537,7 @@ export default class coinone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         };
@@ -581,7 +580,7 @@ export default class coinone extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "quote_currency": "krw",
@@ -640,7 +639,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -718,7 +717,7 @@ export default class coinone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         };
@@ -759,7 +758,7 @@ export default class coinone extends Exchange {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -768,7 +767,7 @@ export default class coinone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'price': price,
             'currency': market['id'],
             'qty': amount,
@@ -799,7 +798,7 @@ export default class coinone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'currency': market['id'],
         };
@@ -828,8 +827,8 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'live': 'open',
             'partially_filled': 'open',
             'partially_canceled': 'open',
@@ -839,7 +838,7 @@ export default class coinone extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -973,7 +972,7 @@ export default class coinone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['id'],
         };
         const response = await this.privatePostOrderLimitOrders (this.extend (request, params));
@@ -1014,7 +1013,7 @@ export default class coinone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'currency': market['id'],
         };
         const response = await this.v2PrivatePostOrderCompleteOrders (this.extend (request, params));
@@ -1064,7 +1063,7 @@ export default class coinone extends Exchange {
             throw new ArgumentsRequired (this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'price': price,
             'qty': qty,
@@ -1078,10 +1077,10 @@ export default class coinone extends Exchange {
         //         "errorCode": "0"
         //     }
         //
-        return response;
+        return this.safeOrder (response);
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchDepositAddresses
@@ -1108,7 +1107,7 @@ export default class coinone extends Exchange {
         //
         const walletAddress = this.safeValue (response, 'walletAddress', {});
         const keys = Object.keys (walletAddress);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = walletAddress[key];
@@ -1179,23 +1178,19 @@ export default class coinone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return undefined;
+            return undefined; // fallback to default error handler
         }
-        if ('result' in response) {
-            const result = response['result'];
-            if (result !== 'success') {
-                //
-                //    {  "errorCode": "405",  "status": "maintenance",  "result": "error"}
-                //
-                const errorCode = this.safeString (response, 'errorCode');
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
-                throw new ExchangeError (feedback);
-            }
-        } else {
-            throw new ExchangeError (this.id + ' ' + body);
+        //
+        //     {"result":"error","error_code":"107","error_msg":"Parameter value is wrong"}
+        //     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
+        //
+        const errorCode = this.safeString (response, 'error_code');
+        if (errorCode !== undefined && errorCode !== '0') {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
     }

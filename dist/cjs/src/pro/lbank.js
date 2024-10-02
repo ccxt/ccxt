@@ -18,6 +18,7 @@ class lbank extends lbank$1 {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -497,7 +498,7 @@ class lbank extends lbank$1 {
         /**
          * @method
          * @name lbank#watchOrders
-         * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+         * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
          * @description get the list of trades associated with the user
          * @param {string} [symbol] unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -661,7 +662,7 @@ class lbank extends lbank$1 {
     async fetchOrderBookWs(symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name lbank#watchOrderBook
+         * @name lbank#fetchOrderBookWs
          * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -691,7 +692,6 @@ class lbank extends lbank$1 {
          * @method
          * @name lbank#watchOrderBook
          * @see https://www.lbank.com/en-US/docs/index.html#market-depth
-         * @see https://www.lbank.com/en-US/docs/index.html#market-increment-depth
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -778,11 +778,11 @@ class lbank extends lbank$1 {
         const orderBook = this.safeValue(message, 'depth', message);
         const datetime = this.safeString(message, 'TS');
         const timestamp = this.parse8601(datetime);
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook({});
-            this.orderbooks[symbol] = orderbook;
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
         }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(orderBook, symbol, timestamp, 'bids', 'asks');
         orderbook.reset(snapshot);
         let messageHash = 'orderbook:' + symbol;

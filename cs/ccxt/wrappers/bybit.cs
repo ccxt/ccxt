@@ -175,11 +175,11 @@ public partial class bybit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
@@ -317,7 +317,7 @@ public partial class bybit
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// string : wallet type, ['spot', 'swap', 'fund']
+    /// string : wallet type, ['spot', 'swap', 'funding']
     /// </description>
     /// </item>
     /// </list>
@@ -363,7 +363,7 @@ public partial class bybit
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -393,7 +393,13 @@ public partial class bybit
     /// <item>
     /// <term>params.positionIdx</term>
     /// <description>
-    /// string : *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
+    /// string : *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *contracts only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
     /// <item>
@@ -644,6 +650,32 @@ public partial class bybit
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// dead man's switch, cancel all orders after the given timeout
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/order/dcp"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.product</term>
+    /// <description>
+    /// string : OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// cancel multiple orders for multiple symbols
     /// </summary>
     /// <remarks>
@@ -735,6 +767,12 @@ public partial class bybit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.acknowledged</term>
+    /// <description>
+    /// object : to suppress the warning, set to true
     /// </description>
     /// </item>
     /// </list>
@@ -1234,6 +1272,12 @@ public partial class bybit
     /// string : 'Order' or 'StopOrder' or 'tpslOrder'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1476,11 +1520,18 @@ public partial class bybit
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://bybit-exchange.github.io/docs/v5/account/transaction-log"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1490,7 +1541,19 @@ public partial class bybit
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : if inverse will use v5/account/contract-transaction-log
     /// </description>
     /// </item>
     /// <item>
@@ -1502,18 +1565,18 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/withdraw"/>  <br/>
+    /// See <see href="https://www.tokocrypto.com/apidocs/#withdraw-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1895,17 +1958,17 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchDerivativesMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<List<LeverageTier>> FetchDerivativesMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDerivativesMarketLeverageTiers(symbol, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
     }
     /// <summary>
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
@@ -1922,10 +1985,10 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<List<LeverageTier>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketLeverageTiers(symbol, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
     }
     /// <summary>
     /// fetch the trading fees for a market
@@ -2207,13 +2270,19 @@ public partial class bybit
     /// string : market subType, ['linear', 'inverse'], default is 'linear'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LeverageTiers(res);
     }
     /// <summary>
     /// fetch the history of funding payments paid and received on this account
@@ -2346,5 +2415,163 @@ public partial class bybit
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetches all available currencies that can be converted
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountType</term>
+    /// <description>
+    /// string : eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
+    public async Task<Currencies> FetchConvertCurrencies(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertCurrencies(parameters);
+        return new Currencies(res);
+    }
+    /// <summary>
+    /// fetch a quote for converting from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountType</term>
+    /// <description>
+    /// string : eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// convert from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the data for a conversion trade
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-result"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code of the conversion trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountType</term>
+    /// <description>
+    /// string : eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertTrade(id, code, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the users history of conversion trades
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch conversions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of conversion structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountType</term>
+    /// <description>
+    /// string : eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
     }
 }

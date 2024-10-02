@@ -12,8 +12,8 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-from ccxt.test.base import test_position  # noqa E402
-from ccxt.test.base import test_shared_methods  # noqa E402
+from ccxt.test.exchange.base import test_position  # noqa E402
+from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_watch_positions(exchange, skipped_properties, symbol):
     method = 'watchPositions'
@@ -22,7 +22,7 @@ async def test_watch_positions(exchange, skipped_properties, symbol):
     while now < ends:
         response = None
         try:
-            response = await exchange.watch_positions(symbol)
+            response = await exchange.watch_positions([symbol])
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e

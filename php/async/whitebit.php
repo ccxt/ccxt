@@ -10,6 +10,7 @@ use ccxt\async\abstract\whitebit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
@@ -37,6 +38,9 @@ class whitebit extends Exchange {
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -237,6 +241,15 @@ class whitebit extends Exchange {
                             'convert/estimate',
                             'convert/confirm',
                             'convert/history',
+                            'sub-account/create',
+                            'sub-account/delete',
+                            'sub-account/edit',
+                            'sub-account/list',
+                            'sub-account/transfer',
+                            'sub-account/block',
+                            'sub-account/unblock',
+                            'sub-account/balances',
+                            'sub-account/transfer/history',
                         ),
                     ),
                 ),
@@ -333,7 +346,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'stock');
         $quoteId = $this->safe_string($market, 'money');
@@ -752,7 +765,7 @@ class whitebit extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->v1PublicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetTicker ($this->extend($request, $params)));
             //
             //      {
             //         "success":true,
@@ -775,7 +788,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //  FetchTicker (v1)
         //
@@ -803,8 +816,23 @@ class whitebit extends Exchange {
         //        "change" => "2.12" // in percent
         //    }
         //
+        // WS market_update
+        //
+        //     {
+        //         "open" => "52853.04",
+        //         "close" => "55913.88",
+        //         "high" => "56272",
+        //         "low" => "49549.67",
+        //         "volume" => "57331.067185",
+        //         "deal" => "3063860382.42985338",
+        //         "last" => "55913.88",
+        //         "period" => 86400
+        //     }
         $market = $this->safe_market(null, $market);
-        $last = $this->safe_string($ticker, 'last_price');
+        // $last price is provided as "last" or "last_price"
+        $last = $this->safe_string_2($ticker, 'last', 'last_price');
+        // if "close" is provided, use it, otherwise use <$last>
+        $close = $this->safe_string($ticker, 'close', $last);
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => null,
@@ -817,7 +845,7 @@ class whitebit extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open'),
-            'close' => $last,
+            'close' => $close,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
@@ -883,7 +911,7 @@ class whitebit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default = 100, maximum = 100
             }
-            $response = Async\await($this->v4PublicGetOrderbookMarket (array_merge($request, $params)));
+            $response = Async\await($this->v4PublicGetOrderbookMarket ($this->extend($request, $params)));
             //
             //      {
             //          "timestamp" => 1594391413,
@@ -924,7 +952,7 @@ class whitebit extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->v4PublicGetTradesMarket (array_merge($request, $params)));
+            $response = Async\await($this->v4PublicGetTradesMarket ($this->extend($request, $params)));
             //
             //      array(
             //          array(
@@ -959,7 +987,7 @@ class whitebit extends Exchange {
                 $market = $this->market($symbol);
                 $request['market'] = $market['id'];
             }
-            $response = Async\await($this->v4PrivatePostTradeAccountExecutedHistory (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostTradeAccountExecutedHistory ($this->extend($request, $params)));
             //
             // when no $symbol is provided
             //
@@ -1015,7 +1043,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTradesV4
         //
@@ -1126,7 +1154,7 @@ class whitebit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 1440);
             }
-            $response = Async\await($this->v1PublicGetKline (array_merge($request, $params)));
+            $response = Async\await($this->v1PublicGetKline ($this->extend($request, $params)));
             //
             //     {
             //         "success":true,
@@ -1208,6 +1236,35 @@ class whitebit extends Exchange {
         }) ();
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a market order by providing the $symbol, $side and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $params['cost'] = $cost;
+            // only buy $side is supported
+            return Async\await($this->create_order($symbol, 'market', $side, 0, null, $params));
+        }) ();
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            return Async\await($this->create_market_order_with_cost($symbol, 'buy', $cost, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -1221,8 +1278,9 @@ class whitebit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {float} [$params->cost] *$market orders only* the $cost of the order in units of the base currency
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -1230,8 +1288,17 @@ class whitebit extends Exchange {
             $request = array(
                 'market' => $market['id'],
                 'side' => $side,
-                'amount' => $this->amount_to_precision($symbol, $amount),
             );
+            $cost = null;
+            list($cost, $params) = $this->handle_param_string($params, 'cost');
+            if ($cost !== null) {
+                if (($side !== 'buy') || ($type !== 'market')) {
+                    throw new InvalidOrder($this->id . ' createOrder() $cost is only supported for $market buy orders');
+                }
+                $request['amount'] = $this->cost_to_precision($symbol, $cost);
+            } else {
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            }
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             if ($clientOrderId === null) {
                 $brokerId = $this->safe_string($this->options, 'brokerId');
@@ -1263,13 +1330,13 @@ class whitebit extends Exchange {
                 if ($isLimitOrder) {
                     // stop limit order
                     $request['price'] = $this->price_to_precision($symbol, $price);
-                    $response = Async\await($this->v4PrivatePostOrderStopLimit (array_merge($request, $params)));
+                    $response = Async\await($this->v4PrivatePostOrderStopLimit ($this->extend($request, $params)));
                 } else {
                     // stop $market order
                     if ($useCollateralEndpoint) {
-                        $response = Async\await($this->v4PrivatePostOrderCollateralTriggerMarket (array_merge($request, $params)));
+                        $response = Async\await($this->v4PrivatePostOrderCollateralTriggerMarket ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->v4PrivatePostOrderStopMarket (array_merge($request, $params)));
+                        $response = Async\await($this->v4PrivatePostOrderStopMarket ($this->extend($request, $params)));
                     }
                 }
             } else {
@@ -1277,16 +1344,20 @@ class whitebit extends Exchange {
                     // limit order
                     $request['price'] = $this->price_to_precision($symbol, $price);
                     if ($useCollateralEndpoint) {
-                        $response = Async\await($this->v4PrivatePostOrderCollateralLimit (array_merge($request, $params)));
+                        $response = Async\await($this->v4PrivatePostOrderCollateralLimit ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->v4PrivatePostOrderNew (array_merge($request, $params)));
+                        $response = Async\await($this->v4PrivatePostOrderNew ($this->extend($request, $params)));
                     }
                 } else {
                     // $market order
                     if ($useCollateralEndpoint) {
-                        $response = Async\await($this->v4PrivatePostOrderCollateralMarket (array_merge($request, $params)));
+                        $response = Async\await($this->v4PrivatePostOrderCollateralMarket ($this->extend($request, $params)));
                     } else {
-                        $response = Async\await($this->v4PrivatePostOrderStockMarket (array_merge($request, $params)));
+                        if ($cost !== null) {
+                            $response = Async\await($this->v4PrivatePostOrderMarket ($this->extend($request, $params)));
+                        } else {
+                            $response = Async\await($this->v4PrivatePostOrderStockMarket ($this->extend($request, $params)));
+                        }
                     }
                 }
             }
@@ -1304,7 +1375,7 @@ class whitebit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1351,7 +1422,7 @@ class whitebit extends Exchange {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
             }
-            $response = Async\await($this->v4PrivatePostOrderModify (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostOrderModify ($this->extend($request, $params)));
             return $this->parse_order($response);
         }) ();
     }
@@ -1375,7 +1446,27 @@ class whitebit extends Exchange {
                 'market' => $market['id'],
                 'orderId' => intval($id),
             );
-            return Async\await($this->v4PrivatePostOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostOrderCancel ($this->extend($request, $params)));
+            //
+            //    {
+            //        "orderId" => 4180284841, // order $id
+            //        "clientOrderId" => "customId11", // custom order identifier; "clientOrderId" => "" - if not specified.
+            //        "market" => "BTC_USDT", // deal $market
+            //        "side" => "buy", // order side
+            //        "type" => "stop $market", // order type
+            //        "timestamp" => 1595792396.165973, // current timestamp
+            //        "dealMoney" => "0", // if order finished - amount in money currency that is finished
+            //        "dealStock" => "0", // if order finished - amount in stock currency that is finished
+            //        "amount" => "0.001", // amount
+            //        "takerFee" => "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+            //        "makerFee" => "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+            //        "left" => "0.001", // if order not finished - rest of the amount that must be finished
+            //        "dealFee" => "0", // fee in money that you pay if order is finished
+            //        "price" => "40000", // price if price isset
+            //        "activation_price" => "40000" // activation price if activation price is set
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -1414,11 +1505,11 @@ class whitebit extends Exchange {
                 throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' type');
             }
             $request['type'] = $requestType;
-            $response = Async\await($this->v4PrivatePostOrderCancelAll (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostOrderCancelAll ($this->extend($request, $params)));
             //
             // array()
             //
-            return $response;
+            return $this->parse_orders($response, $market);
         }) ();
     }
 
@@ -1450,7 +1541,7 @@ class whitebit extends Exchange {
             } else {
                 $request['timeout'] = 'null';
             }
-            $response = Async\await($this->v4PrivatePostOrderKillSwitch (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostOrderKillSwitch ($this->extend($request, $params)));
             //
             //     {
             //         "market" => "BTC_USDT", // currency $market,
@@ -1472,7 +1563,7 @@ class whitebit extends Exchange {
             $balance = $response[$id];
             if (gettype($balance) === 'array' && $balance !== null) {
                 $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'available');
+                $account['free'] = $this->safe_string_2($balance, 'available', 'main_balance');
                 $account['used'] = $this->safe_string($balance, 'freeze');
                 $account['total'] = $this->safe_string($balance, 'main_balance');
                 $result[$code] = $account;
@@ -1542,24 +1633,23 @@ class whitebit extends Exchange {
             /**
              * fetch all unfilled currently open orders
              * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
-             * @param {string} $symbol unified $market $symbol
+             * @param {string} [$symbol] unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['market'] = $market['id'];
+            }
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 100);
             }
-            $response = Async\await($this->v4PrivatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostOrders ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1606,7 +1696,7 @@ class whitebit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 100); // default 50 max 100
             }
-            $response = Async\await($this->v4PrivatePostTradeAccountOrderHistory (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostTradeAccountOrderHistory ($this->extend($request, $params)));
             //
             //     {
             //         "BTC_USDT" => array(
@@ -1632,7 +1722,7 @@ class whitebit extends Exchange {
                 $orders = $response[$marketId];
                 for ($j = 0; $j < count($orders); $j++) {
                     $order = $this->parse_order($orders[$j], $marketNew);
-                    $results[] = array_merge($order, array( 'status' => 'closed' ));
+                    $results[] = $this->extend($order, array( 'status' => 'closed' ));
                 }
             }
             $results = $this->sort_by($results, 'timestamp');
@@ -1641,7 +1731,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(?string $type) {
         $types = array(
             'limit' => 'limit',
             'market' => 'market',
@@ -1654,9 +1744,9 @@ class whitebit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
-        // createOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrders, cancelOrder
         //
         //      {
         //          "orderId":105687928629,
@@ -1671,6 +1761,7 @@ class whitebit extends Exchange {
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
+        //          "price" => "40000", // $price if $price isset
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop $price (if stop limit or stop $market)
         //      }
@@ -1707,6 +1798,10 @@ class whitebit extends Exchange {
         $stopPrice = $this->safe_number($order, 'activation_price');
         $orderId = $this->safe_string_2($order, 'orderId', 'id');
         $type = $this->safe_string($order, 'type');
+        $orderType = $this->parse_order_type($type);
+        if ($orderType === 'market') {
+            $remaining = null;
+        }
         $amount = $this->safe_string($order, 'amount');
         $cost = $this->safe_string($order, 'dealMoney');
         if (($side === 'buy') && (($type === 'market') || ($type === 'stop market'))) {
@@ -1735,7 +1830,7 @@ class whitebit extends Exchange {
             'status' => null,
             'side' => $side,
             'price' => $price,
-            'type' => $this->parse_order_type($type),
+            'type' => $orderType,
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
             'amount' => $amount,
@@ -1772,7 +1867,7 @@ class whitebit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 100);
             }
-            $response = Async\await($this->v4PrivatePostTradeAccountOrder (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostTradeAccountOrder ($this->extend($request, $params)));
             //
             //     {
             //         "records" => array(
@@ -1828,9 +1923,9 @@ class whitebit extends Exchange {
                 if ($uniqueId === null) {
                     throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an $uniqueId when the ticker is fiat');
                 }
-                $response = Async\await($this->v4PrivatePostMainAccountFiatDepositUrl (array_merge($request, $params)));
+                $response = Async\await($this->v4PrivatePostMainAccountFiatDepositUrl ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->v4PrivatePostMainAccountAddress (array_merge($request, $params)));
+                $response = Async\await($this->v4PrivatePostMainAccountAddress ($this->extend($request, $params)));
             }
             //
             // fiat
@@ -1893,7 +1988,7 @@ class whitebit extends Exchange {
             $request = array(
                 'leverage' => $leverage,
             );
-            return Async\await($this->v4PrivatePostCollateralAccountLeverage (array_merge($request, $params)));
+            return Async\await($this->v4PrivatePostCollateralAccountLeverage ($this->extend($request, $params)));
             //     {
             //         "leverage" => 5
             //     }
@@ -1924,7 +2019,7 @@ class whitebit extends Exchange {
                 'from' => $fromAccountId,
                 'to' => $toAccountId,
             );
-            $response = Async\await($this->v4PrivatePostMainAccountTransfer (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostMainAccountTransfer ($this->extend($request, $params)));
             //
             //    array()
             //
@@ -1932,7 +2027,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    array()
         //
@@ -1983,18 +2078,18 @@ class whitebit extends Exchange {
                 }
                 $request['provider'] = $provider;
             }
-            $response = Async\await($this->v4PrivatePostMainAccountWithdraw (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostMainAccountWithdraw ($this->extend($request, $params)));
             //
             // empty array with a success status
             // go to deposit/withdraw history and check you $request status by $uniqueId
             //
             //     array()
             //
-            return array_merge(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
+            return $this->extend(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit $address
@@ -2059,7 +2154,7 @@ class whitebit extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '1' => 'pending',
             '2' => 'pending',
@@ -2103,7 +2198,7 @@ class whitebit extends Exchange {
                 $currency = $this->currency($code);
                 $request['ticker'] = $currency['id'];
             }
-            $response = Async\await($this->v4PrivatePostMainAccountHistory (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostMainAccountHistory ($this->extend($request, $params)));
             //
             //     {
             //         "limit" => 100,
@@ -2172,7 +2267,7 @@ class whitebit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 100);
             }
-            $response = Async\await($this->v4PrivatePostMainAccountHistory (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostMainAccountHistory ($this->extend($request, $params)));
             //
             //     {
             //         "limit" => 100,
@@ -2234,7 +2329,7 @@ class whitebit extends Exchange {
                 $market = $this->market($symbol);
                 $request['market'] = $market['id'];
             }
-            $response = Async\await($this->v4PrivatePostCollateralAccountPositionsOpen (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostCollateralAccountPositionsOpen ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -2261,7 +2356,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         //
         //     {
         //         "positionId" => 191823,
@@ -2297,11 +2392,11 @@ class whitebit extends Exchange {
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
              * fetch the current funding rate
+             * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -2313,14 +2408,14 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
              * fetch the funding rate for multiple markets
+             * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2369,13 +2464,13 @@ class whitebit extends Exchange {
             //        }
             //    )
             //
-            $data = $this->safe_value($response, 'result', array());
+            $data = $this->safe_list($response, 'result', array());
             $result = $this->parse_funding_rates($data);
             return $this->filter_by_array($result, 'symbol', $symbols);
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         // {
         //     "ticker_id":"ADA_PERP",
@@ -2414,7 +2509,7 @@ class whitebit extends Exchange {
         $indexPrice = $this->safe_number($contract, 'indexPrice');
         $interestRate = $this->safe_number($contract, 'interestRate');
         $fundingRate = $this->safe_number($contract, 'funding_rate');
-        $nextFundingTime = $this->safe_integer($contract, 'next_funding_rate_timestamp');
+        $fundingTime = $this->safe_integer($contract, 'next_funding_rate_timestamp');
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -2424,14 +2519,15 @@ class whitebit extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'fundingRate' => $fundingRate,
-            'fundingTimestamp' => null,
-            'fundingDatetime' => $this->iso8601(null),
+            'fundingTimestamp' => $fundingTime,
+            'fundingDatetime' => $this->iso8601($fundingTime),
             'nextFundingRate' => null,
-            'nextFundingTimestamp' => $nextFundingTime,
-            'nextFundingDatetime' => $this->iso8601($nextFundingTime),
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
@@ -2464,7 +2560,7 @@ class whitebit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 1000
             }
-            $response = Async\await($this->v4PrivatePostMainAccountHistory (array_merge($request, $params)));
+            $response = Async\await($this->v4PrivatePostMainAccountHistory ($this->extend($request, $params)));
             //
             //    {
             //        "limit" => 100,
@@ -2508,7 +2604,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function is_fiat($currency) {
+    public function is_fiat(string $currency): bool {
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
     }
@@ -2533,7 +2629,7 @@ class whitebit extends Exchange {
             $nonce = (string) $this->nonce();
             $secret = $this->encode($this->secret);
             $request = '/' . 'api' . '/' . $version . $pathWithParams;
-            $body = $this->json(array_merge(array( 'request' => $request, 'nonce' => $nonce ), $params));
+            $body = $this->json($this->extend(array( 'request' => $request, 'nonce' => $nonce ), $params));
             $payload = base64_encode($body);
             $signature = $this->hmac($this->encode($payload), $secret, 'sha512');
             $headers = array(
@@ -2546,7 +2642,7 @@ class whitebit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
@@ -2569,9 +2665,11 @@ class whitebit extends Exchange {
                 if ($hasErrorStatus) {
                     $errorInfo = $status;
                 } else {
-                    $errorObject = $this->safe_value($response, 'errors');
-                    if ($errorObject !== null) {
-                        $errorKey = is_array($errorObject) ? array_keys($errorObject) : array()[0];
+                    $errorObject = $this->safe_dict($response, 'errors', array());
+                    $errorKeys = is_array($errorObject) ? array_keys($errorObject) : array();
+                    $errorsLength = count($errorKeys);
+                    if ($errorsLength > 0) {
+                        $errorKey = $errorKeys[0];
                         $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
                         $errorMessageLength = count($errorMessageArray);
                         $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;

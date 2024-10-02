@@ -86,6 +86,7 @@ class probit extends probit$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -178,7 +179,7 @@ class probit extends probit$1 {
                     'RATE_LIMIT_EXCEEDED': errors.RateLimitExceeded,
                     'MARKET_UNAVAILABLE': errors.ExchangeNotAvailable,
                     'INVALID_MARKET': errors.BadSymbol,
-                    'MARKET_CLOSED': errors.BadSymbol,
+                    'MARKET_CLOSED': errors.MarketClosed,
                     'MARKET_NOT_FOUND': errors.BadSymbol,
                     'INVALID_CURRENCY': errors.BadRequest,
                     'TOO_MANY_OPEN_ORDERS': errors.DDoSProtection,
@@ -204,41 +205,22 @@ class probit extends probit$1 {
                 },
             },
             'commonCurrencies': {
-                'AUTO': 'Cube',
-                'AZU': 'Azultec',
-                'BCC': 'BCC',
-                'BDP': 'BidiPass',
-                'BIRD': 'Birdchain',
-                'BTCBEAR': 'BEAR',
-                'BTCBULL': 'BULL',
+                'BB': 'Baby Bali',
                 'CBC': 'CryptoBharatCoin',
-                'CHE': 'Chellit',
-                'CLR': 'Color Platform',
                 'CTK': 'Cryptyk',
                 'CTT': 'Castweet',
-                'DIP': 'Dipper',
                 'DKT': 'DAKOTA',
                 'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',
                 'FX': 'Fanzy',
-                'GDT': 'Gorilla Diamond',
                 'GM': 'GM Holding',
                 'GOGOL': 'GOL',
                 'GOL': 'Goldofir',
-                'GRB': 'Global Reward Bank',
-                'HBC': 'Hybrid Bank Cash',
                 'HUSL': 'The Hustle App',
                 'LAND': 'Landbox',
-                'LBK': 'Legal Block',
-                'ORC': 'Oracle System',
-                'PXP': 'PIXSHOP COIN',
-                'PYE': 'CreamPYE',
-                'ROOK': 'Reckoon',
-                'SOC': 'Soda Coin',
                 'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
                 'TOR': 'Torex',
-                'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
                 'UNISWAP': 'UNI',
             },
@@ -1091,6 +1073,7 @@ class probit extends probit$1 {
          * @name probit#fetchOrder
          * @see https://docs-en.probit.com/reference/order-3
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1202,7 +1185,7 @@ class probit extends probit$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1854,11 +1837,16 @@ class probit extends probit$1 {
         }
         if ('errorCode' in response) {
             const errorCode = this.safeString(response, 'errorCode');
-            const message = this.safeString(response, 'message');
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                const errMessage = this.safeString(response, 'message', '');
+                const details = this.safeValue(response, 'details');
+                const feedback = this.id + ' ' + errorCode + ' ' + errMessage + ' ' + this.json(details);
+                if ('exact' in this.exceptions) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                }
+                if ('broad' in this.exceptions) {
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], errMessage, feedback);
+                }
                 throw new errors.ExchangeError(feedback);
             }
         }

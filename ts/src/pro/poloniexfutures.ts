@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -27,6 +27,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': true,
                 'watchOrders': true,
                 'watchMyTrades': false,
@@ -51,6 +52,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                     'method': '/contractMarket/level2', // can also be '/contractMarket/level3v2'
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'streamLimit': 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash': {},
@@ -155,7 +157,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const messageHash = name;
         const tunnelId = await this.stream (url, messageHash);
         const requestId = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': name,                 // Subscribed topic. Some topics support subscribe to the data of multiple trading pairs through ",".
@@ -163,7 +165,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             'response': true,              // Whether the server needs to return the receipt information of this subscription or not. Set as false by default.
             'tunnelId': tunnelId,
         };
-        const subscriptionRequest = {
+        const subscriptionRequest: Dict = {
             'id': requestId,
         };
         if (subscription === undefined) {
@@ -193,13 +195,13 @@ export default class poloniexfutures extends poloniexfuturesRest {
             stream = 'stream-' + streamIndexString;
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
             const messageHash = 'tunnel:' + stream;
-            const request = {
+            const request: Dict = {
                 'id': messageHash,
                 'type': 'openTunnel',
                 'newTunnelId': stream,
                 'response': true,
             };
-            const subscription = {
+            const subscription: Dict = {
                 'id': messageHash,
                 'method': this.handleNewStream,
             };
@@ -247,7 +249,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
+         * @see https://api-docs.poloniex.com/futures/websocket/public#get-real-time-symbol-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -263,7 +265,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
+         * @see https://api-docs.poloniex.com/futures/websocket/public#full-matching-engine-datalevel-3
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -287,7 +289,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://futures-docs.poloniex.com/#level-2-market-data
+         * @see https://api-docs.poloniex.com/futures/websocket/public#level-2-market-data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] not used by poloniexfutures watchOrderBook
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -304,7 +306,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             }
             name += 'Depth' + this.numberToString (limit);
         }
-        const subscription = {
+        const subscription: Dict = {
             'symbol': symbol,
             'limit': limit,
             'method': this.handleOrderBookSubscription,
@@ -318,7 +320,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchOrders
          * @description watches information on multiple orders made by the user
-         * @see https://futures-docs.poloniex.com/#private-messages
+         * @see https://api-docs.poloniex.com/futures/websocket/user-messages#private-messages
          * @param {string} symbol filter by unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -346,7 +348,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @method
          * @name poloniexfutures#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://futures-docs.poloniex.com/#account-balance-events
+         * @see https://api-docs.poloniex.com/futures/websocket/user-messages#account-balance-events
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -557,14 +559,14 @@ export default class poloniexfutures extends poloniexfuturesRest {
          * @param {string} type "open", "match", "filled", "canceled", "update"
          * @returns {string}
          */
-        const types = {
+        const types: Dict = {
             'canceled': 'canceled',
             'cancel': 'canceled',
             'filled': 'closed',
         };
         let parsedStatus = this.safeString (types, type);
         if (parsedStatus === undefined) {
-            const statuses = {
+            const statuses: Dict = {
                 'open': 'open',
                 'match': 'open',
                 'done': 'closed',
@@ -869,31 +871,39 @@ export default class poloniexfutures extends poloniexfuturesRest {
     handleDelta (orderbook, delta) {
         //
         //    {
-        //        "sequence": 18,                   // Sequence number which is used to judge the continuity of pushed messages
-        //        "change": "5000.0,sell,83"        // Price, side, quantity
-        //        "timestamp": 1551770400000
-        //    }
+        //      sequence: 123677914,
+        //      lastSequence: 123677913,
+        //      change: '80.36,buy,4924',
+        //      changes: [ '80.19,buy,0',"80.15,buy,10794" ],
+        //      timestamp: 1715643483528
+        //    },
         //
         const sequence = this.safeInteger (delta, 'sequence');
+        const lastSequence = this.safeInteger (delta, 'lastSequence');
         const nonce = this.safeInteger (orderbook, 'nonce');
-        if (nonce !== sequence - 1) {
-            const checksum = this.safeBool (this.options, 'checksum', true);
+        if (nonce > sequence) {
+            return;
+        }
+        if (nonce !== lastSequence) {
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
-                // todo: client.reject from handleOrderBookMessage properly
-                throw new InvalidNonce (this.id + ' watchOrderBook received an out-of-order nonce');
+                throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (''));
             }
         }
-        const change = this.safeString (delta, 'change');
-        const splitChange = change.split (',');
-        const price = this.safeNumber (splitChange, 0);
-        const side = this.safeString (splitChange, 1);
-        const size = this.safeNumber (splitChange, 2);
+        const changes = this.safeList (delta, 'changes');
+        for (let i = 0; i < changes.length; i++) {
+            const change = changes[i];
+            const splitChange = change.split (',');
+            const price = this.safeNumber (splitChange, 0);
+            const side = this.safeString (splitChange, 1);
+            const size = this.safeNumber (splitChange, 2);
+            const orderBookSide = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
+            orderBookSide.store (price, size);
+        }
         const timestamp = this.safeInteger (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['nonce'] = sequence;
-        const orderBookSide = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
-        orderBookSide.store (price, size);
     }
 
     handleBalance (client: Client, message) {
@@ -951,7 +961,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //    }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -976,7 +986,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleSubject (client: Client, message) {
         const subject = this.safeString (message, 'subject');
-        const methods = {
+        const methods: Dict = {
             'auth': this.handleAuthenticate,
             'received': this.handleL3OrderBook,
             'open': this.handleL3OrderBook,
@@ -1024,7 +1034,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
 
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             'welcome': this.handleSystemStatus,
             'ack': this.handleSubscriptionStatus,
             'message': this.handleSubject,

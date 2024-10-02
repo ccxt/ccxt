@@ -38,6 +38,7 @@ class bithumb extends \ccxt\async\bithumb {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
@@ -52,7 +53,7 @@ class bithumb extends \ccxt\async\bithumb {
                 'symbols' => [ $market['base'] . '_' . $market['quote'] ],
                 'tickTypes' => array( $this->safe_string($params, 'tickTypes', '24H') ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }) ();
     }
 
@@ -60,6 +61,7 @@ class bithumb extends \ccxt\async\bithumb {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -80,7 +82,7 @@ class bithumb extends \ccxt\async\bithumb {
                 'symbols' => $marketIds,
                 'tickTypes' => array( $this->safe_string($params, 'tickTypes', '24H') ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
             if ($this->newUpdates) {
                 $result = array();
@@ -176,6 +178,7 @@ class bithumb extends \ccxt\async\bithumb {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -191,7 +194,7 @@ class bithumb extends \ccxt\async\bithumb {
                 'type' => 'orderbookdepth',
                 'symbols' => [ $market['base'] . '_' . $market['quote'] ],
             );
-            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             return $orderbook->limit ();
         }) ();
     }
@@ -267,6 +270,7 @@ class bithumb extends \ccxt\async\bithumb {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -282,7 +286,7 @@ class bithumb extends \ccxt\async\bithumb {
                 'type' => 'transaction',
                 'symbols' => [ $market['base'] . '_' . $market['quote'] ],
             );
-            $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }

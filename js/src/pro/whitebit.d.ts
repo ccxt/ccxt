@@ -1,5 +1,5 @@
 import whitebitRest from '../whitebit.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class whitebit extends whitebitRest {
     describe(): any;
@@ -10,6 +10,7 @@ export default class whitebit extends whitebitRest {
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): any;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
@@ -31,7 +32,7 @@ export default class whitebit extends whitebitRest {
     handleMessage(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any, id: any): void;
     handlePong(client: Client, message: any): any;
-    ping(client: any): {
+    ping(client: Client): {
         id: number;
         method: string;
         params: any[];

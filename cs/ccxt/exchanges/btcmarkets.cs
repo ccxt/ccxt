@@ -103,16 +103,17 @@ public partial class btcmarkets : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "3", typeof(InvalidOrder) },
-                { "6", typeof(DDoSProtection) },
-                { "InsufficientFund", typeof(InsufficientFunds) },
-                { "InvalidPrice", typeof(InvalidOrder) },
-                { "InvalidAmount", typeof(InvalidOrder) },
-                { "MissingArgument", typeof(InvalidOrder) },
-                { "OrderAlreadyCancelled", typeof(InvalidOrder) },
-                { "OrderNotFound", typeof(OrderNotFound) },
-                { "OrderStatusIsFinal", typeof(InvalidOrder) },
-                { "InvalidPaginationParameter", typeof(BadRequest) },
+                { "exact", new Dictionary<string, object>() {
+                    { "InsufficientFund", typeof(InsufficientFunds) },
+                    { "InvalidPrice", typeof(InvalidOrder) },
+                    { "InvalidAmount", typeof(InvalidOrder) },
+                    { "MissingArgument", typeof(BadRequest) },
+                    { "OrderAlreadyCancelled", typeof(InvalidOrder) },
+                    { "OrderNotFound", typeof(OrderNotFound) },
+                    { "OrderStatusIsFinal", typeof(InvalidOrder) },
+                    { "InvalidPaginationParameter", typeof(BadRequest) },
+                } },
+                { "broad", new Dictionary<string, object>() {} },
             } },
             { "fees", new Dictionary<string, object>() {
                 { "percentage", true },
@@ -355,7 +356,8 @@ public partial class btcmarkets : Exchange
         //             "minOrderAmount":"0.00007",
         //             "maxOrderAmount":"1000000",
         //             "amountDecimals":"8",
-        //             "priceDecimals":"2"
+        //             "priceDecimals":"2",
+        //             "status": "Online"
         //         }
         //     ]
         //
@@ -374,6 +376,7 @@ public partial class btcmarkets : Exchange
         object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         object minAmount = this.safeNumber(market, "minOrderAmount");
         object maxAmount = this.safeNumber(market, "maxOrderAmount");
+        object status = this.safeString(market, "status");
         object minPrice = null;
         if (isTrue(isEqual(quote, "AUD")))
         {
@@ -394,7 +397,7 @@ public partial class btcmarkets : Exchange
             { "swap", false },
             { "future", false },
             { "option", false },
-            { "active", null },
+            { "active", (isEqual(status, "Online")) },
             { "contract", false },
             { "linear", null },
             { "inverse", null },
@@ -795,7 +798,7 @@ public partial class btcmarkets : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -904,7 +907,29 @@ public partial class btcmarkets : Exchange
         object request = new Dictionary<string, object>() {
             { "ids", ids },
         };
-        return await this.privateDeleteBatchordersIds(this.extend(request, parameters));
+        object response = await this.privateDeleteBatchordersIds(this.extend(request, parameters));
+        //
+        //    {
+        //       "cancelOrders": [
+        //            {
+        //               "orderId": "414186",
+        //               "clientOrderId": "6"
+        //            },
+        //            ...
+        //        ],
+        //        "unprocessedRequests": [
+        //            {
+        //               "code": "OrderAlreadyCancelled",
+        //               "message": "order is already cancelled.",
+        //               "requestId": "1"
+        //            }
+        //        ]
+        //    }
+        //
+        object cancelOrders = this.safeList(response, "cancelOrders", new List<object>() {});
+        object unprocessedRequests = this.safeList(response, "unprocessedRequests", new List<object>() {});
+        object orders = this.arrayConcat(cancelOrders, unprocessedRequests);
+        return this.parseOrders(orders);
     }
 
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -924,7 +949,14 @@ public partial class btcmarkets : Exchange
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await this.privateDeleteOrdersId(this.extend(request, parameters));
+        object response = await this.privateDeleteOrdersId(this.extend(request, parameters));
+        //
+        //    {
+        //        "orderId": "7524",
+        //        "clientOrderId": "123-456"
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public override object calculateFee(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object parameters = null)
@@ -1059,6 +1091,7 @@ public partial class btcmarkets : Exchange
         * @name btcmarkets#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.btcmarkets.net/v3/#operation/getOrderById
+        * @param {string} id the order id
         * @param {string} symbol not used by btcmarkets fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1320,24 +1353,18 @@ public partial class btcmarkets : Exchange
         {
             return null;  // fallback to default error handler
         }
-        if (isTrue(inOp(response, "success")))
+        //
+        //     {"code":"UnAuthorized","message":"invalid access token"}
+        //     {"code":"MarketNotFound","message":"invalid marketId"}
+        //
+        object errorCode = this.safeString(response, "code");
+        object message = this.safeString(response, "message");
+        if (isTrue(!isEqual(errorCode, null)))
         {
-            if (!isTrue(getValue(response, "success")))
-            {
-                object error = this.safeString(response, "errorCode");
-                object feedback = add(add(this.id, " "), body);
-                this.throwExactlyMatchedException(this.exceptions, error, feedback);
-                throw new ExchangeError ((string)feedback) ;
-            }
-        }
-        // v3 api errors
-        if (isTrue(isGreaterThanOrEqual(code, 400)))
-        {
-            object errorCode = this.safeString(response, "code");
-            object message = this.safeString(response, "message");
             object feedback = add(add(this.id, " "), body);
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions, message, feedback);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

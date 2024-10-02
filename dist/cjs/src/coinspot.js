@@ -499,7 +499,7 @@ class coinspot extends coinspot$1 {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -533,11 +533,22 @@ class coinspot extends coinspot$1 {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
         params = this.omit(params, 'side');
-        const method = 'privatePostMy' + this.capitalize(side) + 'Cancel';
         const request = {
             'id': id,
         };
-        return await this[method](this.extend(request, params));
+        let response = undefined;
+        if (side === 'buy') {
+            response = await this.privatePostMyBuyCancel(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostMySellCancel(this.extend(request, params));
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api'][api] + '/' + path;

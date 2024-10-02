@@ -370,12 +370,12 @@ class bitflyer extends Exchange {
             $request = array(
                 'product_code' => $market['id'],
             );
-            $orderbook = Async\await($this->publicGetGetboard (array_merge($request, $params)));
+            $orderbook = Async\await($this->publicGetGetboard ($this->extend($request, $params)));
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_string($ticker, 'ltp');
@@ -417,12 +417,12 @@ class bitflyer extends Exchange {
             $request = array(
                 'product_code' => $market['id'],
             );
-            $response = Async\await($this->publicGetGetticker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetticker ($this->extend($request, $params)));
             return $this->parse_ticker($response, $market);
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public) v1
         //
@@ -506,7 +506,7 @@ class bitflyer extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->publicGetGetexecutions (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetexecutions ($this->extend($request, $params)));
             //
             //    array(
             //     array(
@@ -538,7 +538,7 @@ class bitflyer extends Exchange {
             $request = array(
                 'product_code' => $market['id'],
             );
-            $response = Async\await($this->privateGetGettradingcommission (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGettradingcommission ($this->extend($request, $params)));
             //
             //   {
             //       commission_rate => '0.0020'
@@ -565,7 +565,7 @@ class bitflyer extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -577,7 +577,7 @@ class bitflyer extends Exchange {
                 'price' => $price,
                 'size' => $amount,
             );
-            $result = Async\await($this->privatePostSendchildorder (array_merge($request, $params)));
+            $result = Async\await($this->privatePostSendchildorder ($this->extend($request, $params)));
             // array( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
             $id = $this->safe_string($result, 'child_order_acceptance_id');
             return $this->safe_order(array(
@@ -605,11 +605,17 @@ class bitflyer extends Exchange {
                 'product_code' => $this->market_id($symbol),
                 'child_order_acceptance_id' => $id,
             );
-            return Async\await($this->privatePostCancelchildorder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelchildorder ($this->extend($request, $params)));
+            //
+            //    200 OK.
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'ACTIVE' => 'open',
             'COMPLETED' => 'closed',
@@ -620,7 +626,7 @@ class bitflyer extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         $timestamp = $this->parse8601($this->safe_string($order, 'child_order_date'));
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'size');
@@ -687,7 +693,7 @@ class bitflyer extends Exchange {
                 'product_code' => $market['id'],
                 'count' => $limit,
             );
-            $response = Async\await($this->privateGetGetchildorders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetchildorders ($this->extend($request, $params)));
             $orders = $this->parse_orders($response, $market, $since, $limit);
             if ($symbol !== null) {
                 $orders = $this->filter_by($orders, 'symbol', $symbol);
@@ -710,7 +716,7 @@ class bitflyer extends Exchange {
             $request = array(
                 'child_order_state' => 'ACTIVE',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -728,7 +734,7 @@ class bitflyer extends Exchange {
             $request = array(
                 'child_order_state' => 'COMPLETED',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -737,6 +743,7 @@ class bitflyer extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -775,7 +782,7 @@ class bitflyer extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetexecutions (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetexecutions ($this->extend($request, $params)));
             //
             //    array(
             //     array(
@@ -810,7 +817,7 @@ class bitflyer extends Exchange {
             $request = array(
                 'product_code' => $this->market_ids($symbols),
             );
-            $response = Async\await($this->privateGetGetpositions (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetpositions ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -856,7 +863,7 @@ class bitflyer extends Exchange {
                 'amount' => $amount,
                 // 'bank_account_id' => 1234,
             );
-            $response = Async\await($this->privatePostWithdraw (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdraw ($this->extend($request, $params)));
             //
             //     {
             //         "message_id" => "69476620-5056-4003-bcbe-42658a2b041b"
@@ -886,7 +893,7 @@ class bitflyer extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 100
             }
-            $response = Async\await($this->privateGetGetcoinins (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetcoinins ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -925,7 +932,7 @@ class bitflyer extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 100
             }
-            $response = Async\await($this->privateGetGetcoinouts (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetcoinouts ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -962,7 +969,7 @@ class bitflyer extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1076,17 +1083,17 @@ class bitflyer extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to the default error handler
         }
         $feedback = $this->id . ' ' . $body;
         // i.e. array("status":-2,"error_message":"Under maintenance","data":null)
         $errorMessage = $this->safe_string($response, 'error_message');
-        $statusCode = $this->safe_number($response, 'status');
+        $statusCode = $this->safe_integer($response, 'status');
         if ($errorMessage !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusCode, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+            throw new ExchangeError($feedback);
         }
         return null;
     }

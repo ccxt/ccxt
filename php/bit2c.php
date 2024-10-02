@@ -270,11 +270,11 @@ class bit2c extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $orderbook = $this->publicGetExchangesPairOrderbook (array_merge($request, $params));
+        $orderbook = $this->publicGetExchangesPairOrderbook ($this->extend($request, $params));
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $averagePrice = $this->safe_string($ticker, 'av');
         $baseVolume = $this->safe_string($ticker, 'a');
@@ -316,7 +316,7 @@ class bit2c extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetExchangesPairTicker (array_merge($request, $params));
+        $response = $this->publicGetExchangesPairTicker ($this->extend($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -345,9 +345,9 @@ class bit2c extends Exchange {
         }
         $response = null;
         if ($method === 'public_get_exchanges_pair_trades') {
-            $response = $this->publicGetExchangesPairTrades (array_merge($request, $params));
+            $response = $this->publicGetExchangesPairTrades ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetExchangesPairLasttrades (array_merge($request, $params));
+            $response = $this->publicGetExchangesPairLasttrades ($this->extend($request, $params));
         }
         //
         //     array(
@@ -418,7 +418,7 @@ class bit2c extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -438,7 +438,7 @@ class bit2c extends Exchange {
             $request['Total'] = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
             $request['IsBid'] = ($side === 'buy');
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         return $this->parse_order($response, $market);
     }
 
@@ -454,7 +454,8 @@ class bit2c extends Exchange {
         $request = array(
             'id' => $id,
         );
-        return $this->privatePostOrderCancelOrder (array_merge($request, $params));
+        $response = $this->privatePostOrderCancelOrder ($this->extend($request, $params));
+        return $this->parse_order($response);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -475,7 +476,7 @@ class bit2c extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->privateGetOrderMyOrders (array_merge($request, $params));
+        $response = $this->privateGetOrderMyOrders ($this->extend($request, $params));
         $orders = $this->safe_value($response, $market['id'], array());
         $asks = $this->safe_value($orders, 'ask', array());
         $bids = $this->safe_list($orders, 'bid', array());
@@ -486,6 +487,7 @@ class bit2c extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://bit2c.co.il/home/api#getoid
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -495,7 +497,7 @@ class bit2c extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = $this->privateGetOrderGetById (array_merge($request, $params));
+        $response = $this->privateGetOrderGetById ($this->extend($request, $params));
         //
         //         {
         //             "pair" => "BtcNis",
@@ -513,7 +515,7 @@ class bit2c extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //      createOrder
         //      {
@@ -653,7 +655,7 @@ class bit2c extends Exchange {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
         }
-        $response = $this->privateGetOrderOrderHistory (array_merge($request, $params));
+        $response = $this->privateGetOrderOrderHistory ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -704,7 +706,7 @@ class bit2c extends Exchange {
         return $newString;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -824,7 +826,7 @@ class bit2c extends Exchange {
         $request = array(
             'Coin' => $currency['id'],
         );
-        $response = $this->privatePostFundsAddCoinFundsRequest (array_merge($request, $params));
+        $response = $this->privatePostFundsAddCoinFundsRequest ($this->extend($request, $params));
         //
         //     {
         //         "address" => "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -864,7 +866,7 @@ class bit2c extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce();
-            $query = array_merge(array(
+            $query = $this->extend(array(
                 'nonce' => $nonce,
             ), $params);
             $auth = $this->urlencode($query);
@@ -885,7 +887,7 @@ class bit2c extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

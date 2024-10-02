@@ -1814,7 +1814,7 @@ public partial class delta : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1898,7 +1898,7 @@ public partial class delta : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -2031,7 +2031,9 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2207,11 +2209,11 @@ public partial class delta : Exchange
         /**
         * @method
         * @name delta#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.delta.exchange/#get-wallet-transactions
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -2309,7 +2311,7 @@ public partial class delta : Exchange
         object after = this.safeString(item, "balance");
         object before = Precise.stringMax("0", Precise.stringSub(after, amount));
         object status = "ok";
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
             { "direction", direction },
@@ -2325,7 +2327,7 @@ public partial class delta : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "fee", null },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
@@ -2482,7 +2484,7 @@ public partial class delta : Exchange
         * @see https://docs.delta.exchange/#get-tickers-for-products
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2609,6 +2611,7 @@ public partial class delta : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

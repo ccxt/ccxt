@@ -5,7 +5,7 @@ import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -23,6 +23,7 @@ export default class hollaex extends hollaexRest {
                 'watchTicker': false,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {
@@ -59,6 +60,7 @@ export default class hollaex extends hollaexRest {
          * @method
          * @name hollaex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -118,6 +120,7 @@ export default class hollaex extends hollaexRest {
          * @method
          * @name hollaex#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -176,11 +179,12 @@ export default class hollaex extends hollaexRest {
          * @method
          * @name hollaex#watchMyTrades
          * @description watches information on multiple trades made by the user
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let messageHash = 'usertrade';
@@ -233,7 +237,7 @@ export default class hollaex extends hollaexRest {
             this.myTrades = new ArrayCache (limit);
         }
         const stored = this.myTrades;
-        const marketIds = {};
+        const marketIds: Dict = {};
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = rawTrades[i];
             const parsed = this.parseTrade (trade);
@@ -258,6 +262,7 @@ export default class hollaex extends hollaexRest {
          * @method
          * @name hollaex#watchOrders
          * @description watches information on multiple orders made by the user
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -355,7 +360,7 @@ export default class hollaex extends hollaexRest {
         } else {
             rawOrders = data;
         }
-        const marketIds = {};
+        const marketIds: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
             const parsed = this.parseOrder (order);
@@ -380,6 +385,7 @@ export default class hollaex extends hollaexRest {
          * @method
          * @name hollaex#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -428,7 +434,7 @@ export default class hollaex extends hollaexRest {
 
     async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
@@ -450,13 +456,13 @@ export default class hollaex extends hollaexRest {
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
         const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-        const authParams = {
+        const authParams: Dict = {
             'api-key': this.apiKey,
             'api-signature': signature,
             'api-expires': expires,
         };
         const signedUrl = url + '?' + this.urlencode (authParams);
-        const request = {
+        const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
@@ -577,7 +583,7 @@ export default class hollaex extends hollaexRest {
             this.handlePong (client, message);
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'trade': this.handleTrades,
             'orderbook': this.handleOrderBook,
             'order': this.handleOrder,
@@ -591,7 +597,7 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return { 'op': 'ping' };
     }

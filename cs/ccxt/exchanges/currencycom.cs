@@ -93,6 +93,7 @@ public partial class currencycom : Exchange
                 { "fetchWithdrawal", null },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", null },
+                { "sandbox", true },
                 { "setLeverage", null },
                 { "setMarginMode", null },
                 { "setPositionMode", null },
@@ -1321,7 +1322,7 @@ public partial class currencycom : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1784,11 +1785,11 @@ public partial class currencycom : Exchange
         /**
         * @method
         * @name currencycom#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getLedgerUsingGET
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -1847,6 +1848,7 @@ public partial class currencycom : Exchange
         object timestamp = this.safeInteger(item, "timestamp");
         object currencyId = this.safeString(item, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object feeCost = this.safeString(item, "commission");
         object fee = null;
         if (isTrue(!isEqual(feeCost, null)))
@@ -1857,7 +1859,7 @@ public partial class currencycom : Exchange
             };
         }
         object direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
-        object result = new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -1873,8 +1875,7 @@ public partial class currencycom : Exchange
             { "status", this.parseLedgerEntryStatus(this.safeString(item, "status")) },
             { "fee", fee },
             { "info", item },
-        };
-        return result;
+        }, currency);
     }
 
     public virtual object parseLedgerEntryStatus(object status)
@@ -2123,7 +2124,7 @@ public partial class currencycom : Exchange
             { "entryPrice", entryPrice },
             { "collateral", null },
             { "side", side },
-            { "unrealizedProfit", unrealizedProfit },
+            { "unrealizedPnl", unrealizedProfit },
             { "leverage", leverage },
             { "percentage", null },
             { "marginMode", null },
@@ -2137,7 +2138,6 @@ public partial class currencycom : Exchange
             { "maintenanceMarginPercentage", null },
             { "marginRatio", null },
             { "id", null },
-            { "unrealizedPnl", null },
             { "hedged", null },
             { "stopLossPrice", null },
             { "takeProfitPrice", null },

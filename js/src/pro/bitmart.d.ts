@@ -1,5 +1,5 @@
 import bitmartRest from '../bitmart.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmart extends bitmartRest {
     describe(): any;
@@ -14,9 +14,12 @@ export default class bitmart extends bitmartRest {
     getParamsForMultipleSub(methodName: string, symbols: string[], limit?: Int, params?: {}): any[];
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: Dict, market?: Market): Order;
     parseWsOrderStatus(statusId: any): string;
     parseWsOrderSide(sideId: any): string;
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
@@ -24,7 +27,7 @@ export default class bitmart extends bitmartRest {
     parseWsPosition(position: any, market?: Market): Position;
     handleTrade(client: Client, message: any): void;
     handleTradeLoop(entry: any): string;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     handleTicker(client: Client, message: any): void;
     parseWsSwapTicker(ticker: any, market?: Market): Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

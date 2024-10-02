@@ -88,6 +88,7 @@ class alpaca extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => false,
@@ -305,7 +306,7 @@ class alpaca extends Exchange {
             'asset_class' => 'crypto',
             'status' => 'active',
         );
-        $assets = $this->traderPrivateGetV2Assets (array_merge($request, $params));
+        $assets = $this->traderPrivateGetV2Assets ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -452,7 +453,7 @@ class alpaca extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->marketPublicGetV1beta3CryptoLocTrades (array_merge($request, $params));
+            $response = $this->marketPublicGetV1beta3CryptoLocTrades ($this->extend($request, $params));
             //
             //    {
             //        "next_page_token" => null,
@@ -472,7 +473,7 @@ class alpaca extends Exchange {
             $trades = $this->safe_dict($response, 'trades', array());
             $symbolTrades = $this->safe_list($trades, $marketId, array());
         } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
-            $response = $this->marketPublicGetV1beta3CryptoLocLatestTrades (array_merge($request, $params));
+            $response = $this->marketPublicGetV1beta3CryptoLocLatestTrades ($this->extend($request, $params));
             //
             //    {
             //       "trades" => {
@@ -513,7 +514,7 @@ class alpaca extends Exchange {
             'symbols' => $id,
             'loc' => $loc,
         );
-        $response = $this->marketPublicGetV1beta3CryptoLocLatestOrderbooks (array_merge($request, $params));
+        $response = $this->marketPublicGetV1beta3CryptoLocLatestOrderbooks ($this->extend($request, $params));
         //
         //   {
         //       "orderbooks":{
@@ -551,8 +552,8 @@ class alpaca extends Exchange {
         //       }
         //   }
         //
-        $orderbooks = $this->safe_value($response, 'orderbooks', array());
-        $rawOrderbook = $this->safe_value($orderbooks, $id, array());
+        $orderbooks = $this->safe_dict($response, 'orderbooks', array());
+        $rawOrderbook = $this->safe_dict($orderbooks, $id, array());
         $timestamp = $this->parse8601($this->safe_string($rawOrderbook, 't'));
         return $this->parse_order_book($rawOrderbook, $market['symbol'], $timestamp, 'b', 'a', 'p', 's');
     }
@@ -590,7 +591,7 @@ class alpaca extends Exchange {
                 $request['start'] = $this->yyyymmdd($since);
             }
             $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $response = $this->marketPublicGetV1beta3CryptoLocBars (array_merge($request, $params));
+            $response = $this->marketPublicGetV1beta3CryptoLocBars ($this->extend($request, $params));
             //
             //    {
             //        "bars" => {
@@ -623,7 +624,7 @@ class alpaca extends Exchange {
             $bars = $this->safe_dict($response, 'bars', array());
             $ohlcvs = $this->safe_list($bars, $marketId, array());
         } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
-            $response = $this->marketPublicGetV1beta3CryptoLocLatestBars (array_merge($request, $params));
+            $response = $this->marketPublicGetV1beta3CryptoLocLatestBars ($this->extend($request, $params));
             //
             //    {
             //        "bars" => {
@@ -682,7 +683,7 @@ class alpaca extends Exchange {
          * @param {string} $type 'market', 'limit' or 'stop_limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -721,7 +722,7 @@ class alpaca extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
         $request['client_order_id'] = $clientOrderId;
         $params = $this->omit($params, array( 'clientOrderId' ));
-        $order = $this->traderPrivatePostV2Orders (array_merge($request, $params));
+        $order = $this->traderPrivatePostV2Orders ($this->extend($request, $params));
         //
         //   {
         //      "id" => "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -773,14 +774,14 @@ class alpaca extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->traderPrivateDeleteV2OrdersOrderId (array_merge($request, $params));
+        $response = $this->traderPrivateDeleteV2OrdersOrderId ($this->extend($request, $params));
         //
         //   {
         //       "code" => 40410000,
         //       "message" => "order is not found."
         //   }
         //
-        return $this->safe_value($response, 'message', array());
+        return $this->parse_order($response);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -796,7 +797,11 @@ class alpaca extends Exchange {
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $this->parse_orders($response, null);
         } else {
-            return $response;
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }
     }
 
@@ -804,6 +809,7 @@ class alpaca extends Exchange {
         /**
          * fetches information on an $order made by the user
          * @see https://docs.alpaca.markets/reference/getorderbyorderid
+         * @param {string} $id the $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -812,7 +818,7 @@ class alpaca extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $order = $this->traderPrivateGetV2OrdersOrderId (array_merge($request, $params));
+        $order = $this->traderPrivateGetV2OrdersOrderId ($this->extend($request, $params));
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId);
         return $this->parse_order($order, $market);
@@ -849,7 +855,7 @@ class alpaca extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->traderPrivateGetV2Orders (array_merge($request, $params));
+        $response = $this->traderPrivateGetV2Orders ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -907,7 +913,7 @@ class alpaca extends Exchange {
         $request = array(
             'status' => 'open',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -924,10 +930,10 @@ class alpaca extends Exchange {
         $request = array(
             'status' => 'closed',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -1014,7 +1020,7 @@ class alpaca extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'pending_new' => 'open',
             'accepted' => 'open',
@@ -1026,14 +1032,14 @@ class alpaca extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'day' => 'Day',
         );
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
@@ -1078,6 +1084,7 @@ class alpaca extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();
         if ($api[1] === 'private') {
+            $this->check_required_credentials();
             $headers['APCA-API-KEY-ID'] = $this->apiKey;
             $headers['APCA-API-SECRET-KEY'] = $this->secret;
         }
@@ -1094,7 +1101,7 @@ class alpaca extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // default error handler
         }

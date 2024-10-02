@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/tokocrypto.js';
-import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -213,7 +213,7 @@ export default class tokocrypto extends Exchange {
                     'maker': this.parseNumber('0.0075'), // 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'options': {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice': true,
@@ -720,10 +720,10 @@ export default class tokocrypto extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger(market, 'quantityPrecision'),
-                    'price': this.safeInteger(market, 'pricePrecision'),
-                    'base': this.safeInteger(market, 'baseAssetPrecision'),
-                    'quote': this.safeInteger(market, 'quotePrecision'),
+                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
+                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
+                    'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
+                    'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -748,8 +748,7 @@ export default class tokocrypto extends Exchange {
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
-                const tickSize = this.safeString(filter, 'tickSize');
-                entry['precision']['price'] = this.precisionFromString(tickSize);
+                entry['precision']['price'] = this.safeNumber(filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -758,12 +757,11 @@ export default class tokocrypto extends Exchange {
                     'min': this.safeNumber(filter, 'minPrice'),
                     'max': this.safeNumber(filter, 'maxPrice'),
                 };
-                entry['precision']['price'] = this.precisionFromString(filter['tickSize']);
+                entry['precision']['price'] = filter['tickSize'];
             }
             if ('LOT_SIZE' in filtersByType) {
                 const filter = this.safeValue(filtersByType, 'LOT_SIZE', {});
-                const stepSize = this.safeString(filter, 'stepSize');
-                entry['precision']['amount'] = this.precisionFromString(stepSize);
+                entry['precision']['amount'] = this.safeNumber(filter, 'stepSize');
                 entry['limits']['amount'] = {
                     'min': this.safeNumber(filter, 'minQty'),
                     'max': this.safeNumber(filter, 'maxQty'),
@@ -1602,7 +1600,7 @@ export default class tokocrypto extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
          * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount

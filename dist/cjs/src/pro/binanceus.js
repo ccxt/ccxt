@@ -10,7 +10,8 @@ class binanceus extends binance {
         // eslint-disable-next-line new-cap
         const restInstance = new binanceus$1();
         const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(restDescribe, super.describe());
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',
@@ -40,14 +41,6 @@ class binanceus extends binance {
                 'quoteOrderQty': false,
                 'defaultType': 'spot',
                 'fetchMarkets': ['spot'],
-            },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.0,
-                    'maker': 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
-                },
             },
         });
     }

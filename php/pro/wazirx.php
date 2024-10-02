@@ -21,6 +21,7 @@ class wazirx extends \ccxt\async\wazirx {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -300,6 +301,7 @@ class wazirx extends \ccxt\async\wazirx {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://docs.wazirx.com/#trade-streams
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -315,7 +317,7 @@ class wazirx extends \ccxt\async\wazirx {
                 'event' => 'subscribe',
                 'streams' => array( $messageHash ),
             );
-            $request = array_merge($message, $params);
+            $request = $this->extend($message, $params);
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -400,6 +402,7 @@ class wazirx extends \ccxt\async\wazirx {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://docs.wazirx.com/#kline-candlestick-$stream
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -546,20 +549,20 @@ class wazirx extends \ccxt\async\wazirx {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        $currentOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($currentOrderBook === null) {
+        // $currentOrderBook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'b', 'a');
-            $orderBook = $this->order_book($snapshot);
-            $this->orderbooks[$symbol] = $orderBook;
+            $this->orderbooks[$symbol] = $this->order_book($snapshot);
         } else {
-            $asks = $this->safe_value($data, 'a', array());
-            $bids = $this->safe_value($data, 'b', array());
-            $this->handle_deltas($currentOrderBook['asks'], $asks);
-            $this->handle_deltas($currentOrderBook['bids'], $bids);
-            $currentOrderBook['nonce'] = $timestamp;
-            $currentOrderBook['timestamp'] = $timestamp;
-            $currentOrderBook['datetime'] = $this->iso8601($timestamp);
-            $this->orderbooks[$symbol] = $currentOrderBook;
+            $orderbook = $this->orderbooks[$symbol];
+            $asks = $this->safe_list($data, 'a', array());
+            $bids = $this->safe_list($data, 'b', array());
+            $this->handle_deltas($orderbook['asks'], $asks);
+            $this->handle_deltas($orderbook['bids'], $bids);
+            $orderbook['nonce'] = $timestamp;
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
+            $this->orderbooks[$symbol] = $orderbook;
         }
         $client->resolve ($this->orderbooks[$symbol], $messageHash);
     }

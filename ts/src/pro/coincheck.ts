@@ -3,7 +3,7 @@
 
 import coincheckRest from '../coincheck.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Trade } from '../base/types.js';
+import type { Int, Market, OrderBook, Trade, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 
@@ -17,6 +17,7 @@ export default class coincheck extends coincheckRest {
                 'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,
@@ -60,7 +61,7 @@ export default class coincheck extends coincheckRest {
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-orderbook',
         };
@@ -116,14 +117,14 @@ export default class coincheck extends coincheckRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-trades',
         };
@@ -167,7 +168,7 @@ export default class coincheck extends coincheckRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     [
         //         "1663318663", // transaction timestamp (unix time)

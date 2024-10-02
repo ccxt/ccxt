@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -22,7 +22,7 @@ export default class bigone extends Exchange {
             'name': 'BigONE',
             'countries': [ 'CN' ],
             'version': 'v3',
-            'rateLimit': 1200, // 500 request per 10 minutes
+            'rateLimit': 20, // 500 requests per 10 seconds
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -160,7 +160,7 @@ export default class bigone extends Exchange {
                 },
                 'webExchange': {
                     'get': [
-                        'uc/v2/assets',
+                        'v3/assets',
                     ],
                 },
             },
@@ -342,7 +342,7 @@ export default class bigone extends Exchange {
          * @returns {dict} an associative dictionary of currencies
          */
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
-        const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetUcV2Assets', true);
+        const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if (data === undefined) {
             return undefined;
         }
@@ -352,104 +352,53 @@ export default class bigone extends Exchange {
         //     "message": "",
         //     "data": [
         //       {
-        //         "name": "TetherUS",
-        //         "symbol": "USDT",
-        //         "contract_address": "31",
-        //         "is_deposit_enabled": true,
-        //         "is_withdrawal_enabled": true,
-        //         "is_stub": false,
-        //         "withdrawal_fee": "5.0",
-        //         "is_fiat": false,
-        //         "is_memo_required": false,
-        //         "logo": {
-        //           "default": "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-        //           "white": "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        //             "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        //             "symbol": "USDT",
+        //             "name": "TetherUS",
+        //             "scale": 12,
+        //             "is_fiat": false,
+        //             "is_transfer_enabled": true,
+        //             "transfer_scale": 12,
+        //             "binding_gateways": [
+        //                 {
+        //                     "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        //                     "is_deposit_enabled": true,
+        //                     "gateway_name": "Ethereum",
+        //                     "min_withdrawal_amount": "0.000001",
+        //                     "withdrawal_fee": "5.71",
+        //                     "is_withdrawal_enabled": true,
+        //                     "min_deposit_amount": "0.000001",
+        //                     "is_memo_required": false,
+        //                     "withdrawal_scale": 6,
+        //                     "scale": 12
+        //                 },
+        //                 {
+        //                     "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+        //                     "is_deposit_enabled": true,
+        //                     "gateway_name": "BinanceSmartChain",
+        //                     "min_withdrawal_amount": "10",
+        //                     "withdrawal_fee": "5",
+        //                     "is_withdrawal_enabled": false,
+        //                     "min_deposit_amount": "1",
+        //                     "is_memo_required": false,
+        //                     "withdrawal_scale": 8,
+        //                     "scale": 12
+        //                 }
+        //             ]
         //         },
-        //         "info_link": null,
-        //         "scale": "12",
-        //         "default_gateway": ..., // one object from "gateways"
-        //         "gateways": [
-        //           {
-        //             "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-        //             "name": "Mixin",
-        //             "kind": "CHAIN",
-        //             "required_confirmations": "0",
-        //           },
-        //           {
-        //             "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //             "name": "Ethereum",
-        //             "kind": "CHAIN",
-        //             "required_confirmations": "18",
-        //           },
-        //           {
-        //             "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //             "name": "Tron",
-        //             "kind": "CHAIN",
-        //             "required_confirmations": "1",
-        //           },
-        //          ...
-        //         ],
-        //         "payments": [],
-        //         "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-        //         "binding_gateways": [
-        //           {
-        //             "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-        //             "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        //             "is_deposit_enabled": true,
-        //             "display_name": "Ethereum(ERC20)",
-        //             "gateway_name": "Ethereum",
-        //             "min_withdrawal_amount": "0.000001",
-        //             "min_internal_withdrawal_amount": "0.00000001",
-        //             "withdrawal_fee": "14",
-        //             "is_withdrawal_enabled": true,
-        //             "min_deposit_amount": "0.000001",
-        //             "is_memo_required": false,
-        //             "withdrawal_scale": "2",
-        //             "gateway": {
-        //               "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //               "name": "Ethereum",
-        //               "kind": "CHAIN",
-        //               "required_confirmations": "18",
-        //             },
-        //             "scale": "12",
-        //          },
-        //          {
-        //             "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-        //             "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-        //             "is_deposit_enabled": true,
-        //             "display_name": "Tron(TRC20)",
-        //             "gateway_name": "Tron",
-        //             "min_withdrawal_amount": "0.000001",
-        //             "min_internal_withdrawal_amount": "0.00000001",
-        //             "withdrawal_fee": "1",
-        //             "is_withdrawal_enabled": true,
-        //             "min_deposit_amount": "0.000001",
-        //             "is_memo_required": false,
-        //             "withdrawal_scale": "6",
-        //             "gateway": {
-        //               "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //               "name": "Tron",
-        //               "kind": "CHAIN",
-        //               "required_confirmations": "1",
-        //             },
-        //             "scale": "12",
-        //           },
-        //           ...
-        //         ],
-        //       },
         //       ...
         //     ],
         // }
         //
         const currenciesData = this.safeList (data, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const currency = currenciesData[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const type = this.safeBool (currency, 'is_fiat') ? 'fiat' : 'crypto';
-            const networks = {};
+            const networks: Dict = {};
             const chains = this.safeList (currency, 'binding_gateways', []);
             let currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
             let currencyDepositEnabled: Bool = undefined;
@@ -706,7 +655,7 @@ export default class bigone extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // spot
         //
@@ -798,7 +747,7 @@ export default class bigone extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         if (type === 'spot') {
-            const request = {
+            const request: Dict = {
                 'asset_pair_name': market['id'],
             };
             const response = await this.publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
@@ -845,7 +794,7 @@ export default class bigone extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const isSpot = type === 'spot';
-        const request = {};
+        const request: Dict = {};
         symbols = this.marketSymbols (symbols);
         let data = undefined;
         if (isSpot) {
@@ -951,7 +900,7 @@ export default class bigone extends Exchange {
         const market = this.market (symbol);
         let response = undefined;
         if (market['contract']) {
-            const request = {
+            const request: Dict = {
                 'symbol': market['id'],
             };
             response = await this.contractPublicGetDepthSymbolSnapshot (this.extend (request, params));
@@ -984,7 +933,7 @@ export default class bigone extends Exchange {
             //
             return this.parseContractOrderBook (response, market['symbol'], limit);
         } else {
-            const request = {
+            const request: Dict = {
                 'asset_pair_name': market['id'],
             };
             if (limit !== undefined) {
@@ -1036,7 +985,7 @@ export default class bigone extends Exchange {
         } as any;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1109,7 +1058,7 @@ export default class bigone extends Exchange {
             orderId = takerOrderId;
         }
         const id = this.safeString (trade, 'id');
-        const result = {
+        const result: Dict = {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1188,7 +1137,7 @@ export default class bigone extends Exchange {
         if (market['contract']) {
             throw new BadRequest (this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
-        const request = {
+        const request: Dict = {
             'asset_pair_name': market['id'],
         };
         const response = await this.publicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
@@ -1259,7 +1208,7 @@ export default class bigone extends Exchange {
         if (limit === undefined) {
             limit = 100; // default 100, max 500
         }
-        const request = {
+        const request: Dict = {
             'asset_pair_name': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
@@ -1299,7 +1248,7 @@ export default class bigone extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1350,7 +1299,7 @@ export default class bigone extends Exchange {
     }
 
     parseType (type: string) {
-        const types = {
+        const types: Dict = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
             'LIMIT': 'limit',
@@ -1359,7 +1308,7 @@ export default class bigone extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //    {
         //        "id": "42154072251",
@@ -1465,7 +1414,7 @@ export default class bigone extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -1487,7 +1436,7 @@ export default class bigone extends Exchange {
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const request = {
+        const request: Dict = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
             'side': requestSide, // order side one of "ASK"/"BID", required
             'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
@@ -1577,7 +1526,7 @@ export default class bigone extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = { 'id': id };
+        const request: Dict = { 'id': id };
         const response = await this.privatePostOrdersIdCancel (this.extend (request, params));
         //    {
         //        "id": 10,
@@ -1607,7 +1556,7 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'asset_pair_name': market['id'],
         };
         const response = await this.privatePostOrdersCancel (this.extend (request, params));
@@ -1623,7 +1572,27 @@ export default class bigone extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        const cancelled = this.safeList (data, 'cancelled', []);
+        const failed = this.safeList (data, 'failed', []);
+        const result = [];
+        for (let i = 0; i < cancelled.length; i++) {
+            const orderId = cancelled[i];
+            result.push (this.safeOrder ({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < failed.length; i++) {
+            const orderId = failed[i];
+            result.push (this.safeOrder ({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }));
+        }
+        return result;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1632,12 +1601,13 @@ export default class bigone extends Exchange {
          * @name bigone#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://open.big.one/docs/spot_orders.html#get-one-order
+         * @param {string} id the order id
          * @param {string} symbol not used by bigone fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = { 'id': id };
+        const request: Dict = { 'id': id };
         const response = await this.privateGetOrdersId (this.extend (request, params));
         const order = this.safeDict (response, 'data', {});
         return this.parseOrder (order);
@@ -1660,7 +1630,7 @@ export default class bigone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'asset_pair_name': market['id'],
             // 'page_token': 'dxzef', // request page after this page token
             // 'side': 'ASK', // 'ASK' or 'BID', optional
@@ -1712,7 +1682,7 @@ export default class bigone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'asset_pair_name': market['id'],
             // 'page_token': 'dxzef', // request page after this page token
         };
@@ -1758,8 +1728,8 @@ export default class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'PENDING': 'open',
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1779,7 +1749,7 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'state': 'PENDING',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1797,7 +1767,7 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'state': 'FILLED',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1820,7 +1790,7 @@ export default class bigone extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const request = {
+            const request: Dict = {
                 'type': 'OpenAPIV2',
                 'sub': this.apiKey,
                 'nonce': nonce,
@@ -1853,7 +1823,7 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset_symbol': currency['id'],
         };
         const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
@@ -1895,8 +1865,8 @@ export default class bigone extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
             // what are other statuses here?
             'WITHHOLD': 'ok', // deposits
             'UNCONFIRMED': 'pending',
@@ -1907,7 +1877,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2008,7 +1978,7 @@ export default class bigone extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'page_token': 'dxzef', // request page after this page token
             // 'limit': 50, // optional, default 50
             // 'kind': 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
@@ -2061,7 +2031,7 @@ export default class bigone extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'page_token': 'dxzef', // request page after this page token
             // 'limit': 50, // optional, default 50
             // 'kind': 'string', // optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
@@ -2120,7 +2090,7 @@ export default class bigone extends Exchange {
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const guid = this.safeString (params, 'guid', this.uuid ());
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'from': fromId,
@@ -2148,14 +2118,14 @@ export default class bigone extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         //     {
         //         "code": 0,
         //         "data": null
         //     }
         //
-        const code = this.safeNumber (transfer, 'code');
+        const code = this.safeString (transfer, 'code');
         return {
             'info': transfer,
             'id': undefined,
@@ -2169,8 +2139,8 @@ export default class bigone extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
-        const statuses = {
+    parseTransferStatus (status: Str): Str {
+        const statuses: Dict = {
             '0': 'ok',
         };
         return this.safeString (statuses, status, 'failed');
@@ -2192,7 +2162,7 @@ export default class bigone extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
             'target_address': address,
             'amount': this.currencyToPrecision (code, amount),
@@ -2232,7 +2202,7 @@ export default class bigone extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

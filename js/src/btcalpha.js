@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/btcalpha.js';
-import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -706,7 +706,7 @@ export default class btcalpha extends Exchange {
         const filled = this.safeString(order, 'amount_filled');
         const amount = this.safeString(order, 'amount_original');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
-        const id = this.safeString2(order, 'oid', 'id');
+        const id = this.safeStringN(order, ['oid', 'id', 'order']);
         const trades = this.safeValue(order, 'trades');
         const side = this.safeString2(order, 'my_side', 'type');
         return this.safeOrder({
@@ -744,7 +744,7 @@ export default class btcalpha extends Exchange {
          * @param {string} type 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -784,7 +784,12 @@ export default class btcalpha extends Exchange {
             'order': id,
         };
         const response = await this.privatePostOrderCancel(this.extend(request, params));
-        return response;
+        //
+        //    {
+        //        "order": 63568
+        //    }
+        //
+        return this.parseOrder(response);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -792,6 +797,7 @@ export default class btcalpha extends Exchange {
          * @name btcalpha#fetchOrder
          * @see https://btc-alpha.github.io/api-docs/#retrieve-single-order
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol not used by btcalpha fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -927,20 +933,12 @@ export default class btcalpha extends Exchange {
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         //
         const error = this.safeString(response, 'error');
-        const feedback = this.id + ' ' + body;
         if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
+            throw new ExchangeError(feedback); // unknown error
         }
-        if (code === 401 || code === 403) {
-            throw new AuthenticationError(feedback);
-        }
-        else if (code === 429) {
-            throw new DDoSProtection(feedback);
-        }
-        if (code < 400) {
-            return undefined;
-        }
-        throw new ExchangeError(feedback);
+        return undefined;
     }
 }

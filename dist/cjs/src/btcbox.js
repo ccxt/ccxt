@@ -5,6 +5,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -63,7 +64,7 @@ class btcbox extends btcbox$1 {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -92,6 +93,7 @@ class btcbox extends btcbox$1 {
                         'depth',
                         'orders',
                         'ticker',
+                        'tickers',
                     ],
                 },
                 'private': {
@@ -104,12 +106,6 @@ class btcbox extends btcbox$1 {
                         'wallet',
                     ],
                 },
-            },
-            'markets': {
-                'BTC/JPY': this.safeMarketStructure({ 'id': 'btc', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'taker': this.parseNumber('0.0005'), 'maker': this.parseNumber('0.0005'), 'type': 'spot', 'spot': true }),
-                'ETH/JPY': this.safeMarketStructure({ 'id': 'eth', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy', 'taker': this.parseNumber('0.0010'), 'maker': this.parseNumber('0.0010'), 'type': 'spot', 'spot': true }),
-                'LTC/JPY': this.safeMarketStructure({ 'id': 'ltc', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy', 'taker': this.parseNumber('0.0010'), 'maker': this.parseNumber('0.0010'), 'type': 'spot', 'spot': true }),
-                'BCH/JPY': this.safeMarketStructure({ 'id': 'bch', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy', 'taker': this.parseNumber('0.0010'), 'maker': this.parseNumber('0.0010'), 'type': 'spot', 'spot': true }),
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
@@ -125,6 +121,140 @@ class btcbox extends btcbox$1 {
                 '402': errors.DDoSProtection,
             },
         });
+    }
+    async fetchMarkets(params = {}) {
+        /**
+         * @method
+         * @name btcbox#fetchMarkets
+         * @description retrieves data on all markets for ace
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicGetTickers();
+        //
+        const marketIds = Object.keys(response);
+        const markets = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const symbolParts = marketId.split('_');
+            const baseCurr = this.safeString(symbolParts, 0);
+            const quote = this.safeString(symbolParts, 1);
+            const quoteId = quote.toLowerCase();
+            const id = baseCurr.toLowerCase();
+            const res = response[marketId];
+            const symbol = baseCurr + '/' + quote;
+            const fee = (id === 'BTC') ? this.parseNumber('0.0005') : this.parseNumber('0.0010');
+            markets.push(this.safeMarketStructure({
+                'id': id,
+                'uppercaseId': undefined,
+                'symbol': symbol,
+                'base': baseCurr,
+                'baseId': id,
+                'quote': quote,
+                'quoteId': quoteId,
+                'settle': undefined,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'taker': fee,
+                'maker': fee,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'precision': {
+                    'price': undefined,
+                    'amount': undefined,
+                },
+                'active': undefined,
+                'created': undefined,
+                'info': res,
+            }));
+        }
+        return markets;
+    }
+    parseMarket(market) {
+        const baseId = this.safeString(market, 'base');
+        const base = this.safeCurrencyCode(baseId);
+        const quoteId = this.safeString(market, 'quote');
+        const quote = this.safeCurrencyCode(quoteId);
+        const symbol = base + '/' + quote;
+        return {
+            'id': this.safeString(market, 'symbol'),
+            'uppercaseId': undefined,
+            'symbol': symbol,
+            'base': base,
+            'baseId': baseId,
+            'quote': quote,
+            'quoteId': quoteId,
+            'settle': undefined,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(market, 'minLimitBaseAmount'),
+                    'max': this.safeNumber(market, 'maxLimitBaseAmount'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'precision': {
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
+            },
+            'active': undefined,
+            'created': undefined,
+            'info': market,
+        };
     }
     parseBalance(response) {
         const result = { 'info': response };
@@ -224,6 +354,19 @@ class btcbox extends btcbox$1 {
         const response = await this.publicGetTicker(this.extend(request, params));
         return this.parseTicker(response, market);
     }
+    async fetchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcbox#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const response = await this.publicGetTickers(params);
+        return this.parseTickers(response, symbols);
+    }
     parseTrade(trade, market = undefined) {
         //
         // fetchTrades (public)
@@ -302,7 +445,7 @@ class btcbox extends btcbox$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -425,6 +568,7 @@ class btcbox extends btcbox$1 {
          * @name btcbox#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://blog.btcbox.jp/en/archives/8762#toc16
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -534,7 +678,7 @@ class btcbox extends btcbox$1 {
                 'nonce': nonce,
             }, params);
             const request = this.urlencode(query);
-            const secret = this.hash(this.encode(this.secret), sha256.sha256);
+            const secret = this.hash(this.encode(this.secret), md5.md5);
             query['signature'] = this.hmac(this.encode(request), this.encode(secret), sha256.sha256);
             body = this.urlencode(query);
             headers = {

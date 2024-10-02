@@ -13,6 +13,10 @@ public partial class bitmex : ccxt.bitmex
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
+                { "watchLiquidations", true },
+                { "watchLiquidationsForSymbols", true },
+                { "watchMyLiquidations", null },
+                { "watchMyLiquidationsForSymbols", null },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -54,6 +58,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -71,6 +76,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchTickers
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -362,12 +368,130 @@ public partial class bitmex : ccxt.bitmex
         return message;
     }
 
+    public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#watchLiquidations
+        * @description watch the public liquidations of a trading pair
+        * @see https://www.bitmex.com/app/wsAPI#Liquidation
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#watchLiquidationsForSymbols
+        * @description watch the public liquidations of a trading pair
+        * @see https://www.bitmex.com/app/wsAPI#Liquidation
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object messageHashes = new List<object>() {};
+        object subscriptionHashes = new List<object>() {};
+        if (isTrue(this.isEmpty(symbols)))
+        {
+            ((IList<object>)subscriptionHashes).Add("liquidation");
+            ((IList<object>)messageHashes).Add("liquidations");
+        } else
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                ((IList<object>)subscriptionHashes).Add(add("liquidation:", getValue(market, "id")));
+                ((IList<object>)messageHashes).Add(add("liquidations::", symbol));
+            }
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "op", "subscribe" },
+            { "args", subscriptionHashes },
+        };
+        object newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionHashes);
+        if (isTrue(this.newUpdates))
+        {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+
+    public virtual void handleLiquidation(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "table":"liquidation",
+        //        "action":"partial",
+        //        "keys":[
+        //           "orderID"
+        //        ],
+        //        "types":{
+        //           "orderID":"guid",
+        //           "symbol":"symbol",
+        //           "side":"symbol",
+        //           "price":"float",
+        //           "leavesQty":"long"
+        //        },
+        //        "filter":{},
+        //        "data":[
+        //           {
+        //              "orderID":"e0a568ee-7830-4428-92c3-73e82b9576ce",
+        //              "symbol":"XPLAUSDT",
+        //              "side":"Sell",
+        //              "price":0.206,
+        //              "leavesQty":340
+        //           }
+        //        ]
+        //    }
+        //
+        object rawLiquidations = this.safeValue(message, "data", new List<object>() {});
+        object newLiquidations = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+        {
+            object rawLiquidation = getValue(rawLiquidations, i);
+            object liquidation = this.parseLiquidation(rawLiquidation);
+            object symbol = getValue(liquidation, "symbol");
+            object liquidations = this.safeValue(this.liquidations, symbol);
+            if (isTrue(isEqual(liquidations, null)))
+            {
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            callDynamically(liquidations, "append", new object[] {liquidation});
+            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            ((IList<object>)newLiquidations).Add(liquidation);
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newLiquidations, "liquidations"});
+        object liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
+        object symbols = new List<object>(((IDictionary<string,object>)liquidationsBySymbol).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(liquidationsBySymbol, symbol), add("liquidations::", symbol)});
+        }
+    }
+
     public async override Task<object> watchBalance(object parameters = null)
     {
         /**
         * @method
         * @name bitmex#watchBalance
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -583,6 +707,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -642,8 +767,8 @@ public partial class bitmex : ccxt.bitmex
         /**
         * @method
         * @name bitmex#watchPositions
-        * @see https://www.bitmex.com/app/wsAPI
         * @description watch all open positions
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} params extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
@@ -856,6 +981,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchOrders
         * @description watches information on multiple orders made by the user
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1081,11 +1207,12 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchMyTrades
         * @description watches information on multiple trades made by the user
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified market symbol of the market trades were made in
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1207,6 +1334,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1222,6 +1350,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchOrderBookForSymbols
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1270,6 +1399,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchTradesForSymbols
         * @description get the list of most recent trades for a list of symbols
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string[]} symbols unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -1312,6 +1442,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1501,12 +1632,20 @@ public partial class bitmex : ccxt.bitmex
         //
         object action = this.safeString(message, "action");
         object table = this.safeString(message, "table");
+        if (isTrue(isEqual(table, null)))
+        {
+            return;  // protecting from weird updates
+        }
         object data = this.safeValue(message, "data", new List<object>() {});
         // if it's an initial snapshot
         if (isTrue(isEqual(action, "partial")))
         {
-            object filter = this.safeValue(message, "filter", new Dictionary<string, object>() {});
+            object filter = this.safeDict(message, "filter", new Dictionary<string, object>() {});
             object marketId = this.safeValue(filter, "symbol");
+            if (isTrue(isEqual(marketId, null)))
+            {
+                return;  // protecting from weird update
+            }
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             if (isTrue(isEqual(table, "orderBookL2")))
@@ -1529,7 +1668,7 @@ public partial class bitmex : ccxt.bitmex
                 object side = this.safeString(getValue(data, i), "side");
                 side = ((bool) isTrue((isEqual(side, "Buy")))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
-                (bookside as IOrderBookSide).store(price, size, id);
+                (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 object datetime = this.safeString(getValue(data, i), "timestamp");
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
@@ -1542,6 +1681,10 @@ public partial class bitmex : ccxt.bitmex
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object marketId = this.safeValue(getValue(data, i), "symbol");
+                if (isTrue(isEqual(marketId, null)))
+                {
+                    return;  // protecting from weird update
+                }
                 if (!isTrue((inOp(numUpdatesByMarketId, marketId))))
                 {
                     ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = 0;
@@ -1556,7 +1699,7 @@ public partial class bitmex : ccxt.bitmex
                 object side = this.safeString(getValue(data, i), "side");
                 side = ((bool) isTrue((isEqual(side, "Buy")))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
-                (bookside as IOrderBookSide).store(price, size, id);
+                (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 object datetime = this.safeString(getValue(data, i), "timestamp");
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
@@ -1700,6 +1843,7 @@ public partial class bitmex : ccxt.bitmex
                 { "order", this.handleOrders },
                 { "execution", this.handleMyTrades },
                 { "margin", this.handleBalance },
+                { "liquidation", this.handleLiquidation },
                 { "position", this.handlePositions },
             };
             object method = this.safeValue(methods, table);

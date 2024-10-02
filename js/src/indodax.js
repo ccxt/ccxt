@@ -8,6 +8,7 @@
 import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -513,7 +514,7 @@ export default class indodax extends Exchange {
         // }
         //
         const response = await this.publicGetApiTickerAll(params);
-        const tickers = this.safeList(response, 'tickers');
+        const tickers = this.safeDict(response, 'tickers', {});
         return this.parseTickers(tickers, symbols);
     }
     parseTrade(trade, market = undefined) {
@@ -656,6 +657,24 @@ export default class indodax extends Exchange {
         //       "order_xrp": "30.45000000",
         //       "remain_xrp": "0.00000000"
         //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id": 666883,
+        //        "client_order_id": "clientx-sj82ks82j",
+        //        "type": "sell",
+        //        "pair": "btc_idr",
+        //        "balance": {
+        //            "idr": "33605800",
+        //            "btc": "0.00000000",
+        //            ...
+        //            "frozen_idr": "0",
+        //            "frozen_btc": "0.00000000",
+        //            ...
+        //        }
+        //    }
+        //
         let side = undefined;
         if ('type' in order) {
             side = order['type'];
@@ -666,6 +685,8 @@ export default class indodax extends Exchange {
         const price = this.safeString(order, 'price');
         let amount = undefined;
         let remaining = undefined;
+        const marketId = this.safeString(order, 'pair');
+        market = this.safeMarket(marketId, market);
         if (market !== undefined) {
             symbol = market['symbol'];
             let quoteId = market['quoteId'];
@@ -688,7 +709,7 @@ export default class indodax extends Exchange {
         return this.safeOrder({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
@@ -811,13 +832,10 @@ export default class indodax extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (type !== 'limit') {
-            throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -825,14 +843,47 @@ export default class indodax extends Exchange {
             'type': side,
             'price': price,
         };
-        const currency = market['baseId'];
-        if (side === 'buy') {
-            request[market['quoteId']] = amount * price;
+        let priceIsRequired = false;
+        let quantityIsRequired = false;
+        if (type === 'market') {
+            if (side === 'buy') {
+                let quoteAmount = undefined;
+                const cost = this.safeNumber(params, 'cost');
+                params = this.omit(params, 'cost');
+                if (cost !== undefined) {
+                    quoteAmount = this.costToPrecision(symbol, cost);
+                }
+                else {
+                    if (price === undefined) {
+                        throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).');
+                    }
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const costRequest = Precise.stringMul(amountString, priceString);
+                    quoteAmount = this.costToPrecision(symbol, costRequest);
+                }
+                request[market['quoteId']] = quoteAmount;
+            }
+            else {
+                quantityIsRequired = true;
+            }
         }
-        else {
-            request[market['baseId']] = amount;
+        else if (type === 'limit') {
+            priceIsRequired = true;
+            quantityIsRequired = true;
+            if (side === 'buy') {
+                request[market['quoteId']] = this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
+            }
         }
-        request[currency] = amount;
+        if (priceIsRequired) {
+            if (price === undefined) {
+                throw new InvalidOrder(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            }
+            request['price'] = price;
+        }
+        if (quantityIsRequired) {
+            request[market['baseId']] = this.amountToPrecision(symbol, amount);
+        }
         const result = await this.privatePostTrade(this.extend(request, params));
         const data = this.safeValue(result, 'return', {});
         const id = this.safeString(data, 'order_id');
@@ -866,7 +917,28 @@ export default class indodax extends Exchange {
             'pair': market['id'],
             'type': side,
         };
-        return await this.privatePostCancelOrder(this.extend(request, params));
+        const response = await this.privatePostCancelOrder(this.extend(request, params));
+        //
+        //    {
+        //        "success": 1,
+        //        "return": {
+        //            "order_id": 666883,
+        //            "client_order_id": "clientx-sj82ks82j",
+        //            "type": "sell",
+        //            "pair": "btc_idr",
+        //            "balance": {
+        //                "idr": "33605800",
+        //                "btc": "0.00000000",
+        //                ...
+        //                "frozen_idr": "0",
+        //                "frozen_btc": "0.00000000",
+        //                ...
+        //            }
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'return');
+        return this.parseOrder(data);
     }
     async fetchTransactionFee(code, params = {}) {
         /**

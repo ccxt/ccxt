@@ -102,7 +102,6 @@ public partial class okx : Exchange
                 { "fetchOrderBooks", false },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
-                { "fetchPermissions", null },
                 { "fetchPosition", true },
                 { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
@@ -131,6 +130,7 @@ public partial class okx : Exchange
                 { "fetchWithdrawalWhitelist", false },
                 { "reduceMargin", true },
                 { "repayCrossMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", false },
                 { "setMarginMode", true },
@@ -232,6 +232,9 @@ public partial class okx : Exchange
                         { "sprd/books", divide(1, 2) },
                         { "sprd/ticker", 1 },
                         { "sprd/public-trades", divide(1, 5) },
+                        { "market/sprd-ticker", 2 },
+                        { "market/sprd-candles", 2 },
+                        { "market/sprd-history-candles", 2 },
                         { "tradingBot/grid/ai-param", 1 },
                         { "tradingBot/grid/min-investment", 1 },
                         { "tradingBot/public/rsi-back-testing", 1 },
@@ -239,6 +242,9 @@ public partial class okx : Exchange
                         { "finance/staking-defi/eth/apy-history", divide(5, 3) },
                         { "finance/savings/lending-rate-summary", divide(5, 3) },
                         { "finance/savings/lending-rate-history", divide(5, 3) },
+                        { "finance/fixed-loan/lending-offers", divide(10, 3) },
+                        { "finance/fixed-loan/lending-apy-history", divide(10, 3) },
+                        { "finance/fixed-loan/pending-lending-volume", divide(10, 3) },
                         { "finance/sfp/dcd/products", divide(2, 3) },
                         { "copytrading/public-lead-traders", 4 },
                         { "copytrading/public-weekly-pnl", 4 },
@@ -246,6 +252,7 @@ public partial class okx : Exchange
                         { "copytrading/public-preference-currency", 4 },
                         { "copytrading/public-current-subpositions", 4 },
                         { "copytrading/public-subpositions-history", 4 },
+                        { "support/announcements-types", 20 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -298,6 +305,7 @@ public partial class okx : Exchange
                         { "account/account-position-risk", 2 },
                         { "account/bills", divide(5, 3) },
                         { "account/bills-archive", divide(5, 3) },
+                        { "account/bills-history-archive", 2 },
                         { "account/config", 4 },
                         { "account/max-size", 1 },
                         { "account/max-avail-size", 1 },
@@ -319,6 +327,9 @@ public partial class okx : Exchange
                         { "account/greeks", 2 },
                         { "account/position-tiers", 2 },
                         { "account/mmp-config", 4 },
+                        { "account/fixed-loan/borrowing-limit", 4 },
+                        { "account/fixed-loan/borrowing-quote", 5 },
+                        { "account/fixed-loan/borrowing-orders-list", 5 },
                         { "users/subaccount/list", 10 },
                         { "account/subaccount/balances", divide(10, 3) },
                         { "asset/subaccount/balances", divide(10, 3) },
@@ -375,6 +386,7 @@ public partial class okx : Exchange
                         { "broker/fd/if-rebate", 5 },
                         { "affiliate/invitee/detail", 1 },
                         { "users/partner/if-rebate", 1 },
+                        { "support/announcements", 4 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "rfq/create-rfq", 4 },
@@ -393,6 +405,7 @@ public partial class okx : Exchange
                         { "sprd/cancel-order", 1 },
                         { "sprd/mass-cancel", 1 },
                         { "sprd/amend-order", 1 },
+                        { "sprd/cancel-all-after", 10 },
                         { "trade/order", divide(1, 3) },
                         { "trade/batch-orders", divide(1, 15) },
                         { "trade/cancel-order", divide(1, 3) },
@@ -432,6 +445,11 @@ public partial class okx : Exchange
                         { "account/set-account-level", 4 },
                         { "account/mmp-reset", 4 },
                         { "account/mmp-config", 100 },
+                        { "account/fixed-loan/borrowing-order", 5 },
+                        { "account/fixed-loan/amend-borrowing-order", 5 },
+                        { "account/fixed-loan/manual-reborrow", 5 },
+                        { "account/fixed-loan/repay-borrowing-order", 5 },
+                        { "account/bills-history-archive", 72000 },
                         { "users/subaccount/modify-apikey", 10 },
                         { "asset/subaccount/transfer", 10 },
                         { "users/subaccount/set-transfer-out", 10 },
@@ -446,6 +464,7 @@ public partial class okx : Exchange
                         { "tradingBot/grid/compute-margin-balance", 1 },
                         { "tradingBot/grid/margin-balance", 1 },
                         { "tradingBot/grid/min-investment", 1 },
+                        { "tradingBot/grid/adjust-investment", 1 },
                         { "tradingBot/signal/create-signal", 1 },
                         { "tradingBot/signal/order-algo", 1 },
                         { "tradingBot/signal/stop-order-algo", 1 },
@@ -517,6 +536,7 @@ public partial class okx : Exchange
                 { "exact", new Dictionary<string, object>() {
                     { "1", typeof(ExchangeError) },
                     { "2", typeof(ExchangeError) },
+                    { "4088", typeof(ManualInteractionNeeded) },
                     { "50000", typeof(BadRequest) },
                     { "50001", typeof(OnMaintenance) },
                     { "50002", typeof(BadRequest) },
@@ -730,6 +750,9 @@ public partial class okx : Exchange
                     { "52000", typeof(ExchangeError) },
                     { "54000", typeof(ExchangeError) },
                     { "54001", typeof(ExchangeError) },
+                    { "54008", typeof(InvalidOrder) },
+                    { "54009", typeof(InvalidOrder) },
+                    { "54011", typeof(InvalidOrder) },
                     { "55100", typeof(InvalidOrder) },
                     { "55101", typeof(InvalidOrder) },
                     { "55102", typeof(InvalidOrder) },
@@ -841,10 +864,36 @@ public partial class okx : Exchange
                     { "60017", typeof(BadRequest) },
                     { "60018", typeof(BadRequest) },
                     { "60019", typeof(BadRequest) },
+                    { "60020", typeof(ExchangeError) },
+                    { "60021", typeof(AccountNotEnabled) },
+                    { "60022", typeof(AuthenticationError) },
+                    { "60023", typeof(DDoSProtection) },
+                    { "60024", typeof(AuthenticationError) },
+                    { "60025", typeof(ExchangeError) },
+                    { "60026", typeof(AuthenticationError) },
+                    { "60027", typeof(ArgumentsRequired) },
+                    { "60028", typeof(NotSupported) },
+                    { "60029", typeof(AccountNotEnabled) },
+                    { "60030", typeof(AccountNotEnabled) },
+                    { "60031", typeof(AuthenticationError) },
+                    { "60032", typeof(AuthenticationError) },
                     { "63999", typeof(ExchangeError) },
+                    { "64000", typeof(BadRequest) },
+                    { "64001", typeof(BadRequest) },
+                    { "64002", typeof(BadRequest) },
+                    { "64003", typeof(AccountNotEnabled) },
                     { "70010", typeof(BadRequest) },
                     { "70013", typeof(BadRequest) },
                     { "70016", typeof(BadRequest) },
+                    { "1009", typeof(BadRequest) },
+                    { "4001", typeof(AuthenticationError) },
+                    { "4002", typeof(BadRequest) },
+                    { "4003", typeof(RateLimitExceeded) },
+                    { "4004", typeof(NetworkError) },
+                    { "4005", typeof(ExchangeNotAvailable) },
+                    { "4006", typeof(BadRequest) },
+                    { "4007", typeof(AuthenticationError) },
+                    { "4008", typeof(RateLimitExceeded) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Internal Server Error", typeof(ExchangeNotAvailable) },
@@ -948,6 +997,7 @@ public partial class okx : Exchange
                     { "ZEC", "Zcash" },
                     { "ZIL", "Zilliqa" },
                     { "ZKSYNC", "ZKSYNC" },
+                    { "OMNI", "Omni" },
                 } },
                 { "fetchOpenInterestHistory", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
@@ -1512,16 +1562,6 @@ public partial class okx : Exchange
         //
         object dataResponse = this.safeList(response, "data", new List<object>() {});
         return this.parseMarkets(dataResponse);
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "Bitcoin", "BTC" },
-            { "Omni", "OMNI" },
-            { "TRON", "TRC20" },
-        };
-        return this.safeString(networksById, networkId, networkId);
     }
 
     public async override Task<object> fetchCurrencies(object parameters = null)
@@ -2473,6 +2513,7 @@ public partial class okx : Exchange
         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2967,7 +3008,7 @@ public partial class okx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
         * @param {bool} [params.postOnly] true to place a post only order
@@ -2982,7 +3023,7 @@ public partial class okx : Exchange
         * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
         * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
-        * @param {string} [params.hedged] true/false, to automatically set exchange-specific params needed when trading in hedge mode
+        * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3208,7 +3249,7 @@ public partial class okx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.clientOrderId] client order id, uses id if not passed
         * @param {float} [params.stopLossPrice] stop loss trigger price
@@ -3457,7 +3498,7 @@ public partial class okx : Exchange
         * @description cancel multiple orders for multiple symbols
         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
-        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.trigger] whether the order is a stop/trigger order
         * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
@@ -4618,13 +4659,13 @@ public partial class okx : Exchange
         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'
         * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4796,14 +4837,9 @@ public partial class okx : Exchange
         //         "ts": "1597026383085"
         //     }
         //
-        object id = this.safeString(item, "billId");
-        object account = null;
-        object referenceId = this.safeString(item, "ordId");
-        object referenceAccount = null;
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "ccy"), currency);
-        object amountString = this.safeString(item, "balChg");
-        object amount = this.parseNumber(amountString);
+        object currencyId = this.safeString(item, "ccy");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "ts");
         object feeCostString = this.safeString(item, "fee");
         object fee = null;
@@ -4814,29 +4850,25 @@ public partial class okx : Exchange
                 { "currency", code },
             };
         }
-        object before = null;
-        object afterString = this.safeString(item, "bal");
-        object after = this.parseNumber(afterString);
-        object status = "ok";
         object marketId = this.safeString(item, "instId");
         object symbol = this.safeSymbol(marketId, null, "-");
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", this.safeString(item, "billId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "account", account },
-            { "referenceId", referenceId },
-            { "referenceAccount", referenceAccount },
-            { "type", type },
+            { "account", null },
+            { "referenceId", this.safeString(item, "ordId") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
             { "currency", code },
             { "symbol", symbol },
-            { "amount", amount },
-            { "before", before },
-            { "after", after },
-            { "status", status },
+            { "amount", this.safeNumber(item, "balChg") },
+            { "before", null },
+            { "after", this.safeNumber(item, "bal") },
+            { "status", "ok" },
             { "fee", fee },
-        };
+        }, currency);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -5755,7 +5787,7 @@ public partial class okx : Exchange
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(positions, i)));
         }
-        return this.filterByArrayPositions(result, "symbol", symbols, false);
+        return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols), false);
     }
 
     public async override Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)
@@ -6108,7 +6140,7 @@ public partial class okx : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public async virtual Task<object> fetchTransfer(object id, object code = null, object parameters = null)
+    public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -6141,7 +6173,7 @@ public partial class okx : Exchange
         return this.parseTransfer(transfer);
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -6302,6 +6334,22 @@ public partial class okx : Exchange
         //        "nextFundingRate": "0.00017",
         //        "nextFundingTime": "1634284800000"
         //    }
+        // ws
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method": "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium": "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
         //
         // in the response above nextFundingRate is actually two funding rates from now
         //
@@ -6310,6 +6358,9 @@ public partial class okx : Exchange
         object symbol = this.safeSymbol(marketId, market);
         object nextFundingRate = this.safeNumber(contract, "nextFundingRate");
         object fundingTime = this.safeInteger(contract, "fundingTime");
+        object fundingTimeString = this.safeString(contract, "fundingTime");
+        object nextFundingTimeString = this.safeString(contract, "nextFundingRate");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return new Dictionary<string, object>() {
@@ -6330,7 +6381,20 @@ public partial class okx : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -7678,6 +7742,10 @@ public partial class okx : Exchange
                 }
                 ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "info"))[(string)currencyId] = feeInfo;
                 object chain = this.safeString(feeInfo, "chain");
+                if (isTrue(isEqual(chain, null)))
+                {
+                    continue;
+                }
                 object chainSplit = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 object networkId = this.safeValue(chainSplit, 1);
                 object withdrawFee = this.safeNumber(feeInfo, "minFee");

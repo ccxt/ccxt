@@ -1455,7 +1455,26 @@ class coinlist extends coinlist$1 {
         await this.loadMarkets();
         params = ids;
         const response = await this.privateDeleteV1OrdersBulk(params);
-        return response;
+        //
+        //    {
+        //        "message": "Cancel order requests received.",
+        //        "order_ids": [
+        //            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        //        ],
+        //        "timestamp": "2024-06-01T02:32:30.305Z"
+        //    }
+        //
+        const orderIds = this.safeList(response, 'order_ids', []);
+        const orders = [];
+        const datetime = this.safeString(response, 'timestamp');
+        for (let i = 0; i < orderIds.length; i++) {
+            orders.push(this.safeOrder({
+                'info': orderIds[i],
+                'id': orderIds[i],
+                'lastUpdateTimestamp': this.parse8601(datetime),
+            }));
+        }
+        return orders;
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -1467,7 +1486,7 @@ class coinlist extends coinlist$1 {
          * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default false)
          * @param {float} [params.triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the price at which an order is triggered)
@@ -1544,7 +1563,7 @@ class coinlist extends coinlist$1 {
          * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1729,10 +1748,9 @@ class coinlist extends coinlist$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         const request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
         };
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromAcc = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2066,11 +2084,11 @@ class coinlist extends coinlist$1 {
         /**
          * @method
          * @name coinlist#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return (default 200, max 500)
+         * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -2254,8 +2272,9 @@ class coinlist extends coinlist$1 {
         }
         const currencyId = this.safeString(item, 'asset');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': id,
             'timestamp': timestamp,
@@ -2271,7 +2290,7 @@ class coinlist extends coinlist$1 {
             'after': undefined,
             'status': 'ok',
             'fee': undefined,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const types = {
@@ -2286,17 +2305,20 @@ class coinlist extends coinlist$1 {
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;
-        const query = this.urlencode(request);
+        const isBulk = Array.isArray(params);
+        let query = undefined;
+        if (!isBulk) {
+            query = this.urlencode(request);
+        }
         if (api === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.seconds().toString();
             let auth = timestamp + method + endpoint;
-            const isBulk = Array.isArray(params);
             if ((method === 'POST') || (method === 'PATCH') || isBulk) {
                 body = this.json(request);
                 auth += body;
             }
-            else if (query.length !== 0) {
+            else if (query !== undefined && query.length !== 0) {
                 auth += '?' + query;
                 url += '?' + query;
             }
@@ -2308,7 +2330,7 @@ class coinlist extends coinlist$1 {
                 'Content-Type': 'application/json',
             };
         }
-        else if (query.length !== 0) {
+        else if (query !== undefined && query.length !== 0) {
             url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

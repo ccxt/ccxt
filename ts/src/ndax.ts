@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -86,6 +86,7 @@ export default class ndax extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -294,7 +295,7 @@ export default class ndax extends Exchange {
         if (this.login === undefined || this.password === undefined) {
             throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password');
         }
-        let request = {
+        let request: Dict = {
             'grant_type': 'client_credentials', // the only supported value
         };
         const response = await this.publicGetAuthenticate (this.extend (request, params));
@@ -346,7 +347,7 @@ export default class ndax extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
         };
         const response = await this.publicGetGetProducts (this.extend (request, params));
@@ -366,7 +367,7 @@ export default class ndax extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'ProductId');
@@ -417,7 +418,7 @@ export default class ndax extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
         };
         const response = await this.publicGetGetInstruments (this.extend (request, params));
@@ -470,7 +471,7 @@ export default class ndax extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'InstrumentId');
         // const lowercaseId = this.safeStringLower (market, 'symbol');
         const baseId = this.safeString (market, 'Product1');
@@ -533,7 +534,7 @@ export default class ndax extends Exchange {
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
         let nonce = undefined;
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'bids': [],
             'asks': [],
@@ -583,7 +584,7 @@ export default class ndax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         limit = (limit === undefined) ? 100 : limit; // default 100
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
             'Depth': limit, // default 100
@@ -614,7 +615,7 @@ export default class ndax extends Exchange {
         return this.parseOrderBook (response, symbol);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -694,7 +695,7 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
         };
@@ -772,7 +773,7 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
             'Interval': this.safeString (this.timeframes, timeframe, timeframe),
@@ -803,7 +804,7 @@ export default class ndax extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -985,7 +986,7 @@ export default class ndax extends Exchange {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'InstrumentId': market['id'],
         };
@@ -1017,7 +1018,7 @@ export default class ndax extends Exchange {
         }
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         this.checkRequiredCredentials ();
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'UserId': this.uid,
             'UserName': this.login,
@@ -1040,7 +1041,7 @@ export default class ndax extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1074,7 +1075,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -1114,7 +1115,7 @@ export default class ndax extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'Trade': 'trade',
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -1132,7 +1133,7 @@ export default class ndax extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "TransactionId": 2663709493,
@@ -1150,6 +1151,7 @@ export default class ndax extends Exchange {
         //     }
         //
         const currencyId = this.safeString (item, 'ProductId');
+        currency = this.safeCurrency (currencyId, currency);
         const credit = this.safeString (item, 'CR');
         const debit = this.safeString (item, 'DR');
         let amount = undefined;
@@ -1169,7 +1171,7 @@ export default class ndax extends Exchange {
             before = Precise.stringMax ('0', Precise.stringSub (after, amount));
         }
         const timestamp = this.safeInteger (item, 'TimeStamp');
-        return {
+        return this.safeLedgerEntry ({
             'info': item,
             'id': this.safeString (item, 'TransactionId'),
             'direction': direction,
@@ -1185,18 +1187,18 @@ export default class ndax extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
-        };
+        }, currency) as LedgerEntry;
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name ndax#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://apidoc.ndax.io/#getaccounttransactions
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -1206,7 +1208,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -1239,8 +1241,8 @@ export default class ndax extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'Accepted': 'open',
             'Rejected': 'rejected',
             'Working': 'open',
@@ -1251,7 +1253,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1356,7 +1358,7 @@ export default class ndax extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1379,7 +1381,7 @@ export default class ndax extends Exchange {
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
-        const request = {
+        const request: Dict = {
             'InstrumentId': parseInt (market['id']),
             'omsId': omsId,
             'AccountId': accountId,
@@ -1428,7 +1430,7 @@ export default class ndax extends Exchange {
         params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
-        const request = {
+        const request: Dict = {
             'OrderIdToReplace': parseInt (id),
             'InstrumentId': parseInt (market['id']),
             'omsId': omsId,
@@ -1484,7 +1486,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             // 'InstrumentId': market['id'],
@@ -1571,7 +1573,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -1588,7 +1590,11 @@ export default class ndax extends Exchange {
         //         "detail":null
         //     }
         //
-        return response;
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1612,7 +1618,7 @@ export default class ndax extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             // 'AccountId': accountId,
         };
@@ -1653,7 +1659,7 @@ export default class ndax extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -1729,7 +1735,7 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             // 'ClientOrderId': clientOrderId,
@@ -1827,7 +1833,7 @@ export default class ndax extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'OrderId': parseInt (id),
@@ -1907,7 +1913,7 @@ export default class ndax extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'OMSId': this.parseToInt (omsId),
             // 'AccountId': accountId,
             'OrderId': parseInt (id),
@@ -1984,7 +1990,7 @@ export default class ndax extends Exchange {
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
@@ -2051,7 +2057,7 @@ export default class ndax extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        const request = {
+        const request: Dict = {
             'GenerateNewKey': true,
         };
         return await this.fetchDepositAddress (code, this.extend (request, params));
@@ -2079,7 +2085,7 @@ export default class ndax extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -2140,7 +2146,7 @@ export default class ndax extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = {
+        const request: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
         };
@@ -2173,7 +2179,7 @@ export default class ndax extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 'New': 'pending', // new ticket awaiting operator review
                 'AdminProcessing': 'pending', // an admin is looking at the ticket
@@ -2221,7 +2227,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2349,7 +2355,7 @@ export default class ndax extends Exchange {
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
         const currency = this.currency (code);
-        const withdrawTemplateTypesRequest = {
+        const withdrawTemplateTypesRequest: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
@@ -2373,7 +2379,7 @@ export default class ndax extends Exchange {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
         }
         const templateName = this.safeString (firstTemplateType, 'TemplateName');
-        const withdrawTemplateRequest = {
+        const withdrawTemplateRequest: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
@@ -2400,14 +2406,14 @@ export default class ndax extends Exchange {
                 withdrawTemplate['Memo'] = tag;
             }
         }
-        const withdrawPayload = {
+        const withdrawPayload: Dict = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
             'TemplateForm': this.json (withdrawTemplate),
             'TemplateType': templateName,
         };
-        const withdrawRequest = {
+        const withdrawRequest: Dict = {
             'TfaType': 'Google',
             'TFaCode': totp (this.twofa),
             'Payload': this.json (withdrawPayload),
@@ -2474,7 +2480,7 @@ export default class ndax extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (code === 404) {
             throw new AuthenticationError (this.id + ' ' + body);
         }

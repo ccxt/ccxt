@@ -508,9 +508,15 @@
         ],
         "fetchTickers": [
             {
-                "description": "spot tickers",
+                "description": "default",
                 "method": "fetchTickers",
-                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products",
+                "input": []
+            },
+            {
+                "description": "spot markets",
+                "method": "fetchTickers",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_ids=BTC-USDT&product_ids=ETH-USDT&product_type=SPOT",
                 "input": [
                     [
                         "BTC/USDT",
@@ -519,14 +525,25 @@
                 ]
             },
             {
-                "description": "spot tickers",
+                "description": "spot marketType",
                 "method": "fetchTickers",
-                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_ids=BTC-USDT&product_ids=ETH-USDT",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_type=SPOT",
                 "input": [
-                    [
-                        "BTC/USDT",
-                        "ETH/USDT"
-                    ]
+                  null,
+                  {
+                    "defaultType": "spot"
+                  }
+                ]
+            },
+            {
+                "description": "swap marketType",
+                "method": "fetchTickers",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products?product_type=FUTURE",
+                "input": [
+                  null,
+                  {
+                    "defaultType": "swap"
+                  }
                 ]
             }
         ],
@@ -574,6 +591,32 @@
                     "portfolio": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f"
                   }
                 ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "spot trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://api.coinbase.com/api/v3/brokerage/transaction_summary?product_type=SPOT",
+                "input": []
+            },
+            {
+                "description": "swap trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://api.coinbase.com/api/v3/brokerage/transaction_summary?product_type=FUTURE",
+                "input": [
+                  {
+                    "type": "swap"
+                  }
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.coinbase.com/api/v3/brokerage/accounts?limit=250",
+                "input": []
             }
         ]
     }

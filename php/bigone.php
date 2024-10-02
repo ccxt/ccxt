@@ -16,7 +16,7 @@ class bigone extends Exchange {
             'name' => 'BigONE',
             'countries' => array( 'CN' ),
             'version' => 'v3',
-            'rateLimit' => 1200, // 500 request per 10 minutes
+            'rateLimit' => 20, // 500 requests per 10 seconds
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -154,7 +154,7 @@ class bigone extends Exchange {
                 ),
                 'webExchange' => array(
                     'get' => array(
-                        'uc/v2/assets',
+                        'v3/assets',
                     ),
                 ),
             ),
@@ -334,7 +334,7 @@ class bigone extends Exchange {
          * @return {dict} an associative dictionary of currencies
          */
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
-        $data = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetUcV2Assets', true);
+        $data = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if ($data === null) {
             return null;
         }
@@ -343,92 +343,41 @@ class bigone extends Exchange {
         //     "code" => "0",
         //     "message" => "",
         //     "data" => array(
-        //       array(
-        //         "name" => "TetherUS",
-        //         "symbol" => "USDT",
-        //         "contract_address" => "31",
-        //         "is_deposit_enabled" => true,
-        //         "is_withdrawal_enabled" => true,
-        //         "is_stub" => false,
-        //         "withdrawal_fee" => "5.0",
-        //         "is_fiat" => false,
-        //         "is_memo_required" => false,
-        //         "logo" => array(
-        //           "default" => "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-        //           "white" => "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        //       {
+        //             "uuid" => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        //             "symbol" => "USDT",
+        //             "name" => "TetherUS",
+        //             "scale" => 12,
+        //             "is_fiat" => false,
+        //             "is_transfer_enabled" => true,
+        //             "transfer_scale" => 12,
+        //             "binding_gateways" => array(
+        //                 array(
+        //                     "guid" => "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        //                     "is_deposit_enabled" => true,
+        //                     "gateway_name" => "Ethereum",
+        //                     "min_withdrawal_amount" => "0.000001",
+        //                     "withdrawal_fee" => "5.71",
+        //                     "is_withdrawal_enabled" => true,
+        //                     "min_deposit_amount" => "0.000001",
+        //                     "is_memo_required" => false,
+        //                     "withdrawal_scale" => 6,
+        //                     "scale" => 12
+        //                 ),
+        //                 array(
+        //                     "guid" => "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+        //                     "is_deposit_enabled" => true,
+        //                     "gateway_name" => "BinanceSmartChain",
+        //                     "min_withdrawal_amount" => "10",
+        //                     "withdrawal_fee" => "5",
+        //                     "is_withdrawal_enabled" => false,
+        //                     "min_deposit_amount" => "1",
+        //                     "is_memo_required" => false,
+        //                     "withdrawal_scale" => 8,
+        //                     "scale" => 12
+        //                 }
+        //             )
         //         ),
-        //         "info_link" => null,
-        //         "scale" => "12",
-        //         "default_gateway" => ..., // one object from "gateways"
-        //         "gateways" => array(
-        //           array(
-        //             "uuid" => "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-        //             "name" => "Mixin",
-        //             "kind" => "CHAIN",
-        //             "required_confirmations" => "0",
-        //           ),
-        //           array(
-        //             "uuid" => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //             "name" => "Ethereum",
-        //             "kind" => "CHAIN",
-        //             "required_confirmations" => "18",
-        //           ),
-        //           array(
-        //             "uuid" => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //             "name" => "Tron",
-        //             "kind" => "CHAIN",
-        //             "required_confirmations" => "1",
-        //           ),
-        //          ...
-        //         ),
-        //         "payments" => array(),
-        //         "uuid" => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-        //         "binding_gateways" => array(
-        //           array(
-        //             "guid" => "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-        //             "contract_address" => "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        //             "is_deposit_enabled" => true,
-        //             "display_name" => "Ethereum(ERC20)",
-        //             "gateway_name" => "Ethereum",
-        //             "min_withdrawal_amount" => "0.000001",
-        //             "min_internal_withdrawal_amount" => "0.00000001",
-        //             "withdrawal_fee" => "14",
-        //             "is_withdrawal_enabled" => true,
-        //             "min_deposit_amount" => "0.000001",
-        //             "is_memo_required" => false,
-        //             "withdrawal_scale" => "2",
-        //             "gateway" => array(
-        //               "uuid" => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //               "name" => "Ethereum",
-        //               "kind" => "CHAIN",
-        //               "required_confirmations" => "18",
-        //             ),
-        //             "scale" => "12",
-        //          ),
-        //          array(
-        //             "guid" => "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-        //             "contract_address" => "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-        //             "is_deposit_enabled" => true,
-        //             "display_name" => "Tron(TRC20)",
-        //             "gateway_name" => "Tron",
-        //             "min_withdrawal_amount" => "0.000001",
-        //             "min_internal_withdrawal_amount" => "0.00000001",
-        //             "withdrawal_fee" => "1",
-        //             "is_withdrawal_enabled" => true,
-        //             "min_deposit_amount" => "0.000001",
-        //             "is_memo_required" => false,
-        //             "withdrawal_scale" => "6",
-        //             "gateway" => array(
-        //               "uuid" => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //               "name" => "Tron",
-        //               "kind" => "CHAIN",
-        //               "required_confirmations" => "1",
-        //             ),
-        //             "scale" => "12",
-        //           ),
-        //           ...
-        //         ),
-        //       ),
         //       ...
         //     ),
         // }
@@ -696,7 +645,7 @@ class bigone extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // spot
         //
@@ -789,7 +738,7 @@ class bigone extends Exchange {
             $request = array(
                 'asset_pair_name' => $market['id'],
             );
-            $response = $this->publicGetAssetPairsAssetPairNameTicker (array_merge($request, $params));
+            $response = $this->publicGetAssetPairsAssetPairNameTicker ($this->extend($request, $params));
             //
             //     {
             //         "code":0,
@@ -839,7 +788,7 @@ class bigone extends Exchange {
                 $ids = $this->market_ids($symbols);
                 $request['pair_names'] = implode(',', $ids);
             }
-            $response = $this->publicGetAssetPairsTickers (array_merge($request, $params));
+            $response = $this->publicGetAssetPairsTickers ($this->extend($request, $params));
             //
             //    {
             //        "code" => 0,
@@ -936,7 +885,7 @@ class bigone extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = $this->contractPublicGetDepthSymbolSnapshot (array_merge($request, $params));
+            $response = $this->contractPublicGetDepthSymbolSnapshot ($this->extend($request, $params));
             //
             //    {
             //        bids => array(
@@ -972,7 +921,7 @@ class bigone extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 50, max 200
             }
-            $response = $this->publicGetAssetPairsAssetPairNameDepth (array_merge($request, $params));
+            $response = $this->publicGetAssetPairsAssetPairNameDepth ($this->extend($request, $params));
             //
             //     {
             //         "code":0,
@@ -1018,7 +967,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1171,7 +1120,7 @@ class bigone extends Exchange {
         $request = array(
             'asset_pair_name' => $market['id'],
         );
-        $response = $this->publicGetAssetPairsAssetPairNameTrades (array_merge($request, $params));
+        $response = $this->publicGetAssetPairsAssetPairNameTrades ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1248,7 +1197,7 @@ class bigone extends Exchange {
             $end = $this->sum($since, $limit * $duration * 1000);
             $request['time'] = $this->iso8601($end);
         }
-        $response = $this->publicGetAssetPairsAssetPairNameCandles (array_merge($request, $params));
+        $response = $this->publicGetAssetPairsAssetPairNameCandles ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1335,7 +1284,7 @@ class bigone extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "id" => "42154072251",
@@ -1437,7 +1386,7 @@ class bigone extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger $order is triggered at
          * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately
@@ -1518,7 +1467,7 @@ class bigone extends Exchange {
             $request['client_order_id'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ));
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        $response = $this->privatePostOrders ($this->extend($request, $params));
         //
         //    {
         //        "id" => 10,
@@ -1548,7 +1497,7 @@ class bigone extends Exchange {
          */
         $this->load_markets();
         $request = array( 'id' => $id );
-        $response = $this->privatePostOrdersIdCancel (array_merge($request, $params));
+        $response = $this->privatePostOrdersIdCancel ($this->extend($request, $params));
         //    {
         //        "id" => 10,
         //        "asset_pair_name" => "EOS-BTC",
@@ -1569,7 +1518,7 @@ class bigone extends Exchange {
         /**
          * cancel all open orders
          * @see https://open.big.one/docs/spot_orders.html#cancel-all-orders
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are $cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -1578,7 +1527,7 @@ class bigone extends Exchange {
         $request = array(
             'asset_pair_name' => $market['id'],
         );
-        $response = $this->privatePostOrdersCancel (array_merge($request, $params));
+        $response = $this->privatePostOrdersCancel ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -1591,20 +1540,41 @@ class bigone extends Exchange {
         //         }
         //     }
         //
-        return $response;
+        $data = $this->safe_dict($response, 'data', array());
+        $cancelled = $this->safe_list($data, 'cancelled', array());
+        $failed = $this->safe_list($data, 'failed', array());
+        $result = array();
+        for ($i = 0; $i < count($cancelled); $i++) {
+            $orderId = $cancelled[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $orderId,
+                'id' => $orderId,
+                'status' => 'canceled',
+            ));
+        }
+        for ($i = 0; $i < count($failed); $i++) {
+            $orderId = $failed[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $orderId,
+                'id' => $orderId,
+                'status' => 'failed',
+            ));
+        }
+        return $result;
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
          * @see https://open.big.one/docs/spot_orders.html#get-one-$order
+         * @param {string} $id the $order $id
          * @param {string} $symbol not used by bigone fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $request = array( 'id' => $id );
-        $response = $this->privateGetOrdersId (array_merge($request, $params));
+        $response = $this->privateGetOrdersId ($this->extend($request, $params));
         $order = $this->safe_dict($response, 'data', array());
         return $this->parse_order($order);
     }
@@ -1634,7 +1604,7 @@ class bigone extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 20, max 200
         }
-        $response = $this->privateGetOrders (array_merge($request, $params));
+        $response = $this->privateGetOrders ($this->extend($request, $params));
         //
         //    {
         //        "code":0,
@@ -1681,7 +1651,7 @@ class bigone extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 20, max 200
         }
-        $response = $this->privateGetTrades (array_merge($request, $params));
+        $response = $this->privateGetTrades ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -1720,7 +1690,7 @@ class bigone extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'PENDING' => 'open',
             'FILLED' => 'closed',
@@ -1742,7 +1712,7 @@ class bigone extends Exchange {
         $request = array(
             'state' => 'PENDING',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1758,7 +1728,7 @@ class bigone extends Exchange {
         $request = array(
             'state' => 'FILLED',
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function nonce() {
@@ -1813,7 +1783,7 @@ class bigone extends Exchange {
             'asset_symbol' => $currency['id'],
         );
         list($networkCode, $paramsOmitted) = $this->handle_network_code_and_params($params);
-        $response = $this->privateGetAssetsAssetSymbolAddress (array_merge($request, $paramsOmitted));
+        $response = $this->privateGetAssetsAssetSymbolAddress ($this->extend($request, $paramsOmitted));
         //
         // the actual $response format is not the same documented one
         // the $data key contains an array in the actual $response
@@ -1851,7 +1821,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             // what are other $statuses here?
             'WITHHOLD' => 'ok', // deposits
@@ -1863,7 +1833,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1976,7 +1946,7 @@ class bigone extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 50
         }
-        $response = $this->privateGetDeposits (array_merge($request, $params));
+        $response = $this->privateGetDeposits ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -2027,7 +1997,7 @@ class bigone extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 50
         }
-        $response = $this->privateGetWithdrawals (array_merge($request, $params));
+        $response = $this->privateGetWithdrawals ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -2079,7 +2049,7 @@ class bigone extends Exchange {
             // 'type' => type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
             // 'sub_acccunt' => '', // when type is NORMAL, it should be empty, and when type is others it is required
         );
-        $response = $this->privatePostTransfer (array_merge($request, $params));
+        $response = $this->privatePostTransfer ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -2098,14 +2068,14 @@ class bigone extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "code" => 0,
         //         "data" => null
         //     }
         //
-        $code = $this->safe_number($transfer, 'code');
+        $code = $this->safe_string($transfer, 'code');
         return array(
             'info' => $transfer,
             'id' => null,
@@ -2119,7 +2089,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '0' => 'ok',
         );
@@ -2154,7 +2124,7 @@ class bigone extends Exchange {
             $request['gateway_name'] = $this->network_code_to_id($networkCode);
         }
         // requires write permission on the wallet
-        $response = $this->privatePostWithdrawals (array_merge($request, $params));
+        $response = $this->privatePostWithdrawals ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -2180,7 +2150,7 @@ class bigone extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

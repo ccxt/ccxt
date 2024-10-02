@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/probit.js';
-import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, MarketClosed, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
@@ -89,6 +89,7 @@ export default class probit extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -181,7 +182,7 @@ export default class probit extends Exchange {
                     'RATE_LIMIT_EXCEEDED': RateLimitExceeded,
                     'MARKET_UNAVAILABLE': ExchangeNotAvailable,
                     'INVALID_MARKET': BadSymbol,
-                    'MARKET_CLOSED': BadSymbol,
+                    'MARKET_CLOSED': MarketClosed,
                     'MARKET_NOT_FOUND': BadSymbol,
                     'INVALID_CURRENCY': BadRequest,
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection,
@@ -207,41 +208,22 @@ export default class probit extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'AUTO': 'Cube',
-                'AZU': 'Azultec',
-                'BCC': 'BCC',
-                'BDP': 'BidiPass',
-                'BIRD': 'Birdchain',
-                'BTCBEAR': 'BEAR',
-                'BTCBULL': 'BULL',
+                'BB': 'Baby Bali',
                 'CBC': 'CryptoBharatCoin',
-                'CHE': 'Chellit',
-                'CLR': 'Color Platform',
                 'CTK': 'Cryptyk',
                 'CTT': 'Castweet',
-                'DIP': 'Dipper',
                 'DKT': 'DAKOTA',
                 'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',
                 'FX': 'Fanzy',
-                'GDT': 'Gorilla Diamond',
                 'GM': 'GM Holding',
                 'GOGOL': 'GOL',
                 'GOL': 'Goldofir',
-                'GRB': 'Global Reward Bank',
-                'HBC': 'Hybrid Bank Cash',
                 'HUSL': 'The Hustle App',
                 'LAND': 'Landbox',
-                'LBK': 'Legal Block',
-                'ORC': 'Oracle System',
-                'PXP': 'PIXSHOP COIN',
-                'PYE': 'CreamPYE',
-                'ROOK': 'Reckoon',
-                'SOC': 'Soda Coin',
                 'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
                 'TOR': 'Torex',
-                'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
                 'UNISWAP': 'UNI',
             },
@@ -1094,6 +1076,7 @@ export default class probit extends Exchange {
          * @name probit#fetchOrder
          * @see https://docs-en.probit.com/reference/order-3
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1205,7 +1188,7 @@ export default class probit extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1857,11 +1840,16 @@ export default class probit extends Exchange {
         }
         if ('errorCode' in response) {
             const errorCode = this.safeString(response, 'errorCode');
-            const message = this.safeString(response, 'message');
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-                this.throwBroadlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                const errMessage = this.safeString(response, 'message', '');
+                const details = this.safeValue(response, 'details');
+                const feedback = this.id + ' ' + errorCode + ' ' + errMessage + ' ' + this.json(details);
+                if ('exact' in this.exceptions) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                }
+                if ('broad' in this.exceptions) {
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], errMessage, feedback);
+                }
                 throw new ExchangeError(feedback);
             }
         }

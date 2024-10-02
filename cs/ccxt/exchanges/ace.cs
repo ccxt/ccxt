@@ -181,10 +181,23 @@ public partial class ace : Exchange
 
     public override object parseMarket(object market)
     {
-        object baseId = this.safeString(market, "base");
-        object bs = this.safeCurrencyCode(baseId);
-        object quoteId = this.safeString(market, "quote");
-        object quote = this.safeCurrencyCode(quoteId);
+        //
+        //     {
+        //         "symbol": "ADA/TWD",
+        //         "base": "ADA",
+        //         "baseCurrencyId": "122",
+        //         "quote": "TWD",
+        //         "quoteCurrencyId": "1",
+        //         "basePrecision": "2",
+        //         "quotePrecision": "3",
+        //         "minLimitBaseAmount": "1.0",
+        //         "maxLimitBaseAmount": "150000.0"
+        //     }
+        //
+        object baseId = this.safeString(market, "baseCurrencyId");
+        object bs = this.safeCurrencyCode(this.safeString(market, "base"));
+        object quoteId = this.safeString(market, "quoteCurrencyId");
+        object quote = this.safeCurrencyCode(this.safeString(market, "quote"));
         object symbol = add(add(bs, "/"), quote);
         return new Dictionary<string, object>() {
             { "id", this.safeString(market, "symbol") },
@@ -288,8 +301,8 @@ public partial class ace : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object response = await this.publicGetOapiV2ListTradePrice(parameters);
-        object marketId = getValue(market, "id");
-        object ticker = this.safeValue(response, marketId, new Dictionary<string, object>() {});
+        object marketId = ((string)getValue(market, "id"));
+        object ticker = this.safeDict(response, marketId, new Dictionary<string, object>() {});
         //
         //     {
         //         "BTC/USDT":{
@@ -331,7 +344,7 @@ public partial class ace : Exchange
         {
             object marketId = getValue(pairs, i);
             object market = this.safeMarket(marketId);
-            object rawTicker = this.safeValue(response, marketId);
+            object rawTicker = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             object ticker = this.parseTicker(rawTicker, market);
             ((IList<object>)tickers).Add(ticker);
         }
@@ -460,7 +473,7 @@ public partial class ace : Exchange
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
         object response = await this.privatePostV2KlineGetKline(this.extend(request, parameters));
-        object data = this.safeValue(response, "attachment", new List<object>() {});
+        object data = this.safeList(response, "attachment", new List<object>() {});
         //
         //     {
         //         "attachment":[
@@ -549,10 +562,10 @@ public partial class ace : Exchange
                     timestamp = subtract(timestamp, 28800000); // 8 hours
                 }
             }
-            object orderSide = this.safeNumber(order, "buyOrSell");
+            object orderSide = this.safeString(order, "buyOrSell");
             if (isTrue(!isEqual(orderSide, null)))
             {
-                side = ((bool) isTrue((isEqual(orderSide, 1)))) ? "buy" : "sell";
+                side = ((bool) isTrue((isEqual(orderSide, "1")))) ? "buy" : "sell";
             }
             amount = this.safeString(order, "num");
             price = this.safeString(order, "price");
@@ -562,10 +575,10 @@ public partial class ace : Exchange
             {
                 symbol = add(add(baseId, "/"), quoteId);
             }
-            object orderType = this.safeNumber(order, "type");
+            object orderType = this.safeString(order, "type");
             if (isTrue(!isEqual(orderType, null)))
             {
-                type = ((bool) isTrue((isEqual(orderType, 1)))) ? "limit" : "market";
+                type = ((bool) isTrue((isEqual(orderType, "1")))) ? "limit" : "market";
             }
             filled = this.safeString(order, "tradeNum");
             remaining = this.safeString(order, "remainNum");
@@ -608,7 +621,7 @@ public partial class ace : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -677,6 +690,7 @@ public partial class ace : Exchange
         * @name ace#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -742,7 +756,7 @@ public partial class ace : Exchange
             ((IDictionary<string,object>)request)["size"] = limit;
         }
         object response = await this.privatePostV2OrderGetOrderList(this.extend(request, parameters));
-        object orders = this.safeValue(response, "attachment");
+        object orders = this.safeList(response, "attachment");
         //
         //     {
         //         "attachment": [
@@ -914,7 +928,7 @@ public partial class ace : Exchange
         //         "status": 200
         //     }
         //
-        object data = this.safeValue(response, "attachment");
+        object data = this.safeDict(response, "attachment");
         object trades = this.safeList(data, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
@@ -1025,7 +1039,7 @@ public partial class ace : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostV2CoinCustomerAccount(parameters);
-        object balances = this.safeValue(response, "attachment", new List<object>() {});
+        object balances = this.safeList(response, "attachment", new List<object>() {});
         //
         //     {
         //         "attachment":[
@@ -1063,15 +1077,18 @@ public partial class ace : Exchange
             object auth = add("ACE_SIGN", this.secret);
             object data = this.extend(new Dictionary<string, object>() {
                 { "apiKey", this.apiKey },
-                { "timeStamp", nonce },
+                { "timeStamp", this.numberToString(nonce) },
             }, parameters);
-            object dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
-            object sortedDataKeys = this.sortBy(dataKeys, 0, false, "");
-            for (object i = 0; isLessThan(i, getArrayLength(sortedDataKeys)); postFixIncrement(ref i))
+            object sortedData = this.keysort(data);
+            object values = new List<object>(((IDictionary<string,object>)sortedData).Values);
+            object stringifiedValues = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
             {
-                object key = getValue(sortedDataKeys, i);
-                auth = add(auth, this.safeString(data, key));
+                object value = getValue(values, i);
+                object strValue = ((object)value).ToString();
+                ((IList<object>)stringifiedValues).Add(strValue);
             }
+            auth = add(auth, String.Join("", ((IList<object>)stringifiedValues).ToArray()));
             object signature = this.hash(this.encode(auth), sha256, "hex");
             ((IDictionary<string,object>)data)["signKey"] = signature;
             headers = new Dictionary<string, object>() {

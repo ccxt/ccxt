@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -193,7 +193,7 @@ export default class bitteam extends Exchange {
                     'maker': this.parseNumber('0.002'),
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
                 'networksById': {
@@ -354,8 +354,6 @@ export default class bitteam extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const active = this.safeValue(market, 'active');
-        const amountPrecision = this.safeInteger(market, 'baseStep');
-        const pricePrecision = this.safeInteger(market, 'quoteStep');
         const timeStart = this.safeString(market, 'timeStart');
         const created = this.parse8601(timeStart);
         let minCost = undefined;
@@ -391,8 +389,8 @@ export default class bitteam extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': pricePrecision,
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseStep'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quoteStep'))),
             },
             'limits': {
                 'leverage': {
@@ -548,7 +546,7 @@ export default class bitteam extends Exchange {
             const numericId = this.safeInteger(currency, 'id');
             const code = this.safeCurrencyCode(id);
             const active = this.safeBool(currency, 'active', false);
-            const precision = this.safeInteger(currency, 'precision');
+            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision')));
             const txLimits = this.safeValue(currency, 'txLimits', {});
             const minWithdraw = this.safeString(txLimits, 'minWithdraw');
             const maxWithdraw = this.safeString(txLimits, 'maxWithdraw');
@@ -570,7 +568,7 @@ export default class bitteam extends Exchange {
             const withdraw = this.safeValue(statuses, 'withdrawStatus');
             const networkIds = Object.keys(feesByNetworkId);
             const networks = {};
-            const networkPrecision = this.safeInteger(currency, 'decimals');
+            const networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
             for (let j = 0; j < networkIds.length; j++) {
                 const networkId = networkIds[j];
                 const networkCode = this.networkIdToCode(networkId, code);
@@ -986,7 +984,7 @@ export default class bitteam extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -1942,7 +1940,6 @@ export default class bitteam extends Exchange {
         const fee = {
             'currency': this.safeCurrencyCode(feeCurrencyId),
             'cost': feeCost,
-            'rate': undefined,
         };
         const intTs = this.parseToInt(timestamp);
         return this.safeTrade({

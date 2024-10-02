@@ -18,6 +18,7 @@ export default class blockchaincom extends blockchaincomRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -698,8 +699,8 @@ export default class blockchaincom extends blockchaincomRest {
             orderbook.reset(snapshot);
         }
         else if (event === 'updated') {
-            const asks = this.safeValue(message, 'asks', []);
-            const bids = this.safeValue(message, 'bids', []);
+            const asks = this.safeList(message, 'asks', []);
+            const bids = this.safeList(message, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;

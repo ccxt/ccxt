@@ -94,6 +94,7 @@ export default class hitbtc extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -618,6 +619,7 @@ export default class hitbtc extends Exchange {
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
+                    'swap': 'derivatives',
                     'future': 'derivatives',
                 },
                 'withdraw': {
@@ -853,8 +855,8 @@ export default class hitbtc extends Exchange {
                 const network = this.safeNetwork(networkId);
                 fee = this.safeNumber(rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber(rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeBool(entry, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeBool(entry, 'payout_enabled', false);
+                const payinEnabledNetwork = this.safeBool(rawNetwork, 'payin_enabled', false);
+                const payoutEnabledNetwork = this.safeBool(rawNetwork, 'payout_enabled', false);
                 const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
                 if (payinEnabledNetwork && !depositEnabled) {
                     depositEnabled = true;
@@ -1416,8 +1418,10 @@ export default class hitbtc extends Exchange {
     }
     parseTransactionStatus(status) {
         const statuses = {
+            'CREATED': 'pending',
             'PENDING': 'pending',
             'FAILED': 'failed',
+            'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
         return this.safeString(statuses, status, status);
@@ -2290,7 +2294,7 @@ export default class hitbtc extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [params.margin] true for creating a margin order
@@ -2524,7 +2528,7 @@ export default class hitbtc extends Exchange {
     async fetchMarginModes(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name hitbtc#fetchMarginMode
+         * @name hitbtc#fetchMarginModes
          * @description fetches margin mode of the user
          * @see https://api.hitbtc.com/#get-margin-position-parameters
          * @see https://api.hitbtc.com/#get-futures-position-parameters
@@ -2737,7 +2741,7 @@ export default class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#futures-info
          * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -3233,6 +3237,7 @@ export default class hitbtc extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
