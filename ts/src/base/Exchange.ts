@@ -2872,8 +2872,9 @@ export default class Exchange {
     }
 
     isSpotMargin (params, methodName, market): boolean {
-        // this method should be used in the first lines of any method, before other "this.handleX" methods are applied to `params`
-        // and we shuoldnt make any "omit" here
+        // this method should be used in the top of unified methods, before using "this.handleX" methods
+        // because we need to have access to the `params` data before omitting
+        // also, we should not make any "omit" in this method
         const margin = this.safeBool (params, 'margin'); // support unified param
         if (margin !== undefined) {
             return margin;
