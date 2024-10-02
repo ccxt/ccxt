@@ -1,6 +1,6 @@
 "use strict";
 
-const ccxt = require ('../../ccxt.js')
+const ccxt = require ('../../js/ccxt.js')
 
 console.log ('CCXT Version:', ccxt.version)
 
@@ -24,8 +24,10 @@ async function fetchAllBalances (exchange) {
 
 async function main () {
     const exchange = new ccxt.coinbase ({
-        apiKey: 'YOUR_API_KEY',
-        secret: 'YOUR_API_SECRET',
+        // Value is the "name" field in the api_key.json file Coinbase will offer for download
+        apiKey: 'organizations/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/apiKeys/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        // This is the "privateKey" field in that JSON file
+        secret: '-----BEGIN EC PRIVATE KEY-----\nxxx...xxx==\n-----END EC PRIVATE KEY-----',
     })
     const markets = await exchange.loadMarkets ()
     // coinbase.verbose = true // uncomment for debugging purposes if necessary

@@ -16,7 +16,12 @@ import Client from '../base/ws/Client.js';
 
 export default class binance extends binanceRest {
     describe () {
-        return this.deepExtend (super.describe (), {
+        const superDescribe = super.describe ();
+        return this.deepExtend (superDescribe, this.describeData ());
+    }
+
+    describeData () {
+        return {
             'has': {
                 'ws': true,
                 'watchBalance': true,
@@ -158,7 +163,7 @@ export default class binance extends binanceRest {
                     'bookTicker': 'bookTicker',
                 },
             },
-        });
+        };
     }
 
     requestId (url) {
@@ -2664,14 +2669,14 @@ export default class binance extends binanceRest {
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
-        let urlType = type;
-        if (isPortfolioMargin) {
-            urlType = 'papi';
-        }
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
+        }
+        let urlType = type;
+        if (isPortfolioMargin) {
+            urlType = 'papi';
         }
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);

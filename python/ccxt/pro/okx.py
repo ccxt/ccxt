@@ -1340,8 +1340,10 @@ class okx(ccxt.async_support.okx):
                     },
                 ],
             }
-            message = self.extend(request, params)
-            self.watch(url, messageHash, message, messageHash)
+            # Only add params['access'] to prevent sending custom parameters, such.
+            if 'access' in params:
+                request['access'] = params['access']
+            self.watch(url, messageHash, request, messageHash)
         return await future
 
     async def watch_balance(self, params={}) -> Balances:
@@ -1499,7 +1501,7 @@ class okx(ccxt.async_support.okx):
                 'channel': 'positions',
                 'instType': 'ANY',
             }
-            args = [arg]
+            args = [self.extend(arg, params)]
             nonSymbolRequest: dict = {
                 'op': 'subscribe',
                 'args': args,
@@ -1811,7 +1813,13 @@ class okx(ccxt.async_support.okx):
         tradeSymbols = list(symbols.keys())
         for i in range(0, len(tradeSymbols)):
             symbolMessageHash = messageHash + '::' + tradeSymbols[i]
-            client.resolve(self.orders, symbolMessageHash)
+            client.resolve(self.myTrades, symbolMessageHash)
+
+    def request_id(self):
+        ts = str(self.milliseconds())
+        randomNumber = self.rand_number(4)
+        randomPart = str(randomNumber)
+        return ts + randomPart
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
@@ -1829,7 +1837,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         op = None
         op, params = self.handle_option_and_params(params, 'createOrderWs', 'op', 'batch-orders')
         args = self.create_order_request(symbol, type, side, amount, price, params)
@@ -1894,7 +1902,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         op = None
         op, params = self.handle_option_and_params(params, 'editOrderWs', 'op', 'amend-order')
         args = self.edit_order_request(id, symbol, type, side, amount, price, params)
@@ -1920,7 +1928,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         params = self.omit(params, ['clientOrderId', 'clOrdId'])
         arg: dict = {
@@ -1954,7 +1962,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         args = []
         for i in range(0, idsLength):
             arg: dict = {
@@ -1985,7 +1993,7 @@ class okx(ccxt.async_support.okx):
         if market['type'] != 'option':
             raise BadRequest(self.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
         url = self.get_url('private', 'private')
-        messageHash = str(self.milliseconds())
+        messageHash = self.request_id()
         request: dict = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -2047,10 +2055,21 @@ class okx(ccxt.async_support.okx):
         try:
             if errorCode and errorCode != '0':
                 feedback = self.id + ' ' + self.json(message)
-                self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                if errorCode != '1':
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 messageString = self.safe_value(message, 'msg')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+                else:
+                    data = self.safe_list(message, 'data', [])
+                    for i in range(0, len(data)):
+                        d = data[i]
+                        errorCode = self.safe_string(d, 'sCode')
+                        if errorCode is not None:
+                            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                        messageString = self.safe_value(message, 'sMsg')
+                        if messageString is not None:
+                            self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
                 raise ExchangeError(feedback)
         except Exception as e:
             # if the message contains an id, it means it is a response to a request

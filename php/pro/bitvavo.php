@@ -23,6 +23,8 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'watchOrderBook' => true,
                 'watchTrades' => true,
                 'watchTicker' => true,
+                'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchOHLCV' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
@@ -87,15 +89,58 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
+    public function watch_public_multiple($methodName, string $channelName, $symbols, $params = array ()) {
+        return Async\async(function () use ($methodName, $channelName, $symbols, $params) {
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $messageHashes = array( $methodName );
+            $args = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $args[] = $market['id'];
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'action' => 'subscribe',
+                'channels' => array(
+                    array(
+                        'name' => $channelName,
+                        'markets' => $args,
+                    ),
+                ),
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+        }) ();
+    }
+
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public('ticker24h', $symbol, $params));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $channel = 'ticker24h';
+            $tickers = Async\await($this->watch_public_multiple($channel, $channel, $symbols, $params));
+            return $this->filter_by_array($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -121,8 +166,10 @@ class bitvavo extends \ccxt\async\bitvavo {
         //         )
         //     }
         //
+        $this->handle_bid_ask($client, $message);
         $event = $this->safe_string($message, 'event');
         $tickers = $this->safe_value($message, 'data', array());
+        $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $data = $tickers[$i];
             $marketId = $this->safe_string($data, 'market');
@@ -131,9 +178,60 @@ class bitvavo extends \ccxt\async\bitvavo {
             $ticker = $this->parse_ticker($data, $market);
             $symbol = $ticker['symbol'];
             $this->tickers[$symbol] = $ticker;
+            $result[] = $ticker;
             $client->resolve ($ticker, $messageHash);
         }
-        return $message;
+        $client->resolve ($result, $event);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches best bid & ask for $symbols
+             * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $channel = 'ticker24h';
+            $tickers = Async\await($this->watch_public_multiple('bidask', $channel, $symbols, $params));
+            return $this->filter_by_array($tickers, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        $event = 'bidask';
+        $tickers = $this->safe_value($message, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $data = $tickers[$i];
+            $ticker = $this->parse_ws_bid_ask($data);
+            $symbol = $ticker['symbol'];
+            $this->bidsasks[$symbol] = $ticker;
+            $result[] = $ticker;
+            $messageHash = $event . ':' . $symbol;
+            $client->resolve ($ticker, $messageHash);
+        }
+        $client->resolve ($result, $event);
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'market');
+        $market = $this->safe_market($marketId, null, '-');
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'askVolume' => $this->safe_number($ticker, 'askSize'),
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume' => $this->safe_number($ticker, 'bidSize'),
+            'info' => $ticker,
+        ), $market);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {

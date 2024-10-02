@@ -18,7 +18,7 @@ class exmo extends \ccxt\async\exmo {
                 'ws' => true,
                 'watchBalance' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchMyTrades' => true,
                 'watchOrders' => false, // TODO
@@ -210,6 +210,7 @@ class exmo extends \ccxt\async\exmo {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -228,6 +229,36 @@ class exmo extends \ccxt\async\exmo {
             );
             $request = $this->deep_extend($message, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $messageHashes = array();
+            $args = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $messageHashes[] = 'ticker:' . $market['symbol'];
+                $args[] = 'spot/ticker:' . $market['id'];
+            }
+            $url = $this->urls['api']['ws']['public'];
+            $message = array(
+                'method' => 'subscribe',
+                'topics' => $args,
+                'id' => $this->request_id(),
+            );
+            $request = $this->deep_extend($message, $params);
+            Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, $request));
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 

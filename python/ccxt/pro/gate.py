@@ -332,7 +332,7 @@ class gate(ccxt.async_support.gate):
             symbol = market['symbol']
             if market['swap'] is not True:
                 raise NotSupported(self.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets')
-        request, requestParams = self.fetchOrdersByStatusRequest(status, symbol, since, limit, params)
+        request, requestParams = self.prepareOrdersByStatusRequest(status, symbol, since, limit, params)
         newRequest = self.omit(request, ['settle'])
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_list'

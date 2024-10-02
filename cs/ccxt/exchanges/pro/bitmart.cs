@@ -22,6 +22,7 @@ public partial class bitmart : ccxt.bitmart
                 { "watchBalance", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
@@ -385,6 +386,7 @@ public partial class bitmart : ccxt.bitmart
         /**
         * @method
         * @name bitmart#watchTickers
+        * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -406,6 +408,99 @@ public partial class bitmart : ccxt.bitmart
             return tickers;
         }
         return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmart#watchBidsAsks
+        * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object firstMarket = this.getMarketFromSymbols(symbols);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), marketType), "public"));
+        object channelType = ((bool) isTrue((isEqual(marketType, "spot")))) ? "spot" : "futures";
+        object actionType = ((bool) isTrue((isEqual(marketType, "spot")))) ? "op" : "action";
+        object rawSubscriptions = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)rawSubscriptions).Add(add(add(channelType, "/ticker:"), getValue(market, "id")));
+            ((IList<object>)messageHashes).Add(add("bidask:", getValue(symbols, i)));
+        }
+        if (isTrue(!isEqual(marketType, "spot")))
+        {
+            rawSubscriptions = new List<object>() {add(channelType, "/ticker")};
+        }
+        object request = new Dictionary<string, object>() {
+            { "args", rawSubscriptions },
+        };
+        ((IDictionary<string,object>)request)[(string)actionType] = "subscribe";
+        object newTickers = await this.watchMultiple(url, messageHashes, request, rawSubscriptions);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        object table = this.safeString(message, "table");
+        object isSpot = (!isEqual(table, null));
+        object rawTickers = new List<object>() {};
+        if (isTrue(isSpot))
+        {
+            rawTickers = this.safeList(message, "data", new List<object>() {});
+        } else
+        {
+            rawTickers = new List<object> {this.safeValue(message, "data", new Dictionary<string, object>() {})};
+        }
+        if (!isTrue(getArrayLength(rawTickers)))
+        {
+            return;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
+        {
+            object ticker = this.parseWsBidAsk(getValue(rawTickers, i));
+            object symbol = getValue(ticker, "symbol");
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            object messageHash = add("bidask:", symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        }
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "ms_t");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString2(ticker, "ask_px", "ask_price") },
+            { "askVolume", this.safeString2(ticker, "ask_sz", "ask_vol") },
+            { "bid", this.safeString2(ticker, "bid_px", "bid_price") },
+            { "bidVolume", this.safeString2(ticker, "bid_sz", "bid_vol") },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1038,6 +1133,7 @@ public partial class bitmart : ccxt.bitmart
         //            }
         //    }
         //
+        this.handleBidAsk(client as WebSocketClient, message);
         object table = this.safeString(message, "table");
         object isSpot = (!isEqual(table, null));
         object rawTickers = new List<object>() {};

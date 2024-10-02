@@ -70,9 +70,10 @@ export default class kucoinfutures extends kucoin {
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -96,7 +97,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchTransactionFee': false,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'transfer': true,
                 'withdraw': undefined,
             },
@@ -173,12 +174,15 @@ export default class kucoinfutures extends kucoin {
                         'trade-fees': 1,
                         'history-positions': 1,
                         'getMaxOpenSize': 1,
+                        'getCrossUserLeverage': 1,
+                        'position/getMarginMode': 1,
                     },
                     'post': {
                         'withdrawals': 1,
                         'transfer-out': 1,
                         'transfer-in': 1,
                         'orders': 1.33,
+                        'st-orders': 1.33,
                         'orders/test': 1.33,
                         'position/margin/auto-deposit-status': 1,
                         'position/margin/deposit-margin': 1,
@@ -186,6 +190,8 @@ export default class kucoinfutures extends kucoin {
                         'bullet-private': 1,
                         'sub/api-key': 1,
                         'sub/api-key/update': 1,
+                        'changeCrossUserLeverage': 1,
+                        'position/changeMarginMode': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -320,9 +326,13 @@ export default class kucoinfutures extends kucoin {
                     'futuresPrivate': {
                         'GET': {
                             'getMaxOpenSize': 'v2',
+                            'getCrossUserLeverage': 'v2',
+                            'position/getMarginMode': 'v2',
                         },
                         'POST': {
                             'transfer-out': 'v2',
+                            'changeCrossUserLeverage': 'v2',
+                            'position/changeMarginMode': 'v2',
                         },
                     },
                     'futuresPublic': {
@@ -2194,7 +2204,18 @@ export default class kucoinfutures extends kucoin {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(this.safeString(data, 'granularity')),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     parseBalance(response) {
         const result = {
@@ -2879,6 +2900,156 @@ export default class kucoinfutures extends kucoin {
             'taker': this.safeNumber(first, 'takerFeeRate'),
             'percentage': true,
             'tierBased': true,
+        };
+    }
+    async fetchMarginMode(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchMarginMode
+         * @description fetches the margin mode of a trading pair
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
+         * @param {string} symbol unified symbol of the market to fetch the margin mode for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPrivateGetPositionGetMarginMode(this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "symbol": "XBTUSDTM",
+        //             "marginMode": "ISOLATED"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseMarginMode(data, market);
+    }
+    parseMarginMode(marginMode, market = undefined) {
+        let marginType = this.safeString(marginMode, 'marginMode');
+        marginType = (marginType === 'ISOLATED') ? 'isolated' : 'cross';
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        };
+    }
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
+        this.checkRequiredArgument('setMarginMode', marginMode, 'marginMode', ['cross', 'isolated']);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'marginMode': marginMode.toUpperCase(),
+        };
+        const response = await this.futuresPrivatePostPositionChangeMarginMode(this.extend(request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "marginMode": "ISOLATED"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseMarginMode(data, market);
+    }
+    async fetchLeverage(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams(symbol, params);
+        if (marginMode !== 'cross') {
+            throw new NotSupported(this.id + ' fetchLeverage() currently supports only params["marginMode"] = "cross"');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPrivateGetGetCrossUserLeverage(this.extend(request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "leverage": "3"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const parsed = this.parseLeverage(data, market);
+        return this.extend(parsed, {
+            'marginMode': marginMode,
+        });
+    }
+    async setLeverage(leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams(symbol, params);
+        if (marginMode !== 'cross') {
+            throw new NotSupported(this.id + ' setLeverage() currently supports only params["marginMode"] = "cross"');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage.toString(),
+        };
+        const response = await this.futuresPrivatePostChangeCrossUserLeverage(this.extend(request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": true
+        //    }
+        //
+        return this.parseLeverage(response, market);
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const leverageNum = this.safeInteger(leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageNum,
+            'shortLeverage': leverageNum,
         };
     }
 }

@@ -24,6 +24,7 @@ class whitebit extends \ccxt\async\whitebit {
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
             ),
@@ -266,6 +267,37 @@ class whitebit extends \ccxt\async\whitebit {
             $messageHash = 'ticker:' . $symbol;
             // every time we want to subscribe to another $market we have to "re-subscribe" sending it all again
             return Async\await($this->watch_multiple_subscription($messageHash, $method, $symbol, false, $params));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://docs.whitebit.com/public/websocket/#$market-statistics
+             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $method = 'market_subscribe';
+            $url = $this->urls['api']['ws'];
+            $id = $this->nonce();
+            $messageHashes = array();
+            $args = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $messageHashes[] = 'ticker:' . $market['symbol'];
+                $args[] = $market['id'];
+            }
+            $request = array(
+                'id' => $id,
+                'method' => $method,
+                'params' => $args,
+            );
+            Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 

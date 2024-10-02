@@ -270,6 +270,7 @@ export interface FundingRate {
     previousFundingTimestamp?: number;
     previousFundingDatetime?: string;
     previousFundingRate?: number;
+    interval?: string;
 }
 export interface FundingRates extends Dictionary<FundingRate> {
 }
@@ -324,8 +325,8 @@ export interface LeverageTier {
     info: any;
 }
 export interface LedgerEntry {
-    id?: Str;
     info: any;
+    id?: Str;
     timestamp?: number;
     datetime?: Str;
     direction?: Str;

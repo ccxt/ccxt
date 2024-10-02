@@ -24,6 +24,7 @@ class blofin extends \ccxt\async\blofin {
                 'watchOrderBookForSymbols' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchOHLCV' => true,
                 'watchOHLCVForSymbols' => true,
                 'watchOrders' => true,
@@ -287,6 +288,7 @@ class blofin extends \ccxt\async\blofin {
         //         ),
         //     }
         //
+        $this->handle_bid_ask($client, $message);
         $arg = $this->safe_dict($message, 'arg');
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
@@ -301,6 +303,71 @@ class blofin extends \ccxt\async\blofin {
 
     public function parse_ws_ticker($ticker, ?array $market = null): array {
         return $this->parse_ticker($ticker, $market);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches best bid & ask for $symbols
+             * @see https://docs.blofin.com/index.html#ws-$tickers-$channel
+             * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $firstMarket = $this->market($symbols[0]);
+            $channel = 'tickers';
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
+            $url = $this->implode_hostname($this->urls['api']['ws'][$marketType]['public']);
+            $messageHashes = array();
+            $args = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $messageHashes[] = 'bidask:' . $market['symbol'];
+                $args[] = array(
+                    'channel' => $channel,
+                    'instId' => $market['id'],
+                );
+            }
+            $request = $this->get_subscription_request($args);
+            $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$ticker['symbol']] = $ticker;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        $data = $this->safe_list($message, 'data');
+        for ($i = 0; $i < count($data); $i++) {
+            $ticker = $this->parse_ws_bid_ask($data[$i]);
+            $symbol = $ticker['symbol'];
+            $messageHash = 'bidask:' . $symbol;
+            $this->bidsasks[$symbol] = $ticker;
+            $client->resolve ($ticker, $messageHash);
+        }
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'instId');
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 'ts');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string($ticker, 'askPrice'),
+            'askVolume' => $this->safe_string($ticker, 'askSize'),
+            'bid' => $this->safe_string($ticker, 'bidPrice'),
+            'bidVolume' => $this->safe_string($ticker, 'bidSize'),
+            'info' => $ticker,
+        ), $market);
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {

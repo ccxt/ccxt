@@ -18,6 +18,7 @@ public partial class blofin : ccxt.blofin
                 { "watchOrderBookForSymbols", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchOHLCV", true },
                 { "watchOHLCVForSymbols", true },
                 { "watchOrders", true },
@@ -310,6 +311,7 @@ public partial class blofin : ccxt.blofin
         //         ],
         //     }
         //
+        this.handleBidAsk(client as WebSocketClient, message);
         object arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
         object data = this.safeList(message, "data");
@@ -326,6 +328,80 @@ public partial class blofin : ccxt.blofin
     public virtual object parseWsTicker(object ticker, object market = null)
     {
         return this.parseTicker(ticker, market);
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name blofin#watchBidsAsks
+        * @description watches best bid & ask for symbols
+        * @see https://docs.blofin.com/index.html#ws-tickers-channel
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object firstMarket = this.market(getValue(symbols, 0));
+        object channel = "tickers";
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), marketType), "public"));
+        object messageHashes = new List<object>() {};
+        object args = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)messageHashes).Add(add("bidask:", getValue(market, "symbol")));
+            ((IList<object>)args).Add(new Dictionary<string, object>() {
+                { "channel", channel },
+                { "instId", getValue(market, "id") },
+            });
+        }
+        object request = this.getSubscriptionRequest(args);
+        object ticker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        object data = this.safeList(message, "data");
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object ticker = this.parseWsBidAsk(getValue(data, i));
+            object symbol = getValue(ticker, "symbol");
+            object messageHash = add("bidask:", symbol);
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        }
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "instId");
+        market = this.safeMarket(marketId, market, "-");
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "ts");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "askPrice") },
+            { "askVolume", this.safeString(ticker, "askSize") },
+            { "bid", this.safeString(ticker, "bidPrice") },
+            { "bidVolume", this.safeString(ticker, "bidSize") },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)

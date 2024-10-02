@@ -5,7 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, LeverageTier, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -80,9 +80,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
+                'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchMarginAdjustmentHistory': False,
-                'fetchMarginMode': False,
+                'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -106,7 +107,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchTransactionFee': False,
                 'fetchWithdrawals': True,
                 'setLeverage': False,
-                'setMarginMode': False,
+                'setMarginMode': True,
                 'transfer': True,
                 'withdraw': None,
             },
@@ -183,12 +184,15 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'trade-fees': 1,
                         'history-positions': 1,
                         'getMaxOpenSize': 1,
+                        'getCrossUserLeverage': 1,
+                        'position/getMarginMode': 1,
                     },
                     'post': {
                         'withdrawals': 1,
                         'transfer-out': 1,  # v2
                         'transfer-in': 1,
                         'orders': 1.33,
+                        'st-orders': 1.33,
                         'orders/test': 1.33,
                         'position/margin/auto-deposit-status': 1,
                         'position/margin/deposit-margin': 1,
@@ -196,6 +200,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'bullet-private': 1,
                         'sub/api-key': 1,
                         'sub/api-key/update': 1,
+                        'changeCrossUserLeverage': 1,
+                        'position/changeMarginMode': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -330,9 +336,13 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     'futuresPrivate': {
                         'GET': {
                             'getMaxOpenSize': 'v2',
+                            'getCrossUserLeverage': 'v2',
+                            'position/getMarginMode': 'v2',
                         },
                         'POST': {
                             'transfer-out': 'v2',
+                            'changeCrossUserLeverage': 'v2',
+                            'position/changeMarginMode': 'v2',
                         },
                     },
                     'futuresPublic': {
@@ -2036,7 +2046,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
@@ -2083,7 +2093,18 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': self.parse_funding_interval(self.safe_string(data, 'granularity')),
         }
+
+    def parse_funding_interval(self, interval):
+        intervals: dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        }
+        return self.safe_string(intervals, interval, interval)
 
     def parse_balance(self, response) -> Balances:
         result: dict = {
@@ -2720,4 +2741,143 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'taker': self.safe_number(first, 'takerFeeRate'),
             'percentage': True,
             'tierBased': True,
+        }
+
+    def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of a trading pair
+        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
+        :param str symbol: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.futuresPrivateGetPositionGetMarginMode(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "symbol": "XBTUSDTM",
+        #             "marginMode": "ISOLATED"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+        marginType = self.safe_string(marginMode, 'marginMode')
+        marginType = 'isolated' if (marginType == 'ISOLATED') else 'cross'
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        }
+
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_argument('setMarginMode', marginMode, 'marginMode', ['cross', 'isolated'])
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+            'marginMode': marginMode.upper(),
+        }
+        response = self.futuresPrivatePostPositionChangeMarginMode(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "symbol": "XBTUSDTM",
+        #            "marginMode": "ISOLATED"
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_margin_mode(data, market)
+
+    def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+        """
+        fetch the set leverage for a market
+        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        """
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params(symbol, params)
+        if marginMode != 'cross':
+            raise NotSupported(self.id + ' fetchLeverage() currently supports only params["marginMode"] = "cross"')
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.futuresPrivateGetGetCrossUserLeverage(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "symbol": "XBTUSDTM",
+        #            "leverage": "3"
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        parsed = self.parse_leverage(data, market)
+        return self.extend(parsed, {
+            'marginMode': marginMode,
+        })
+
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+        """
+        set the level of leverage for a market
+        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-leverage
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params(symbol, params)
+        if marginMode != 'cross':
+            raise NotSupported(self.id + ' setLeverage() currently supports only params["marginMode"] = "cross"')
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+            'leverage': str(leverage),
+        }
+        response = self.futuresPrivatePostChangeCrossUserLeverage(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": True
+        #    }
+        #
+        return self.parse_leverage(response, market)
+
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        marketId = self.safe_string(leverage, 'symbol')
+        market = self.safe_market(marketId, market)
+        leverageNum = self.safe_integer(leverage, 'leverage')
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': None,
+            'longLeverage': leverageNum,
+            'shortLeverage': leverageNum,
         }

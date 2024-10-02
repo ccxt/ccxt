@@ -1019,5 +1019,89 @@
         "maker": 0.0001,
         "feeSide": "get",
         "created": 1628726400000
+    },
+    "LTC/USD:LTC": {
+        "id": "LTCUSD",
+        "symbol": "LTC/USD:LTC",
+        "base": "LTC",
+        "quote": "USD",
+        "settle": "LTC",
+        "baseId": "LTC",
+        "quoteId": "USD",
+        "settleId": "LTC",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0006,
+        "maker": 0.0001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": 1,
+                "max": 150000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 19999.98
+            },
+            "cost": {}
+        },
+        "marginModes": {},
+        "created": 1648684800000,
+        "info": {
+            "symbol": "LTCUSD",
+            "contractType": "InversePerpetual",
+            "status": "Trading",
+            "baseCoin": "LTC",
+            "quoteCoin": "USD",
+            "launchTime": "1648684800000",
+            "deliveryTime": "0",
+            "deliveryFeeRate": "",
+            "priceScale": "2",
+            "leverageFilter": {
+                "minLeverage": "1",
+                "maxLeverage": "50.00",
+                "leverageStep": "0.01"
+            },
+            "priceFilter": {
+                "minPrice": "0.01",
+                "maxPrice": "19999.98",
+                "tickSize": "0.01"
+            },
+            "lotSizeFilter": {
+                "maxOrderQty": "150000",
+                "minOrderQty": "1",
+                "qtyStep": "1",
+                "postOnlyMaxOrderQty": "150000",
+                "maxMktOrderQty": "150000",
+                "minNotionalValue": ""
+            },
+            "unifiedMarginTrade": true,
+            "fundingInterval": "480",
+            "settleCoin": "LTC",
+            "copyTrading": "none",
+            "upperFundingRate": "0.0075",
+            "lowerFundingRate": "-0.0075",
+            "isPreListing": false,
+            "preListingInfo": null
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     }
 }

@@ -21,6 +21,7 @@ export default class blofin extends blofinRest {
                 'watchOrderBookForSymbols': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
                 'watchOrders': true,
@@ -273,6 +274,7 @@ export default class blofin extends blofinRest {
         //         ],
         //     }
         //
+        this.handleBidAsk(client, message);
         const arg = this.safeDict(message, 'arg');
         const channelName = this.safeString(arg, 'channel');
         const data = this.safeList(message, 'data');
@@ -286,6 +288,68 @@ export default class blofin extends blofinRest {
     }
     parseWsTicker(ticker, market = undefined) {
         return this.parseTicker(ticker, market);
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name blofin#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://docs.blofin.com/index.html#ws-tickers-channel
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const firstMarket = this.market(symbols[0]);
+        const channel = 'tickers';
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
+        const url = this.implodeHostname(this.urls['api']['ws'][marketType]['public']);
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            messageHashes.push('bidask:' + market['symbol']);
+            args.push({
+                'channel': channel,
+                'instId': market['id'],
+            });
+        }
+        const request = this.getSubscriptionRequest(args);
+        const ticker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    handleBidAsk(client, message) {
+        const data = this.safeList(message, 'data');
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseWsBidAsk(data[i]);
+            const symbol = ticker['symbol'];
+            const messageHash = 'bidask:' + symbol;
+            this.bidsasks[symbol] = ticker;
+            client.resolve(ticker, messageHash);
+        }
+    }
+    parseWsBidAsk(ticker, market = undefined) {
+        const marketId = this.safeString(ticker, 'instId');
+        market = this.safeMarket(marketId, market, '-');
+        const symbol = this.safeString(market, 'symbol');
+        const timestamp = this.safeInteger(ticker, 'ts');
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeString(ticker, 'askPrice'),
+            'askVolume': this.safeString(ticker, 'askSize'),
+            'bid': this.safeString(ticker, 'bidPrice'),
+            'bidVolume': this.safeString(ticker, 'bidSize'),
+            'info': ticker,
+        }, market);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**

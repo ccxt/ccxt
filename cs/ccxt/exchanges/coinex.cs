@@ -3679,6 +3679,9 @@ public partial class coinex : Exchange
         //
         object currentFundingTimestamp = this.safeInteger(contract, "latest_funding_time");
         object futureFundingTimestamp = this.safeInteger(contract, "next_funding_time");
+        object fundingTimeString = this.safeString(contract, "latest_funding_time");
+        object nextFundingTimeString = this.safeString(contract, "next_funding_time");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         object marketId = this.safeString(contract, "market");
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -3698,7 +3701,20 @@ public partial class coinex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
@@ -3706,7 +3722,7 @@ public partial class coinex : Exchange
         /**
         * @method
         * @name coinex#fetchFundingRates
-        * @description fetch the current funding rates
+        * @description fetch the current funding rates for multiple markets
         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         * @param {string[]} symbols unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint

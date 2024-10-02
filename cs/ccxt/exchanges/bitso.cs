@@ -143,10 +143,10 @@ public partial class bitso : Exchange
         /**
         * @method
         * @name bitso#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -261,6 +261,7 @@ public partial class bitso : Exchange
         object amount = this.safeString(firstBalance, "amount");
         object currencyId = this.safeString(firstBalance, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object details = this.safeValue(item, "details", new Dictionary<string, object>() {});
         object referenceId = this.safeString2(details, "fid", "wid");
         if (isTrue(isEqual(referenceId, null)))
@@ -287,6 +288,7 @@ public partial class bitso : Exchange
         }
         object timestamp = this.parse8601(this.safeString(item, "created_at"));
         return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "eid") },
             { "direction", direction },
             { "account", null },
@@ -301,7 +303,6 @@ public partial class bitso : Exchange
             { "after", null },
             { "status", "ok" },
             { "fee", fee },
-            { "info", item },
         }, currency);
     }
 

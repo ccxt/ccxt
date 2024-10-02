@@ -14,7 +14,7 @@ class phemex extends phemex$1 {
             'has': {
                 'ws': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchMyTrades': true,
                 'watchOrders': true,
@@ -522,6 +522,50 @@ class phemex extends phemex$1 {
         };
         const request = this.deepExtend(subscribe, params);
         return await this.watch(url, messageHash, request, subscriptionHash);
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#watchTickers
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-24-hours-ticker
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-24-hours-ticker
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-24-hours-ticker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const first = symbols[0];
+        const market = this.market(first);
+        const isSwap = market['swap'];
+        const settleIsUSDT = market['settle'] === 'USDT';
+        let name = 'spot_market24h';
+        if (isSwap) {
+            name = settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
+        }
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId();
+        const subscriptionHash = name + '.subscribe';
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            messageHashes.push('ticker:' + symbols[i]);
+        }
+        const subscribe = {
+            'method': subscriptionHash,
+            'id': requestId,
+            'params': [],
+        };
+        const request = this.deepExtend(subscribe, params);
+        const ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        if (this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**

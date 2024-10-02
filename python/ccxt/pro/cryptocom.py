@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from typing import Any
@@ -24,7 +24,8 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'ws': True,
                 'watchBalance': True,
                 'watchTicker': True,
-                'watchTickers': False,
+                'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchMyTrades': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
@@ -443,39 +444,197 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = 'unsubscribe:ticker:' + market['symbol']
         return await self.un_watch_public_multiple('ticker', [market['symbol']], [messageHash], [subMessageHash], [subMessageHash], params)
 
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        messageHashes = []
+        marketIds = self.market_ids(symbols)
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            messageHashes.append('ticker.' + marketId)
+        url = self.urls['api']['ws']['public']
+        id = self.nonce()
+        request: dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': messageHashes,
+            },
+            'nonce': id,
+        }
+        ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        if self.newUpdates:
+            result: dict = {}
+            result[ticker['symbol']] = ticker
+            return result
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches a price ticker
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        messageHashes = []
+        subMessageHashes = []
+        marketIds = self.market_ids(symbols)
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            symbol = symbols[i]
+            subMessageHashes.append('ticker.' + marketId)
+            messageHashes.append('unsubscribe:ticker:' + symbol)
+        return await self.un_watch_public_multiple('ticker', symbols, messageHashes, subMessageHashes, subMessageHashes, params)
+
     def handle_ticker(self, client: Client, message):
         #
-        # {
-        #     "info":{
-        #        "instrument_name":"BTC_USDT",
-        #        "subscription":"ticker.BTC_USDT",
-        #        "channel":"ticker",
-        #        "data":[
-        #           {
-        #              "i":"BTC_USDT",
-        #              "b":43063.19,
-        #              "k":43063.2,
-        #              "a":43063.19,
-        #              "t":1648121165658,
-        #              "v":43573.912409,
-        #              "h":43498.51,
-        #              "l":41876.58,
-        #              "c":1087.43
-        #           }
-        #        ]
+        #     {
+        #       "instrument_name": "ETHUSD-PERP",
+        #       "subscription": "ticker.ETHUSD-PERP",
+        #       "channel": "ticker",
+        #       "data": [
+        #         {
+        #           "h": "2400.20",
+        #           "l": "2277.10",
+        #           "a": "2335.25",
+        #           "c": "-0.0022",
+        #           "b": "2335.10",
+        #           "bs": "5.4000",
+        #           "k": "2335.16",
+        #           "ks": "1.9970",
+        #           "i": "ETHUSD-PERP",
+        #           "v": "1305697.6462",
+        #           "vv": "3058704939.17",
+        #           "oi": "161646.3614",
+        #           "t": 1726069647560
+        #         }
+        #       ]
         #     }
-        #  }
         #
+        self.handle_bid_ask(client, message)
         messageHash = self.safe_string(message, 'subscription')
         marketId = self.safe_string(message, 'instrument_name')
         market = self.safe_market(marketId)
         data = self.safe_value(message, 'data', [])
         for i in range(0, len(data)):
             ticker = data[i]
-            parsed = self.parse_ticker(ticker, market)
+            parsed = self.parse_ws_ticker(ticker, market)
             symbol = parsed['symbol']
             self.tickers[symbol] = parsed
             client.resolve(parsed, messageHash)
+
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #       "h": "2400.20",
+        #       "l": "2277.10",
+        #       "a": "2335.25",
+        #       "c": "-0.0022",
+        #       "b": "2335.10",
+        #       "bs": "5.4000",
+        #       "k": "2335.16",
+        #       "ks": "1.9970",
+        #       "i": "ETHUSD-PERP",
+        #       "v": "1305697.6462",
+        #       "vv": "3058704939.17",
+        #       "oi": "161646.3614",
+        #       "t": 1726069647560
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 't')
+        marketId = self.safe_string(ticker, 'i')
+        market = self.safe_market(marketId, market, '_')
+        quote = self.safe_string(market, 'quote')
+        last = self.safe_string(ticker, 'a')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_number(ticker, 'h'),
+            'low': self.safe_number(ticker, 'l'),
+            'bid': self.safe_number(ticker, 'b'),
+            'bidVolume': self.safe_number(ticker, 'bs'),
+            'ask': self.safe_number(ticker, 'k'),
+            'askVolume': self.safe_number(ticker, 'ks'),
+            'vwap': None,
+            'open': None,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': self.safe_string(ticker, 'c'),
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 'v'),
+            'quoteVolume': self.safe_string(ticker, 'vv') if (quote == 'USD') else None,
+            'info': ticker,
+        }, market)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        messageHashes = []
+        topics = []
+        marketIds = self.market_ids(symbols)
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            messageHashes.append('bidask.' + symbols[i])
+            topics.append('ticker.' + marketId)
+        url = self.urls['api']['ws']['public']
+        id = self.nonce()
+        request: dict = {
+            'method': 'subscribe',
+            'params': {
+                'channels': topics,
+            },
+            'nonce': id,
+        }
+        newTickers = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        if self.newUpdates:
+            tickers: dict = {}
+            tickers[newTickers['symbol']] = newTickers
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        data = self.safe_list(message, 'data', [])
+        ticker = self.safe_dict(data, 0, {})
+        parsedTicker = self.parse_ws_bid_ask(ticker)
+        symbol = parsedTicker['symbol']
+        self.bidsasks[symbol] = parsedTicker
+        messageHash = 'bidask.' + symbol
+        client.resolve(parsedTicker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'i')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 't')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(ticker, 'k'),
+            'askVolume': self.safe_string(ticker, 'ks'),
+            'bid': self.safe_string(ticker, 'b'),
+            'bidVolume': self.safe_string(ticker, 'bs'),
+            'info': ticker,
+        }, market)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """

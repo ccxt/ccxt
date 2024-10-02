@@ -20,6 +20,7 @@ class kraken extends kraken$1 {
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'createOrderWs': true,
@@ -495,6 +496,64 @@ class kraken extends kraken$1 {
             return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchBidsAsks
+         * @see https://docs.kraken.com/api/docs/websocket-v1/spread
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const ticker = await this.watchMultiHelper('bidask', 'spread', symbols, undefined, params);
+        if (this.newUpdates) {
+            const result = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    handleBidAsk(client, message, subscription) {
+        //
+        //     [
+        //         7208974, // channelID
+        //         [
+        //             "63758.60000", // bid
+        //             "63759.10000", // ask
+        //             "1726814731.089778", // timestamp
+        //             "0.00057917", // bid_volume
+        //             "0.15681688" // ask_volume
+        //         ],
+        //         "spread",
+        //         "XBT/USDT"
+        //     ]
+        //
+        const parsedTicker = this.parseWsBidAsk(message);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = this.getMessageHash('bidask', undefined, symbol);
+        client.resolve(parsedTicker, messageHash);
+    }
+    parseWsBidAsk(ticker, market = undefined) {
+        const data = this.safeList(ticker, 1, []);
+        const marketId = this.safeString(ticker, 3);
+        market = this.safeValue(this.options['marketsByWsName'], marketId);
+        const symbol = this.safeString(market, 'symbol');
+        const timestamp = this.parseToInt(this.safeInteger(data, 2)) * 1000;
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeString(data, 1),
+            'askVolume': this.safeString(data, 4),
+            'bid': this.safeString(data, 0),
+            'bidVolume': this.safeString(data, 3),
+            'info': ticker,
+        }, market);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1490,6 +1549,7 @@ class kraken extends kraken$1 {
                 'book': this.handleOrderBook,
                 'ohlc': this.handleOHLCV,
                 'ticker': this.handleTicker,
+                'spread': this.handleBidAsk,
                 'trade': this.handleTrades,
                 // private
                 'openOrders': this.handleOrders,

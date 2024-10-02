@@ -4573,6 +4573,9 @@ export default class coinex extends Exchange {
         //
         const currentFundingTimestamp = this.safeInteger(contract, 'latest_funding_time');
         const futureFundingTimestamp = this.safeInteger(contract, 'next_funding_time');
+        const fundingTimeString = this.safeString(contract, 'latest_funding_time');
+        const nextFundingTimeString = this.safeString(contract, 'next_funding_time');
+        const millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         const marketId = this.safeString(contract, 'market');
         return {
             'info': contract,
@@ -4592,13 +4595,24 @@ export default class coinex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(millisecondsInterval),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchFundingRates
-         * @description fetch the current funding rates
+         * @description fetch the current funding rates for multiple markets
          * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint

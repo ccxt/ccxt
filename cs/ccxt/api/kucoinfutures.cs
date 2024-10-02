@@ -971,6 +971,16 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("futuresPrivateGetGetMaxOpenSize",parameters);
     }
 
+    public async Task<object> futuresPrivateGetGetCrossUserLeverage (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivateGetGetCrossUserLeverage",parameters);
+    }
+
+    public async Task<object> futuresPrivateGetPositionGetMarginMode (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivateGetPositionGetMarginMode",parameters);
+    }
+
     public async Task<object> futuresPrivatePostTransferOut (object parameters = null)
     {
         return await this.callAsync ("futuresPrivatePostTransferOut",parameters);
@@ -1026,6 +1036,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("futuresPrivatePostWithdrawals",parameters);
     }
 
+    public async Task<object> futuresPrivatePostStOrders (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivatePostStOrders",parameters);
+    }
+
     public async Task<object> futuresPrivatePostSubApiKey (object parameters = null)
     {
         return await this.callAsync ("futuresPrivatePostSubApiKey",parameters);
@@ -1034,6 +1049,16 @@ public partial class kucoinfutures : kucoin
     public async Task<object> futuresPrivatePostSubApiKeyUpdate (object parameters = null)
     {
         return await this.callAsync ("futuresPrivatePostSubApiKeyUpdate",parameters);
+    }
+
+    public async Task<object> futuresPrivatePostChangeCrossUserLeverage (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivatePostChangeCrossUserLeverage",parameters);
+    }
+
+    public async Task<object> futuresPrivatePostPositionChangeMarginMode (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivatePostPositionChangeMarginMode",parameters);
     }
 
     public async Task<object> futuresPrivateDeleteOrdersOrderId (object parameters = null)

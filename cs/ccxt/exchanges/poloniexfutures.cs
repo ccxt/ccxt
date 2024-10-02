@@ -1762,7 +1762,20 @@ public partial class poloniexfutures : Exchange
             { "previousFundingRate", this.safeNumber(data, "value") },
             { "previousFundingTimestamp", fundingTimestamp },
             { "previousFundingDatetime", this.iso8601(fundingTimestamp) },
+            { "interval", this.parseFundingInterval(this.safeString(data, "interval")) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)

@@ -279,7 +279,7 @@ class testMainClass(baseMainTestClass):
                     else:
                         # wait and retry again
                         # (increase wait time on every retry)
-                        exchange.sleep(i * 1000)
+                        exchange.sleep((i + 1) * 1000)
                         continue
                 else:
                     # if it's loadMarkets, then fail test, because it's mandatory for tests

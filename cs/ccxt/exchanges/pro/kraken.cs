@@ -20,6 +20,7 @@ public partial class kraken : ccxt.kraken
                 { "watchOrders", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "createOrderWs", true },
@@ -531,6 +532,72 @@ public partial class kraken : ccxt.kraken
             return result;
         }
         return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kraken#watchBidsAsks
+        * @see https://docs.kraken.com/api/docs/websocket-v1/spread
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object ticker = await this.watchMultiHelper("bidask", "spread", symbols, null, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message, object subscription)
+    {
+        //
+        //     [
+        //         7208974, // channelID
+        //         [
+        //             "63758.60000", // bid
+        //             "63759.10000", // ask
+        //             "1726814731.089778", // timestamp
+        //             "0.00057917", // bid_volume
+        //             "0.15681688" // ask_volume
+        //         ],
+        //         "spread",
+        //         "XBT/USDT"
+        //     ]
+        //
+        object parsedTicker = this.parseWsBidAsk(message);
+        object symbol = getValue(parsedTicker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        object messageHash = this.getMessageHash("bidask", null, symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object data = this.safeList(ticker, 1, new List<object>() {});
+        object marketId = this.safeString(ticker, 3);
+        market = this.safeValue(getValue(this.options, "marketsByWsName"), marketId);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = multiply(this.parseToInt(this.safeInteger(data, 2)), 1000);
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(data, 1) },
+            { "askVolume", this.safeString(data, 4) },
+            { "bid", this.safeString(data, 0) },
+            { "bidVolume", this.safeString(data, 3) },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -1657,6 +1724,7 @@ public partial class kraken : ccxt.kraken
                 { "book", this.handleOrderBook },
                 { "ohlc", this.handleOHLCV },
                 { "ticker", this.handleTicker },
+                { "spread", this.handleBidAsk },
                 { "trade", this.handleTrades },
                 { "openOrders", this.handleOrders },
                 { "ownTrades", this.handleMyTrades },

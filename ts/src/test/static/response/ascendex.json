@@ -626,7 +626,8 @@
                     "nextFundingDatetime": null,
                     "fundingRate": 0.00034,
                     "fundingTimestamp": 1721376000000,
-                    "fundingDatetime": "2024-07-19T08:00:00.000Z"
+                    "fundingDatetime": "2024-07-19T08:00:00.000Z",
+                    "interval": null
                 }
             }
         ],
@@ -830,7 +831,8 @@
                         "nextFundingDatetime": null,
                         "fundingRate": 0.00034,
                         "fundingTimestamp": 1721376000000,
-                        "fundingDatetime": "2024-07-19T08:00:00.000Z"
+                        "fundingDatetime": "2024-07-19T08:00:00.000Z",
+                        "interval": null
                     }
                 }
             }

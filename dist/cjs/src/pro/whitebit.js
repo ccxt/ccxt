@@ -18,6 +18,7 @@ class whitebit extends whitebit$1 {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -255,6 +256,36 @@ class whitebit extends whitebit$1 {
         const messageHash = 'ticker:' + symbol;
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
         return await this.watchMultipleSubscription(messageHash, method, symbol, false, params);
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://docs.whitebit.com/public/websocket/#market-statistics
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const method = 'market_subscribe';
+        const url = this.urls['api']['ws'];
+        const id = this.nonce();
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            messageHashes.push('ticker:' + market['symbol']);
+            args.push(market['id']);
+        }
+        const request = {
+            'id': id,
+            'method': method,
+            'params': args,
+        };
+        await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //

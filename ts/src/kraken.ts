@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -50,6 +50,7 @@ export default class kraken extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTrailingAmountOrder': true,
+                'createTrailingPercentOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -233,6 +234,8 @@ export default class kraken extends Exchange {
                 'XDG': 'DOGE',
             },
             'options': {
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
@@ -438,7 +441,9 @@ export default class kraken extends Exchange {
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
+                'EGeneral:Invalid arguments:price': InvalidOrder,
                 'EOrder:Unknown order': InvalidOrder,
+                'EOrder:Invalid price:Invalid price argument': InvalidOrder,
                 'EOrder:Order minimum not met': InvalidOrder,
                 'EGeneral:Invalid arguments': BadRequest,
                 'ESession:Invalid session': AuthenticationError,
@@ -465,6 +470,9 @@ export default class kraken extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
         const response = await this.publicGetAssetPairs (params);
         //
         //     {
@@ -1063,7 +1071,7 @@ export default class kraken extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         'LTFK7F-N2CUX-PNY4SX': {
@@ -1085,7 +1093,9 @@ export default class kraken extends Exchange {
         const referenceId = this.safeString (item, 'refid');
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
+        const currencyId = this.safeString (item, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         let amount = this.safeString (item, 'amount');
         if (Precise.stringLt (amount, '0')) {
             direction = 'out';
@@ -1094,7 +1104,7 @@ export default class kraken extends Exchange {
             direction = 'in';
         }
         const timestamp = this.safeIntegerProduct (item, 'time', 1000);
-        return {
+        return this.safeLedgerEntry ({
             'info': item,
             'id': id,
             'direction': direction,
@@ -1113,18 +1123,18 @@ export default class kraken extends Exchange {
                 'cost': this.safeNumber (item, 'fee'),
                 'currency': code,
             },
-        };
+        }, currency) as LedgerEntry;
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name kraken#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @param {int} [params.end] timestamp in seconds of the latest ledger entry
@@ -1199,7 +1209,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items);
     }
 
-    async fetchLedgerEntry (id: string, code: Str = undefined, params = {}) {
+    async fetchLedgerEntry (id: string, code: Str = undefined, params = {}): Promise<LedgerEntry> {
         const items = await this.fetchLedgerEntriesByIds ([ id ], code, params);
         return items[0];
     }
@@ -1467,8 +1477,8 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#createOrder
-         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * @description create a trade order
+         * @see https://docs.kraken.com/api/docs/rest-api/add-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1480,7 +1490,9 @@ export default class kraken extends Exchange {
          * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
          * @param {string} [params.trailingAmount] *margin only* the quote amount to trail away from the current market price
+         * @param {string} [params.trailingPercent] *margin only* the percent to trail away from the current market price
          * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+         * @param {string} [params.trailingLimitPercent] *margin only* the percent away from the trailingAmount
          * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
          * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1812,8 +1824,11 @@ export default class kraken extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const trailingAmount = this.safeString (params, 'trailingAmount');
+        const trailingPercent = this.safeString (params, 'trailingPercent');
         const trailingLimitAmount = this.safeString (params, 'trailingLimitAmount');
+        const trailingLimitPercent = this.safeString (params, 'trailingLimitPercent');
         const isTrailingAmountOrder = trailingAmount !== undefined;
+        const isTrailingPercentOrder = trailingPercent !== undefined;
         const isLimitOrder = type.endsWith ('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         const isMarketOrder = type === 'market';
         const cost = this.safeString (params, 'cost');
@@ -1828,7 +1843,7 @@ export default class kraken extends Exchange {
             }
             const extendedOflags = (flags !== undefined) ? flags + ',viqc' : 'viqc';
             request['oflags'] = extendedOflags;
-        } else if (isLimitOrder && !isTrailingAmountOrder) {
+        } else if (isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
@@ -1851,19 +1866,33 @@ export default class kraken extends Exchange {
             if (isLimitOrder) {
                 request['price2'] = this.priceToPrecision (symbol, price);
             }
-        } else if (isTrailingAmountOrder) {
+        } else if (isTrailingAmountOrder || isTrailingPercentOrder) {
+            let trailingPercentString = undefined;
+            if (trailingPercent !== undefined) {
+                trailingPercentString = (trailingPercent.endsWith ('%')) ? ('+' + trailingPercent) : ('+' + trailingPercent + '%');
+            }
+            const trailingAmountString = (trailingAmount !== undefined) ? '+' + trailingAmount : undefined; // must use + for this
+            const offset = this.safeString (params, 'offset', '-'); // can use + or - for this
+            const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString (trailingLimitAmount) : undefined;
             const trailingActivationPriceType = this.safeString (params, 'trigger', 'last');
-            const trailingAmountString = '+' + trailingAmount;
             request['trigger'] = trailingActivationPriceType;
-            if (isLimitOrder || (trailingLimitAmount !== undefined)) {
-                const offset = this.safeString (params, 'offset', '-');
-                const trailingLimitAmountString = offset + this.numberToString (trailingLimitAmount);
-                request['price'] = trailingAmountString;
-                request['price2'] = trailingLimitAmountString;
+            if (isLimitOrder || (trailingLimitAmount !== undefined) || (trailingLimitPercent !== undefined)) {
                 request['ordertype'] = 'trailing-stop-limit';
+                if (trailingLimitPercent !== undefined) {
+                    const trailingLimitPercentString = (trailingLimitPercent.endsWith ('%')) ? (offset + trailingLimitPercent) : (offset + trailingLimitPercent + '%');
+                    request['price'] = trailingPercentString;
+                    request['price2'] = trailingLimitPercentString;
+                } else if (trailingLimitAmount !== undefined) {
+                    request['price'] = trailingAmountString;
+                    request['price2'] = trailingLimitAmountString;
+                }
             } else {
-                request['price'] = trailingAmountString;
                 request['ordertype'] = 'trailing-stop';
+                if (trailingPercent !== undefined) {
+                    request['price'] = trailingPercentString;
+                } else {
+                    request['price'] = trailingAmountString;
+                }
             }
         }
         if (reduceOnly) {
@@ -1900,7 +1929,7 @@ export default class kraken extends Exchange {
         if ((flags !== undefined) && !('oflags' in request)) {
             request['oflags'] = flags;
         }
-        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ]);
+        params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ]);
         return [ request, params ];
     }
 
@@ -3148,11 +3177,16 @@ export default class kraken extends Exchange {
                 url += '?' + this.urlencodeNested (params);
             }
         } else if (api === 'private') {
+            const price = this.safeString (params, 'price');
+            let isTriggerPercent = false;
+            if (price !== undefined) {
+                isTriggerPercent = (price.endsWith ('%')) ? true : false;
+            }
             const isCancelOrderBatch = (path === 'CancelOrderBatch');
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if (isCancelOrderBatch) {
+            if (isCancelOrderBatch || isTriggerPercent) {
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             } else {
                 body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
@@ -3166,9 +3200,8 @@ export default class kraken extends Exchange {
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
-                // 'Content-Type': 'application/x-www-form-urlencoded',
             };
-            if (isCancelOrderBatch) {
+            if (isCancelOrderBatch || isTriggerPercent) {
                 headers['Content-Type'] = 'application/json';
             } else {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -3181,7 +3214,7 @@ export default class kraken extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

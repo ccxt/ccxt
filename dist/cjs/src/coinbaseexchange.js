@@ -1469,33 +1469,33 @@ class coinbaseexchange extends coinbaseexchange$1 {
             referenceId = this.safeString(details, 'order_id');
         }
         const status = 'ok';
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': id,
-            'currency': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'direction': direction,
             'account': account,
             'referenceAccount': referenceAccount,
             'referenceId': referenceId,
-            'status': status,
+            'type': type,
+            'currency': code,
             'amount': amount,
             'before': before,
             'after': after,
+            'status': status,
             'fee': undefined,
-            'direction': direction,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'type': type,
-            'info': item,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinbaseexchange#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}

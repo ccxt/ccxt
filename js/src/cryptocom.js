@@ -605,7 +605,7 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
          * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1799,6 +1799,7 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2395,7 +2396,7 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2476,6 +2477,8 @@ export default class cryptocom extends Exchange {
         //
         const timestamp = this.safeInteger(item, 'event_timestamp_ms');
         const currencyId = this.safeString(item, 'instrument_name');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         let amount = this.safeString(item, 'transaction_qty');
         let direction = undefined;
         if (Precise.stringLt(amount, '0')) {
@@ -2485,14 +2488,15 @@ export default class cryptocom extends Exchange {
         else {
             direction = 'in';
         }
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'order_id'),
             'direction': direction,
             'account': this.safeString(item, 'account_id'),
             'referenceId': this.safeString(item, 'trade_id'),
             'referenceAccount': this.safeString(item, 'trade_match_id'),
             'type': this.parseLedgerEntryType(this.safeString(item, 'journal_type')),
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': code,
             'amount': this.parseNumber(amount),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -2503,8 +2507,7 @@ export default class cryptocom extends Exchange {
                 'currency': undefined,
                 'cost': undefined,
             },
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {

@@ -4424,7 +4424,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate
@@ -4464,7 +4464,7 @@ class coinex extends Exchange {
         return $this->parse_funding_rate($first, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         // fetchFundingRate, fetchFundingRates
         //
@@ -4481,6 +4481,9 @@ class coinex extends Exchange {
         //
         $currentFundingTimestamp = $this->safe_integer($contract, 'latest_funding_time');
         $futureFundingTimestamp = $this->safe_integer($contract, 'next_funding_time');
+        $fundingTimeString = $this->safe_string($contract, 'latest_funding_time');
+        $nextFundingTimeString = $this->safe_string($contract, 'next_funding_time');
+        $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
         $marketId = $this->safe_string($contract, 'market');
         return array(
             'info' => $contract,
@@ -4500,12 +4503,24 @@ class coinex extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => $this->parse_funding_interval($millisecondsInterval),
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function parse_funding_interval($interval) {
+        $intervals = array(
+            '3600000' => '1h',
+            '14400000' => '4h',
+            '28800000' => '8h',
+            '57600000' => '16h',
+            '86400000' => '24h',
+        );
+        return $this->safe_string($intervals, $interval, $interval);
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
-         * fetch the current funding rates
+         * fetch the current funding rates for multiple markets
          * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate
          * @param {string[]} $symbols unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

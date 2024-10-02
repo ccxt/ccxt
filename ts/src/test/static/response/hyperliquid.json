@@ -28,7 +28,8 @@
                         "startPosition": "2.84",
                         "sz": "0.5",
                         "tid": "566849930446139",
-                        "time": "1709643346297"
+                        "time": "1709643346297",
+                        "feeToken": "USDC"
                     }
                 ],
                 "parsedResponse": [
@@ -48,7 +49,9 @@
                             "startPosition": "2.84",
                             "sz": "0.5",
                             "tid": "566849930446139",
-                            "time": "1709643346297"
+                            "time": "1709643346297",
+                            "feeToken": "USDC"
+
                         },
                         "timestamp": 1709643346297,
                         "datetime": "2024-03-05T12:55:46.297Z",

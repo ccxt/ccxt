@@ -36,7 +36,7 @@ function getExchangeSettings (exchangeId) {
 }
 
 function write (filename, data) {
-    return fs.writeFileSync(filename, JSON.stringify(data, null, 2));
+    return fs.writeFileSync(filename, JSON.stringify(data, null, 4));
 }
 function die (errorMessage = undefined, code = 1) {
     console.log (errorMessage || 'Please specify correct format, e.g. \ntsx ./utils/update-static-json.ts binance BTC/USDT ETH/USDT\n(you can also pass a CurrencyCode instead of a symbol)\n\n OR\n\n or you can ');

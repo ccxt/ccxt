@@ -124,6 +124,40 @@
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"myordr2\",\"stopPxRp\":\"60\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"55\"}"
+            },
+            {
+                "description": "Swap sell hedged reduceOnly order",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"ordType\":\"Market\",\"clOrdID\":\"CCXT1234569a4fe87934c6ab0c\",\"posSide\":\"Long\",\"orderQtyRq\":0.001}"
+            },
+            {
+                "description": "Swap buy hedged reduceOnly order",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.001,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"CCXT123456f0ddc1de04ee9efb\",\"posSide\":\"Short\",\"orderQtyRq\":0.001}"
             }
         ],
         "editOrder": [

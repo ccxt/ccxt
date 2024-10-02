@@ -10,6 +10,7 @@ use ccxt\async\abstract\kucoinfutures as kucoin;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -71,9 +72,10 @@ class kucoinfutures extends kucoin {
                 'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
                 'fetchMarginAdjustmentHistory' => false,
-                'fetchMarginMode' => false,
+                'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -97,7 +99,7 @@ class kucoinfutures extends kucoin {
                 'fetchTransactionFee' => false,
                 'fetchWithdrawals' => true,
                 'setLeverage' => false,
-                'setMarginMode' => false,
+                'setMarginMode' => true,
                 'transfer' => true,
                 'withdraw' => null,
             ),
@@ -174,12 +176,15 @@ class kucoinfutures extends kucoin {
                         'trade-fees' => 1,
                         'history-positions' => 1,
                         'getMaxOpenSize' => 1,
+                        'getCrossUserLeverage' => 1,
+                        'position/getMarginMode' => 1,
                     ),
                     'post' => array(
                         'withdrawals' => 1,
                         'transfer-out' => 1, // v2
                         'transfer-in' => 1,
                         'orders' => 1.33,
+                        'st-orders' => 1.33,
                         'orders/test' => 1.33,
                         'position/margin/auto-deposit-status' => 1,
                         'position/margin/deposit-margin' => 1,
@@ -187,6 +192,8 @@ class kucoinfutures extends kucoin {
                         'bullet-private' => 1,
                         'sub/api-key' => 1,
                         'sub/api-key/update' => 1,
+                        'changeCrossUserLeverage' => 1,
+                        'position/changeMarginMode' => 1,
                     ),
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
@@ -321,9 +328,13 @@ class kucoinfutures extends kucoin {
                     'futuresPrivate' => array(
                         'GET' => array(
                             'getMaxOpenSize' => 'v2',
+                            'getCrossUserLeverage' => 'v2',
+                            'position/getMarginMode' => 'v2',
                         ),
                         'POST' => array(
                             'transfer-out' => 'v2',
+                            'changeCrossUserLeverage' => 'v2',
+                            'position/changeMarginMode' => 'v2',
                         ),
                     ),
                     'futuresPublic' => array(
@@ -2156,7 +2167,7 @@ class kucoinfutures extends kucoin {
         ), $market);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -2204,8 +2215,20 @@ class kucoinfutures extends kucoin {
                 'previousFundingRate' => null,
                 'previousFundingTimestamp' => null,
                 'previousFundingDatetime' => null,
+                'interval' => $this->parse_funding_interval($this->safe_string($data, 'granularity')),
             );
         }) ();
+    }
+
+    public function parse_funding_interval($interval) {
+        $intervals = array(
+            '3600000' => '1h',
+            '14400000' => '4h',
+            '28800000' => '8h',
+            '57600000' => '16h',
+            '86400000' => '24h',
+        );
+        return $this->safe_string($intervals, $interval, $interval);
     }
 
     public function parse_balance($response): array {
@@ -2904,5 +2927,161 @@ class kucoinfutures extends kucoin {
                 'tierBased' => true,
             );
         }) ();
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the margin mode of a trading pair
+             * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
+             * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->futuresPrivateGetPositionGetMarginMode ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "symbol" => "XBTUSDTM",
+            //             "marginMode" => "ISOLATED"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_margin_mode($data, $market);
+        }) ();
+    }
+
+    public function parse_margin_mode(array $marginMode, $market = null): array {
+        $marginType = $this->safe_string($marginMode, 'marginMode');
+        $marginType = ($marginType === 'ISOLATED') ? 'isolated' : 'cross';
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $marginType,
+        );
+    }
+
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($marginMode, $symbol, $params) {
+            /**
+             * set margin mode to 'cross' or 'isolated'
+             * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
+             * @param {string} $marginMode 'cross' or 'isolated'
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} $response from the exchange
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            }
+            $this->check_required_argument('setMarginMode', $marginMode, 'marginMode', array( 'cross', 'isolated' ));
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'marginMode' => strtoupper($marginMode),
+            );
+            $response = Async\await($this->futuresPrivatePostPositionChangeMarginMode ($this->extend($request, $params)));
+            //
+            //    {
+            //        "code" => "200000",
+            //        "data" => {
+            //            "symbol" => "XBTUSDTM",
+            //            "marginMode" => "ISOLATED"
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_margin_mode($data, $market);
+        }) ();
+    }
+
+    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the set leverage for a $market
+             * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             */
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params($symbol, $params);
+            if ($marginMode !== 'cross') {
+                throw new NotSupported($this->id . ' fetchLeverage() currently supports only $params["marginMode"] = "cross"');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->futuresPrivateGetGetCrossUserLeverage ($this->extend($request, $params)));
+            //
+            //    {
+            //        "code" => "200000",
+            //        "data" => {
+            //            "symbol" => "XBTUSDTM",
+            //            "leverage" => "3"
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $parsed = $this->parse_leverage($data, $market);
+            return $this->extend($parsed, array(
+                'marginMode' => $marginMode,
+            ));
+        }) ();
+    }
+
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($leverage, $symbol, $params) {
+            /**
+             * set the level of $leverage for a $market
+             * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-$leverage
+             * @param {float} $leverage the rate of $leverage
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} $response from the exchange
+             */
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params($symbol, $params);
+            if ($marginMode !== 'cross') {
+                throw new NotSupported($this->id . ' setLeverage() currently supports only $params["marginMode"] = "cross"');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'leverage' => (string) $leverage,
+            );
+            $response = Async\await($this->futuresPrivatePostChangeCrossUserLeverage ($this->extend($request, $params)));
+            //
+            //    {
+            //        "code" => "200000",
+            //        "data" => true
+            //    }
+            //
+            return $this->parse_leverage($response, $market);
+        }) ();
+    }
+
+    public function parse_leverage(array $leverage, ?array $market = null): array {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $leverageNum = $this->safe_integer($leverage, 'leverage');
+        return array(
+            'info' => $leverage,
+            'symbol' => $market['symbol'],
+            'marginMode' => null,
+            'longLeverage' => $leverageNum,
+            'shortLeverage' => $leverageNum,
+        );
     }
 }

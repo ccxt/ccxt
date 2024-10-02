@@ -3137,6 +3137,7 @@ class deribit extends deribit$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': '8h',
         };
     }
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {

@@ -1142,11 +1142,11 @@ public partial class bitflyer : Exchange
         object feedback = add(add(this.id, " "), body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         object errorMessage = this.safeString(response, "error_message");
-        object statusCode = this.safeNumber(response, "status");
+        object statusCode = this.safeInteger(response, "status");
         if (isTrue(!isEqual(errorMessage, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), statusCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

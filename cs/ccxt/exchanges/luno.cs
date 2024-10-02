@@ -1056,11 +1056,11 @@ public partial class luno : Exchange
         /**
         * @method
         * @name luno#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -1161,6 +1161,7 @@ public partial class luno : Exchange
         object timestamp = this.safeInteger(entry, "timestamp");
         object currencyId = this.safeString(entry, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object available_delta = this.safeString(entry, "available_delta");
         object balance_delta = this.safeString(entry, "balance_delta");
         object after = this.safeString(entry, "balance");
@@ -1193,7 +1194,8 @@ public partial class luno : Exchange
         {
             direction = "out";
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", entry },
             { "id", id },
             { "direction", direction },
             { "account", account_id },
@@ -1201,15 +1203,14 @@ public partial class luno : Exchange
             { "referenceAccount", null },
             { "type", type },
             { "currency", code },
-            { "amount", this.parseNumber(amount) },
+            { "amount", this.parseToNumeric(amount) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "before", this.parseNumber(before) },
-            { "after", this.parseNumber(after) },
+            { "before", this.parseToNumeric(before) },
+            { "after", this.parseToNumeric(after) },
             { "status", status },
             { "fee", null },
-            { "info", entry },
-        };
+        }, currency);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

@@ -481,6 +481,7 @@ class FundingRate(TypedDict):
     previousFundingDatetime: Str
     previousFundingRate: Num
     info: Dict[str, Any]
+    interval: Str
 
 
 class LeverageTier:

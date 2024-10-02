@@ -30,6 +30,7 @@ class oxfun(ccxt.async_support.oxfun):
                 'watchMyTrades': False,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchBalance': True,
                 'createOrderWs': True,
                 'editOrderWs': True,
@@ -465,6 +466,73 @@ class oxfun(ccxt.async_support.oxfun):
             messageHash = 'tickers:' + symbol
             self.tickers[symbol] = ticker
             client.resolve(ticker, messageHash)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://docs.ox.fun/?json#best-bid-ask
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        messageHashes = []
+        args = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            args.append('bestBidAsk:' + market['id'])
+            messageHashes.append('bidask:' + market['symbol'])
+        newTickers = await self.subscribe_multiple(messageHashes, args, params)
+        if self.newUpdates:
+            tickers: dict = {}
+            tickers[newTickers['symbol']] = newTickers
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        #     {
+        #       "table": "bestBidAsk",
+        #       "data": {
+        #         "ask": [
+        #           19045.0,
+        #           1.0
+        #         ],
+        #         "checksum": 3790706311,
+        #         "marketCode": "BTC-USD-SWAP-LIN",
+        #         "bid": [
+        #           19015.0,
+        #           1.0
+        #         ],
+        #         "timestamp": "1665456882928"
+        #       }
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        parsedTicker = self.parse_ws_bid_ask(data)
+        symbol = parsedTicker['symbol']
+        self.bidsasks[symbol] = parsedTicker
+        messageHash = 'bidask:' + symbol
+        client.resolve(parsedTicker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'marketCode')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        ask = self.safe_list(ticker, 'ask', [])
+        bid = self.safe_list(ticker, 'bid', [])
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_number(ask, 0),
+            'askVolume': self.safe_number(ask, 1),
+            'bid': self.safe_number(bid, 0),
+            'bidVolume': self.safe_number(bid, 1),
+            'info': ticker,
+        }, market)
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -943,6 +1011,8 @@ class oxfun(ccxt.async_support.oxfun):
                 self.handle_positions(client, message)
             if table.find('order') > -1:
                 self.handle_orders(client, message)
+            if table == 'bestBidAsk':
+                self.handle_bid_ask(client, message)
         else:
             if event == 'login':
                 self.handle_authentication_message(client, message)

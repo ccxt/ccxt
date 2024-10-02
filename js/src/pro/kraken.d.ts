@@ -18,6 +18,9 @@ export default class kraken extends krakenRest {
     watchPublic(name: any, symbol: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any, subscription: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;

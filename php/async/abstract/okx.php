@@ -238,6 +238,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function public_get_copytrading_public_subpositions_history($params = array()) {
         return $this->request('copytrading/public-subpositions-history', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function public_get_support_announcements_types($params = array()) {
+        return $this->request('support/announcements-types', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_rfq_counterparties($params = array()) {
         return $this->request('rfq/counterparties', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -624,6 +627,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function private_get_users_partner_if_rebate($params = array()) {
         return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_support_announcements($params = array()) {
+        return $this->request('support/announcements', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_post_rfq_create_rfq($params = array()) {
         return $this->request('rfq/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 4));
@@ -1207,6 +1213,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function publicGetCopytradingPublicSubpositionsHistory($params = array()) {
         return $this->request('copytrading/public-subpositions-history', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function publicGetSupportAnnouncementsTypes($params = array()) {
+        return $this->request('support/announcements-types', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function privateGetRfqCounterparties($params = array()) {
         return $this->request('rfq/counterparties', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1593,6 +1602,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privateGetUsersPartnerIfRebate($params = array()) {
         return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetSupportAnnouncements($params = array()) {
+        return $this->request('support/announcements', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privatePostRfqCreateRfq($params = array()) {
         return $this->request('rfq/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 4));

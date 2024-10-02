@@ -18,6 +18,7 @@ public partial class whitebit : ccxt.whitebit
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchTicker", true },
+                { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", false },
             } },
@@ -276,6 +277,40 @@ public partial class whitebit : ccxt.whitebit
         object messageHash = add("ticker:", symbol);
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
         return await this.watchMultipleSubscription(messageHash, method, symbol, false, parameters);
+    }
+
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name whitebit#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://docs.whitebit.com/public/websocket/#market-statistics
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object method = "market_subscribe";
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object id = this.nonce();
+        object messageHashes = new List<object>() {};
+        object args = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+            ((IList<object>)args).Add(getValue(market, "id"));
+        }
+        object request = new Dictionary<string, object>() {
+            { "id", id },
+            { "method", method },
+            { "params", args },
+        };
+        await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
     public virtual object handleTicker(WebSocketClient client, object message)

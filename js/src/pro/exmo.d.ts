@@ -1,5 +1,5 @@
 import exmoRest from '../exmo.js';
-import type { Int, Str, OrderBook, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Trade, Ticker, Balances, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class exmo extends exmoRest {
     describe(): any;
@@ -9,6 +9,7 @@ export default class exmo extends exmoRest {
     parseSpotBalance(message: any): void;
     parseMarginBalance(message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;

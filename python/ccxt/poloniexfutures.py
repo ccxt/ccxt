@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
@@ -1527,7 +1527,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
@@ -1571,7 +1571,18 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'previousFundingRate': self.safe_number(data, 'value'),
             'previousFundingTimestamp': fundingTimestamp,
             'previousFundingDatetime': self.iso8601(fundingTimestamp),
+            'interval': self.parse_funding_interval(self.safe_string(data, 'interval')),
         }
+
+    def parse_funding_interval(self, interval):
+        intervals: dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        }
+        return self.safe_string(intervals, interval, interval)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

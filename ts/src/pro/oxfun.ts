@@ -25,6 +25,7 @@ export default class oxfun extends oxfunRest {
                 'watchMyTrades': false,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchBalance': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
@@ -510,6 +511,80 @@ export default class oxfun extends oxfunRest {
             this.tickers[symbol] = ticker;
             client.resolve (ticker, messageHash);
         }
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name oxfun#watchBidsAsks
+         * @see https://docs.ox.fun/?json#best-bid-ask
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            args.push ('bestBidAsk:' + market['id']);
+            messageHashes.push ('bidask:' + market['symbol']);
+        }
+        const newTickers = await this.subscribeMultiple (messageHashes, args, params);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[newTickers['symbol']] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //     {
+        //       "table": "bestBidAsk",
+        //       "data": {
+        //         "ask": [
+        //           19045.0,
+        //           1.0
+        //         ],
+        //         "checksum": 3790706311,
+        //         "marketCode": "BTC-USD-SWAP-LIN",
+        //         "bid": [
+        //           19015.0,
+        //           1.0
+        //         ],
+        //         "timestamp": "1665456882928"
+        //       }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const parsedTicker = this.parseWsBidAsk (data);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = 'bidask:' + symbol;
+        client.resolve (parsedTicker, messageHash);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const marketId = this.safeString (ticker, 'marketCode');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const ask = this.safeList (ticker, 'ask', []);
+        const bid = this.safeList (ticker, 'bid', []);
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (ask, 0),
+            'askVolume': this.safeNumber (ask, 1),
+            'bid': this.safeNumber (bid, 0),
+            'bidVolume': this.safeNumber (bid, 1),
+            'info': ticker,
+        }, market);
     }
 
     async watchBalance (params = {}): Promise<Balances> {
@@ -1048,6 +1123,9 @@ export default class oxfun extends oxfunRest {
             }
             if (table.indexOf ('order') > -1) {
                 this.handleOrders (client, message);
+            }
+            if (table === 'bestBidAsk') {
+                this.handleBidAsk (client, message);
             }
         } else {
             if (event === 'login') {

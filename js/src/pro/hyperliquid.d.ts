@@ -9,6 +9,7 @@ export default class hyperliquid extends hyperliquidRest {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBook(client: any, message: any): void;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

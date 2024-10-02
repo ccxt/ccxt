@@ -393,6 +393,8 @@ async function run () {
                     }
                 }
 
+                exchange.close()
+
             } else if (exchange[methodName] === undefined) {
                 log.red (exchange.id + '.' + methodName + ': no such property')
             } else {

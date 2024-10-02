@@ -375,7 +375,8 @@
                     "nextFundingDatetime": null,
                     "previousFundingRate": null,
                     "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
                 }
             }
         ],

@@ -10,7 +10,8 @@ class binanceus extends binance {
         // eslint-disable-next-line new-cap
         const restInstance = new binanceus$1();
         const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(restDescribe, super.describe());
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',

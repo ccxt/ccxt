@@ -1,5 +1,5 @@
 import kucoin from './abstract/kucoinfutures.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Order, Trade, OrderRequest, FundingHistory, Balances, Str, Ticker, Tickers, OrderBook, Transaction, Strings, Market, Currency, Num, MarginModification, TradingFeeInterface, Dict, LeverageTier, MarginMode, Leverage, FundingRate } from './base/types.js';
 /**
  * @class kucoinfutures
  * @augments Exchange
@@ -46,25 +46,8 @@ export default class kucoinfutures extends kucoin {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    fetchFundingRate(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        markPrice: any;
-        indexPrice: any;
-        interestRate: any;
-        estimatedSettlePrice: any;
-        timestamp: any;
-        datetime: any;
-        fundingRate: number;
-        fundingTimestamp: number;
-        fundingDatetime: string;
-        nextFundingRate: number;
-        nextFundingTimestamp: any;
-        nextFundingDatetime: any;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
-    }>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    parseFundingInterval(interval: any): string;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
@@ -87,4 +70,10 @@ export default class kucoinfutures extends kucoin {
     };
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
+    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<MarginMode>;
+    fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
+    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<Leverage>;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
 }

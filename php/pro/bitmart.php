@@ -28,6 +28,7 @@ class bitmart extends \ccxt\async\bitmart {
                 'watchBalance' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
@@ -352,6 +353,7 @@ class bitmart extends \ccxt\async\bitmart {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://developer-pro.bitmart.com/en/spot/#public-$ticker-channel
              * @see https://developer-pro.bitmart.com/en/futuresv2/#public-$ticker-channel
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
@@ -370,6 +372,86 @@ class bitmart extends \ccxt\async\bitmart {
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $firstMarket = $this->get_market_from_symbols($symbols);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
+            $url = $this->implode_hostname($this->urls['api']['ws'][$marketType]['public']);
+            $channelType = ($marketType === 'spot') ? 'spot' : 'futures';
+            $actionType = ($marketType === 'spot') ? 'op' : 'action';
+            $rawSubscriptions = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $rawSubscriptions[] = $channelType . '/ticker:' . $market['id'];
+                $messageHashes[] = 'bidask:' . $symbols[$i];
+            }
+            if ($marketType !== 'spot') {
+                $rawSubscriptions = array( $channelType . '/ticker' );
+            }
+            $request = array(
+                'args' => $rawSubscriptions,
+            );
+            $request[$actionType] = 'subscribe';
+            $newTickers = Async\await($this->watch_multiple($url, $messageHashes, $request, $rawSubscriptions));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        $table = $this->safe_string($message, 'table');
+        $isSpot = ($table !== null);
+        $rawTickers = array();
+        if ($isSpot) {
+            $rawTickers = $this->safe_list($message, 'data', array());
+        } else {
+            $rawTickers = array( $this->safe_value($message, 'data', array()) );
+        }
+        if (strlen(!$rawTickers)) {
+            return;
+        }
+        for ($i = 0; $i < count($rawTickers); $i++) {
+            $ticker = $this->parse_ws_bid_ask($rawTickers[$i]);
+            $symbol = $ticker['symbol'];
+            $this->bidsasks[$symbol] = $ticker;
+            $messageHash = 'bidask:' . $symbol;
+            $client->resolve ($ticker, $messageHash);
+        }
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 'ms_t');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string_2($ticker, 'ask_px', 'ask_price'),
+            'askVolume' => $this->safe_string_2($ticker, 'ask_sz', 'ask_vol'),
+            'bid' => $this->safe_string_2($ticker, 'bid_px', 'bid_price'),
+            'bidVolume' => $this->safe_string_2($ticker, 'bid_sz', 'bid_vol'),
+            'info' => $ticker,
+        ), $market);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -958,6 +1040,7 @@ class bitmart extends \ccxt\async\bitmart {
         //            }
         //    }
         //
+        $this->handle_bid_ask($client, $message);
         $table = $this->safe_string($message, 'table');
         $isSpot = ($table !== null);
         $rawTickers = array();

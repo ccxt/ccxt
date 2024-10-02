@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Dict, FundingHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Dict, FundingHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1621,7 +1621,7 @@ export default class poloniexfutures extends Exchange {
         }, market);
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name poloniexfutures#fetchFundingRate
@@ -1667,7 +1667,19 @@ export default class poloniexfutures extends Exchange {
             'previousFundingRate': this.safeNumber (data, 'value'),
             'previousFundingTimestamp': fundingTimestamp,
             'previousFundingDatetime': this.iso8601 (fundingTimestamp),
+            'interval': this.parseFundingInterval (this.safeString (data, 'interval')),
+        } as FundingRate;
+    }
+
+    parseFundingInterval (interval) {
+        const intervals: Dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
         };
+        return this.safeString (intervals, interval, interval);
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

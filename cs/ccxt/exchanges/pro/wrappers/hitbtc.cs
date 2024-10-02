@@ -31,7 +31,7 @@ public partial class hitbtc
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
+    /// string : 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
     /// </description>
     /// </item>
     /// <item>
@@ -71,6 +71,38 @@ public partial class hitbtc
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api.hitbtc.com/#subscribe-to-top-of-book"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.speed</term>
+    /// <description>
+    /// string : '100ms' (default) or '500ms' or '1000ms'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
         return new Tickers(res);
     }
     /// <summary>

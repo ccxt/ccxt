@@ -14,7 +14,8 @@ public partial class deribit : ccxt.deribit
                 { "ws", true },
                 { "watchBalance", true },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "watchMyTrades", true },
@@ -196,6 +197,54 @@ public partial class deribit : ccxt.deribit
         return await this.watch(url, channel, request, channel, request);
     }
 
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name deribit#watchTickers
+        * @see https://docs.deribit.com/#ticker-instrument_name-interval
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object interval = this.safeString(parameters, "interval", "100ms");
+        parameters = this.omit(parameters, "interval");
+        await this.loadMarkets();
+        if (isTrue(isEqual(interval, "raw")))
+        {
+            await this.authenticate();
+        }
+        object channels = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)channels).Add(add(add(add("ticker.", getValue(market, "id")), "."), interval));
+        }
+        object message = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", "public/subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", channels },
+            } },
+            { "id", this.requestId() },
+        };
+        object request = this.deepExtend(message, parameters);
+        object newTickers = await this.watchMultiple(url, channels, request, channels, request);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
     public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
@@ -235,6 +284,92 @@ public partial class deribit : ccxt.deribit
         object messageHash = this.safeString(parameters, "channel");
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name deribit#watchBidsAsks
+        * @see https://docs.deribit.com/#quote-instrument_name
+        * @description watches best bid & ask for symbols
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object channels = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)channels).Add(add("quote.", getValue(market, "id")));
+        }
+        object message = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", "public/subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", channels },
+            } },
+            { "id", this.requestId() },
+        };
+        object request = this.deepExtend(message, parameters);
+        object newTickers = await this.watchMultiple(url, channels, request, channels, request);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "quote.BTC_USDT",
+        //             "data": {
+        //                 "best_bid_amount": 0.026,
+        //                 "best_ask_amount": 0.026,
+        //                 "best_bid_price": 63908,
+        //                 "best_ask_price": 63940,
+        //                 "instrument_name": "BTC_USDT",
+        //                 "timestamp": 1727765131750
+        //             }
+        //         }
+        //     }
+        //
+        object parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        object ticker = this.parseWsBidAsk(data);
+        object symbol = getValue(ticker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+        object messageHash = this.safeString(parameters, "channel");
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "instrument_name");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "timestamp");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "best_ask_price") },
+            { "askVolume", this.safeString(ticker, "best_ask_amount") },
+            { "bid", this.safeString(ticker, "best_bid_price") },
+            { "bidVolume", this.safeString(ticker, "best_bid_amount") },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -963,6 +1098,7 @@ public partial class deribit : ccxt.deribit
             };
             object handlers = new Dictionary<string, object>() {
                 { "ticker", this.handleTicker },
+                { "quote", this.handleBidAsk },
                 { "book", this.handleOrderBook },
                 { "trades", this.handleTrades },
                 { "chart", this.handleOHLCV },

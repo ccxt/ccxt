@@ -640,7 +640,7 @@ class paradex(Exchange, ImplicitAPI):
             'low': None,
             'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_string(ticker, 'sdk'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,

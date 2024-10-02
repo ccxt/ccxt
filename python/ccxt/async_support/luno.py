@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
+from ccxt.base.types import Account, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -920,13 +920,13 @@ class luno(Exchange, ImplicitAPI):
         }
         return await self.fetch_ledger(code, since, limit, self.extend(request, params))
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
-        :param str code: unified currency code, default is None
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
@@ -995,13 +995,14 @@ class luno(Exchange, ImplicitAPI):
             'referenceId': referenceId,
         }
 
-    def parse_ledger_entry(self, entry, currency: Currency = None):
+    def parse_ledger_entry(self, entry, currency: Currency = None) -> LedgerEntry:
         # details = self.safe_value(entry, 'details', {})
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
         timestamp = self.safe_integer(entry, 'timestamp')
         currencyId = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         available_delta = self.safe_string(entry, 'available_delta')
         balance_delta = self.safe_string(entry, 'balance_delta')
         after = self.safe_string(entry, 'balance')
@@ -1027,7 +1028,8 @@ class luno(Exchange, ImplicitAPI):
             direction = 'in'
         elif Precise.string_lt(balance_delta, '0') or Precise.string_lt(available_delta, '0'):
             direction = 'out'
-        return {
+        return self.safe_ledger_entry({
+            'info': entry,
             'id': id,
             'direction': direction,
             'account': account_id,
@@ -1035,15 +1037,14 @@ class luno(Exchange, ImplicitAPI):
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': self.parse_number(amount),
+            'amount': self.parse_to_numeric(amount),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'before': self.parse_number(before),
-            'after': self.parse_number(after),
+            'before': self.parse_to_numeric(before),
+            'after': self.parse_to_numeric(after),
             'status': status,
             'fee': None,
-            'info': entry,
-        }
+        }, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)

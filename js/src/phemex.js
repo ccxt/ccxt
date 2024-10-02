@@ -4131,6 +4131,7 @@ export default class phemex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async setMargin(symbol, amount, params = {}) {

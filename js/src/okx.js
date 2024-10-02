@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -269,6 +269,7 @@ export default class okx extends Exchange {
                         'copytrading/public-preference-currency': 4,
                         'copytrading/public-current-subpositions': 4,
                         'copytrading/public-subpositions-history': 4,
+                        'support/announcements-types': 20,
                     },
                 },
                 'private': {
@@ -414,6 +415,7 @@ export default class okx extends Exchange {
                         // affiliate
                         'affiliate/invitee/detail': 1,
                         'users/partner/if-rebate': 1,
+                        'support/announcements': 4,
                     },
                     'post': {
                         // rfq
@@ -576,6 +578,7 @@ export default class okx extends Exchange {
                     // General Class
                     '1': ExchangeError,
                     '2': ExchangeError,
+                    '4088': ManualInteractionNeeded,
                     '50000': BadRequest,
                     '50001': OnMaintenance,
                     '50002': BadRequest,
@@ -793,6 +796,9 @@ export default class okx extends Exchange {
                     // SPOT/MARGIN error codes 54000-54999
                     '54000': ExchangeError,
                     '54001': ExchangeError,
+                    '54008': InvalidOrder,
+                    '54009': InvalidOrder,
+                    '54011': InvalidOrder,
                     // Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder,
                     '55101': InvalidOrder,
@@ -4474,13 +4480,13 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -4643,14 +4649,9 @@ export default class okx extends Exchange {
         //         "ts": "1597026383085"
         //     }
         //
-        const id = this.safeString(item, 'billId');
-        const account = undefined;
-        const referenceId = this.safeString(item, 'ordId');
-        const referenceAccount = undefined;
-        const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
-        const code = this.safeCurrencyCode(this.safeString(item, 'ccy'), currency);
-        const amountString = this.safeString(item, 'balChg');
-        const amount = this.parseNumber(amountString);
+        const currencyId = this.safeString(item, 'ccy');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'ts');
         const feeCostString = this.safeString(item, 'fee');
         let fee = undefined;
@@ -4660,29 +4661,25 @@ export default class okx extends Exchange {
                 'currency': code,
             };
         }
-        const before = undefined;
-        const afterString = this.safeString(item, 'bal');
-        const after = this.parseNumber(afterString);
-        const status = 'ok';
         const marketId = this.safeString(item, 'instId');
         const symbol = this.safeSymbol(marketId, undefined, '-');
-        return {
-            'id': id,
+        return this.safeLedgerEntry({
             'info': item,
+            'id': this.safeString(item, 'billId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'account': account,
-            'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
-            'type': type,
+            'account': undefined,
+            'referenceId': this.safeString(item, 'ordId'),
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
             'currency': code,
             'symbol': symbol,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': status,
+            'amount': this.safeNumber(item, 'balChg'),
+            'before': undefined,
+            'after': this.safeNumber(item, 'bal'),
+            'status': 'ok',
             'fee': fee,
-        };
+        }, currency);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -6056,6 +6053,9 @@ export default class okx extends Exchange {
         const symbol = this.safeSymbol(marketId, market);
         const nextFundingRate = this.safeNumber(contract, 'nextFundingRate');
         const fundingTime = this.safeInteger(contract, 'fundingTime');
+        const fundingTimeString = this.safeString(contract, 'fundingTime');
+        const nextFundingTimeString = this.safeString(contract, 'nextFundingRate');
+        const millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return {
@@ -6076,7 +6076,18 @@ export default class okx extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(millisecondsInterval),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**

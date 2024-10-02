@@ -14,8 +14,11 @@ export default class hitbtc extends hitbtcRest {
     handleDeltas(bookside: any, deltas: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): any;
+    handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: any, market?: any): Ticker;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): any;
     parseWsTrades(trades: any, market?: object, since?: Int, limit?: Int, params?: {}): Trade[];

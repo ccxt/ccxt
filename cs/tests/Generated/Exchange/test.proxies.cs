@@ -41,7 +41,7 @@ public partial class testMainClass : BaseTest
         var httpProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[1];
         var httpsProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[2];
         var socksProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[3];
-        exchange.httpProxy = add(add("http://", proxyServerIp), ":8002");
+        exchange.httpProxy = add(add("http://", proxyServerIp), ":8911");
         object ipCheckUrl = "https://api.ipify.org/";
         object response = await exchange.fetch(ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));

@@ -14,7 +14,7 @@ class exmo extends exmo$1 {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchMyTrades': true,
                 'watchOrders': false,
@@ -200,6 +200,7 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -218,6 +219,35 @@ class exmo extends exmo$1 {
         };
         const request = this.deepExtend(message, params);
         return await this.watch(url, messageHash, request, messageHash, request);
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            messageHashes.push('ticker:' + market['symbol']);
+            args.push('spot/ticker:' + market['id']);
+        }
+        const url = this.urls['api']['ws']['public'];
+        const message = {
+            'method': 'subscribe',
+            'topics': args,
+            'id': this.requestId(),
+        };
+        const request = this.deepExtend(message, params);
+        await this.watchMultiple(url, messageHashes, request, messageHashes, request);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //

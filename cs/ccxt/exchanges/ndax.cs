@@ -1187,6 +1187,7 @@ public partial class ndax : Exchange
         //     }
         //
         object currencyId = this.safeString(item, "ProductId");
+        currency = this.safeCurrency(currencyId, currency);
         object credit = this.safeString(item, "CR");
         object debit = this.safeString(item, "DR");
         object amount = null;
@@ -1210,7 +1211,7 @@ public partial class ndax : Exchange
             before = Precise.stringMax("0", Precise.stringSub(after, amount));
         }
         object timestamp = this.safeInteger(item, "TimeStamp");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", this.safeString(item, "TransactionId") },
             { "direction", direction },
@@ -1226,7 +1227,7 @@ public partial class ndax : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "fee", null },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -1234,11 +1235,11 @@ public partial class ndax : Exchange
         /**
         * @method
         * @name ndax#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://apidoc.ndax.io/#getaccounttransactions
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */

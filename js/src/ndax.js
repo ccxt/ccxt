@@ -1141,6 +1141,7 @@ export default class ndax extends Exchange {
         //     }
         //
         const currencyId = this.safeString(item, 'ProductId');
+        currency = this.safeCurrency(currencyId, currency);
         const credit = this.safeString(item, 'CR');
         const debit = this.safeString(item, 'DR');
         let amount = undefined;
@@ -1162,7 +1163,7 @@ export default class ndax extends Exchange {
             before = Precise.stringMax('0', Precise.stringSub(after, amount));
         }
         const timestamp = this.safeInteger(item, 'TimeStamp');
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': this.safeString(item, 'TransactionId'),
             'direction': direction,
@@ -1178,17 +1179,17 @@ export default class ndax extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fee': undefined,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://apidoc.ndax.io/#getaccounttransactions
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */

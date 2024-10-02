@@ -3,7 +3,7 @@
 import p2bRest from '../p2b.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict } from '../base/types.js';
+import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ export default class p2b extends p2bRest {
                 'watchOrders': false,
                 // 'watchStatus': true,
                 'watchTicker': true,
-                'watchTickers': false,  // in the docs but does not return anything when subscribed to
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
             },
@@ -137,6 +137,40 @@ export default class p2b extends p2bRest {
         const request = Object.keys (tickerSubs);
         const messageHash = name + '::' + market['symbol'];
         return await this.subscribe (name + '.subscribe', messageHash, request, params);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name p2b#watchTickers
+         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.method] 'state' (default) or 'price'
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
+        let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
+        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            messageHashes.push (name + '::' + market['symbol']);
+            args.push (market['id']);
+        }
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'method': name + '.subscribe',
+            'params': args,
+            'id': this.milliseconds (),
+        };
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -358,6 +392,7 @@ export default class p2b extends p2bRest {
             ticker = this.parseTicker (tickerData, market);
         }
         const symbol = ticker['symbol'];
+        this.tickers[symbol] = ticker;
         const messageHash = messageHashStart + '::' + symbol;
         client.resolve (ticker, messageHash);
         return message;

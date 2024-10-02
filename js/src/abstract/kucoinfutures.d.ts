@@ -193,6 +193,8 @@ interface kucoin {
     futuresPrivateGetTradeFees(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetHistoryPositions(params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetGetMaxOpenSize(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetGetCrossUserLeverage(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetPositionGetMarginMode(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferOut(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferIn(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrders(params?: {}): Promise<implicitReturnType>;
@@ -204,8 +206,11 @@ interface kucoin {
     futuresPrivatePostPositionRiskLimitLevelChange(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostBulletPrivate(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostWithdrawals(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostStOrders(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostSubApiKey(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostSubApiKeyUpdate(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostChangeCrossUserLeverage(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostPositionChangeMarginMode(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrdersClientOrderClientOid(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrders(params?: {}): Promise<implicitReturnType>;

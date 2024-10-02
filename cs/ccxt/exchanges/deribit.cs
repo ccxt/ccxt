@@ -3323,6 +3323,7 @@ public partial class deribit : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", "8h" },
         };
     }
 

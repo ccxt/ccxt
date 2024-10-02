@@ -38,6 +38,7 @@ class kraken(ccxt.async_support.kraken):
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
                 'createOrderWs': True,
@@ -491,6 +492,61 @@ class kraken(ccxt.async_support.kraken):
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://docs.kraken.com/api/docs/websocket-v1/spread
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        ticker = await self.watch_multi_helper('bidask', 'spread', symbols, None, params)
+        if self.newUpdates:
+            result: dict = {}
+            result[ticker['symbol']] = ticker
+            return result
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message, subscription):
+        #
+        #     [
+        #         7208974,  # channelID
+        #         [
+        #             "63758.60000",  # bid
+        #             "63759.10000",  # ask
+        #             "1726814731.089778",  # timestamp
+        #             "0.00057917",  # bid_volume
+        #             "0.15681688"  # ask_volume
+        #         ],
+        #         "spread",
+        #         "XBT/USDT"
+        #     ]
+        #
+        parsedTicker = self.parse_ws_bid_ask(message)
+        symbol = parsedTicker['symbol']
+        self.bidsasks[symbol] = parsedTicker
+        messageHash = self.get_message_hash('bidask', None, symbol)
+        client.resolve(parsedTicker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        data = self.safe_list(ticker, 1, [])
+        marketId = self.safe_string(ticker, 3)
+        market = self.safe_value(self.options['marketsByWsName'], marketId)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.parse_to_int(self.safe_integer(data, 2)) * 1000
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(data, 1),
+            'askVolume': self.safe_string(data, 4),
+            'bid': self.safe_string(data, 0),
+            'bidVolume': self.safe_string(data, 3),
+            'info': ticker,
+        }, market)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -1400,6 +1456,7 @@ class kraken(ccxt.async_support.kraken):
                 'book': self.handle_order_book,
                 'ohlc': self.handle_ohlcv,
                 'ticker': self.handle_ticker,
+                'spread': self.handle_bid_ask,
                 'trade': self.handle_trades,
                 # private
                 'openOrders': self.handle_orders,

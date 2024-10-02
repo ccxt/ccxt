@@ -14,7 +14,8 @@ class binanceus(binance):
         # eslint-disable-next-line new-cap
         restInstance = binanceusRest()
         restDescribe = restInstance.describe()
-        extended = self.deep_extend(restDescribe, super(binanceus, self).describe())
+        parentWsDescribe = super(binanceus, self).describe_data()
+        extended = self.deep_extend(restDescribe, parentWsDescribe)
         return self.deep_extend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',

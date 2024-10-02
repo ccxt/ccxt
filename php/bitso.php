@@ -185,12 +185,12 @@ class bitso extends Exchange {
         ));
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} $code unified $currency $code, default is null
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
@@ -237,7 +237,7 @@ class bitso extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "eid" => "2510b3e2bc1c87f584500a18084f35ed",
@@ -301,6 +301,7 @@ class bitso extends Exchange {
         $amount = $this->safe_string($firstBalance, 'amount');
         $currencyId = $this->safe_string($firstBalance, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $details = $this->safe_value($item, 'details', array());
         $referenceId = $this->safe_string_2($details, 'fid', 'wid');
         if ($referenceId === null) {
@@ -322,6 +323,7 @@ class bitso extends Exchange {
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'created_at'));
         return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string($item, 'eid'),
             'direction' => $direction,
             'account' => null,
@@ -336,7 +338,6 @@ class bitso extends Exchange {
             'after' => null,
             'status' => 'ok',
             'fee' => $fee,
-            'info' => $item,
         ), $currency);
     }
 

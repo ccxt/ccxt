@@ -26,7 +26,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'watchOHLCV': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
-                'watchTicker': False,
+                'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
@@ -232,6 +232,19 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
+
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        market = self.market(symbol)
+        symbol = market['symbol']
+        tickers = await self.watch_tickers([symbol], params)
+        return tickers[symbol]
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """

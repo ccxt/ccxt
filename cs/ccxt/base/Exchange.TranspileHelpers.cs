@@ -982,4 +982,44 @@ public partial class Exchange
             return str[start..end];
         }
     }
+
+    //clashing with the current method, need to rename it to concat instead of arrayConcat
+    public static object concat(object a, object b)
+    {
+        if (a == null && b == null)
+        {
+            return null;
+        }
+        else if (a == null)
+        {
+            return b;
+        }
+        else if (b == null)
+        {
+            return a;
+        }
+
+        if (a is IList<object> && b is IList<object>)
+        {
+            List<object> result = new List<object>((IList<object>)a);
+            result.AddRange((IList<object>)b);
+            return result;
+        }
+        else if (a is IList<string> && b is IList<string>)
+        {
+            List<string> result = new List<string>((IList<string>)a);
+            result.AddRange((IList<string>)b);
+            return result;
+        }
+        else if (a is IList<Dictionary<string, object>> && b is IList<Dictionary<string, object>>)
+        {
+            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>((IList<Dictionary<string, object>>)a);
+            result.AddRange((IList<Dictionary<string, object>>)b);
+            return result;
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported types for concatenation.");
+        }
+    }
 }

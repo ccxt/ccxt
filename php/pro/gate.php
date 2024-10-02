@@ -357,7 +357,7 @@ class gate extends \ccxt\async\gate {
                     throw new NotSupported($this->id . ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
                 }
             }
-            list($request, $requestParams) = $this->fetchOrdersByStatusRequest ($status, $symbol, $since, $limit, $params);
+            list($request, $requestParams) = $this->prepareOrdersByStatusRequest ($status, $symbol, $since, $limit, $params);
             $newRequest = $this->omit($request, array( 'settle' ));
             $messageType = $this->get_type_by_market($market);
             $channel = $messageType . '.order_list';

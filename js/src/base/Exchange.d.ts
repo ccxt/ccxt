@@ -379,6 +379,7 @@ export default class Exchange {
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(): {};
     randomBytes(length: number): string;
+    randNumber(size: number): number;
     describe(): {
         id: any;
         name: any;
@@ -756,7 +757,7 @@ export default class Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseAccount(account: Dict): Account;
-    parseLedgerEntry(item: Dict, currency?: Currency): object;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseOrder(order: Dict, market?: Market): Order;
     fetchCrossBorrowRates(params?: {}): Promise<CrossBorrowRates>;
     fetchIsolatedBorrowRates(params?: {}): Promise<IsolatedBorrowRates>;
@@ -770,7 +771,7 @@ export default class Exchange {
     parseWsOrder(order: Dict, market?: Market): Order;
     parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     watchFundingRates(symbols: string[], params?: {}): Promise<FundingRates>;
     watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<{}>;
@@ -808,6 +809,9 @@ export default class Exchange {
             };
             CRO: {
                 CRC20: string;
+            };
+            BRC20: {
+                BRC20: string;
             };
         };
     };
@@ -888,7 +892,7 @@ export default class Exchange {
     parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
     parseTransactions(transactions: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];
     parseTransfers(transfers: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): TransferEntry[];
-    parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): any;
+    parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): LedgerEntry[];
     nonce(): number;
     setHeaders(headers: any): any;
     marketId(symbol: string): string;
@@ -1084,8 +1088,8 @@ export default class Exchange {
     parseIsolatedBorrowRates(info: any): IsolatedBorrowRates;
     parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
-    parseFundingRate(contract: string, market?: Market): object;
-    parseFundingRates(response: any, market?: Market): {};
+    parseFundingRate(contract: string, market?: Market): FundingRate;
+    parseFundingRates(response: any, market?: Market): FundingRates;
     handleTriggerAndParams(params: any): any[];
     isTriggerOrder(params: any): any[];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: {}): boolean;

@@ -33,7 +33,7 @@ class p2b extends \ccxt\async\p2b {
                 'watchOrders' => false,
                 // 'watchStatus' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,  // in the docs but does not return anything when subscribed to
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
             ),
@@ -141,6 +141,40 @@ class p2b extends \ccxt\async\p2b {
             $request = is_array($tickerSubs) ? array_keys($tickerSubs) : array();
             $messageHash = $name . '::' . $market['symbol'];
             return Async\await($this->subscribe($name . '.subscribe', $messageHash, $request, $params));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+             * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#$market-status
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->method] 'state' (default) or 'price'
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $watchTickerOptions = $this->safe_dict($this->options, 'watchTicker');
+            $name = $this->safe_string($watchTickerOptions, 'name', 'state');  // or price
+            list($name, $params) = $this->handle_option_and_params($params, 'method', 'name', $name);
+            $messageHashes = array();
+            $args = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $messageHashes[] = $name . '::' . $market['symbol'];
+                $args[] = $market['id'];
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'method' => $name . '.subscribe',
+                'params' => $args,
+                'id' => $this->milliseconds(),
+            );
+            Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -363,6 +397,7 @@ class p2b extends \ccxt\async\p2b {
             $ticker = $this->parse_ticker($tickerData, $market);
         }
         $symbol = $ticker['symbol'];
+        $this->tickers[$symbol] = $ticker;
         $messageHash = $messageHashStart . '::' . $symbol;
         $client->resolve ($ticker, $messageHash);
         return $message;
