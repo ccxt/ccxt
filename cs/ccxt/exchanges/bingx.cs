@@ -583,8 +583,8 @@ public partial class bingx : Exchange
             object networkList = this.safeList(entry, "networkList");
             object networks = new Dictionary<string, object>() {};
             object fee = null;
-            object depositEnabled = null;
-            object withdrawEnabled = null;
+            object depositEnabled = false;
+            object withdrawEnabled = false;
             object defaultLimits = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
@@ -598,7 +598,7 @@ public partial class bingx : Exchange
                     depositEnabled = true;
                 }
                 object networkWithdrawEnabled = this.safeBool(rawNetwork, "withdrawEnable");
-                if (isTrue(networkDepositEnabled))
+                if (isTrue(networkWithdrawEnabled))
                 {
                     withdrawEnabled = true;
                 }

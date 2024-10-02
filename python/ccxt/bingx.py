@@ -590,8 +590,8 @@ class bingx(Exchange, ImplicitAPI):
             networkList = self.safe_list(entry, 'networkList')
             networks: dict = {}
             fee = None
-            depositEnabled = None
-            withdrawEnabled = None
+            depositEnabled = False
+            withdrawEnabled = False
             defaultLimits: dict = {}
             for j in range(0, len(networkList)):
                 rawNetwork = networkList[j]
@@ -602,7 +602,7 @@ class bingx(Exchange, ImplicitAPI):
                 if networkDepositEnabled:
                     depositEnabled = True
                 networkWithdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
-                if networkDepositEnabled:
+                if networkWithdrawEnabled:
                     withdrawEnabled = True
                 limits: dict = {
                     'withdraw': {

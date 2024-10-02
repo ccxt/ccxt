@@ -576,8 +576,8 @@ class bingx extends Exchange {
             $networkList = $this->safe_list($entry, 'networkList');
             $networks = array();
             $fee = null;
-            $depositEnabled = null;
-            $withdrawEnabled = null;
+            $depositEnabled = false;
+            $withdrawEnabled = false;
             $defaultLimits = array();
             for ($j = 0; $j < count($networkList); $j++) {
                 $rawNetwork = $networkList[$j];
@@ -589,7 +589,7 @@ class bingx extends Exchange {
                     $depositEnabled = true;
                 }
                 $networkWithdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
-                if ($networkDepositEnabled) {
+                if ($networkWithdrawEnabled) {
                     $withdrawEnabled = true;
                 }
                 $limits = array(

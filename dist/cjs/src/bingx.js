@@ -581,8 +581,8 @@ class bingx extends bingx$1 {
             const networkList = this.safeList(entry, 'networkList');
             const networks = {};
             let fee = undefined;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            let depositEnabled = false;
+            let withdrawEnabled = false;
             let defaultLimits = {};
             for (let j = 0; j < networkList.length; j++) {
                 const rawNetwork = networkList[j];
@@ -594,7 +594,7 @@ class bingx extends bingx$1 {
                     depositEnabled = true;
                 }
                 const networkWithdrawEnabled = this.safeBool(rawNetwork, 'withdrawEnable');
-                if (networkDepositEnabled) {
+                if (networkWithdrawEnabled) {
                     withdrawEnabled = true;
                 }
                 const limits = {
