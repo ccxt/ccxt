@@ -4806,6 +4806,7 @@ export default class okx extends Exchange {
          * @param {string} [params.network] the network name for the deposit address
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
+        await this.loadMarkets ();
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
         code = this.safeCurrencyCode (code);
