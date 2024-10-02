@@ -3,7 +3,7 @@
 namespace ccxt;
 use Exception; // a common import
 require_once (__DIR__ . '/tests_helpers.php');
-if (is_synchronous) {
+if (IS_SYNCHRONOUS) {
     require_once __DIR__ . '/tests_sync.php';
 } else {
     require_once __DIR__ . '/tests_async.php';
