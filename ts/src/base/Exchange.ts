@@ -2848,6 +2848,7 @@ export default class Exchange {
             if (value['id'] in this.markets_by_id) {
                 const marketsByIdArray = (this.markets_by_id[value['id']] as any);
                 marketsByIdArray.push (value);
+                this.markets_by_id[value['id']] = marketsByIdArray;
             } else {
                 this.markets_by_id[value['id']] = [ value ] as any;
             }
