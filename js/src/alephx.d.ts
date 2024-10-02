@@ -7,7 +7,6 @@ import type { Int, OrderSide, OrderType, Order, Trade, Str, Market, Num, Dict, i
 export default class alephx extends Exchange {
     describe(): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    orderRequest(method: string, symbol: string, type: string, request: Dict, amount: Num, price?: Num, params?: {}): Dict[];
     parseOrder(order: Dict, market?: Market): Order;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;

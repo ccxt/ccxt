@@ -124,14 +124,11 @@ class alephx extends Exchange {
                 ),
                 'www' => 'https://demo.alephx.xyz',
                 // 'doc' => array(
-                //     'https://developers.alephx.com/api/v2',
-                //     'https://docs.cloud.alephx.com/advanced-trade/docs/welcome',
+                //     'https://developers.alephx.com/api/v1',
                 // ),
                 // 'fees' => array(
                 //     'https://support.alephx.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
-                //     'https://www.alephx.com/advanced-fees',
                 // ),
-                // 'referral' => 'https://www.alephx.com/join/58cbe25a355148797479dbd2',
             ),
             'requiredCredentials' => array(
                 'apiKey' => true,
@@ -139,8 +136,6 @@ class alephx extends Exchange {
             ),
             'api' => array(
                 'v1' => array(
-                    // 'public' => array(
-                    // ),
                     'private' => array(
                         'get' => array(
                             'orders' => 0,
@@ -156,82 +151,17 @@ class alephx extends Exchange {
                     ),
                 ),
             ),
-            // 'fees' => array(
-            // ),
-            // 'precisionMode' => TICK_SIZE,
-            // 'exceptions' => array(
-            //     'exact' => array(
-            //         'two_factor_required' => '\\ccxt\\AuthenticationError', // 402 When sending money over 2fa limit
-            //         'param_required' => '\\ccxt\\ExchangeError', // 400 Missing parameter
-            //         'validation_error' => '\\ccxt\\ExchangeError', // 400 Unable to validate POST/PUT
-            //         'invalid_request' => '\\ccxt\\ExchangeError', // 400 Invalid request
-            //         'personal_details_required' => '\\ccxt\\AuthenticationError', // 400 User’s personal detail required to complete this request
-            //         'identity_verification_required' => '\\ccxt\\AuthenticationError', // 400 Identity verification is required to complete this request
-            //         'jumio_verification_required' => '\\ccxt\\AuthenticationError', // 400 Document verification is required to complete this request
-            //         'jumio_face_match_verification_required' => '\\ccxt\\AuthenticationError', // 400 Document verification including face match is required to complete this request
-            //         'unverified_email' => '\\ccxt\\AuthenticationError', // 400 User has not verified their email
-            //         'authentication_error' => '\\ccxt\\AuthenticationError', // 401 Invalid auth (generic)
-            //         'invalid_authentication_method' => '\\ccxt\\AuthenticationError', // 401 API access is blocked for deleted users.
-            //         'invalid_token' => '\\ccxt\\AuthenticationError', // 401 Invalid Oauth token
-            //         'revoked_token' => '\\ccxt\\AuthenticationError', // 401 Revoked Oauth token
-            //         'expired_token' => '\\ccxt\\AuthenticationError', // 401 Expired Oauth token
-            //         'invalid_scope' => '\\ccxt\\AuthenticationError', // 403 User hasn’t authenticated necessary scope
-            //         'not_found' => '\\ccxt\\ExchangeError', // 404 Resource not found
-            //         'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
-            //         'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
-            //         'UNSUPPORTED_ORDER_CONFIGURATION' => '\\ccxt\\BadRequest',
-            //         'INSUFFICIENT_FUND' => '\\ccxt\\BadRequest',
-            //         'PERMISSION_DENIED' => '\\ccxt\\PermissionDenied',
-            //         'INVALID_ARGUMENT' => '\\ccxt\\BadRequest',
-            //     ),
-            //     'broad' => array(
-            //         'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
-            //         'order with this orderID was not found' => '\\ccxt\\OrderNotFound', // array("error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found")
-            //     ),
-            // ),
-            // 'timeframes' => array(
-            //     '1m' => 'ONE_MINUTE',
-            //     '5m' => 'FIVE_MINUTE',
-            //     '15m' => 'FIFTEEN_MINUTE',
-            //     '30m' => 'THIRTY_MINUTE',
-            //     '1h' => 'ONE_HOUR',
-            //     '2h' => 'TWO_HOUR',
-            //     '6h' => 'SIX_HOUR',
-            //     '1d' => 'ONE_DAY',
-            // ),
-            // 'commonCurrencies' => array(
-            //     'CGLD' => 'CELO',
-            // ),
-            // 'options' => array(
-            //     'usePrivate' => false,
-            //     'brokerId' => 'ccxt',
-            //     'stablePairs' => array( 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ),
-            //     'fetchCurrencies' => array(
-            //         'expires' => 5000,
-            //     ),
-            //     'accounts' => array(
-            //         'wallet',
-            //         'fiat',
-            //         // 'vault',
-            //     ),
-            //     'v3Accounts' => array(
-            //         'ACCOUNT_TYPE_CRYPTO',
-            //         'ACCOUNT_TYPE_FIAT',
-            //     ),
-            //     'networks' => array(
-            //         'ERC20' => 'ethereum',
-            //         'XLM' => 'stellar',
-            //     ),
-            //     'createMarketBuyOrderRequiresPrice' => true,
-            //     'advanced' => true, // set to true if using any v3 endpoints from the advanced trade API
-            //     'fetchMarkets' => 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
-            //     'fetchTicker' => 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
-            //     'fetchTickers' => 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
-            //     'fetchAccounts' => 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
-            //     'fetchBalance' => 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
-            //     'fetchTime' => 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
-            //     'user_native_currency' => 'USD', // needed to get fees for v3
-            // ),
+            'exceptions' => array(
+                'exact' => array(),
+                'broad' => array(
+                    'Wallet not allowed' => '\\ccxt\\AuthenticationError',
+                    'Invalid signature' => '\\ccxt\\AuthenticationError',
+                    'Unauthorized' => '\\ccxt\\PermissionDenied',
+                    'Order is not cancellable' => '\\ccxt\\BadRequest',
+                    'Asset is not supported' => '\\ccxt\\BadRequest',
+                    'Not Found' => '\\ccxt\\OrderNotFound',
+                ),
+            ),
         ));
     }
 
@@ -251,13 +181,15 @@ class alephx extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             $request = array(
-                'pair' => $symbol,
-                'type' => $side,
-                'ordertype' => $type,
-                'volume' => $amount,
+                'symbol' => $symbol,
+                'type' => $type,
+                'side' => $side,
+                'quantity' => (string) $amount,
+                'price' => (string) $price,
+                'time_in_force' => $this->safe_string_2($params, 'timeInForce', 'gtc'),
+                'idempotency_key' => $this->safe_string_2($params, 'idempotencyKey', $this->uuid()),
             );
-            $orderRequest = $this->order_request('createOrder', $symbol, $type, $request, $amount, $price, $params);
-            $response = Async\await($this->v1PrivatePostOrders ($this->extend($orderRequest[0], $orderRequest[1])));
+            $response = Async\await($this->v1PrivatePostOrders ($request));
             //
             // successful order
             //
@@ -275,41 +207,39 @@ class alephx extends Exchange {
         }) ();
     }
 
-    public function order_request(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array ()) {
-        $clientOrderId = $this->safe_string_2($params, 'idempotencyKey', 'idempotencykey');
-        if ($clientOrderId !== null) {
-            $request['idempotencyKey'] = $clientOrderId;
-        }
-        $isLimitOrder = $type === 'limit';
-        if ($isLimitOrder) {
-            $request['price'] = $price;
-        }
-        $timeInForce = $this->safe_string_2($params, 'timeInForce', 'gtc');
-        if ($timeInForce !== null) {
-            $request['timeinforce'] = $timeInForce;
-        }
-        $params = $this->omit($params, array( 'timeInForce', 'idempotencyKey' ));
-        return array( $request, $params );
-    }
-
     public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
-        //     {
-        //         "order_id" => "52cfe5e2-0b29-4c19-a245-a6a773de5030",
-        //         "status" => "pending_new"
-        //     }
+        // {
+        //    "order_id" => "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //    "status" => "pending_new"
+        // }
         //
-        // cancelOrder
         //
-        //     {
-        //     }
+        // fetchOrder, fetchOrders, cancelOrder
         //
-        // fetchOrder, fetchOrders
-        //
-        //     {
-        //     }
+        // {
+        //     "id" => "0da4eb8d-c108-4e6c-8c45-0b42fabd3a72",
+        //     "status" => "partially_filled",
+        //     "type" => "limit",
+        //     "symbol" => "CLEO-ALEO",
+        //     "account_id" => "cb77b9ab-f94d-4013-85b7-644b0b9ba9a9",
+        //     "settled_quantity" => "0",
+        //     "base_quantity" => "0.1",
+        //     "filled_quantity" => "0.04",
+        //     "side" => "buy",
+        //     "price" => "12.3",
+        //     "remained_quantity" => "0.06",
+        //     "idempotency_key" => "99888999-93ef-9831-9829-120a082bfcf2",
+        //     "inserted_at" => "2024-09-16T23:47:45.161888Z",
+        //     "fee_asset":null,
+        //     "filled_at" => "2024-09-26T20:08:11.350542Z",
+        //     "average_filled_price" => "12.3",
+        //     "canceled_at":null,"cumulative_fee" => "0",
+        //     "time_in_force" => "gtc",
+        //     "internal_status" => "partially_filled"
+        // }
         //
         $createdDateTime = $this->safe_string($order, 'inserted_at');
         $filledDateTime = $this->safe_string($order, 'filled_at');
@@ -322,7 +252,7 @@ class alephx extends Exchange {
             'lastTradeTimestamp' => $filledDateTime ? $this->parse8601($filledDateTime) : null,
             'symbol' => $this->safe_string($order, 'symbol'),
             'type' => $this->safe_string($order, 'type'),
-            'timeInForce' => $this->safe_string($order, 'time_in_force'),
+            'timeInForce' => $this->safe_string($order, 'time_in_force', 'gtc'),
             'postOnly' => true,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
@@ -410,10 +340,7 @@ class alephx extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $request = array();
-            $response = Async\await($this->v1PrivateGetOrders ($this->extend($request, $params)));
-            //
-            //
+            $response = Async\await($this->v1PrivateGetOrders ());
             $market = null;
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
@@ -422,31 +349,77 @@ class alephx extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * fetch all trades made by the user
+             * fetch all $trades made by the user
              * @see GET https://api.alephx.xyz/api/v1/trades
-             * @param {string} $symbol unified $market $symbol of the trades
+             * @param {string} $symbol unified $market $symbol of the $trades
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of trade structures to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch trades for
+             * @param {int} [$params->until] the latest time in ms to fetch $trades for
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
-            $request = array();
-            $response = Async\await($this->v1PrivateGetTrades ($this->extend($request, $params)));
-            //
-            //
+            $response = Async\await($this->v1PrivateGetTrades ());
+            $trades = $this->safe_list($response, 'data');
             $market = null;
-            return $this->parse_trades($response, $market, $since, $limit);
+            //
+            // { "data" => [
+            //   array( "id" => "32672029-b46b-4139-9779-95444053f40a",
+            //     "status" => "unsettled",
+            //     "symbol" => "CLEO-ALEO",
+            //     "base_quantity" => "0.01",
+            //     "side" => "buy",
+            //     "price" => "12.3",
+            //     "buy_order_id" => "0da4eb8d-c108-4e6c-8c45-0b42fabd3a72",
+            //     "sell_order_id" => "86c61562-ff14-43c9-9a03-4be804d184d0",
+            //     "quote_quantity" => "0.123",
+            //     "inserted_at" => "2024-09-26T15:18:06.603489Z",
+            //     "aggressor_side" => "sell",
+            //     "fee" => null,
+            //     "fee_asset" => null,
+            //     "updated_at" => "2024-09-26T15:18:06.603489Z"
+            //  )]}
+            //
+            return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
-        // fetchTrades
+        // returned $trade
         //
-        //     {
-        //     }
-        //
+        // array(
+        //   {
+        //     id => '32672029-b46b-4139-9779-95444053f40a',
+        //     order => '0da4eb8d-c108-4e6c-8c45-0b42fabd3a72',
+        //     info => array(
+        //     id => '32672029-b46b-4139-9779-95444053f40a',
+        //     status => 'unsettled',
+        //     symbol => 'CLEO-ALEO',
+        //     base_quantity => '0.01',
+        //     side => 'buy',
+        //     price => '12.3',
+        //     buy_order_id => '0da4eb8d-c108-4e6c-8c45-0b42fabd3a72',
+        //     sell_order_id => '86c61562-ff14-43c9-9a03-4be804d184d0',
+        //     quote_quantity => '0.123',
+        //     inserted_at => '2024-09-26T15:18:06.603489Z',
+        //     aggressor_side => 'sell',
+        //     fee => null,
+        //     fee_asset => null,
+        //     updated_at => '2024-09-26T15:18:06.603489Z'
+        //     ),
+        //     timestamp => 1727363886603,
+        //     datetime => '2024-09-26T15:18:06.603489Z',
+        //     symbol => 'CLEO-ALEO',
+        //     type => null,
+        //     side => 'buy',
+        //     takerOrMaker => null,
+        //     price => 12.3,
+        //     amount => 0.01,
+        //     cost => 0.123,
+        //     fee => array( cost => null, currency => null ),
+        //     fees => array()
+        //   }
+        // )
         $createdDateTime = $this->safe_string($trade, 'inserted_at');
         $traderSide = $this->safe_string($trade, 'side');
         $traderOrderId = $traderSide === 'buy' ? $this->safe_string($trade, 'buy_order_id') : $this->safe_string($trade, 'sell_order_id');
@@ -491,14 +464,19 @@ class alephx extends Exchange {
                 $authorizationString = 'Bearer ' . $this->token;
             } else {
                 $this->check_required_credentials();
+                if ($method !== 'GET') {
+                    if ($query) {
+                        $body = $this->json($query);
+                    }
+                }
                 // doesn't need payload in the $signature-> inside $url is enough
                 $timestampString = (string) $this->seconds();
                 $auth = $timestampString . $method . $savedPath;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $headers = array(
-                    'ZKX-ACCESS-KEY' => $this->apiKey,
-                    'ZKX-ACCESS-SIGN' => $signature,
-                    'ZKX-ACCESS-TIMESTAMP' => $timestampString,
+                    'ZKX_ACCESS_KEY' => $this->apiKey,
+                    'ZKX_ACCESS_SIGN' => $signature,
+                    'ZKX_ACCESS_TIMESTAMP' => $timestampString,
                     'Content-Type' => 'application/json',
                 );
             }

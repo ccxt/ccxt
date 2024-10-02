@@ -179,17 +179,15 @@ export default class alephx extends Exchange {
          * @param {string} [params.idempotencyKey] uuid for idempotency key
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-
         const request: Dict = {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'quantity': amount.toString(),
-            'price': price.toString(),
+            'quantity': amount.toString (),
+            'price': price.toString (),
             'time_in_force': this.safeString2 (params, 'timeInForce', 'gtc'),
             'idempotency_key': this.safeString2 (params, 'idempotencyKey', this.uuid ()),
         };
-
         const response = await this.v1PrivatePostOrders (request);
         //
         // successful order
@@ -341,7 +339,6 @@ export default class alephx extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-
         const response = await this.v1PrivateGetOrders ();
         const market = undefined;
         return this.parseOrders (response, market, since, limit);
@@ -465,15 +462,9 @@ export default class alephx extends Exchange {
                 authorizationString = 'Bearer ' + this.token;
             } else {
                 this.checkRequiredCredentials ();
-                let payload = '';
                 if (method !== 'GET') {
                     if (Object.keys (query).length) {
                         body = this.json (query);
-                        payload = body;
-                    }
-                } else {
-                    if (Object.keys (query).length) {
-                        payload += '?' + this.urlencode (query);
                     }
                 }
                 // doesn't need payload in the signature. inside url is enough
