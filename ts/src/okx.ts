@@ -4803,38 +4803,30 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] the network name for the deposit address
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
+        await this.loadMarkets ();
         const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
+        code = this.safeCurrencyCode (code);
+        const network = this.networkIdToCode (rawNetwork, code);
         const response = await this.fetchDepositAddressesByNetwork (code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
+        if (network !== undefined) {
+            const result = this.safeDict (response, network);
             if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
-                        }
-                    }
-                }
+                throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
             }
             return result;
         }
-        result = this.safeValue (response, network);
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        const codeNetwork = this.networkIdToCode (code, code);
+        if (codeNetwork in response) {
+            return response[codeNetwork];
         }
-        return result;
+        // if the network is not specified, return the first address
+        const keys = Object.keys (response);
+        const first = this.safeString (keys, 0);
+        return this.safeDict (response, first);
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
