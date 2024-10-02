@@ -1808,7 +1808,7 @@ class kraken extends Exchange {
             }
             $extendedOflags = ($flags !== null) ? $flags . ',viqc' : 'viqc';
             $request['oflags'] = $extendedOflags;
-        } elseif ($isLimitOrder && !$isTrailingAmountOrder) {
+        } elseif ($isLimitOrder && !$isTrailingAmountOrder && !$isTrailingPercentOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
@@ -1833,8 +1833,8 @@ class kraken extends Exchange {
             }
         } elseif ($isTrailingAmountOrder || $isTrailingPercentOrder) {
             $trailingPercentString = null;
-            if ($isTrailingPercentOrder) {
-                $trailingPercentString = (str_ends_with($trailingPercent, '%')) ? $trailingPercent : '+' . ($this->number_to_string($trailingPercent) . '%');
+            if ($trailingPercent !== null) {
+                $trailingPercentString = (str_ends_with($trailingPercent, '%')) ? ('+' . $trailingPercent) : ('+' . $trailingPercent . '%');
             }
             $trailingAmountString = ($trailingAmount !== null) ? '+' . $trailingAmount : null; // must use . for this
             $offset = $this->safe_string($params, 'offset', '-'); // can use . or - for this
@@ -1844,7 +1844,7 @@ class kraken extends Exchange {
             if ($isLimitOrder || ($trailingLimitAmount !== null) || ($trailingLimitPercent !== null)) {
                 $request['ordertype'] = 'trailing-stop-limit';
                 if ($trailingLimitPercent !== null) {
-                    $trailingLimitPercentString = (str_ends_with($trailingLimitPercent, '%')) ? $trailingLimitPercent : ($this->number_to_string($trailingLimitPercent) . '%');
+                    $trailingLimitPercentString = (str_ends_with($trailingLimitPercent, '%')) ? ($offset . $trailingLimitPercent) : ($offset . $trailingLimitPercent . '%');
                     $request['price'] = $trailingPercentString;
                     $request['price2'] = $trailingLimitPercentString;
                 } elseif ($trailingLimitAmount !== null) {

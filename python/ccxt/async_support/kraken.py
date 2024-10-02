@@ -1740,7 +1740,7 @@ class kraken(Exchange, ImplicitAPI):
                 request['volume'] = self.cost_to_precision(symbol, cost)
             extendedOflags = flags + ',viqc' if (flags is not None) else 'viqc'
             request['oflags'] = extendedOflags
-        elif isLimitOrder and not isTrailingAmountOrder:
+        elif isLimitOrder and not isTrailingAmountOrder and not isTrailingPercentOrder:
             request['price'] = self.price_to_precision(symbol, price)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         if isStopLossOrTakeProfitTrigger:
@@ -1760,8 +1760,8 @@ class kraken(Exchange, ImplicitAPI):
                 request['price2'] = self.price_to_precision(symbol, price)
         elif isTrailingAmountOrder or isTrailingPercentOrder:
             trailingPercentString = None
-            if isTrailingPercentOrder:
-                trailingPercentString = trailingPercent if (trailingPercent.endswith('%')) else '+' + (self.number_to_string(trailingPercent) + '%')
+            if trailingPercent is not None:
+                trailingPercentString = ('+' + trailingPercent) if (trailingPercent.endswith('%')) else ('+' + trailingPercent + '%')
             trailingAmountString = '+' + trailingAmount if (trailingAmount is not None) else None  # must use + for self
             offset = self.safe_string(params, 'offset', '-')  # can use + or - for self
             trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount) if (trailingLimitAmount is not None) else None
@@ -1770,7 +1770,7 @@ class kraken(Exchange, ImplicitAPI):
             if isLimitOrder or (trailingLimitAmount is not None) or (trailingLimitPercent is not None):
                 request['ordertype'] = 'trailing-stop-limit'
                 if trailingLimitPercent is not None:
-                    trailingLimitPercentString = trailingLimitPercent if (trailingLimitPercent.endswith('%')) else (self.number_to_string(trailingLimitPercent) + '%')
+                    trailingLimitPercentString = (offset + trailingLimitPercent) if (trailingLimitPercent.endswith('%')) else (offset + trailingLimitPercent + '%')
                     request['price'] = trailingPercentString
                     request['price2'] = trailingLimitPercentString
                 elif trailingLimitAmount is not None:
