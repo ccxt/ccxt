@@ -187,10 +187,6 @@ class testMainClass extends baseMainTestClass {
             exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
             exchange.wsProxy = exchange.safeString (skippedSettingsForExchange, 'wsProxy');
             exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
-            const headers = exchange.safeDict (skippedSettingsForExchange, 'headers');
-            if (headers !== undefined) {
-                exchange.headers = exchange.extend (exchange.headers, headers);
-            }
         }
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
