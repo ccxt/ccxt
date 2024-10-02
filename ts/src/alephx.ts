@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import Exchange from './abstract/alephx.js';
-import { ExchangeError, BadRequest, OrderNotFound } from './base/errors.js';
+import { AuthenticationError, ExchangeError, BadRequest, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Order, Trade, Str, Market, Num, Dict, int } from './base/types.js';
 
@@ -122,14 +122,11 @@ export default class alephx extends Exchange {
                 },
                 'www': 'https://demo.alephx.xyz',
                 // 'doc': [
-                //     'https://developers.alephx.com/api/v2',
-                //     'https://docs.cloud.alephx.com/advanced-trade/docs/welcome',
+                //     'https://developers.alephx.com/api/v1',
                 // ],
                 // 'fees': [
                 //     'https://support.alephx.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
-                //     'https://www.alephx.com/advanced-fees',
                 // ],
-                // 'referral': 'https://www.alephx.com/join/58cbe25a355148797479dbd2',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -137,8 +134,6 @@ export default class alephx extends Exchange {
             },
             'api': {
                 'v1': {
-                    // 'public': {
-                    // },
                     'private': {
                         'get': {
                             'orders': 0,
@@ -154,82 +149,17 @@ export default class alephx extends Exchange {
                     },
                 },
             },
-            // 'fees': {
-            // },
-            // 'precisionMode': TICK_SIZE,
-            // 'exceptions': {
-            //     'exact': {
-            //         'two_factor_required': AuthenticationError, // 402 When sending money over 2fa limit
-            //         'param_required': ExchangeError, // 400 Missing parameter
-            //         'validation_error': ExchangeError, // 400 Unable to validate POST/PUT
-            //         'invalid_request': ExchangeError, // 400 Invalid request
-            //         'personal_details_required': AuthenticationError, // 400 User’s personal detail required to complete this request
-            //         'identity_verification_required': AuthenticationError, // 400 Identity verification is required to complete this request
-            //         'jumio_verification_required': AuthenticationError, // 400 Document verification is required to complete this request
-            //         'jumio_face_match_verification_required': AuthenticationError, // 400 Document verification including face match is required to complete this request
-            //         'unverified_email': AuthenticationError, // 400 User has not verified their email
-            //         'authentication_error': AuthenticationError, // 401 Invalid auth (generic)
-            //         'invalid_authentication_method': AuthenticationError, // 401 API access is blocked for deleted users.
-            //         'invalid_token': AuthenticationError, // 401 Invalid Oauth token
-            //         'revoked_token': AuthenticationError, // 401 Revoked Oauth token
-            //         'expired_token': AuthenticationError, // 401 Expired Oauth token
-            //         'invalid_scope': AuthenticationError, // 403 User hasn’t authenticated necessary scope
-            //         'not_found': ExchangeError, // 404 Resource not found
-            //         'rate_limit_exceeded': RateLimitExceeded, // 429 Rate limit exceeded
-            //         'internal_server_error': ExchangeError, // 500 Internal server error
-            //         'UNSUPPORTED_ORDER_CONFIGURATION': BadRequest,
-            //         'INSUFFICIENT_FUND': BadRequest,
-            //         'PERMISSION_DENIED': PermissionDenied,
-            //         'INVALID_ARGUMENT': BadRequest,
-            //     },
-            //     'broad': {
-            //         'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
-            //         'order with this orderID was not found': OrderNotFound, // {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
-            //     },
-            // },
-            // 'timeframes': {
-            //     '1m': 'ONE_MINUTE',
-            //     '5m': 'FIVE_MINUTE',
-            //     '15m': 'FIFTEEN_MINUTE',
-            //     '30m': 'THIRTY_MINUTE',
-            //     '1h': 'ONE_HOUR',
-            //     '2h': 'TWO_HOUR',
-            //     '6h': 'SIX_HOUR',
-            //     '1d': 'ONE_DAY',
-            // },
-            // 'commonCurrencies': {
-            //     'CGLD': 'CELO',
-            // },
-            // 'options': {
-            //     'usePrivate': false,
-            //     'brokerId': 'ccxt',
-            //     'stablePairs': [ 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ],
-            //     'fetchCurrencies': {
-            //         'expires': 5000,
-            //     },
-            //     'accounts': [
-            //         'wallet',
-            //         'fiat',
-            //         // 'vault',
-            //     ],
-            //     'v3Accounts': [
-            //         'ACCOUNT_TYPE_CRYPTO',
-            //         'ACCOUNT_TYPE_FIAT',
-            //     ],
-            //     'networks': {
-            //         'ERC20': 'ethereum',
-            //         'XLM': 'stellar',
-            //     },
-            //     'createMarketBuyOrderRequiresPrice': true,
-            //     'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
-            //     'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
-            //     'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
-            //     'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
-            //     'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
-            //     'fetchBalance': 'v2PrivateGetAccounts', // 'v2PrivateGetAccounts' or 'v3PrivateGetBrokerageAccounts'
-            //     'fetchTime': 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
-            //     'user_native_currency': 'USD', // needed to get fees for v3
-            // },
+            'exceptions': {
+                'exact': {},
+                'broad': {
+                    'Wallet not allowed': AuthenticationError,
+                    'Invalid signature': AuthenticationError,
+                    'Unauthorized': PermissionDenied,
+                    'Order is not cancellable': BadRequest,
+                    'Asset is not supported': BadRequest,
+                    'Not Found': OrderNotFound,
+                },
+            },
         });
     }
 
@@ -249,14 +179,18 @@ export default class alephx extends Exchange {
          * @param {string} [params.idempotencyKey] uuid for idempotency key
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+
         const request: Dict = {
-            'pair': symbol,
-            'type': side,
-            'ordertype': type,
-            'volume': amount,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'quantity': amount.toString(),
+            'price': price.toString(),
+            'time_in_force': this.safeString2 (params, 'timeInForce', 'gtc'),
+            'idempotency_key': this.safeString2 (params, 'idempotencyKey', this.uuid ()),
         };
-        const orderRequest = this.orderRequest ('createOrder', symbol, type, request, amount, price, params);
-        const response = await this.v1PrivatePostOrders (this.extend (orderRequest[0], orderRequest[1]));
+
+        const response = await this.v1PrivatePostOrders (request);
         //
         // successful order
         //
@@ -273,41 +207,39 @@ export default class alephx extends Exchange {
         return this.parseOrder (response);
     }
 
-    orderRequest (method: string, symbol: string, type: string, request: Dict, amount: Num, price: Num = undefined, params = {}) {
-        const clientOrderId = this.safeString2 (params, 'idempotencyKey', 'idempotencykey');
-        if (clientOrderId !== undefined) {
-            request['idempotencyKey'] = clientOrderId;
-        }
-        const isLimitOrder = type === 'limit';
-        if (isLimitOrder) {
-            request['price'] = price;
-        }
-        const timeInForce = this.safeString2 (params, 'timeInForce', 'gtc');
-        if (timeInForce !== undefined) {
-            request['timeinforce'] = timeInForce;
-        }
-        params = this.omit (params, [ 'timeInForce', 'idempotencyKey' ]);
-        return [ request, params ];
-    }
-
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
-        //     {
-        //         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
-        //         "status": "pending_new"
-        //     }
+        // {
+        //    "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //    "status": "pending_new"
+        // }
         //
-        // cancelOrder
         //
-        //     {
-        //     }
+        // fetchOrder, fetchOrders, cancelOrder
         //
-        // fetchOrder, fetchOrders
-        //
-        //     {
-        //     }
+        // {
+        //     "id": "0da4eb8d-c108-4e6c-8c45-0b42fabd3a72",
+        //     "status": "partially_filled",
+        //     "type": "limit",
+        //     "symbol": "CLEO-ALEO",
+        //     "account_id": "cb77b9ab-f94d-4013-85b7-644b0b9ba9a9",
+        //     "settled_quantity": "0",
+        //     "base_quantity": "0.1",
+        //     "filled_quantity": "0.04",
+        //     "side": "buy",
+        //     "price": "12.3",
+        //     "remained_quantity": "0.06",
+        //     "idempotency_key": "99888999-93ef-9831-9829-120a082bfcf2",
+        //     "inserted_at": "2024-09-16T23:47:45.161888Z",
+        //     "fee_asset":null,
+        //     "filled_at": "2024-09-26T20:08:11.350542Z",
+        //     "average_filled_price": "12.3",
+        //     "canceled_at":null,"cumulative_fee": "0",
+        //     "time_in_force": "gtc",
+        //     "internal_status": "partially_filled"
+        // }
         //
         const createdDateTime = this.safeString (order, 'inserted_at');
         const filledDateTime = this.safeString (order, 'filled_at');
@@ -320,7 +252,7 @@ export default class alephx extends Exchange {
             'lastTradeTimestamp': filledDateTime ? this.parse8601 (filledDateTime) : undefined,
             'symbol': this.safeString (order, 'symbol'),
             'type': this.safeString (order, 'type'),
-            'timeInForce': this.safeString (order, 'time_in_force'),
+            'timeInForce': this.safeString (order, 'time_in_force', 'gtc'),
             'postOnly': true,
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeString (order, 'price'),
@@ -409,10 +341,8 @@ export default class alephx extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {};
-        const response = await this.v1PrivateGetOrders (this.extend (request, params));
-        //
-        //
+
+        const response = await this.v1PrivateGetOrders ();
         const market = undefined;
         return this.parseOrders (response, market, since, limit);
     }
@@ -431,20 +361,66 @@ export default class alephx extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        const request = {};
-        const response = await this.v1PrivateGetTrades (this.extend (request, params));
-        //
-        //
+        const response = await this.v1PrivateGetTrades ();
+        const trades = this.safeList (response, 'data');
         const market = undefined;
-        return this.parseTrades (response, market, since, limit);
+        //
+        // { "data": [
+        //   { "id": "32672029-b46b-4139-9779-95444053f40a",
+        //     "status": "unsettled",
+        //     "symbol": "CLEO-ALEO",
+        //     "base_quantity": "0.01",
+        //     "side": "buy",
+        //     "price": "12.3",
+        //     "buy_order_id": "0da4eb8d-c108-4e6c-8c45-0b42fabd3a72",
+        //     "sell_order_id": "86c61562-ff14-43c9-9a03-4be804d184d0",
+        //     "quote_quantity": "0.123",
+        //     "inserted_at": "2024-09-26T15:18:06.603489Z",
+        //     "aggressor_side": "sell",
+        //     "fee": null,
+        //     "fee_asset": null,
+        //     "updated_at": "2024-09-26T15:18:06.603489Z"
+        //  }]}
+        //
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
-        // fetchTrades
+        // returned trade
         //
-        //     {
-        //     }
-        //
+        // [
+        //   {
+        //     id: '32672029-b46b-4139-9779-95444053f40a',
+        //     order: '0da4eb8d-c108-4e6c-8c45-0b42fabd3a72',
+        //     info: {
+        //     id: '32672029-b46b-4139-9779-95444053f40a',
+        //     status: 'unsettled',
+        //     symbol: 'CLEO-ALEO',
+        //     base_quantity: '0.01',
+        //     side: 'buy',
+        //     price: '12.3',
+        //     buy_order_id: '0da4eb8d-c108-4e6c-8c45-0b42fabd3a72',
+        //     sell_order_id: '86c61562-ff14-43c9-9a03-4be804d184d0',
+        //     quote_quantity: '0.123',
+        //     inserted_at: '2024-09-26T15:18:06.603489Z',
+        //     aggressor_side: 'sell',
+        //     fee: null,
+        //     fee_asset: null,
+        //     updated_at: '2024-09-26T15:18:06.603489Z'
+        //     },
+        //     timestamp: 1727363886603,
+        //     datetime: '2024-09-26T15:18:06.603489Z',
+        //     symbol: 'CLEO-ALEO',
+        //     type: undefined,
+        //     side: 'buy',
+        //     takerOrMaker: undefined,
+        //     price: 12.3,
+        //     amount: 0.01,
+        //     cost: 0.123,
+        //     fee: { cost: undefined, currency: undefined },
+        //     fees: []
+        //   }
+        // ]
         const createdDateTime = this.safeString (trade, 'inserted_at');
         const traderSide = this.safeString (trade, 'side');
         const traderOrderId = traderSide === 'buy' ? this.safeString (trade, 'buy_order_id') : this.safeString (trade, 'sell_order_id');
@@ -489,14 +465,25 @@ export default class alephx extends Exchange {
                 authorizationString = 'Bearer ' + this.token;
             } else {
                 this.checkRequiredCredentials ();
+                let payload = '';
+                if (method !== 'GET') {
+                    if (Object.keys (query).length) {
+                        body = this.json (query);
+                        payload = body;
+                    }
+                } else {
+                    if (Object.keys (query).length) {
+                        payload += '?' + this.urlencode (query);
+                    }
+                }
                 // doesn't need payload in the signature. inside url is enough
                 const timestampString = this.seconds ().toString ();
                 const auth = timestampString + method + savedPath;
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 headers = {
-                    'ZKX-ACCESS-KEY': this.apiKey,
-                    'ZKX-ACCESS-SIGN': signature,
-                    'ZKX-ACCESS-TIMESTAMP': timestampString,
+                    'ZKX_ACCESS_KEY': this.apiKey,
+                    'ZKX_ACCESS_SIGN': signature,
+                    'ZKX_ACCESS_TIMESTAMP': timestampString,
                     'Content-Type': 'application/json',
                 };
             }
