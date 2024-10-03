@@ -1188,6 +1188,9 @@ class binance extends Exchange {
                 ),
                 'option' => array(),
             ),
+            'currencies' => array(
+                'BNFCR' => $this->safe_currency_structure(array( 'id' => 'BNFCR', 'code' => 'BNFCR', 'precision' => $this->parse_number('0.001') )),
+            ),
             'commonCurrencies' => array(
                 'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO' => 'YOYOW',

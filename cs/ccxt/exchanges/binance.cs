@@ -1215,6 +1215,13 @@ public partial class binance : Exchange
                 } },
                 { "option", new Dictionary<string, object>() {} },
             } },
+            { "currencies", new Dictionary<string, object>() {
+                { "BNFCR", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "BNFCR" },
+                    { "code", "BNFCR" },
+                    { "precision", this.parseNumber("0.001") },
+                }) },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "BCC", "BCC" },
                 { "YOYO", "YOYOW" },
