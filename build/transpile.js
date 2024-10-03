@@ -2336,7 +2336,7 @@ class Transpiler {
                 const isSameDirImport = tests.find(t => t.name === subTestName);
                 const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/exchange/base/';
                 let pySuffix = isSameDirImport ? '' : '.exchange.base';
-                const pyLangSpecSuffix = subTestName === 'testLanguageSpecific' ? 'language_specific.' : '';
+                const isLangSpec = subTestName === 'testLanguageSpecific';
 
                 if (isSharedMethodsImport) {
                     pythonHeaderAsync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
@@ -2350,11 +2350,13 @@ class Transpiler {
                     }
                 } else {
                     if (test.base) {
-                        phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
+                        const phpLangSpec =  isLangSpec ? 'language_specific/' : '';
+                        phpHeaderSync.push (`include_once __DIR__ . '/${phpLangSpec}${snake_case}.php';`)
                         if (test.tsFile.includes('Exchange/base')) {
                             pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
                         } else {
-                            pythonHeaderSync.push (`from ccxt.test.base.${pyLangSpecSuffix}${snake_case} import ${snake_case}  # noqa E402`)
+                            const pyLangSpec =  isLangSpec ? 'language_specific.' : '';
+                            pythonHeaderSync.push (`from ccxt.test.base.${pyLangSpec}${snake_case} import ${snake_case}  # noqa E402`)
                         }
                     } else {
                         phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)
