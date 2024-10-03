@@ -1078,7 +1078,7 @@ export default class coincatch extends Exchange {
         if (marketId.indexOf ('_') < 0) {
             marketId += '_SPBL'; // spot markets from tickers endpoints have no suffix specific for market id
         }
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarketCustom (marketId, market);
         const last = this.safeString2 (ticker, 'close', 'last');
         return this.safeTicker ({
             'symbol': market['symbol'],
@@ -1393,7 +1393,7 @@ export default class coincatch extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarketCustom (marketId, market);
         const timestamp = this.safeIntegerN (trade, [ 'fillTime', 'timestamp', 'cTime' ]);
         const fees = this.safeString (trade, 'fees');
         let feeCost: Str = undefined;
@@ -1456,7 +1456,7 @@ export default class coincatch extends Exchange {
 
     parseFundingRate (contract, market: Market = undefined) {
         const marketId = this.safeString (contract, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'swap');
+        market = this.safeMarketCustom (marketId, market);
         const fundingRate = this.safeNumber (contract, 'fundingRate');
         return {
             'info': contract,
@@ -3001,7 +3001,7 @@ export default class coincatch extends Exchange {
         //         "cTime": "1725964219072"
         //     }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarketCustom (marketId, market);
         const timestamp = this.safeInteger (order, 'cTime');
         const price = this.omitZero (this.safeString (order, 'price')); // price is zero for market orders
         const type = this.safeString (order, 'orderType');
@@ -3469,7 +3469,7 @@ export default class coincatch extends Exchange {
         //     }
         //
         const marketId = this.safeString (leverage, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarketCustom (marketId, market);
         const marginMode = this.parseMarginModeType (this.safeStringLower (leverage, 'marginMode'));
         let longLeverage = this.safeInteger2 (leverage, 'fixedLongLeverage', 'longLeverage');
         let shortLeverage = this.safeInteger2 (leverage, 'fixedShortLeverage', 'shortLeverage');
@@ -3756,7 +3756,7 @@ export default class coincatch extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         const settleId = this.safeString (position, 'marginCoin');
-        market = this.safeSwapMarket (marketId, market, settleId);
+        market = this.safeMarketCustom (marketId, market, settleId);
         const timestamp = this.safeInteger (position, 'cTime');
         const marginMode = this.safeString (position, 'marginMode');
         let isHedged: Bool = undefined;
@@ -3800,18 +3800,22 @@ export default class coincatch extends Exchange {
         });
     }
 
-    safeSwapMarket (marketId: Str, market: Market, settleId: Str): Market {
+    safeMarketCustom (marketId: Str, market: Market, settleId: Str = undefined): Market {
         try {
             market = this.safeMarket (marketId, market);
         } catch (e) {
             // dmcbl markets have the same id and market type but different settleId
             // so we need to resolve the market by settleId
             const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
-            for (let i = 0; i < marketsWithCurrentId.length; i++) {
-                const marketWithCurrentId = marketsWithCurrentId[i];
-                if (marketWithCurrentId['settleId'] === settleId) {
-                    market = marketWithCurrentId;
-                    break;
+            if (settleId === undefined) {
+                market = marketsWithCurrentId[0]; // if settleId is not provided, return the first market with the current id
+            } else {
+                for (let i = 0; i < marketsWithCurrentId.length; i++) {
+                    const marketWithCurrentId = marketsWithCurrentId[i];
+                    if (marketWithCurrentId['settleId'] === settleId) {
+                        market = marketWithCurrentId;
+                        break;
+                    }
                 }
             }
         }
@@ -4028,7 +4032,7 @@ export default class coincatch extends Exchange {
         const settleId = this.safeString2 (item, 'coinName', 'marginCoin');
         let market: Market = undefined;
         const marketId = this.safeString (item, 'symbol');
-        market = this.safeSwapMarket (marketId, market, settleId);
+        market = this.safeMarketCustom (marketId, market, settleId);
         let amountString = this.safeString2 (item, 'quantity', 'amount');
         let direction = 'in';
         if (Precise.stringLt (amountString, '0')) {
