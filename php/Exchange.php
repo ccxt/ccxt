@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.11';
+$version = '4.4.13';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.11';
+    const VERSION = '4.4.13';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2427,6 +2427,7 @@ class Exchange {
                 'fetchTicker' => true,
                 'fetchTickerWs' => null,
                 'fetchTickers' => null,
+                'fetchMarkPrices' => null,
                 'fetchTickersWs' => null,
                 'fetchTime' => null,
                 'fetchTrades' => true,
@@ -4251,6 +4252,8 @@ class Exchange {
             'baseVolume' => $this->parse_number($baseVolume),
             'quoteVolume' => $this->parse_number($quoteVolume),
             'previousClose' => $this->safe_number($ticker, 'previousClose'),
+            'indexPrice' => $this->safe_number($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_number($ticker, 'markPrice'),
         ));
     }
 
@@ -5543,6 +5546,10 @@ class Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
     }
 
     public function fetch_tickers_ws(?array $symbols = null, $params = array ()) {

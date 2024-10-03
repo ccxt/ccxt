@@ -109,6 +109,7 @@ class binance extends binance$1 {
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrices': true,
                 'fetchMyLiquidations': true,
                 'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
@@ -1192,6 +1193,9 @@ class binance extends binance$1 {
                     },
                 },
                 'option': {},
+            },
+            'currencies': {
+                'BNFCR': this.safeCurrencyStructure({ 'id': 'BNFCR', 'code': 'BNFCR', 'precision': this.parseNumber('0.001') }),
             },
             'commonCurrencies': {
                 'BCC': 'BCC',
@@ -3811,6 +3815,18 @@ class binance extends binance$1 {
         return orderbook;
     }
     parseTicker(ticker, market = undefined) {
+        // markPrices
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "markPrice": "11793.63104562",  // mark price
+        //         "indexPrice": "11781.80495970", // index price
+        //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts.
+        //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
+        //         "nextFundingTime": 1597392000000,
+        //         "interestRate": "0.00010000",
+        //         "time": 1597370495002
+        //     }
         //
         //     {
         //         "symbol": "ETHBTC",
@@ -3914,7 +3930,7 @@ class binance extends binance$1 {
         //         "time":"1673899278514"
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 'closeTime');
+        const timestamp = this.safeInteger2(ticker, 'closeTime', 'time');
         let marketType = undefined;
         if (('time' in ticker)) {
             marketType = 'contract';
@@ -3958,6 +3974,8 @@ class binance extends binance$1 {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'markPrice'),
+            'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
@@ -4217,6 +4235,36 @@ class binance extends binance$1 {
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchTickers() does not support ' + type + ' markets yet');
+        }
+        return this.parseTickers(response, symbols);
+    }
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMarkPrices
+         * @description fetches mark prices for multiple markets
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params, 'swap');
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params, 'linear');
+        let response = undefined;
+        if (this.isLinear(type, subType)) {
+            response = await this.fapiPublicGetPremiumIndex(params);
+        }
+        else if (this.isInverse(type, subType)) {
+            response = await this.dapiPublicGetPremiumIndex(params);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMarkPrices() does not support ' + type + ' markets yet');
         }
         return this.parseTickers(response, symbols);
     }

@@ -1163,6 +1163,8 @@ class digifinex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'base_vol'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'indexPrice': indexPrice,
             'info': ticker,
         }, market)
 

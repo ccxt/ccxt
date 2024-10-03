@@ -67,6 +67,7 @@ export default class bingx extends Exchange {
                 'fetchMarginMode': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrices': true,
                 'fetchMyLiquidations': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -585,8 +586,8 @@ export default class bingx extends Exchange {
             const networkList = this.safeList (entry, 'networkList');
             const networks: Dict = {};
             let fee = undefined;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            let depositEnabled = false;
+            let withdrawEnabled = false;
             let defaultLimits: Dict = {};
             for (let j = 0; j < networkList.length; j++) {
                 const rawNetwork = networkList[j];
@@ -598,7 +599,7 @@ export default class bingx extends Exchange {
                     depositEnabled = true;
                 }
                 const networkWithdrawEnabled = this.safeBool (rawNetwork, 'withdrawEnable');
-                if (networkDepositEnabled) {
+                if (networkWithdrawEnabled) {
                     withdrawEnabled = true;
                 }
                 const limits: Dict = {
@@ -1738,7 +1739,76 @@ export default class bingx extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
+    async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name bingx#fetchMarkPrices
+         * @description fetches mark prices for multiple markets
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            const firstSymbol = this.safeString (symbols, 0);
+            if (firstSymbol !== undefined) {
+                market = this.market (firstSymbol);
+            }
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrices', market, params, 'linear');
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.cswapV1PublicGetMarketPremiumIndex (params);
+        } else {
+            response = await this.swapV2PublicGetQuotePremiumIndex (params);
+        }
+        //
+        // spot and swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1720647285296,
+        //         "data": [
+        //             {
+        //                 "symbol": "SOL-USD",
+        //                 "priceChange": "-2.418",
+        //                 "priceChangePercent": "-1.6900%",
+        //                 "lastPrice": "140.574",
+        //                 "lastQty": "1",
+        //                 "highPrice": "146.190",
+        //                 "lowPrice": "138.586",
+        //                 "volume": "1464648.00",
+        //                 "quoteVolume": "102928.12",
+        //                 "openPrice": "142.994",
+        //                 "closeTime": "1720647284976",
+        //                 "bidPrice": "140.573",
+        //                 "bidQty": "372",
+        //                 "askPrice": "140.577",
+        //                 "askQty": "58"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const tickers = this.safeList (response, 'data');
+        return this.parseTickers (tickers, symbols);
+    }
+
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        // mark price
+        // {
+        //     "symbol": "string",
+        //     "lastFundingRate": "string",
+        //     "markPrice": "string",
+        //     "indexPrice": "string",
+        //     "nextFundingTime": "int64"
+        // }
         //
         // spot
         //    {
@@ -1826,6 +1896,8 @@ export default class bingx extends Exchange {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString (ticker, 'markPrice'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }

@@ -44,6 +44,8 @@
             "percentage": null,
             "average": null,
             "baseVolume": null,
+            "markPrice": null,
+            "indexPrice": null,
             "quoteVolume": null,
             "info": {
               "trade_id": "635541194",

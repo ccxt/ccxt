@@ -2018,6 +2018,12 @@ class Transpiler {
         overwriteSafe (finalPath, baseContent)
     }
 
+    isFirstLetterUpperCase (str) {
+        if (!str || str.length === 0) return false;
+        const firstChar = str[0];
+        return firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
+    }
+
     transpileMainTests (files) {
         log.magenta ('Transpiling from', files.tsFile.yellow)
         let ts = fs.readFileSync (files.tsFile).toString ()
@@ -2075,7 +2081,7 @@ class Transpiler {
             replace(/\.api_key/g, '.apiKey');
         
         let pythonImports = transpilerResult[2].imports.filter(x=>x.path.includes('./tests.helpers.js'));
-        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass') ? x.name : unCamelCase(x.name));
+        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass' || this.isFirstLetterUpperCase (x.name)) ? x.name : unCamelCase(x.name));
         const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
         let newPython = impHelper + python3;
         newPython = snakeCaseFunctions (newPython);
@@ -2098,10 +2104,12 @@ class Transpiler {
             }
             let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
             let newContent = head + cont;
-            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
-            replace(/\->wallet_address/g, '->walletAddress').
-            replace(/\->private_key/g, '->privateKey').
-            replace(/\->api_key/g, '->apiKey');
+            newContent = newContent.
+                replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+                replace(/\->wallet_address/g, '->walletAddress').
+                replace(/\->private_key/g, '->privateKey').
+                replace(/\->api_key/g, '->apiKey').
+                replace (/class testMainClass/, '#[\\AllowDynamicProperties]\nclass testMainClass');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
             return newContent;

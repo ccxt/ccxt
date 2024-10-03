@@ -974,6 +974,8 @@ class delta extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => $this->safe_number($ticker, 'turnover'),
+            'markPrice' => $this->safe_number($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_number($ticker, 'spot_price'),
             'info' => $ticker,
         ), $market);
     }

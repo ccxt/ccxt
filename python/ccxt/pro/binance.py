@@ -43,6 +43,8 @@ class binance(ccxt.async_support.binance):
                 'watchPositions': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchMarkPrices': True,
+                'watchMarkPrice': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
                 'createOrderWs': True,
@@ -159,6 +161,7 @@ class binance(ccxt.async_support.binance):
                 'tickerChannelsMap': {
                     '24hrTicker': 'ticker',
                     '24hrMiniTicker': 'miniTicker',
+                    'markPriceUpdate': 'markPrice',
                     # rolling window tickers
                     '1hTicker': 'ticker_1h',
                     '4hTicker': 'ticker_4h',
@@ -1641,6 +1644,39 @@ class binance(ccxt.async_support.binance):
         tickers = await self.watch_tickers([symbol], self.extend(params, {'callerMethodName': 'watchTicker'}))
         return tickers[symbol]
 
+    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+        watches a mark price for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
+        tickers = await self.watch_mark_prices([symbol], self.extend(params, {'callerMethodName': 'watchMarkPrice'}))
+        return tickers[symbol]
+
+    async def watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+        watches the mark price for all markets
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.use1sFreq]: *default is True* if set to True, the mark price will be updated every second, otherwise every 3 seconds
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        channelName = None
+        # for now watchmarkPrice uses the same messageHash
+        # so it's impossible to watch both at the same time
+        # refactor self to use different messageHashes
+        channelName, params = self.handle_option_and_params(params, 'watchMarkPrices', 'name', 'markPrice')
+        newTickers = await self.watch_multi_ticker_helper('watchMarkPrices', channelName, symbols, params)
+        if self.newUpdates:
+            return newTickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
@@ -1775,12 +1811,16 @@ class binance(ccxt.async_support.binance):
     async def watch_multi_ticker_helper(self, methodName, channelName: str, symbols: Strings = None, params={}):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, False, True)
+        isBidAsk = (channelName == 'bookTicker')
+        isMarkPrice = (channelName == 'markPrice')
+        use1sFreq = self.safe_bool(params, 'use1sFreq', True)
         firstMarket = None
         marketType = None
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
             firstMarket = self.market(symbols[0])
-        marketType, params = self.handle_market_type_and_params(methodName, firstMarket, params)
+        defaultMarket = 'swap' if (isMarkPrice) else 'spot'
+        marketType, params = self.handle_market_type_and_params(methodName, firstMarket, params, defaultMarket)
         subType = None
         subType, params = self.handle_sub_type_and_params(methodName, firstMarket, params)
         rawMarketType = None
@@ -1792,20 +1832,24 @@ class binance(ccxt.async_support.binance):
             rawMarketType = marketType
         else:
             raise NotSupported(self.id + ' ' + methodName + '() does not support options markets')
-        isBidAsk = (channelName == 'bookTicker')
         subscriptionArgs = []
         messageHashes = []
+        suffix = ''
+        if isMarkPrice:
+            suffix = '@1s' if (use1sFreq) else ''
         if symbolsDefined:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = self.market(symbol)
-                subscriptionArgs.append(market['lowercaseId'] + '@' + channelName)
+                subscriptionArgs.append(market['lowercaseId'] + '@' + channelName + suffix)
                 messageHashes.append(self.get_message_hash(channelName, market['symbol'], isBidAsk))
         else:
             if isBidAsk:
                 if marketType == 'spot':
                     raise ArgumentsRequired(self.id + ' ' + methodName + '() requires symbols for self channel for spot markets')
                 subscriptionArgs.append('!' + channelName)
+            elif isMarkPrice:
+                subscriptionArgs.append('!' + channelName + '@arr' + suffix)
             else:
                 subscriptionArgs.append('!' + channelName + '@arr')
             messageHashes.append(self.get_message_hash(channelName, None, isBidAsk))
@@ -1833,6 +1877,17 @@ class binance(ccxt.async_support.binance):
             return newDict
 
     def parse_ws_ticker(self, message, marketType):
+        # markPrice
+        #   {
+        #       "e": "markPriceUpdate",   # Event type
+        #       "E": 1562305380000,       # Event time
+        #       "s": "BTCUSDT",           # Symbol
+        #       "p": "11794.15000000",    # Mark price
+        #       "i": "11784.62659091",    # Index price
+        #       "P": "11784.25641265",    # Estimated Settle Price, only useful in the last hour before the settlement starts
+        #       "r": "0.00038167",        # Funding rate
+        #       "T": 1562306400000        # Next funding time
+        #   }
         #
         # ticker
         #     {
@@ -1890,9 +1945,21 @@ class binance(ccxt.async_support.binance):
         #         "time":1589437530011,
         #      }
         #
+        marketId = self.safe_string_2(message, 's', 'symbol')
+        symbol = self.safe_symbol(marketId, None, None, marketType)
         event = self.safe_string(message, 'e', 'bookTicker')
         if event == '24hrTicker':
             event = 'ticker'
+        if event == 'markPriceUpdate':
+            # handle self separately because some fields clash with the ticker fields
+            return self.safe_ticker({
+                'symbol': symbol,
+                'timestamp': self.safe_integer(message, 'E'),
+                'datetime': self.iso8601(self.safe_integer(message, 'E')),
+                'info': message,
+                'markPrice': self.safe_string(message, 'p'),
+                'indexPrice': self.safe_string(message, 'i'),
+            })
         timestamp = None
         if event == 'bookTicker':
             # take the event timestamp, if available, for spot tickers it is not
@@ -1900,8 +1967,6 @@ class binance(ccxt.async_support.binance):
         else:
             # take the timestamp of the closing price for candlestick streams
             timestamp = self.safe_integer_n(message, ['C', 'E', 'time'])
-        marketId = self.safe_string_2(message, 's', 'symbol')
-        symbol = self.safe_symbol(marketId, None, None, marketType)
         market = self.safe_market(marketId, None, None, marketType)
         last = self.safe_string_2(message, 'c', 'price')
         return self.safe_ticker({
@@ -3864,6 +3929,8 @@ class binance(ccxt.async_support.binance):
             '1dTicker': self.handle_tickers,
             '24hrTicker': self.handle_tickers,
             '24hrMiniTicker': self.handle_tickers,
+            'markPriceUpdate': self.handle_tickers,
+            'markPriceUpdate@arr': self.handle_tickers,
             'bookTicker': self.handle_bids_asks,  # there is no "bookTicker@arr" endpoint
             'outboundAccountPosition': self.handle_balance,
             'balanceUpdate': self.handle_balance,

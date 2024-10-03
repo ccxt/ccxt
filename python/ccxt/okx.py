@@ -120,6 +120,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMarkPrices': True,
                 'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -1785,6 +1786,13 @@ class okx(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
+        #      {
+        #          "instType":"SWAP",
+        #          "instId":"BTC-USDT-SWAP",
+        #          "markPx":"200",
+        #          "ts":"1597026383085"
+        #      }
+        #
         #     {
         #         "instType": "SPOT",
         #         "instId": "ETH-BTC",
@@ -1835,6 +1843,7 @@ class okx(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': self.safe_string(ticker, 'markPx'),
             'info': ticker,
         }, market)
 
@@ -1932,6 +1941,33 @@ class okx(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        tickers = self.safe_list(response, 'data', [])
+        return self.parse_tickers(tickers, symbols)
+
+    def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = self.get_market_from_symbols(symbols)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTickers', market, params, 'swap')
+        request: dict = {
+            'instType': self.convert_to_instrument_type(marketType),
+        }
+        if marketType == 'option':
+            defaultUnderlying = self.safe_string(self.options, 'defaultUnderlying', 'BTC-USD')
+            currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
+            if currencyId is None:
+                raise ArgumentsRequired(self.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets')
+            else:
+                request['uly'] = currencyId
+        response = self.publicGetPublicMarkPrice(self.extend(request, params))
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
@@ -4527,32 +4563,27 @@ class okx(Exchange, ImplicitAPI):
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the network name for the deposit address
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
+        self.load_markets()
         rawNetwork = self.safe_string_upper(params, 'network')
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string(networks, rawNetwork, rawNetwork)
         params = self.omit(params, 'network')
+        code = self.safe_currency_code(code)
+        network = self.network_id_to_code(rawNetwork, code)
         response = self.fetch_deposit_addresses_by_network(code, params)
-        result = None
-        if network is None:
-            result = self.safe_value(response, code)
+        if network is not None:
+            result = self.safe_dict(response, network)
             if result is None:
-                alias = self.safe_string(networks, code, code)
-                result = self.safe_value(response, alias)
-                if result is None:
-                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
-                    result = self.safe_value(response, defaultNetwork)
-                    if result is None:
-                        values = list(response.values())
-                        result = self.safe_value(values, 0)
-                        if result is None:
-                            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find deposit address for ' + code)
+                raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
             return result
-        result = self.safe_value(response, network)
-        if result is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
-        return result
+        codeNetwork = self.network_id_to_code(code, code)
+        if codeNetwork in response:
+            return response[codeNetwork]
+        # if the network is not specified, return the first address
+        keys = list(response.keys())
+        first = self.safe_string(keys, 0)
+        return self.safe_dict(response, first)
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """

@@ -116,6 +116,7 @@ class binance extends Exchange {
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
@@ -1199,6 +1200,9 @@ class binance extends Exchange {
                     ),
                 ),
                 'option' => array(),
+            ),
+            'currencies' => array(
+                'BNFCR' => $this->safe_currency_structure(array( 'id' => 'BNFCR', 'code' => 'BNFCR', 'precision' => $this->parse_number('0.001') )),
             ),
             'commonCurrencies' => array(
                 'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -3789,6 +3793,18 @@ class binance extends Exchange {
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
+        // markPrices
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "markPrice" => "11793.63104562",  // mark price
+        //         "indexPrice" => "11781.80495970", // index price
+        //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts.
+        //         "lastFundingRate" => "0.00038246",  // This is the lastest estimated funding rate
+        //         "nextFundingTime" => 1597392000000,
+        //         "interestRate" => "0.00010000",
+        //         "time" => 1597370495002
+        //     }
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -3892,7 +3908,7 @@ class binance extends Exchange {
         //         "time":"1673899278514"
         //     }
         //
-        $timestamp = $this->safe_integer($ticker, 'closeTime');
+        $timestamp = $this->safe_integer_2($ticker, 'closeTime', 'time');
         $marketType = null;
         if ((is_array($ticker) && array_key_exists('time', $ticker))) {
             $marketType = 'contract';
@@ -3935,6 +3951,8 @@ class binance extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -4185,6 +4203,35 @@ class binance extends Exchange {
                 $response = Async\await($this->eapiPublicGetTicker ($params));
             } else {
                 throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets yet');
+            }
+            return $this->parse_tickers($response, $symbols);
+        }) ();
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches mark prices for multiple markets
+             * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $market = $this->get_market_from_symbols($symbols);
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
+            $response = null;
+            if ($this->is_linear($type, $subType)) {
+                $response = Async\await($this->fapiPublicGetPremiumIndex ($params));
+            } elseif ($this->is_inverse($type, $subType)) {
+                $response = Async\await($this->dapiPublicGetPremiumIndex ($params));
+            } else {
+                throw new NotSupported($this->id . ' fetchMarkPrices() does not support ' . $type . ' markets yet');
             }
             return $this->parse_tickers($response, $symbols);
         }) ();

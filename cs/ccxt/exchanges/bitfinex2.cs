@@ -1914,7 +1914,7 @@ public partial class bitfinex2 : Exchange
             object cidDate = this.safeValue(parameters, "cidDate"); // client order id date
             if (isTrue(isEqual(cidDate, null)))
             {
-                throw new InvalidOrder ((string)add(this.id, " canceling an order by clientOrderId (\'cid\') requires both \'cid\' and \'cid_date\' (\'YYYY-MM-DD\')")) ;
+                throw new InvalidOrder ((string)add(this.id, " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')")) ;
             }
             request = new Dictionary<string, object>() {
                 { "cid", cid },
@@ -2375,7 +2375,7 @@ public partial class bitfinex2 : Exchange
         object networkId = this.safeString(currencyNetwork, "id");
         if (isTrue(isEqual(networkId, null)))
         {
-            throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress() could not find a network for \'"), code), "\'. You can specify it by providing the \'network\' value inside params")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress() could not find a network for '"), code), "'. You can specify it by providing the 'network' value inside params")) ;
         }
         object wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");
@@ -2797,7 +2797,7 @@ public partial class bitfinex2 : Exchange
         object networkId = this.safeString(currencyNetwork, "id");
         if (isTrue(isEqual(networkId, null)))
         {
-            throw new ArgumentsRequired ((string)add(add(add(this.id, " withdraw() could not find a network for \'"), code), "\'. You can specify it by providing the \'network\' value inside params")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " withdraw() could not find a network for '"), code), "'. You can specify it by providing the 'network' value inside params")) ;
         }
         object wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");

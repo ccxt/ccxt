@@ -1192,6 +1192,8 @@ class digifinex extends digifinex$1 {
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'vol', 'volume_24h'),
             'quoteVolume': this.safeString(ticker, 'base_vol'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': indexPrice,
             'info': ticker,
         }, market);
     }

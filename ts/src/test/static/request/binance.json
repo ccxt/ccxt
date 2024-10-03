@@ -1939,6 +1939,14 @@
                 ]
             }
         ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetchMarkPrices",
+                "method": "fetchMarkPrices",
+                "url": "https://fapi.binance.com/fapi/v1/premiumIndex",
+                "input": []
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "spot fetch tickers with symbols",

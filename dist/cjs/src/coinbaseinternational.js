@@ -1505,6 +1505,8 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'previousClose': undefined,
+            'markPrice': this.safeNumber(ticker, 'mark_price'),
+            'indexPrice': this.safeNumber(ticker, 'index_price'),
         });
     }
     async fetchBalance(params = {}) {

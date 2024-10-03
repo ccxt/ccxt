@@ -211,6 +211,22 @@
                   }
                 ],
                 "output": "{\"contract_code\":\"ADA-USDT\",\"volume\":\"3\",\"direction\":\"buy\",\"lever_rate\":1,\"order_price_type\":\"market\",\"channel_code\":\"AA03022abc\"}"
+            },
+            {
+                "description": "spot order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.huobi.pro/v1/order/orders/place?AccessKeyId=rbr45t6yr4-8b2d9b8e-a712f3a9-42507&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2024-09-30T11%3A03%3A36&Signature=qYLiFqhMjJvmXzkiU0OCNEHrNnuTrCgfub3N35YM9Co%3D",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.21,
+                  50,
+                  {
+                    "clientOrderId": "101"
+                  }
+                ],
+                "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-limit\",\"client-order-id\":\"101\",\"amount\":\"0.21\",\"price\":\"50\"}"
             }
         ],
         "createOrders": [

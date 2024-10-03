@@ -132,6 +132,8 @@ class phemex(ccxt.async_support.phemex):
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': self.parse_number(self.from_ep(self.safe_string(ticker, 'markPrice'), market)),
+            'indexPrice': self.parse_number(self.from_ep(self.safe_string(ticker, 'indexPrice'), market)),
             'info': ticker,
         }
         return result

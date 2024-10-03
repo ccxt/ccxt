@@ -272,6 +272,8 @@ class Ticker(TypedDict):
     average: Num
     quoteVolume: Num
     baseVolume: Num
+    markPrice: Num
+    indexPrice: Num
 
 
 Tickers = Dict[str, Ticker]

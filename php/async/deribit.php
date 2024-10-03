@@ -1169,6 +1169,8 @@ class deribit extends Exchange {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($stats, 'volume'),
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
         ), $market);
     }

@@ -88,6 +88,7 @@ public partial class okx : Exchange
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMarkPrices", true },
                 { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
@@ -1783,6 +1784,13 @@ public partial class okx : Exchange
     public override object parseTicker(object ticker, object market = null)
     {
         //
+        //      {
+        //          "instType":"SWAP",
+        //          "instId":"BTC-USDT-SWAP",
+        //          "markPx":"200",
+        //          "ts":"1597026383085"
+        //      }
+        //
         //     {
         //         "instType": "SPOT",
         //         "instId": "ETH-BTC",
@@ -1833,6 +1841,7 @@ public partial class okx : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.safeString(ticker, "markPx") },
             { "info", ticker },
         }, market);
     }
@@ -1947,6 +1956,45 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
+        object tickers = this.safeList(response, "data", new List<object>() {});
+        return this.parseTickers(tickers, symbols);
+    }
+
+    public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchMarkPrices
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object market = this.getMarketFromSymbols(symbols);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "instType", this.convertToInstrumentType(marketType) },
+        };
+        if (isTrue(isEqual(marketType, "option")))
+        {
+            object defaultUnderlying = this.safeString(this.options, "defaultUnderlying", "BTC-USD");
+            object currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
+            if (isTrue(isEqual(currencyId, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires an underlying uly or marketId parameter for options markets")) ;
+            } else
+            {
+                ((IDictionary<string,object>)request)["uly"] = currencyId;
+            }
+        }
+        object response = await this.publicGetPublicMarkPrice(this.extend(request, parameters));
         object tickers = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(tickers, symbols);
     }
@@ -2817,7 +2865,7 @@ public partial class okx : Exchange
                             }
                         } else if (isTrue(isEqual(notional, null)))
                         {
-                            throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\'createMarketBuyOrderRequiresPrice\'] = false and supply the total cost value in the \'amount\' argument or in the \'cost\' unified extra parameter or in exchange-specific \'sz\' extra parameter (the exchange-specific behaviour)")) ;
+                            throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")) ;
                         }
                     } else
                     {
@@ -5026,45 +5074,34 @@ public partial class okx : Exchange
         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.network] the network name for the deposit address
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object rawNetwork = this.safeStringUpper(parameters, "network");
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeString(networks, rawNetwork, rawNetwork);
         parameters = this.omit(parameters, "network");
+        code = this.safeCurrencyCode(code);
+        object network = this.networkIdToCode(rawNetwork, code);
         object response = await this.fetchDepositAddressesByNetwork(code, parameters);
-        object result = null;
-        if (isTrue(isEqual(network, null)))
+        if (isTrue(!isEqual(network, null)))
         {
-            result = this.safeValue(response, code);
+            object result = this.safeDict(response, network);
             if (isTrue(isEqual(result, null)))
             {
-                object alias = this.safeString(networks, code, code);
-                result = this.safeValue(response, alias);
-                if (isTrue(isEqual(result, null)))
-                {
-                    object defaultNetwork = this.safeString(this.options, "defaultNetwork", "ERC20");
-                    result = this.safeValue(response, defaultNetwork);
-                    if (isTrue(isEqual(result, null)))
-                    {
-                        object values = new List<object>(((IDictionary<string,object>)response).Values);
-                        result = this.safeValue(values, 0);
-                        if (isTrue(isEqual(result, null)))
-                        {
-                            throw new InvalidAddress ((string)add(add(this.id, " fetchDepositAddress() cannot find deposit address for "), code)) ;
-                        }
-                    }
-                }
+                throw new InvalidAddress ((string)add(add(add(add(this.id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)) ;
             }
             return result;
         }
-        result = this.safeValue(response, network);
-        if (isTrue(isEqual(result, null)))
+        object codeNetwork = this.networkIdToCode(code, code);
+        if (isTrue(inOp(response, codeNetwork)))
         {
-            throw new InvalidAddress ((string)add(add(add(add(this.id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)) ;
+            return getValue(response, codeNetwork);
         }
-        return result;
+        // if the network is not specified, return the first address
+        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object first = this.safeString(keys, 0);
+        return this.safeDict(response, first);
     }
 
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)

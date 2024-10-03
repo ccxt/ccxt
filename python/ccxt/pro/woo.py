@@ -27,6 +27,7 @@ class woo(ccxt.async_support.woo):
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
                 'watchPositions': True,
@@ -382,6 +383,73 @@ class woo(ccxt.async_support.woo):
             self.tickers[market['symbol']] = ticker
             result.append(ticker)
         client.resolve(result, topic)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://docs.woox.io/#bbos
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        name = 'bbos'
+        topic = name
+        request: dict = {
+            'event': 'subscribe',
+            'topic': topic,
+        }
+        message = self.extend(request, params)
+        tickers = await self.watch_public(topic, message)
+        if self.newUpdates:
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        #     {
+        #         "topic": "bbos",
+        #         "ts": 1618822376000,
+        #         "data": [
+        #             {
+        #                 "symbol": "SPOT_FIL_USDT",
+        #                 "ask": 159.0318,
+        #                 "askSize": 370.43,
+        #                 "bid": 158.9158,
+        #                 "bidSize": 16
+        #             }
+        #         ]
+        #     }
+        #
+        topic = self.safe_string(message, 'topic')
+        data = self.safe_list(message, 'data', [])
+        timestamp = self.safe_integer(message, 'ts')
+        result: dict = {}
+        for i in range(0, len(data)):
+            ticker = self.safe_dict(data, i)
+            ticker['ts'] = timestamp
+            parsedTicker = self.parse_ws_bid_ask(ticker)
+            symbol = parsedTicker['symbol']
+            self.bidsasks[symbol] = parsedTicker
+            result[symbol] = parsedTicker
+        client.resolve(result, topic)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 'ts')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'askSize'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'info': ticker,
+        }, market)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
@@ -1101,6 +1169,7 @@ class woo(ccxt.async_support.woo):
             'trade': self.handle_trade,
             'balance': self.handle_balance,
             'position': self.handle_positions,
+            'bbos': self.handle_bid_ask,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)

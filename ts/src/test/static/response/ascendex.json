@@ -325,6 +325,8 @@
                     "average": 72619.59,
                     "baseVolume": 999.01458,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTC/USDT",
                         "open": "71865",
@@ -519,6 +521,8 @@
                         "average": 63664.55,
                         "baseVolume": null,
                         "quoteVolume": null,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "symbol": "BTC-PERP",
                             "open": "64152.2",
@@ -556,6 +560,8 @@
                         "average": 2719.54,
                         "baseVolume": null,
                         "quoteVolume": null,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "symbol": "ETH-PERP",
                             "open": "2764.76",
