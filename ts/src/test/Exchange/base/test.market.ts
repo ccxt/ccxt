@@ -111,8 +111,6 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     const contractSize = exchange.safeString (market, 'contractSize');
     // contract fields
     if (market['contract']) {
-        // spot should be false
-        assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
         // todo: expand logic on other market types, like "options", "index" etc.
         // assert (isSwapOrFuture, 'either swap or future needs to be true when "contract" is true' + logText);
         // linear & inverse should have different values (true/false)
@@ -156,6 +154,8 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
                 assert (allFalses === 2, '"false" should be assigned to two inapplicable fields from : "linear" | "inverse" | "quanto"' + logText);
             }
         }
+        // spot should be false
+        assert (!market['spot'], '"spot" must be false when "contract" is true' + logText);
     } else {
         // linear & inverse needs to be undefined
         assert ((market['linear'] === undefined) && (market['inverse'] === undefined), 'market linear and inverse must be undefined when "contract" is false' + logText);
