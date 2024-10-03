@@ -138,9 +138,9 @@ public partial class digifinex : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
-                    { "10001", new List<object>() {typeof(BadRequest), "Wrong request method, please check it\'s a GET ot POST request"} },
+                    { "10001", new List<object>() {typeof(BadRequest), "Wrong request method, please check it's a GET ot POST request"} },
                     { "10002", new List<object>() {typeof(AuthenticationError), "Invalid ApiKey"} },
-                    { "10003", new List<object>() {typeof(AuthenticationError), "Sign doesn\'t match"} },
+                    { "10003", new List<object>() {typeof(AuthenticationError), "Sign doesn't match"} },
                     { "10004", new List<object>() {typeof(BadRequest), "Illegal request parameters"} },
                     { "10005", new List<object>() {typeof(DDoSProtection), "Request frequency exceeds the limit"} },
                     { "10006", new List<object>() {typeof(PermissionDenied), "Unauthorized to execute this request"} },
@@ -162,7 +162,7 @@ public partial class digifinex : Exchange
                     { "20015", new List<object>() {typeof(BadRequest), "Date exceeds the limit"} },
                     { "20018", new List<object>() {typeof(PermissionDenied), "Your trading rights have been banned by the system"} },
                     { "20019", new List<object>() {typeof(BadSymbol), "Wrong trading pair symbol. Correct format:\"usdt_btc\". Quote asset is in the front"} },
-                    { "20020", new List<object>() {typeof(DDoSProtection), "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user\'s transaction rate and withdrawal rate."} },
+                    { "20020", new List<object>() {typeof(DDoSProtection), "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate."} },
                     { "50000", new List<object>() {typeof(ExchangeError), "Exception error"} },
                     { "20021", new List<object>() {typeof(BadRequest), "Invalid currency"} },
                     { "20022", new List<object>() {typeof(BadRequest), "The ending timestamp must be larger than the starting timestamp"} },
@@ -181,7 +181,7 @@ public partial class digifinex : Exchange
                     { "20036", new List<object>() {typeof(ExchangeError), "Withdrawal cancellation failed"} },
                     { "20037", new List<object>() {typeof(InvalidAddress), "The withdrawal address, Tag or chain type is not included in the withdrawal management list"} },
                     { "20038", new List<object>() {typeof(InvalidAddress), "The withdrawal address is not on the white list"} },
-                    { "20039", new List<object>() {typeof(ExchangeError), "Can\'t be canceled in current status"} },
+                    { "20039", new List<object>() {typeof(ExchangeError), "Can't be canceled in current status"} },
                     { "20040", new List<object>() {typeof(RateLimitExceeded), "Withdraw too frequently; limitation: 3 times a minute, 100 times a day"} },
                     { "20041", new List<object>() {typeof(PermissionDenied), "Beyond the daily withdrawal limit"} },
                     { "20042", new List<object>() {typeof(BadSymbol), "Current trading pair does not support API trading"} },
@@ -1159,6 +1159,8 @@ public partial class digifinex : Exchange
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "vol", "volume_24h") },
             { "quoteVolume", this.safeString(ticker, "base_vol") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", indexPrice },
             { "info", ticker },
         }, market);
     }

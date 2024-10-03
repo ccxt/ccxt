@@ -339,7 +339,7 @@ public partial class bybit : ccxt.bybit
         object requestId = ((object)this.requestId()).ToString();
         if (isTrue(inOp(orderRequest, "orderFilter")))
         {
-
+            ((IDictionary<string,object>)orderRequest).Remove((string)"orderFilter");
         }
         object request = new Dictionary<string, object>() {
             { "op", "order.cancel" },
@@ -2603,7 +2603,7 @@ public partial class bybit : ccxt.bybit
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             } else
             {
@@ -2744,7 +2744,7 @@ public partial class bybit : ccxt.bybit
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
         return message;

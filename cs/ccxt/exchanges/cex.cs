@@ -526,7 +526,7 @@ public partial class cex : Exchange
         {
             if (isTrue(getValue(this.options, "fetchOHLCVWarning")))
             {
-                throw new ExchangeError ((string)add(this.id, " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options[\'fetchOHLCVWarning\'] = false or add ({ \'options\': { \'fetchOHLCVWarning\': false }}) to constructor params to suppress this warning message.")) ;
+                throw new ExchangeError ((string)add(this.id, " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add ({ 'options': { 'fetchOHLCVWarning': false }}) to constructor params to suppress this warning message.")) ;
             }
         }
         object request = new Dictionary<string, object>() {

@@ -946,6 +946,8 @@ class delta(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': self.safe_number(ticker, 'turnover'),
+            'markPrice': self.safe_number(ticker, 'mark_price'),
+            'indexPrice': self.safe_number(ticker, 'spot_price'),
             'info': ticker,
         }, market)
 

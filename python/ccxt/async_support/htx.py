@@ -4088,7 +4088,7 @@ class htx(Exchange, ImplicitAPI):
                 await self.load_accounts()
                 for i in range(0, len(self.accounts)):
                     account = self.accounts[i]
-                    if account['type'] == 'spot':
+                    if self.safe_string(account, 'type') == 'spot':
                         accountId = self.safe_string(account, 'id')
                         if accountId is not None:
                             break
@@ -4743,7 +4743,7 @@ class htx(Exchange, ImplicitAPI):
                 cost = self.safe_string(order, 'amount')
         else:
             amount = self.safe_string_2(order, 'volume', 'amount')
-            cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo
+            cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo here
         filled = self.safe_string_n(order, ['filled-amount', 'field-amount', 'trade_volume'])  # typo in their API, filled amount
         price = self.safe_string_2(order, 'price', 'order_price')
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled feeSide

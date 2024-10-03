@@ -30,7 +30,7 @@ async def test_proxy_url(exchange, skipped_properties):
     encoded_slash = '%2F'
     ip_check_url = 'https' + encoded_colon + encoded_slash + encoded_slash + 'api.ipify.org'
     response = await exchange.fetch(ip_check_url)
-    assert response == proxy_server_ip, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be \"' + proxy_server_ip + '\"'
+    assert response == proxy_server_ip, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be "' + proxy_server_ip + '"'
     # reset the instance property
     test_shared_methods.set_proxy_options(exchange, skipped_properties, proxy_url, http_proxy, https_proxy, socks_proxy)
 
@@ -42,7 +42,7 @@ async def test_http_proxy(exchange, skipped_properties):
     exchange.http_proxy = 'http://' + proxy_server_ip + ':8911'
     ip_check_url = 'https://api.ipify.org/'
     response = await exchange.fetch(ip_check_url)
-    assert response == proxy_server_ip, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be \"' + proxy_server_ip + '\"'
+    assert response == proxy_server_ip, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be "' + proxy_server_ip + '"'
     # reset the instance property
     test_shared_methods.set_proxy_options(exchange, skipped_properties, proxy_url, http_proxy, https_proxy, socks_proxy)
 

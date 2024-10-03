@@ -160,26 +160,28 @@ export interface OrderBook {
 }
 
 export interface Ticker {
-    ask: Int;
-    askVolume: Int;
-    average: Int;
-    baseVolume: Int;
-    bid: Int;
-    bidVolume: Int;
-    change: Int;
-    close: Int;
+    ask: Num;
+    askVolume: Num;
+    average: Num;
+    baseVolume: Num;
+    bid: Num;
+    bidVolume: Num;
+    change: Num;
+    close: Num;
     datetime: Str;
-    high: Int;
+    high: Num;
+    indexPrice: Num
     info: any;
-    last: Int;
-    low: Int;
-    open: Int;
-    percentage: Int;
-    previousClose: Int;
-    quoteVolume: Int;
+    last: Num;
+    low: Num;
+    markPrice: Num;
+    open: Num;
+    percentage: Num;
+    previousClose: Num;
+    quoteVolume: Num;
     symbol: string;
     timestamp: Int;
-    vwap: Int;
+    vwap: Num;
 }
 
 export interface Transaction {

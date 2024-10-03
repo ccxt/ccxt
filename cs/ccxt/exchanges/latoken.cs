@@ -200,7 +200,7 @@ public partial class latoken : Exchange
                     { "request expired or bad", typeof(InvalidNonce) },
                     { "For input string", typeof(BadRequest) },
                     { "Unable to resolve currency by tag", typeof(BadSymbol) },
-                    { "Can\'t find currency with tag", typeof(BadSymbol) },
+                    { "Can't find currency with tag", typeof(BadSymbol) },
                     { "Unable to place order because pair is in inactive state", typeof(BadSymbol) },
                     { "API keys are not available for", typeof(AccountSuspended) },
                 } },

@@ -208,8 +208,8 @@ public partial class bigone : Exchange
                 { "exact", new Dictionary<string, object>() {
                     { "10001", typeof(BadRequest) },
                     { "10005", typeof(ExchangeError) },
-                    { "Amount\'s scale must greater than AssetPair\'s base scale", typeof(InvalidOrder) },
-                    { "Price mulit with amount should larger than AssetPair\'s min_quote_value", typeof(InvalidOrder) },
+                    { "Amount's scale must greater than AssetPair's base scale", typeof(InvalidOrder) },
+                    { "Price mulit with amount should larger than AssetPair's min_quote_value", typeof(InvalidOrder) },
                     { "10007", typeof(BadRequest) },
                     { "10011", typeof(ExchangeError) },
                     { "10013", typeof(BadSymbol) },
@@ -647,6 +647,8 @@ public partial class bigone : Exchange
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "volume", "volume24h") },
             { "quoteVolume", this.safeString(ticker, "volume24hInUsd") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }

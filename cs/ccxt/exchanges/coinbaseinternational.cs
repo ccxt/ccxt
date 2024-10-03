@@ -1598,6 +1598,8 @@ public partial class coinbaseinternational : Exchange
             { "baseVolume", null },
             { "quoteVolume", null },
             { "previousClose", null },
+            { "markPrice", this.safeNumber(ticker, "mark_price") },
+            { "indexPrice", this.safeNumber(ticker, "index_price") },
         });
     }
 

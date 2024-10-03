@@ -625,6 +625,7 @@ public partial class poloniex : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "quantity") },
             { "quoteVolume", this.safeString(ticker, "amount") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }

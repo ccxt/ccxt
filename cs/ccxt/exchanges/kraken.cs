@@ -220,7 +220,7 @@ public partial class kraken : Exchange
                     { "BTC", "Bitcoin" },
                     { "CHZ", add(add("Chiliz", " "), "(CHZ)") },
                     { "COMP", add(add("Compound", " "), "(COMP)") },
-                    { "CQT", add(add("	Covalent Query Token", " "), "(CQT)") },
+                    { "CQT", add(add("\tCovalent Query Token", " "), "(CQT)") },
                     { "CRV", add(add("Curve DAO Token", " "), "(CRV)") },
                     { "CTSI", add(add("Cartesi", " "), "(CTSI)") },
                     { "DAI", "Dai" },
@@ -2206,7 +2206,7 @@ public partial class kraken : Exchange
         object tradeIds = new List<object>() {};
         if (isTrue(isEqual(orderTrades, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a \'trades\' param (an array of trade id strings)")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
         } else
         {
             for (object i = 0; isLessThan(i, getArrayLength(orderTrades)); postFixIncrement(ref i))
@@ -3165,7 +3165,7 @@ public partial class kraken : Exchange
             object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             return this.parseTransaction(result, currency);
         }
-        throw new ExchangeError ((string)add(this.id, " withdraw() requires a \'key\' parameter (withdrawal key name, as set up on your account)")) ;
+        throw new ExchangeError ((string)add(this.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)

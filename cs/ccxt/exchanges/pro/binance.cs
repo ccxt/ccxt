@@ -34,6 +34,8 @@ public partial class binance : ccxt.binance
                 { "watchPositions", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchMarkPrices", true },
+                { "watchMarkPrice", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "createOrderWs", true },
@@ -148,6 +150,7 @@ public partial class binance : ccxt.binance
                 { "tickerChannelsMap", new Dictionary<string, object>() {
                     { "24hrTicker", "ticker" },
                     { "24hrMiniTicker", "miniTicker" },
+                    { "markPriceUpdate", "markPrice" },
                     { "1hTicker", "ticker_1h" },
                     { "4hTicker", "ticker_4h" },
                     { "1dTicker", "ticker_1d" },
@@ -931,7 +934,7 @@ public partial class binance : ccxt.binance
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }
@@ -1076,8 +1079,8 @@ public partial class binance : ccxt.binance
                 }
             } catch(Exception e)
             {
-
-
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 ((WebSocketClient)client).reject(e, messageHash);
             }
         }
@@ -1096,7 +1099,7 @@ public partial class binance : ccxt.binance
             object symbol = getValue(symbols, i);
             if (isTrue(inOp(this.orderbooks, symbol)))
             {
-
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             }
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             subscription = this.extend(subscription, new Dictionary<string, object>() {
@@ -1971,6 +1974,55 @@ public partial class binance : ccxt.binance
         return getValue(tickers, symbol);
     }
 
+    public async virtual Task<object> watchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchMarkPrice
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+        * @description watches a mark price for a specific market
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        object tickers = await this.watchMarkPrices(new List<object>() {symbol}, this.extend(parameters, new Dictionary<string, object>() {
+            { "callerMethodName", "watchMarkPrice" },
+        }));
+        return getValue(tickers, symbol);
+    }
+
+    public async virtual Task<object> watchMarkPrices(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchMarkPrices
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+        * @description watches the mark price for all markets
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object channelName = null;
+        // for now watchmarkPrice uses the same messageHash as watchTicker
+        // so it's impossible to watch both at the same time
+        // refactor this to use different messageHashes
+        var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
+        channelName = ((IList<object>)channelNameparametersVariable)[0];
+        parameters = ((IList<object>)channelNameparametersVariable)[1];
+        object newTickers = await this.watchMultiTickerHelper("watchMarkPrices", channelName, symbols, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            return newTickers;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         /**
@@ -2162,6 +2214,9 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, true, false, true);
+        object isBidAsk = (isEqual(channelName, "bookTicker"));
+        object isMarkPrice = (isEqual(channelName, "markPrice"));
+        object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         object firstMarket = null;
         object marketType = null;
         object symbolsDefined = (!isEqual(symbols, null));
@@ -2169,7 +2224,8 @@ public partial class binance : ccxt.binance
         {
             firstMarket = this.market(getValue(symbols, 0));
         }
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters);
+        object defaultMarket = ((bool) isTrue((isMarkPrice))) ? "swap" : "spot";
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object subType = null;
@@ -2190,16 +2246,20 @@ public partial class binance : ccxt.binance
         {
             throw new NotSupported ((string)add(add(add(this.id, " "), methodName), "() does not support options markets")) ;
         }
-        object isBidAsk = (isEqual(channelName, "bookTicker"));
         object subscriptionArgs = new List<object>() {};
         object messageHashes = new List<object>() {};
+        object suffix = "";
+        if (isTrue(isMarkPrice))
+        {
+            suffix = ((bool) isTrue((use1sFreq))) ? "@1s" : "";
+        }
         if (isTrue(symbolsDefined))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object market = this.market(symbol);
-                ((IList<object>)subscriptionArgs).Add(add(add(getValue(market, "lowercaseId"), "@"), channelName));
+                ((IList<object>)subscriptionArgs).Add(add(add(add(getValue(market, "lowercaseId"), "@"), channelName), suffix));
                 ((IList<object>)messageHashes).Add(this.getMessageHash(channelName, getValue(market, "symbol"), isBidAsk));
             }
         } else
@@ -2211,6 +2271,9 @@ public partial class binance : ccxt.binance
                     throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires symbols for this channel for spot markets")) ;
                 }
                 ((IList<object>)subscriptionArgs).Add(add("!", channelName));
+            } else if (isTrue(isMarkPrice))
+            {
+                ((IList<object>)subscriptionArgs).Add(add(add(add("!", channelName), "@arr"), suffix));
             } else
             {
                 ((IList<object>)subscriptionArgs).Add(add(add("!", channelName), "@arr"));
@@ -2248,6 +2311,17 @@ public partial class binance : ccxt.binance
 
     public virtual object parseWsTicker(object message, object marketType)
     {
+        // markPrice
+        //   {
+        //       "e": "markPriceUpdate",   // Event type
+        //       "E": 1562305380000,       // Event time
+        //       "s": "BTCUSDT",           // Symbol
+        //       "p": "11794.15000000",    // Mark price
+        //       "i": "11784.62659091",    // Index price
+        //       "P": "11784.25641265",    // Estimated Settle Price, only useful in the last hour before the settlement starts
+        //       "r": "0.00038167",        // Funding rate
+        //       "T": 1562306400000        // Next funding time
+        //   }
         //
         // ticker
         //     {
@@ -2305,10 +2379,24 @@ public partial class binance : ccxt.binance
         //         "time":1589437530011,
         //      }
         //
+        object marketId = this.safeString2(message, "s", "symbol");
+        object symbol = this.safeSymbol(marketId, null, null, marketType);
         object eventVar = this.safeString(message, "e", "bookTicker");
         if (isTrue(isEqual(eventVar, "24hrTicker")))
         {
             eventVar = "ticker";
+        }
+        if (isTrue(isEqual(eventVar, "markPriceUpdate")))
+        {
+            // handle this separately because some fields clash with the ticker fields
+            return this.safeTicker(new Dictionary<string, object>() {
+                { "symbol", symbol },
+                { "timestamp", this.safeInteger(message, "E") },
+                { "datetime", this.iso8601(this.safeInteger(message, "E")) },
+                { "info", message },
+                { "markPrice", this.safeString(message, "p") },
+                { "indexPrice", this.safeString(message, "i") },
+            });
         }
         object timestamp = null;
         if (isTrue(isEqual(eventVar, "bookTicker")))
@@ -2320,8 +2408,6 @@ public partial class binance : ccxt.binance
             // take the timestamp of the closing price for candlestick streams
             timestamp = this.safeIntegerN(message, new List<object>() {"C", "E", "time"});
         }
-        object marketId = this.safeString2(message, "s", "symbol");
-        object symbol = this.safeSymbol(marketId, null, null, marketType);
         object market = this.safeMarket(marketId, null, null, marketType);
         object last = this.safeString2(message, "c", "price");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -4810,6 +4896,8 @@ public partial class binance : ccxt.binance
             { "1dTicker", this.handleTickers },
             { "24hrTicker", this.handleTickers },
             { "24hrMiniTicker", this.handleTickers },
+            { "markPriceUpdate", this.handleTickers },
+            { "markPriceUpdate@arr", this.handleTickers },
             { "bookTicker", this.handleBidsAsks },
             { "outboundAccountPosition", this.handleBalance },
             { "balanceUpdate", this.handleBalance },

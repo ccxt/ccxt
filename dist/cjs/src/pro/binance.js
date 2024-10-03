@@ -36,6 +36,8 @@ class binance extends binance$1 {
                 'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchMarkPrices': true,
+                'watchMarkPrice': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'createOrderWs': true,
@@ -152,6 +154,7 @@ class binance extends binance$1 {
                 'tickerChannelsMap': {
                     '24hrTicker': 'ticker',
                     '24hrMiniTicker': 'miniTicker',
+                    'markPriceUpdate': 'markPrice',
                     // rolling window tickers
                     '1hTicker': 'ticker_1h',
                     '4hTicker': 'ticker_4h',
@@ -1767,6 +1770,44 @@ class binance extends binance$1 {
         const tickers = await this.watchTickers([symbol], this.extend(params, { 'callerMethodName': 'watchTicker' }));
         return tickers[symbol];
     }
+    async watchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMarkPrice
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+         * @description watches a mark price for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        const tickers = await this.watchMarkPrices([symbol], this.extend(params, { 'callerMethodName': 'watchMarkPrice' }));
+        return tickers[symbol];
+    }
+    async watchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMarkPrices
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+         * @description watches the mark price for all markets
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        let channelName = undefined;
+        // for now watchmarkPrice uses the same messageHash as watchTicker
+        // so it's impossible to watch both at the same time
+        // refactor this to use different messageHashes
+        [channelName, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'name', 'markPrice');
+        const newTickers = await this.watchMultiTickerHelper('watchMarkPrices', channelName, symbols, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
     async watchTickers(symbols = undefined, params = {}) {
         /**
          * @method
@@ -1922,13 +1963,17 @@ class binance extends binance$1 {
     async watchMultiTickerHelper(methodName, channelName, symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, false, true);
+        const isBidAsk = (channelName === 'bookTicker');
+        const isMarkPrice = (channelName === 'markPrice');
+        const use1sFreq = this.safeBool(params, 'use1sFreq', true);
         let firstMarket = undefined;
         let marketType = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             firstMarket = this.market(symbols[0]);
         }
-        [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params);
+        const defaultMarket = (isMarkPrice) ? 'swap' : 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams(methodName, firstMarket, params);
         let rawMarketType = undefined;
@@ -1944,14 +1989,17 @@ class binance extends binance$1 {
         else {
             throw new errors.NotSupported(this.id + ' ' + methodName + '() does not support options markets');
         }
-        const isBidAsk = (channelName === 'bookTicker');
         const subscriptionArgs = [];
         const messageHashes = [];
+        let suffix = '';
+        if (isMarkPrice) {
+            suffix = (use1sFreq) ? '@1s' : '';
+        }
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
-                subscriptionArgs.push(market['lowercaseId'] + '@' + channelName);
+                subscriptionArgs.push(market['lowercaseId'] + '@' + channelName + suffix);
                 messageHashes.push(this.getMessageHash(channelName, market['symbol'], isBidAsk));
             }
         }
@@ -1961,6 +2009,9 @@ class binance extends binance$1 {
                     throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
                 }
                 subscriptionArgs.push('!' + channelName);
+            }
+            else if (isMarkPrice) {
+                subscriptionArgs.push('!' + channelName + '@arr' + suffix);
             }
             else {
                 subscriptionArgs.push('!' + channelName + '@arr');
@@ -1994,6 +2045,17 @@ class binance extends binance$1 {
         }
     }
     parseWsTicker(message, marketType) {
+        // markPrice
+        //   {
+        //       "e": "markPriceUpdate",   // Event type
+        //       "E": 1562305380000,       // Event time
+        //       "s": "BTCUSDT",           // Symbol
+        //       "p": "11794.15000000",    // Mark price
+        //       "i": "11784.62659091",    // Index price
+        //       "P": "11784.25641265",    // Estimated Settle Price, only useful in the last hour before the settlement starts
+        //       "r": "0.00038167",        // Funding rate
+        //       "T": 1562306400000        // Next funding time
+        //   }
         //
         // ticker
         //     {
@@ -2051,9 +2113,22 @@ class binance extends binance$1 {
         //         "time":1589437530011,
         //      }
         //
+        const marketId = this.safeString2(message, 's', 'symbol');
+        const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
         let event = this.safeString(message, 'e', 'bookTicker');
         if (event === '24hrTicker') {
             event = 'ticker';
+        }
+        if (event === 'markPriceUpdate') {
+            // handle this separately because some fields clash with the ticker fields
+            return this.safeTicker({
+                'symbol': symbol,
+                'timestamp': this.safeInteger(message, 'E'),
+                'datetime': this.iso8601(this.safeInteger(message, 'E')),
+                'info': message,
+                'markPrice': this.safeString(message, 'p'),
+                'indexPrice': this.safeString(message, 'i'),
+            });
         }
         let timestamp = undefined;
         if (event === 'bookTicker') {
@@ -2064,8 +2139,6 @@ class binance extends binance$1 {
             // take the timestamp of the closing price for candlestick streams
             timestamp = this.safeIntegerN(message, ['C', 'E', 'time']);
         }
-        const marketId = this.safeString2(message, 's', 'symbol');
-        const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const last = this.safeString2(message, 'c', 'price');
         return this.safeTicker({
@@ -4234,6 +4307,8 @@ class binance extends binance$1 {
             '1dTicker': this.handleTickers,
             '24hrTicker': this.handleTickers,
             '24hrMiniTicker': this.handleTickers,
+            'markPriceUpdate': this.handleTickers,
+            'markPriceUpdate@arr': this.handleTickers,
             'bookTicker': this.handleBidsAsks,
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,

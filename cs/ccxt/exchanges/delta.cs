@@ -927,6 +927,8 @@ public partial class delta : Exchange
             { "average", null },
             { "baseVolume", this.safeNumber(ticker, "volume") },
             { "quoteVolume", this.safeNumber(ticker, "turnover") },
+            { "markPrice", this.safeNumber(ticker, "mark_price") },
+            { "indexPrice", this.safeNumber(ticker, "spot_price") },
             { "info", ticker },
         }, market);
     }

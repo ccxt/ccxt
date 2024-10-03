@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from tests_helpers import get_cli_arg_value, is_synchronous, argvExchange, argvSymbol, argvMethod
+from tests_helpers import get_cli_arg_value, IS_SYNCHRONOUS, argvExchange, argvSymbol, argvMethod
 
 try:
     import asyncio
@@ -10,6 +10,10 @@ except ImportError:
 from base.tests_init import base_tests_init  # noqa: F401
 from ccxt.pro.test.base.tests_init import test_base_init_ws  # noqa: F401
 
+# fix : https://github.com/aio-libs/aiodns/issues/86
+import sys
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 # ########### args ###########
 isWs = get_cli_arg_value('--ws')
@@ -27,7 +31,7 @@ if (isBaseTests):
         exit(0)
 
 # ###### exchange tests #######
-if (is_synchronous):
+if (IS_SYNCHRONOUS):
     from tests_sync import testMainClass as testMainClassSync
     testMainClassSync().init(argvExchange, argvSymbol, argvMethod)
 else:

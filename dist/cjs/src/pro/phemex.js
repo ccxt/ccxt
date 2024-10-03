@@ -131,6 +131,8 @@ class phemex extends phemex$1 {
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'markPrice'), market)),
+            'indexPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'indexPrice'), market)),
             'info': ticker,
         };
         return result;

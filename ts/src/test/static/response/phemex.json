@@ -8704,6 +8704,8 @@
                     "average": 72703.78,
                     "baseVolume": 388.136636,
                     "quoteVolume": 27874738.30482084,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "askEp": "7333309000000",
                         "bidEp": "7333308000000",

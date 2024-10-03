@@ -1252,7 +1252,7 @@ class NewTranspiler {
             [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
             [ /object exchange =/g, 'Exchange exchange =' ],
             [ /throw new Error/g, 'throw new Exception' ],
-            [/class testMainClass : baseMainTestClass/g, 'public partial class testMainClass : BaseTest'],
+            [/class testMainClass/g, 'public partial class testMainClass'],
         ])
 
         const file = [
