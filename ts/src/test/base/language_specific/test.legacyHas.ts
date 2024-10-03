@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 import assert, { strictEqual, deepEqual } from 'assert';
-import ccxt, { Exchange, functions } from '../../../ccxt.js';
+import ccxt, { Exchange, functions } from '../../../../ccxt.js';
 
 const { index, aggregate, unCamelCase } = functions;
 

@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 import assert from 'assert';
-import ccxt from '../../../ccxt.js';
+import ccxt from '../../../../ccxt.js';
 
 // temporary, these below methods are language-specific, but todo to make them transpilable
 import testCamelCase from './test.camelcase.js';
