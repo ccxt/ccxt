@@ -6,7 +6,6 @@ import ccxt from '../../../ccxt.js';
 // temporary, these below methods are language-specific, but todo to make them transpilable
 import testCamelCase from './test.camelcase.js';
 import testUnCamelCase from './test.uncamelcase.js';
-import testGeneric from './test.generic.js';
 import testThrottle from './test.throttle.js';
 import testCalculateFee from './test.calculateFee.js';
 import testAggregate from './test.aggregate.js';
@@ -19,7 +18,6 @@ import testTypes from './test.type.js';
 function testLanguageSpecific () {
     testCamelCase ();
     testUnCamelCase ();
-    testGeneric ();
     testThrottle ();
     testCalculateFee ();
     testAggregate ();
