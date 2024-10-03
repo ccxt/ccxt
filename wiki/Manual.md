@@ -1831,7 +1831,7 @@ Recently, CCXT introduced a way to paginate through several results automaticall
 
 Right now, we have three different ways of paginating:
 - **dynamic/time-based**: uses the `until` and `since` parameters to paginate through dynamic results like (trades, orders, transactions, etc). Since we don't know a priori how many entries are available to be fetched, it will perform one request at a time until we reach the end of the data or the maximum amount of pagination calls (configurable through an option)
-- **deterministic**: when we can pre-compute the boundaries of each page, it will perform the requests concurrently for maximum performance. This applies to OHLCV, Funding Rates, and Open Interest and also respects the `maxPaginationCalls` option.
+- **deterministic**: when we can pre-compute the boundaries of each page, it will perform the requests concurrently for maximum performance. This applies to OHLCV, Funding Rates, and Open Interest and also respects the `paginationCalls` option.
 - **cursor-based**: when the exchange provides a cursor inside the response, we extract the cursor and perform the subsequent request until the end of the data or reach the maximum number of pagination calls.
 
 The user cannot select the pagination method used, it will depend from implementation to implementation, considering the exchange API's features.
