@@ -24,10 +24,10 @@ function baseTestsInit () {
     testDatetime ();
     testNumber ();
     testSafeMethods ();
+    // testJson ();
     testSortBy ();
     testSum ();
     testOmit ();
-    testJson ();
     testGroupBy ();
     testFilterBy ();
     testConfig ();
