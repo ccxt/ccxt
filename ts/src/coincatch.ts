@@ -193,8 +193,8 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/account/accounts': 2, // done
                         'api/mix/v1/position/singlePosition-v2': 2, // done
                         'api/mix/v1/position/allPosition-v2': 4, // done
-                        'api/mix/v1/account/accountBill': 1,
-                        'api/mix/v1/account/accountBusinessBill': 1,
+                        'api/mix/v1/account/accountBill': 2,
+                        'api/mix/v1/account/accountBusinessBill': 4,
                         'api/mix/v1/order/current': 1,
                         'api/mix/v1/order/marginCoinCurrent': 1,
                         'api/mix/v1/order/history': 1,
@@ -368,6 +368,7 @@ export default class coincatch extends Exchange {
                     // {"code":"45006","msg":"Insufficient position","requestTime":1726750130410,"data":null}
                     // {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1726919166747,"data":null}
                     // {"code":"40762","msg":"The order amount exceeds the balance","requestTime":1726935546610,"data":null}
+                    // {"code":"40019","msg":"Parameter startTime cannot be empty","requestTime":1727968771287,"data":null}
                 },
                 'broad': {},
             },
@@ -3754,21 +3755,8 @@ export default class coincatch extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        try {
-            market = this.safeMarket (marketId, market);
-        } catch (e) {
-            // dmcbl markets have the same id and market type but different settleId
-            // so we need to resolve the market by settleId
-            const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
-            const settleId = this.safeString (position, 'marginCoin');
-            for (let i = 0; i < marketsWithCurrentId.length; i++) {
-                const marketWithCurrentId = marketsWithCurrentId[i];
-                if (marketWithCurrentId['settleId'] === settleId) {
-                    market = marketWithCurrentId;
-                    break;
-                }
-            }
-        }
+        const settleId = this.safeString (position, 'marginCoin');
+        market = this.safeSwapMarket (marketId, market, settleId);
         const timestamp = this.safeInteger (position, 'cTime');
         const marginMode = this.safeString (position, 'marginMode');
         let isHedged: Bool = undefined;
@@ -3787,7 +3775,7 @@ export default class coincatch extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'contracts': this.safeNumber (position, 'total'), // todo check
             'contractSize': undefined,
-            'side': this.safeString (position, 'side'),
+            'side': this.safeStringLower (position, 'holdSide'),
             'notional': margin, // todo check
             'leverage': this.safeInteger (position, 'leverage'),
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
@@ -3812,113 +3800,242 @@ export default class coincatch extends Exchange {
         });
     }
 
+    safeSwapMarket (marketId: Str, market: Market, settleId: Str): Market {
+        try {
+            market = this.safeMarket (marketId, market);
+        } catch (e) {
+            // dmcbl markets have the same id and market type but different settleId
+            // so we need to resolve the market by settleId
+            const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
+            for (let i = 0; i < marketsWithCurrentId.length; i++) {
+                const marketWithCurrentId = marketsWithCurrentId[i];
+                if (marketWithCurrentId['settleId'] === settleId) {
+                    market = marketWithCurrentId;
+                    break;
+                }
+            }
+        }
+        return market;
+    }
+
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coincatch#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://coincatch.github.io/github.io/en/spot/#get-bills
+         * @see https://coincatch.github.io/github.io/en/mix/#get-business-account-bill
          * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined (default 100, maximum 500)
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.after] billId, return the data less than this billId
-         * @param {string} [params.before] billId, return the data greater than or equals to this billId
-         * @param {string} [params.groupType]
-         * @param {string} [params.bizType]
+         * @param {int} [params.until] *swap only* the latest time in ms to fetch entries for
+         * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
+         * @param {string} [params.after] *spot only* billId, return the data less than this billId
+         * @param {string} [params.before] *spot only* billId, return the data greater than or equals to this billId
+         * @param {string} [params.groupType] *spot only*
+         * @param {string} [params.bizType] *spot only*
+         * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl' or 'dmcbl' if code is provided and code is not equal to 'USDT')
+         * @param {string} [params.business] *swap only*
+         * @param {string} [params.lastEndId] *swap only*
+         * @param {bool} [params.next] *swap only*
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
+        const methodName = 'fetchLedger';
         await this.loadMarkets ();
         const request: Dict = {};
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, undefined, params, marketType);
+        let result = undefined;
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            const numericId = this.safeString (currency, 'numericId');
-            request['coinId'] = numericId;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        if (marketType === 'spot') {
+            if (currency !== undefined) {
+                const numericId = this.safeString (currency, 'numericId');
+                request['coinId'] = numericId;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const response = await this.privatePostApiSpotV1AccountBills (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1727964749515,
+            //         "data": [
+            //             {
+            //                 "billId": "1220289012519190529",
+            //                 "coinId": 2,
+            //                 "coinName": "USDT",
+            //                 "groupType": "transfer",
+            //                 "bizType": "Transfer out",
+            //                 "quantity": "-40.00000000",
+            //                 "balance": "4.43878673",
+            //                 "fees": "0.00000000",
+            //                 "cTime": "1726665493092"
+            //             },
+            //             ...
+            //         ]
+            //     }
+            //
+            result = this.safeList (response, 'data', []);
+        } else if (marketType === 'swap') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+            } else {
+                request['startTime'] = 0; // todo check
+            }
+            let until: Int = undefined;
+            [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+            if (until !== undefined) {
+                request['endTime'] = until;
+            } else {
+                request['endTime'] = this.milliseconds (); // todo check
+            }
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
+            let productType = 'umcbl';
+            if (code === undefined) {
+                productType = this.handleOption (methodName, 'productType', productType);
+            } else if (code === 'USDT') {
+                productType = 'umcbl';
+            } else {
+                productType = 'dmcbl';
+            }
+            [ productType, params ] = this.handleParamString (params, 'productType', productType);
+            request['productType'] = productType;
+            const response = await this.privateGetApiMixV1AccountAccountBusinessBill (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1727971607663,
+            //         "data": {
+            //             "result": [
+            //                 {
+            //                     "id": "1225766556446064640",
+            //                     "symbol": null,
+            //                     "marginCoin": "ETH",
+            //                     "amount": "-0.0016",
+            //                     "fee": "0",
+            //                     "feeByCoupon": "",
+            //                     "feeCoin": "ETH",
+            //                     "business": "trans_to_exchange",
+            //                     "cTime": "1727971441425"
+            //                 },
+            //                 {
+            //                     "id": "1225467081664061441",
+            //                     "symbol": "ETHUSD_DMCBL",
+            //                     "marginCoin": "ETH",
+            //                     "amount": "-0.00052885",
+            //                     "fee": "0",
+            //                     "feeByCoupon": "",
+            //                     "feeCoin": "ETH",
+            //                     "business": "risk_captital_user_transfer",
+            //                     "cTime": "1727900041024"
+            //                 },
+            //                 {
+            //                     "id": "1225467075440189441",
+            //                     "symbol": "ETHUSD_DMCBL",
+            //                     "marginCoin": "ETH",
+            //                     "amount": "-0.0083359",
+            //                     "fee": "-0.00005996",
+            //                     "feeByCoupon": "",
+            //                     "feeCoin": "ETH",
+            //                     "business": "burst_long_loss_query",
+            //                     "cTime": "1727900039576"
+            //                 },
+            //                 {
+            //                     "id": "1221416895715303426",
+            //                     "symbol": "ETHUSD_DMCBL",
+            //                     "marginCoin": "ETH",
+            //                     "amount": "0.00004756",
+            //                     "fee": "0",
+            //                     "feeByCoupon": "",
+            //                     "feeCoin": "ETH",
+            //                     "business": "contract_settle_fee",
+            //                     "cTime": "1726934401444"
+            //                 },
+            //                 {
+            //                     "id": "1221413703233871873",
+            //                     "symbol": "ETHUSD_DMCBL",
+            //                     "marginCoin": "ETH",
+            //                     "amount": "0",
+            //                     "fee": "-0.00005996",
+            //                     "feeByCoupon": "",
+            //                     "feeCoin": "ETH",
+            //                     "business": "open_long",
+            //                     "cTime": "1726933640336"
+            //                 },
+            //                 {
+            //                     "id": "1220288640761122816",
+            //                     "symbol": null,
+            //                     "marginCoin": "ETH",
+            //                     "amount": "0.01",
+            //                     "fee": "0",
+            //                     "feeByCoupon": "",
+            //                     "feeCoin": "ETH",
+            //                     "business": "trans_from_exchange",
+            //                     "cTime": "1726665404563"
+            //                 }
+            //             ],
+            //             "lastEndId": "1220288641021337600",
+            //             "nextFlag": false,
+            //             "preFlag": false
+            //         }
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {});
+            result = this.safeList (data, 'result', []);
         }
-        const response = await this.privatePostApiSpotV1AccountBills (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1727964749515,
-        //         "data": [
-        //             {
-        //                 "billId": "1220289012519190529",
-        //                 "coinId": 2,
-        //                 "coinName": "USDT",
-        //                 "groupType": "transfer",
-        //                 "bizType": "Transfer out",
-        //                 "quantity": "-40.00000000",
-        //                 "balance": "4.43878673",
-        //                 "fees": "0.00000000",
-        //                 "cTime": "1726665493092"
-        //             },
-        //             {
-        //                 "billId": "1220285801351659520",
-        //                 "coinId": 2,
-        //                 "coinName": "USDT",
-        //                 "groupType": "transfer",
-        //                 "bizType": "Transfer in",
-        //                 "quantity": "10.00000000",
-        //                 "balance": "64.43878673",
-        //                 "fees": "0.00000000",
-        //                 "cTime": "1726664727480"
-        //             },
-        //             {
-        //                 "billId": "1218170491735687174",
-        //                 "coinId": 3,
-        //                 "coinName": "ETH",
-        //                 "groupType": "transaction",
-        //                 "bizType": "Sell",
-        //                 "quantity": "-0.00100000",
-        //                 "balance": "0.01478320",
-        //                 "fees": "0.00000000",
-        //                 "cTime": "1726160398337"
-        //             },
-        //             {
-        //                 "billId": "1218170491735687173",
-        //                 "coinId": 2,
-        //                 "coinName": "USDT",
-        //                 "groupType": "transaction",
-        //                 "bizType": "Buy",
-        //                 "quantity": "2.33943000",
-        //                 "balance": "64.43878673",
-        //                 "fees": "-0.00233943",
-        //                 "cTime": "1726160398337"
-        //             },
-        //             {
-        //                 "billId": "1213046510409756672",
-        //                 "coinId": 2,
-        //                 "coinName": "USDT",
-        //                 "groupType": "deposit",
-        //                 "bizType": "Deposit",
-        //                 "quantity": "99.20000000",
-        //                 "balance": "99.20000000",
-        //                 "fees": "0.00000000",
-        //                 "cTime": "1724938746015"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
-        return this.parseLedger (data, currency, since, limit);
+        return this.parseLedger (result, currency, since, limit);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+        // umcbl
+        //     {
+        //         "billId": "1220289012519190529",
+        //         "coinId": 2,
+        //         "coinName": "USDT",
+        //         "groupType": "transfer",
+        //         "bizType": "Transfer out",
+        //         "quantity": "-40.00000000",
+        //         "balance": "4.43878673",
+        //         "fees": "0.00000000",
+        //         "cTime": "1726665493092"
+        //     }
+        //
+        // dmcbl
+        //     {
+        //         "id": "1220288640761122816",
+        //         "symbol": null,
+        //         "marginCoin": "ETH",
+        //         "amount": "0.01",
+        //         "fee": "0",
+        //         "feeByCoupon": "",
+        //         "feeCoin": "ETH",
+        //         "business": "trans_from_exchange",
+        //         "cTime": "1726665404563"
+        //     }
+        //
         const timestamp = this.safeInteger (item, 'cTime');
-        let amountString = this.safeString (item, 'quantity');
+        const settleId = this.safeString2 (item, 'coinName', 'marginCoin');
+        let market: Market = undefined;
+        const marketId = this.safeString (item, 'symbol');
+        market = this.safeSwapMarket (marketId, market, settleId);
+        let amountString = this.safeString2 (item, 'quantity', 'amount');
         let direction = 'in';
         if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
             amountString = Precise.stringMul (amountString, '-1');
         }
-        const feeString = Precise.stringAbs (this.safeString (item, 'fees'));
+        const feeString = Precise.stringAbs (this.safeString2 (item, 'fees', 'fee'));
         return {
-            'id': this.safeString (item, 'billId'),
+            'id': this.safeString2 (item, 'billId', 'id'),
             'info': item,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3926,9 +4043,9 @@ export default class coincatch extends Exchange {
             'direction': direction,
             'referenceId': undefined,
             'referenceAccount': undefined,
-            'type': this.parseLedgerEntryType (this.safeStringLower (item, 'bizType')),
-            'currency': this.safeCurrencyCode (this.safeString (item, 'coinName'), currency),
-            'symbol': undefined,
+            'type': this.parseLedgerEntryType (this.safeStringLower2 (item, 'bizType', 'business')),
+            'currency': this.safeCurrencyCode (settleId, currency),
+            'symbol': market['symbol'],
             'amount': this.parseNumber (amountString),
             'before': undefined,
             'after': this.safeNumber (item, 'balance'),
@@ -3953,6 +4070,15 @@ export default class coincatch extends Exchange {
             'mix contract rewards': 'rebate', // todo check
             'system lock': 'system lock',
             'user lock': 'user lock',
+            'open_long': 'trade',
+            'open_short': 'trade',
+            'close_long': 'trade',
+            'close_short': 'trade',
+            'trans_from_exchange': 'transfer',
+            'trans_to_exchange': 'transfer',
+            'contract_settle_fee': 'fee', // todo check sometimes it is positive, sometimes negative
+            'burst_long_loss_query': 'trade', // todo check
+            'burst_short_loss_query': 'trade', // todo check
         };
         return this.safeString (types, type, type);
     }
