@@ -1533,6 +1533,11 @@
                 "id": "undefined",
                 "marginRatio": "undefined",
                 "collateral": "undefined"
+            },
+            "watchBidsAsks": "newUpdates is true",
+            "watchTickers": {
+                "baseVolume": "PURSE/USDT has weird ticker",
+                "quoteVolume": "PURSE/USDT has weird ticker"
             }
         }
 	},
