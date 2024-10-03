@@ -176,7 +176,7 @@ public partial class BaseTest
 
     public void AssertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
     {
-        assert(DeepEqual(a, b), add(add(add(add("two dicts does not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
+        assert(DeepEqual(a, b), add(add(add(add("two dicts do not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
     }
 }
 
