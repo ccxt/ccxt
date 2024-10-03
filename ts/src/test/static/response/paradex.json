@@ -267,6 +267,8 @@
                         "average": null,
                         "baseVolume": null,
                         "quoteVolume": 2611476.262600002,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "symbol": "BTC-USD-PERP",
                             "oracle_price": "67307.7225876",
