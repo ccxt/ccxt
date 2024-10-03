@@ -80,7 +80,7 @@ export default class coincatch extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
@@ -209,7 +209,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/wallet/transfer-v2': 4, // done
                         'api/spot/v1/wallet/withdrawal-v2': 4, // done but should be checked
                         'api/spot/v1/wallet/withdrawal-inner-v2': 1,
-                        'api/spot/v1/account/bills': 1,
+                        'api/spot/v1/account/bills': 2, // done
                         'api/spot/v1/trade/orders': 2, // done
                         'api/spot/v1/trade/batch-orders': { 'cost': 4, 'step': 10 }, // done
                         'api/spot/v1/trade/cancel-order': 1, // not used
@@ -502,6 +502,7 @@ export default class coincatch extends Exchange {
             }
             result[code] = {
                 'id': currencyId,
+                'numericId': this.safeInteger (currecy, 'coinId'),
                 'code': code,
                 'precision': undefined,
                 'type': undefined,
@@ -3809,6 +3810,151 @@ export default class coincatch extends Exchange {
             'percentage': undefined,
             'info': position,
         });
+    }
+
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://coincatch.github.io/github.io/en/spot/#get-bills
+         * @param {string} [code] unified currency code
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined (default 100, maximum 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.after] billId, return the data less than this billId
+         * @param {string} [params.before] billId, return the data greater than or equals to this billId
+         * @param {string} [params.groupType]
+         * @param {string} [params.bizType]
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            const numericId = this.safeString (currency, 'numericId');
+            request['coinId'] = numericId;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostApiSpotV1AccountBills (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1727964749515,
+        //         "data": [
+        //             {
+        //                 "billId": "1220289012519190529",
+        //                 "coinId": 2,
+        //                 "coinName": "USDT",
+        //                 "groupType": "transfer",
+        //                 "bizType": "Transfer out",
+        //                 "quantity": "-40.00000000",
+        //                 "balance": "4.43878673",
+        //                 "fees": "0.00000000",
+        //                 "cTime": "1726665493092"
+        //             },
+        //             {
+        //                 "billId": "1220285801351659520",
+        //                 "coinId": 2,
+        //                 "coinName": "USDT",
+        //                 "groupType": "transfer",
+        //                 "bizType": "Transfer in",
+        //                 "quantity": "10.00000000",
+        //                 "balance": "64.43878673",
+        //                 "fees": "0.00000000",
+        //                 "cTime": "1726664727480"
+        //             },
+        //             {
+        //                 "billId": "1218170491735687174",
+        //                 "coinId": 3,
+        //                 "coinName": "ETH",
+        //                 "groupType": "transaction",
+        //                 "bizType": "Sell",
+        //                 "quantity": "-0.00100000",
+        //                 "balance": "0.01478320",
+        //                 "fees": "0.00000000",
+        //                 "cTime": "1726160398337"
+        //             },
+        //             {
+        //                 "billId": "1218170491735687173",
+        //                 "coinId": 2,
+        //                 "coinName": "USDT",
+        //                 "groupType": "transaction",
+        //                 "bizType": "Buy",
+        //                 "quantity": "2.33943000",
+        //                 "balance": "64.43878673",
+        //                 "fees": "-0.00233943",
+        //                 "cTime": "1726160398337"
+        //             },
+        //             {
+        //                 "billId": "1213046510409756672",
+        //                 "coinId": 2,
+        //                 "coinName": "USDT",
+        //                 "groupType": "deposit",
+        //                 "bizType": "Deposit",
+        //                 "quantity": "99.20000000",
+        //                 "balance": "99.20000000",
+        //                 "fees": "0.00000000",
+        //                 "cTime": "1724938746015"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+        const timestamp = this.safeInteger (item, 'cTime');
+        let amountString = this.safeString (item, 'quantity');
+        let direction = 'in';
+        if (Precise.stringLt (amountString, '0')) {
+            direction = 'out';
+            amountString = Precise.stringMul (amountString, '-1');
+        }
+        const feeString = Precise.stringAbs (this.safeString (item, 'fees'));
+        return {
+            'id': this.safeString (item, 'billId'),
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'account': undefined, // todo check
+            'direction': direction,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType (this.safeStringLower (item, 'bizType')),
+            'currency': this.safeCurrencyCode (this.safeString (item, 'coinName'), currency),
+            'symbol': undefined,
+            'amount': this.parseNumber (amountString),
+            'before': undefined,
+            'after': this.safeNumber (item, 'balance'),
+            'status': 'ok',
+            'fee': this.parseNumber (feeString),
+        };
+    }
+
+    parseLedgerEntryType (type: string): string {
+        const types = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'buy': 'trade',
+            'sell': 'trade',
+            'deduction of handling fee': 'fee', // todo check
+            'transfer-in': 'transfer',
+            'transfer in': 'transfer',
+            'transfer out': 'transfer',
+            'rebate rewards': 'rebate', // todo check
+            'airdrop rewards': 'rebate', // todo check
+            'usdt contract rewards': 'rebate', // todo check
+            'mix contract rewards': 'rebate', // todo check
+            'system lock': 'system lock',
+            'user lock': 'user lock',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
