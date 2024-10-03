@@ -62,7 +62,7 @@ class bitmex extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => 'emulated', // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -2507,14 +2507,14 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
              * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by $market $symbols
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetInstrumentActiveAndIndices ($params));
@@ -2535,7 +2535,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         $datetime = $this->safe_string($contract, 'timestamp');
         $marketId = $this->safe_string($contract, 'symbol');
@@ -2550,7 +2550,7 @@ class bitmex extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
-            'fundingTimestamp' => $this->iso8601($fundingDatetime),
+            'fundingTimestamp' => $this->parse_to_numeric($this->iso8601($fundingDatetime)),
             'fundingDatetime' => $fundingDatetime,
             'nextFundingRate' => $this->safe_number($contract, 'indicativeFundingRate'),
             'nextFundingTimestamp' => null,
@@ -2558,6 +2558,7 @@ class bitmex extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 

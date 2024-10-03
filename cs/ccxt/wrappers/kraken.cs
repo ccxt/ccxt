@@ -333,7 +333,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/rest-api/add-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -378,9 +378,21 @@ public partial class kraken
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trailingPercent</term>
+    /// <description>
+    /// string : *margin only* the percent to trail away from the current market price
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.trailingLimitAmount</term>
     /// <description>
     /// string : *margin only* the quote amount away from the trailingAmount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingLimitPercent</term>
+    /// <description>
+    /// string : *margin only* the percent away from the trailingAmount
     /// </description>
     /// </item>
     /// <item>

@@ -1525,7 +1525,7 @@ public partial class coinex : ccxt.coinex
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
     }
@@ -1542,7 +1542,7 @@ public partial class coinex : ccxt.coinex
             {
                 (future as Future).resolve(true);
             }
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
         }
     }
 

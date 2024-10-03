@@ -52,8 +52,8 @@
         }
     },
     "binance": {
-        "httpsProxy": "http://5.75.153.75:8002",
-        "wsProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8911",
+        "wsProxy": "http://5.75.153.75:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC"
@@ -86,7 +86,7 @@
         }
     },
     "binancecoinm": {
-        "httpsProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8911",
         "skipMethods": {
             "loadMarkets": {
                 "expiry": "expiry not set for future markets",
@@ -99,8 +99,8 @@
         }
     },
     "binanceusdm": {
-        "httpsProxy": "http://5.75.153.75:8002",
-        "wsProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8911",
+        "wsProxy": "http://5.75.153.75:8911",
         "skipMethods": {
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
@@ -142,7 +142,7 @@
         }
     },
     "tokocrypto": {
-        "httpsProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8911",
         "skipMethods": {
             "orderBook":{
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195"
@@ -549,8 +549,8 @@
         }
     },
     "bybit": {
-        "httpsProxy": "http://5.75.153.75:8002",
-        "wsProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8911",
+        "wsProxy": "http://5.75.153.75:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temp skip"
@@ -1103,7 +1103,7 @@
     },
     "kuna": {
         "skip": "temporary glitches with this exchange: https://app.travis-ci.com/github/ccxt/ccxt/builds/267517440#L2304",
-        "httpsProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8911",
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1713,8 +1713,8 @@
         }
     },
     "vertex": {
-        "httpsProxy": "http://5.75.153.75:8002",
-        "wsProxy": "http://5.75.153.75:8002",
+        "httpsProxy": "http://5.75.153.75:8911",
+        "wsProxy": "http://5.75.153.75:8911",
         "skipMethods": {
             "fetchCurrencies": "incomplete",
             "loadMarkets": {

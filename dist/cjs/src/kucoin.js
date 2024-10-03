@@ -622,7 +622,8 @@ class kucoin extends kucoin$1 {
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
                 'ALT': 'APTOSLAUNCHTOKEN',
-                'KALT': 'ALT', // ALTLAYER
+                'KALT': 'ALT',
+                'FUD': 'FTX Users\' Debt',
             },
             'options': {
                 'hf': false,
@@ -758,7 +759,7 @@ class kucoin extends kucoin$1 {
                     'hf': 'trade_hf',
                 },
                 'networks': {
-                    'BTC': 'btc',
+                    'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
                     'ERC20': 'eth',
                     'TRC20': 'trx',
@@ -1340,7 +1341,7 @@ class kucoin extends kucoin$1 {
             for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
                 const chainId = this.safeString(chain, 'chainId');
-                const networkCode = this.networkIdToCode(chainId);
+                const networkCode = this.networkIdToCode(chainId, code);
                 const chainWithdrawEnabled = this.safeBool(chain, 'isWithdrawEnabled', false);
                 if (isWithdrawEnabled === undefined) {
                     isWithdrawEnabled = chainWithdrawEnabled;

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -26,6 +26,7 @@ class whitebit(ccxt.async_support.whitebit):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTicker': True,
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
             },
@@ -248,6 +249,33 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'ticker:' + symbol
         # every time we want to subscribe to another market we have to "re-subscribe" sending it all again
         return await self.watch_multiple_subscription(messageHash, method, symbol, False, params)
+
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :see: https://docs.whitebit.com/public/websocket/#market-statistics
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        method = 'market_subscribe'
+        url = self.urls['api']['ws']
+        id = self.nonce()
+        messageHashes = []
+        args = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            messageHashes.append('ticker:' + market['symbol'])
+            args.append(market['id'])
+        request: dict = {
+            'id': id,
+            'method': method,
+            'params': args,
+        }
+        await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
         #

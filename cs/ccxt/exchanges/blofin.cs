@@ -830,17 +830,10 @@ public partial class blofin : Exchange
         //        "fundingRate": "0.00027815",
         //        "fundingTime": "1634256000000",
         //        "instId": "BTC-USD-SWAP",
-        //        "instType": "SWAP",
-        //        "nextFundingRate": "0.00017",
-        //        "nextFundingTime": "1634284800000"
         //    }
         //
-        // in the response above nextFundingRate is actually two funding rates from now
-        //
-        object nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
         object marketId = this.safeString(contract, "instId");
         object symbol = this.safeSymbol(marketId, market);
-        object nextFundingRate = this.safeNumber(contract, "nextFundingRate");
         object fundingTime = this.safeInteger(contract, "fundingTime");
         // > The current interest is 0.
         return new Dictionary<string, object>() {
@@ -855,12 +848,13 @@ public partial class blofin : Exchange
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
             { "fundingTimestamp", fundingTime },
             { "fundingDatetime", this.iso8601(fundingTime) },
-            { "nextFundingRate", nextFundingRate },
-            { "nextFundingTimestamp", nextFundingRateTimestamp },
-            { "nextFundingDatetime", this.iso8601(nextFundingRateTimestamp) },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -894,9 +888,6 @@ public partial class blofin : Exchange
         //                "fundingRate": "0.00027815",
         //                "fundingTime": "1634256000000",
         //                "instId": "BTC-USD-SWAP",
-        //                "instType": "SWAP",
-        //                "nextFundingRate": "0.00017",
-        //                "nextFundingTime": "1634284800000"
         //            }
         //        ],
         //        "msg": ""

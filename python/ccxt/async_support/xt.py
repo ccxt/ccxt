@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Currencies, Currency, Int, LedgerEntry, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry
+from ccxt.base.types import Currencies, Currency, Int, LedgerEntry, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -4030,7 +4030,7 @@ class xt(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    async def fetch_funding_rate(self, symbol: str, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://doc.xt.com/#futures_quotesgetFundingRate
@@ -4068,7 +4068,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market=None) -> FundingRate:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4080,6 +4080,7 @@ class xt(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_', 'swap')
         timestamp = self.safe_integer(contract, 'nextCollectionTime')
+        interval = self.safe_string(contract, 'collectionInternal')
         return {
             'info': contract,
             'symbol': symbol,
@@ -4098,6 +4099,7 @@ class xt(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': interval + 'h',
         }
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

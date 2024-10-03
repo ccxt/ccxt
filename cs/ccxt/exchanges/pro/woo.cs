@@ -184,8 +184,8 @@ public partial class woo : ccxt.woo
                     }
                 } catch(Exception e)
                 {
-
-
+                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)topic);
                     ((WebSocketClient)client).reject(e, topic);
                 }
             }
@@ -213,7 +213,7 @@ public partial class woo : ccxt.woo
         object symbol = this.safeString(subscription, "symbol"); // watchOrderBook
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         this.spawn(this.fetchOrderBookSnapshot, new object[] { client, message, subscription});
@@ -253,7 +253,7 @@ public partial class woo : ccxt.woo
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }
@@ -1294,7 +1294,7 @@ public partial class woo : ccxt.woo
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             } else
             {
@@ -1434,7 +1434,7 @@ public partial class woo : ccxt.woo
             // allows further authentication attempts
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
             }
         }
     }

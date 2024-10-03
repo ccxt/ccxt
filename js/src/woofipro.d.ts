@@ -1,5 +1,5 @@
 import Exchange from './abstract/woofipro.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 /**
  * @class woofipro
  * @augments Exchange
@@ -21,45 +21,10 @@ export default class woofipro extends Exchange {
     parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;
     parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseFundingRate(fundingRate: any, market?: Market): {
-        info: any;
-        symbol: string;
-        markPrice: any;
-        indexPrice: any;
-        interestRate: number;
-        estimatedSettlePrice: any;
-        timestamp: number;
-        datetime: string;
-        fundingRate: number;
-        fundingTimestamp: number;
-        fundingDatetime: string;
-        nextFundingRate: any;
-        nextFundingTimestamp: any;
-        nextFundingDatetime: any;
-        previousFundingRate: number;
-        previousFundingTimestamp: number;
-        previousFundingDatetime: string;
-    };
-    fetchFundingRate(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        markPrice: any;
-        indexPrice: any;
-        interestRate: number;
-        estimatedSettlePrice: any;
-        timestamp: number;
-        datetime: string;
-        fundingRate: number;
-        fundingTimestamp: number;
-        fundingDatetime: string;
-        nextFundingRate: any;
-        nextFundingTimestamp: any;
-        nextFundingDatetime: any;
-        previousFundingRate: number;
-        previousFundingTimestamp: number;
-        previousFundingDatetime: string;
-    }>;
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
+    parseFundingRate(fundingRate: any, market?: Market): FundingRate;
+    parseFundingInterval(interval: any): string;
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;

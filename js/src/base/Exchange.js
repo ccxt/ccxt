@@ -1220,6 +1220,13 @@ export default class Exchange {
         rng.nextBytes(x);
         return Buffer.from(x).toString('hex');
     }
+    randNumber(size) {
+        let number = '';
+        for (let i = 0; i < size; i++) {
+            number += Math.floor(Math.random() * 10);
+        }
+        return parseInt(number, 10);
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -2248,6 +2255,7 @@ export default class Exchange {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
+                'BRC20': { 'BRC20': 'BTC' },
             },
         };
     }
@@ -6105,8 +6113,19 @@ export default class Exchange {
                     break;
                 }
                 result = this.arrayConcat(result, response);
-                const last = this.safeValue(response, responseLength - 1);
-                cursorValue = this.safeValue(last['info'], cursorReceived);
+                const last = this.safeDict(response, responseLength - 1);
+                // cursorValue = this.safeValue (last['info'], cursorReceived);
+                cursorValue = undefined; // search for the cursor
+                for (let j = 0; j < responseLength; j++) {
+                    const index = responseLength - j - 1;
+                    const entry = this.safeDict(response, index);
+                    const info = this.safeDict(entry, 'info');
+                    const cursor = this.safeValue(info, cursorReceived);
+                    if (cursor !== undefined) {
+                        cursorValue = cursor;
+                        break;
+                    }
+                }
                 if (cursorValue === undefined) {
                     break;
                 }

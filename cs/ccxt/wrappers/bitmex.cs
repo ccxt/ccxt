@@ -653,11 +653,11 @@ public partial class bitmex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// Fetches the history of funding rates

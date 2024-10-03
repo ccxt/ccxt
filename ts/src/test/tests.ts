@@ -15,7 +15,13 @@ import {
     // shared
     getCliArgValue,
     //
-    baseMainTestClass,
+    ENV_VARS,
+    NEW_LINE,
+    LANG,
+    EXT,
+    ROOT_DIR,
+    PROXY_TEST_FILE_NAME,
+    IS_SYNCHRONOUS,
     dump,
     jsonParse,
     jsonStringify,
@@ -41,7 +47,35 @@ import {
 } from './tests.helpers.js';
 
 
-class testMainClass extends baseMainTestClass {
+class testMainClass {
+    isSynchronous: boolean = IS_SYNCHRONOUS;
+    idTests: boolean = false;
+    requestTestsFailed: boolean = false;
+    responseTestsFailed: boolean = false;
+    requestTests: boolean = false;
+    wsTests: boolean = false;
+    responseTests: boolean = false;
+    staticTests: boolean = false;
+    info: boolean = false;
+    verbose: boolean = false;
+    debug: boolean = false;
+    privateTest: boolean = false;
+    privateTestOnly: boolean = false;
+    private loadKeys: boolean = false;
+    sandbox: boolean = false;
+    proxyTestFileName: string = PROXY_TEST_FILE_NAME;
+    onlySpecificTests: string[] = [];
+    skippedSettingsForExchange = {};
+    skippedMethods = {};
+    checkedPublicTests = {};
+    testFiles: any = {};
+    publicTests = {};
+    newLine: string = NEW_LINE;
+    rootDir: string = ROOT_DIR;
+    envVars: any = ENV_VARS;
+    ext: string = EXT;
+    lang: string = LANG;
+
     parseCliArgs () {
         this.responseTests = getCliArgValue ('--responseTests');
         this.idTests = getCliArgValue ('--idTests');
@@ -173,7 +207,7 @@ class testMainClass extends baseMainTestClass {
             this.loadCredentialsFromEnv (exchange);
         }
         // skipped tests
-        const skippedFile = this.rootDirForSkips + 'skip-tests.json';
+        const skippedFile = this.rootDir + 'skip-tests.json';
         const skippedSettings = ioFileRead (skippedFile);
         this.skippedSettingsForExchange = exchange.safeValue (skippedSettings, exchangeId, {});
         const skippedSettingsForExchange = this.skippedSettingsForExchange;

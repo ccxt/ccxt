@@ -1008,7 +1008,7 @@ public partial class okx : ccxt.okx
         object symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [[\'BTC/USDT\', \'1m\'], [\'LTC/USDT\', \'5m\']]")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
         await this.loadMarkets();
         object topics = new List<object>() {};
@@ -1059,7 +1059,7 @@ public partial class okx : ccxt.okx
         object symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [[\'BTC/USDT\', \'1m\'], [\'LTC/USDT\', \'5m\']]")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
         await this.loadMarkets();
         object topics = new List<object>() {};
@@ -1409,8 +1409,8 @@ public partial class okx : ccxt.okx
             }
             if (isTrue(!isEqual(error, null)))
             {
-
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }
@@ -2166,8 +2166,16 @@ public partial class okx : ccxt.okx
         for (object i = 0; isLessThan(i, getArrayLength(tradeSymbols)); postFixIncrement(ref i))
         {
             object symbolMessageHash = add(add(messageHash, "::"), getValue(tradeSymbols, i));
-            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, symbolMessageHash});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, symbolMessageHash});
         }
+    }
+
+    public virtual object requestId()
+    {
+        object ts = ((object)this.milliseconds()).ToString();
+        object randomNumber = this.randNumber(4);
+        object randomPart = ((object)randomNumber).ToString();
+        return add(ts, randomPart);
     }
 
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2190,7 +2198,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.milliseconds()).ToString();
+        object messageHash = this.requestId();
         object op = null;
         var opparametersVariable = this.handleOptionAndParams(parameters, "createOrderWs", "op", "batch-orders");
         op = ((IList<object>)opparametersVariable)[0];
@@ -2270,7 +2278,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.milliseconds()).ToString();
+        object messageHash = this.requestId();
         object op = null;
         var opparametersVariable = this.handleOptionAndParams(parameters, "editOrderWs", "op", "amend-order");
         op = ((IList<object>)opparametersVariable)[0];
@@ -2305,7 +2313,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.milliseconds()).ToString();
+        object messageHash = this.requestId();
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"});
         object arg = new Dictionary<string, object>() {
@@ -2351,7 +2359,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.milliseconds()).ToString();
+        object messageHash = this.requestId();
         object args = new List<object>() {};
         for (object i = 0; isLessThan(i, idsLength); postFixIncrement(ref i))
         {
@@ -2393,7 +2401,7 @@ public partial class okx : ccxt.okx
             throw new BadRequest ((string)add(this.id, "cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
         }
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.milliseconds()).ToString();
+        object messageHash = this.requestId();
         object request = new Dictionary<string, object>() {
             { "id", messageHash },
             { "op", "mass-cancel" },
@@ -2469,11 +2477,31 @@ public partial class okx : ccxt.okx
             if (isTrue(isTrue(errorCode) && isTrue(!isEqual(errorCode, "0"))))
             {
                 object feedback = add(add(this.id, " "), this.json(message));
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                if (isTrue(!isEqual(errorCode, "1")))
+                {
+                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                }
                 object messageString = this.safeValue(message, "msg");
                 if (isTrue(!isEqual(messageString, null)))
                 {
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
+                } else
+                {
+                    object data = this.safeList(message, "data", new List<object>() {});
+                    for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+                    {
+                        object d = getValue(data, i);
+                        errorCode = this.safeString(d, "sCode");
+                        if (isTrue(!isEqual(errorCode, null)))
+                        {
+                            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+                        }
+                        messageString = this.safeValue(message, "sMsg");
+                        if (isTrue(!isEqual(messageString, null)))
+                        {
+                            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
+                        }
+                    }
                 }
                 throw new ExchangeError ((string)feedback) ;
             }
@@ -2608,7 +2636,7 @@ public partial class okx : ccxt.okx
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.trades, symbol)))
         {
-
+            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
         }
     }
 
@@ -2619,7 +2647,7 @@ public partial class okx : ccxt.okx
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
     }
 
@@ -2632,7 +2660,7 @@ public partial class okx : ccxt.okx
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
         {
-
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
         }
     }
 
@@ -2643,7 +2671,7 @@ public partial class okx : ccxt.okx
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.tickers, symbol)))
         {
-
+            ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
         }
     }
 

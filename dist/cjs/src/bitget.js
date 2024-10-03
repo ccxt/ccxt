@@ -1315,6 +1315,8 @@ class bitget extends bitget$1 {
                 'TONCOIN': 'TON',
             },
             'options': {
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'timeframes': {
                     'spot': {
                         '1m': '1min',
@@ -1411,14 +1413,18 @@ class bitget extends bitget$1 {
                 },
                 'sandboxMode': false,
                 'networks': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
-                    'BSC': 'BEP20',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'BEP20': 'BSC',
+                    'ARB': 'ArbitrumOne',
+                    'ZKSYNC': 'zkSyncEra',
+                    'STARKNET': 'Starknet',
+                    'APT': 'APTOS',
+                    'MATIC': 'Polygon',
+                    'VIC': 'VICTION',
+                    'AVAXC': 'C-Chain',
                 },
-                'networksById': {
-                    'TRC20': 'TRX',
-                    'BSC': 'BEP20',
-                },
+                'networksById': {},
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 },
@@ -1537,6 +1543,9 @@ class bitget extends bitget$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let types = this.safeValue(this.options, 'fetchMarkets', ['spot', 'swap']);
         if (sandboxMode) {
@@ -1857,7 +1866,10 @@ class bitget extends bitget$1 {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
-                const network = this.safeCurrencyCode(networkId);
+                let network = this.networkIdToCode(networkId, code);
+                if (network !== undefined) {
+                    network = network.toUpperCase();
+                }
                 const withdrawEnabled = this.safeString(chain, 'withdrawable');
                 const canWithdraw = withdrawEnabled === 'true';
                 withdraw = (canWithdraw) ? canWithdraw : withdraw;
@@ -4108,6 +4120,7 @@ class bitget extends bitget$1 {
          * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
          * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
          * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+         * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -6805,6 +6818,7 @@ class bitget extends bitget$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -8822,6 +8836,9 @@ class bitget extends bitget$1 {
         }
         return undefined;
     }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
+    }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
@@ -8839,7 +8856,7 @@ class bitget extends bitget$1 {
         }
         if (signed) {
             this.checkRequiredCredentials();
-            const timestamp = this.milliseconds().toString();
+            const timestamp = this.nonce().toString();
             let auth = timestamp + method + payload;
             if (method === 'POST') {
                 body = this.json(params);

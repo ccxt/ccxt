@@ -3771,6 +3771,16 @@ public partial class binanceus : binance
         return await this.callAsync ("papiPostAssetCollection",parameters);
     }
 
+    public async Task<object> papiPostMarginRepayDebt (object parameters = null)
+    {
+        return await this.callAsync ("papiPostMarginRepayDebt",parameters);
+    }
+
+    public async Task<object> papiPostUmFeeBurn (object parameters = null)
+    {
+        return await this.callAsync ("papiPostUmFeeBurn",parameters);
+    }
+
     public async Task<object> papiPutListenKey (object parameters = null)
     {
         return await this.callAsync ("papiPutListenKey",parameters);

@@ -1089,10 +1089,10 @@ export default class bitflyer extends Exchange {
         const feedback = this.id + ' ' + body;
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         const errorMessage = this.safeString (response, 'error_message');
-        const statusCode = this.safeNumber (response, 'status');
+        const statusCode = this.safeInteger (response, 'status');
         if (errorMessage !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], statusCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }

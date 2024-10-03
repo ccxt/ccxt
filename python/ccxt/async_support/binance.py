@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1115,6 +1115,8 @@ class binance(Exchange, ImplicitAPI):
                         'repay-futures-negative-balance': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'listenKey': 1,  # 1
                         'asset-collection': 3,
+                        'margin/repay-debt': 0.4,  # Weight(Order): 0.4 =>(1000 / (50 * 0.4)) * 60 = 3000
+                        'um/feeBurn': 1,
                     },
                     'put': {
                         'listenKey': 1,  # 1
@@ -1232,6 +1234,7 @@ class binance(Exchange, ImplicitAPI):
                 ],
                 'fetchCurrencies': True,  # self is a private call and it requires API keys
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
+                # 'repayCrossMarginMethod': 'papiPostRepayLoan',  # papiPostMarginRepayDebt
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': None,  # 'linear', 'inverse'
@@ -2879,7 +2882,7 @@ class binance(Exchange, ImplicitAPI):
             res = self.safe_value(results, i)
             if fetchMargins and isinstance(res, list):
                 keysList = list(self.index_by(res, 'symbol').keys())
-                length = (self.options['crossMarginPairsData'])
+                length = len(self.options['crossMarginPairsData'])
                 # first one is the cross-margin promise
                 if length == 0:
                     self.options['crossMarginPairsData'] = keysList
@@ -5593,6 +5596,8 @@ class binance(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param boolean [params.portfolioMargin]: set to True if you would like to create an order in a portfolio margin account
         :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
+        :param str [params.positionSide]: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+        :param bool [params.hedged]: *swap and portfolio margin only* True for hedged mode, False for one way mode, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -5678,9 +5683,9 @@ class binance(Exchange, ImplicitAPI):
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'createOrder', 'papi', 'portfolioMargin', False)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         if (marketType == 'margin') or (marginMode is not None) or market['option']:
             # for swap and future reduceOnly is a string that cant be sent with close position set to True or in hedge mode
-            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
             params = self.omit(params, 'reduceOnly')
             if market['option']:
                 request['reduceOnly'] = reduceOnly
@@ -5881,7 +5886,13 @@ class binance(Exchange, ImplicitAPI):
         # remove timeInForce from params because PO is only used by self.is_post_only and it's not a valid value for Binance
         if self.safe_string(params, 'timeInForce') == 'PO':
             params = self.omit(params, 'timeInForce')
-        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test'])
+        hedged = self.safe_bool(params, 'hedged', False)
+        if not market['spot'] and not market['option'] and hedged:
+            if reduceOnly:
+                params = self.omit(params, 'reduceOnly')
+                side = 'sell' if (side == 'buy') else 'buy'
+            request['positionSide'] = 'LONG' if (side == 'buy') else 'SHORT'
+        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged'])
         return self.extend(request, requestParams)
 
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
@@ -8641,7 +8652,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    async def fetch_funding_rate(self, symbol: str, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
@@ -8688,7 +8699,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.subType]: "linear" or "inverse"
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
@@ -8745,7 +8756,7 @@ class binance(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
         :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
@@ -8753,7 +8764,7 @@ class binance(Exchange, ImplicitAPI):
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
-        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -8769,14 +8780,10 @@ class binance(Exchange, ImplicitAPI):
             response = await self.dapiPublicGetPremiumIndex(query)
         else:
             raise NotSupported(self.id + ' fetchFundingRates() supports linear and inverse contracts only')
-        result = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            parsed = self.parse_funding_rate(entry)
-            result.append(parsed)
+        result = self.parse_funding_rates(response)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
         #
         #   {
@@ -8817,6 +8824,7 @@ class binance(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
     def parse_account_positions(self, account, filterClosed=False):
@@ -11242,10 +11250,13 @@ class binance(Exchange, ImplicitAPI):
         repay borrowed margin and interest
         :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
         :see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to repay margin in a portfolio margin account
+        :param str [params.repayCrossMarginMethod]: *portfolio margin only* 'papiPostRepayLoan'(default), 'papiPostMarginRepayDebt'(alternative)
+        :param str [params.specifyRepayAssets]: *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         await self.load_markets()
@@ -11258,17 +11269,37 @@ class binance(Exchange, ImplicitAPI):
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'repayCrossMargin', 'papi', 'portfolioMargin', False)
         if isPortfolioMargin:
-            response = await self.papiPostRepayLoan(self.extend(request, params))
+            method = None
+            method, params = self.handle_option_and_params_2(params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method')
+            if method == 'papiPostMarginRepayDebt':
+                response = await self.papiPostMarginRepayDebt(self.extend(request, params))
+                #
+                #     {
+                #         "asset": "USDC",
+                #         "amount": 10,
+                #         "specifyRepayAssets": null,
+                #         "updateTime": 1727170761267,
+                #         "success": True
+                #     }
+                #
+            else:
+                response = await self.papiPostRepayLoan(self.extend(request, params))
+                #
+                #     {
+                #         "tranId": 108988250265,
+                #         "clientTag":""
+                #     }
+                #
         else:
             request['isIsolated'] = 'FALSE'
             request['type'] = 'REPAY'
             response = await self.sapiPostMarginBorrowRepay(self.extend(request, params))
-        #
-        #     {
-        #         "tranId": 108988250265,
-        #         "clientTag":""
-        #     }
-        #
+            #
+            #     {
+            #         "tranId": 108988250265,
+            #         "clientTag":""
+            #     }
+            #
         return self.parse_margin_loan(response, currency)
 
     async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
@@ -11370,13 +11401,25 @@ class binance(Exchange, ImplicitAPI):
         #         "clientTag":""
         #     }
         #
+        # repayCrossMargin alternative endpoint
+        #
+        #     {
+        #         "asset": "USDC",
+        #         "amount": 10,
+        #         "specifyRepayAssets": null,
+        #         "updateTime": 1727170761267,
+        #         "success": True
+        #     }
+        #
+        currencyId = self.safe_string(info, 'asset')
+        timestamp = self.safe_integer(info, 'updateTime')
         return {
             'id': self.safe_integer(info, 'tranId'),
-            'currency': self.safe_currency_code(None, currency),
-            'amount': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(info, 'amount'),
             'symbol': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'info': info,
         }
 

@@ -1,7 +1,33 @@
 import { Exchange } from '../../ccxt.js';
 import { Str } from '../base/types.js';
-import { baseMainTestClass } from './tests.helpers.js';
-declare class testMainClass extends baseMainTestClass {
+declare class testMainClass {
+    isSynchronous: boolean;
+    idTests: boolean;
+    requestTestsFailed: boolean;
+    responseTestsFailed: boolean;
+    requestTests: boolean;
+    wsTests: boolean;
+    responseTests: boolean;
+    staticTests: boolean;
+    info: boolean;
+    verbose: boolean;
+    debug: boolean;
+    privateTest: boolean;
+    privateTestOnly: boolean;
+    private loadKeys;
+    sandbox: boolean;
+    proxyTestFileName: string;
+    onlySpecificTests: string[];
+    skippedSettingsForExchange: {};
+    skippedMethods: {};
+    checkedPublicTests: {};
+    testFiles: any;
+    publicTests: {};
+    newLine: string;
+    rootDir: string;
+    envVars: any;
+    ext: string;
+    lang: string;
     parseCliArgs(): void;
     init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<void>;
     checkIfSpecificTestIsChosen(methodArgv: any): void;

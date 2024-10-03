@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Exchang
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies, int, LedgerEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ export default class bitmex extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -2502,7 +2502,7 @@ export default class bitmex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name bitmex#fetchFundingRates
@@ -2510,7 +2510,7 @@ export default class bitmex extends Exchange {
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.publicGetInstrumentActiveAndIndices (params);
@@ -2530,7 +2530,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');
@@ -2545,7 +2545,7 @@ export default class bitmex extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'fundingRate': this.safeNumber (contract, 'fundingRate'),
-            'fundingTimestamp': this.iso8601 (fundingDatetime),
+            'fundingTimestamp': this.parseToNumeric (this.iso8601 (fundingDatetime)),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': this.safeNumber (contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': undefined,
@@ -2553,7 +2553,8 @@ export default class bitmex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

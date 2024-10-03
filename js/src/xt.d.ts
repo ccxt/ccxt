@@ -1,5 +1,5 @@
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate } from './base/types.js';
 /**
  * @class xt
  * @augments Exchange
@@ -73,44 +73,8 @@ export default class xt extends Exchange {
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    fetchFundingRate(symbol: string, params?: {}): Promise<{
-        info: any;
-        symbol: string;
-        markPrice: any;
-        indexPrice: any;
-        interestRate: any;
-        estimatedSettlePrice: any;
-        timestamp: any;
-        datetime: any;
-        fundingRate: number;
-        fundingTimestamp: number;
-        fundingDatetime: string;
-        nextFundingRate: any;
-        nextFundingTimestamp: any;
-        nextFundingDatetime: any;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
-    }>;
-    parseFundingRate(contract: any, market?: any): {
-        info: any;
-        symbol: string;
-        markPrice: any;
-        indexPrice: any;
-        interestRate: any;
-        estimatedSettlePrice: any;
-        timestamp: any;
-        datetime: any;
-        fundingRate: number;
-        fundingTimestamp: number;
-        fundingDatetime: string;
-        nextFundingRate: any;
-        nextFundingTimestamp: any;
-        nextFundingDatetime: any;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
-    };
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    parseFundingRate(contract: any, market?: any): FundingRate;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseFundingHistory(contract: any, market?: any): {
         info: any;
