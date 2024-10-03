@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import Exchange from './abstract/cube.js';
 import { BadRequest, AuthenticationError, InsufficientFunds, ArgumentsRequired, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Transaction, Int, int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Num, Dict } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -154,6 +154,7 @@ export default class cube extends Exchange {
         const response = await this.privateGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
         const markets = this.safeValue (result, 'markets', []);
+        console.log (markets);
         const assets = this.safeValue (result, 'assets', []);
         const feeTables = this.safeValue (result, 'feeTables', []);
         // Store assetsById and feeTablesById in this.options
@@ -162,7 +163,7 @@ export default class cube extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market: Dict): Market {
+    parseMarket (market): Market {
         // Access assetsById and feeTablesById from this.options
         const assetsById = this.safeValue (this.options, 'assetsById', {});
         const feeTablesById = this.safeValue (this.options, 'feeTablesById', {});
@@ -173,7 +174,7 @@ export default class cube extends Exchange {
         const quoteAssetId = this.safeString (market, 'quoteAssetId');
         const base = this.safeCurrencyCode (this.safeString (baseAsset, 'symbol'));
         const quote = this.safeCurrencyCode (this.safeString (quoteAsset, 'symbol'));
-        const symbol = this.safeString (market, 'symbol', base + '/' + quote);
+        const symbol = base + '/' + quote;
         const feeTableId = this.safeString (market, 'feeTableId');
         const feeTable = this.safeValue (feeTablesById, feeTableId, {});
         const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
@@ -242,7 +243,7 @@ export default class cube extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.publicGetParsedTickers (params);
-        const tickers = this.safeValue (response, 'result', []);
+        const tickers = this.safeDict (response, 'result', []);
         const ticker = this.filterBySymbol (tickers, symbol);
         if (ticker === undefined) {
             throw new ExchangeError (this.id + ' fetchTicker() could not find a ticker for ' + symbol);
@@ -295,7 +296,7 @@ export default class cube extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last_price');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -316,7 +317,7 @@ export default class cube extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'base_volume'),
             'quoteVolume': this.safeNumber (ticker, 'quote_volume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -804,54 +805,6 @@ export default class cube extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        const subaccountId = this.safeInteger2 (params, 'subaccountId', 'subaccount_id');
-        if (subaccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a subaccountId or subaccount_id parameter');
-        }
-        params = this.omit (params, [ 'subaccountId', 'subaccount_id' ]);
-        const request = {
-            'subaccount_id': subaccountId,
-        };
-        if (since !== undefined) {
-            request['start_time'] = this.iso8601 (since);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privateGetUsersSubaccountSubaccountIdWithdrawals (this.extend (request, params));
-        //
-        //  {
-        //    "result": {
-        //      "8": {
-        //        "inner": [
-        //          {
-        //            "address": "bcrt1qfsf0tfcw0qvtxnm8qmktwpxpt8v0hk4rawh0n7",
-        //            "amount": "12000000",
-        //            "approved": true,
-        //            "assetId": 1,
-        //            "attemptId": 112,
-        //            "createdAt": "2023-07-30T14:30:00-05:00",
-        //            "kytStatus": "accept",
-        //            "txnHash": "faae74ae3700cdea62f51930d489a34f3bc4ee2521a017a9bad72dbd0a5156b4",
-        //            "txnIndex": 1,
-        //            "txnState": "confirmed",
-        //            "updatedAt": "2023-07-30T14:30:00-05:00"
-        //          },
-        //          // ... more withdrawals
-        //        ],
-        //        "name": "primary"
-        //      }
-        //    }
-        //  }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const subaccountData = this.safeValue (result, subaccountId.toString (), {});
-        const withdrawals = this.safeValue (subaccountData, 'inner', []);
-        const currency = (code !== undefined) ? this.currency (code) : undefined;
-        return this.parseTransactions (withdrawals, currency, since, limit, { 'type': 'withdrawal' });
-    }
-
     parseTransaction (transaction, currency = undefined) {
         const id = this.safeString (transaction, 'attemptId');
         const txid = this.safeString (transaction, 'txnHash');
@@ -1184,7 +1137,7 @@ export default class cube extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }
