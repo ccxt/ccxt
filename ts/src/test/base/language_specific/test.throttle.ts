@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Throttler } from '../../base/functions/throttle.js'
+import { Throttler } from '../../../base/functions/throttle.js'
 
 function testThrottle () {
 
