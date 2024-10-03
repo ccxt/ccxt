@@ -2234,8 +2234,19 @@ export default class coincatch extends Exchange {
         const request = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostApiMixV1OrderPlaceOrder (request);
         //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1727977301979,
+        //         "data":
+        //         {
+        //             "clientOid": "1225791137701519360",
+        //             "orderId": "1225791137697325056"
+        //         }
+        //     }
         //
-        return this.parseOrder (response, market);
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
@@ -2299,7 +2310,7 @@ export default class coincatch extends Exchange {
         }
         let hedged: Bool = false;
         [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
-        // hedged and non-hedged orders have different side values and reduseOnly handling
+        // hedged and non-hedged orders have different side values and reduceOnly handling
         // todo find the best way to handle this
         if (hedged) {
             let reduceOnly: Bool = false;
@@ -2553,10 +2564,43 @@ export default class coincatch extends Exchange {
             }
             request['symbol'] = market['id'];
             if (clientOrderId !== undefined) {
+                params = this.omit (params, 'clientOrderId');
                 request['clientOid'] = clientOrderId;
             }
             response = await this.privateGetApiMixV1OrderDetail (this.extend (request, params));
             //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1727981421364,
+            //         "data": {
+            //             "symbol": "ETHUSDT_UMCBL",
+            //             "size": 0.01,
+            //             "orderId": "1225791137697325056",
+            //             "clientOid": "1225791137701519360",
+            //             "filledQty": 0.01,
+            //             "fee": -0.01398864,
+            //             "price": null,
+            //             "priceAvg": 2331.44,
+            //             "state": "filled",
+            //             "side": "close_long",
+            //             "timeInForce": "normal",
+            //             "totalProfits": -2.23680000,
+            //             "posSide": "long",
+            //             "marginCoin": "USDT",
+            //             "filledAmount": 23.3144,
+            //             "orderType": "market",
+            //             "leverage": "5",
+            //             "marginMode": "crossed",
+            //             "reduceOnly": true,
+            //             "enterPointSource": "API",
+            //             "tradeSide": "close_long",
+            //             "holdMode": "double_hold",
+            //             "orderSource": "market",
+            //             "cTime": "1727977302003",
+            //             "uTime": "1727977303604"
+            //         }
+            //     }
             //
             order = this.safeDict (response, 'data', {});
         } else {
@@ -2947,6 +2991,12 @@ export default class coincatch extends Exchange {
         //         "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262"
         //     }
         //
+        // createOrder swap
+        //     {
+        //         "clientOid": "1225791137701519360",
+        //         "orderId": "1225791137697325056"
+        //     }
+        //
         // privatePostApiSpotV1TradeOrderInfo, privatePostApiSpotV1TradeHistory
         //     {
         //         "accountId": "1002820815393",
@@ -2981,6 +3031,35 @@ export default class coincatch extends Exchange {
         //         "cTime": "1725915469877"
         //     }
         //
+        // privatePostApiMixV1OrderDetail
+        //     {
+        //         "symbol": "ETHUSDT_UMCBL",
+        //         "size": 0.01,
+        //         "orderId": "1225791137697325056",
+        //         "clientOid": "1225791137701519360",
+        //         "filledQty": 0.01,
+        //         "fee": -0.01398864,
+        //         "price": null,
+        //         "priceAvg": 2331.44,
+        //         "state": "filled",
+        //         "side": "close_long",
+        //         "timeInForce": "normal",
+        //         "totalProfits": -2.23680000,
+        //         "posSide": "long",
+        //         "marginCoin": "USDT",
+        //         "filledAmount": 23.3144,
+        //         "orderType": "market",
+        //         "leverage": "5",
+        //         "marginMode": "crossed",
+        //         "reduceOnly": true,
+        //         "enterPointSource": "API",
+        //         "tradeSide": "close_long",
+        //         "holdMode": "double_hold",
+        //         "orderSource": "market",
+        //         "cTime": "1727977302003",
+        //         "uTime": "1727977303604"
+        //     }
+        //
         // privatePostApiSpotV1TradeOpenOrders
         //     {
         //         "accountId": "1002820815393",
@@ -3001,51 +3080,62 @@ export default class coincatch extends Exchange {
         //         "cTime": "1725964219072"
         //     }
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarketCustom (marketId, market);
+        const marginCoin = this.safeString (order, 'marginCoin');
+        market = this.safeMarketCustom (marketId, market, marginCoin);
         const timestamp = this.safeInteger (order, 'cTime');
-        const price = this.omitZero (this.safeString (order, 'price')); // price is zero for market orders
+        let price = this.omitZero (this.safeString (order, 'price')); // price is zero for market orders
+        const priceAvg = this.omitZero (this.safeString (order, 'priceAvg'));
+        if (price === undefined) {
+            price = priceAvg;
+        }
         const type = this.safeString (order, 'orderType');
         const side = this.safeString (order, 'side');
-        let amount = this.safeString (order, 'quantity');
+        let amount = this.safeString2 (order, 'quantity', 'size');
         if ((type === 'market') && (side === 'buy')) {
             amount = undefined; // cost is used instead of amount for market buy orders
         }
-        const status = this.safeString (order, 'status');
+        const status = this.safeString2 (order, 'status', 'state');
         const feeDetailString = this.safeString (order, 'feeDetail');
         let fees = undefined;
+        let feeCurrency: Str = undefined;
+        let feeAmount: Str = undefined;
         if (feeDetailString !== undefined) {
             fees = this.parseFeeDetailString (feeDetailString);
+        } else {
+            feeCurrency = marginCoin ? this.safeCurrencyCode (marginCoin) : undefined;
+            feeAmount = Precise.stringAbs (this.safeString (order, 'fee'));
         }
+        const timeInForce = this.parseOrderTimeInForce (this.safeStringLower (order, 'timeInForce'));
         return this.safeOrder ({
             'id': this.safeString (order, 'orderId'),
-            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'clientOrderId': this.safeString2 (order, 'clientOrderId', 'clientOid'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'uTime'),
             'status': this.parseOrderStatus (status),
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': undefined,
-            'side': side,
+            'timeInForce': timeInForce,
+            'side': this.parseOrderSide (side),
             'price': price,
-            'average': this.safeString (order, 'fillPrice'),
+            'average': priceAvg ? priceAvg : this.safeString (order, 'fillPrice'),
             'amount': amount,
-            'filled': this.safeString (order, 'fillQuantity'),
+            'filled': this.safeString2 (order, 'fillQuantity', 'filledQty'),
             'remaining': undefined,
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
-            'cost': this.safeString (order, 'fillTotalAmount'),
+            'cost': this.safeString2 (order, 'fillTotalAmount', 'filledAmount'),
             'trades': undefined,
             'fee': {
-                'currency': undefined,
-                'amount': undefined,
+                'currency': feeCurrency,
+                'amount': feeAmount,
             },
             'fees': fees,
-            'reduceOnly': undefined,
-            'postOnly': undefined,
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'postOnly': timeInForce === 'PO',
             'info': order,
         }, market);
     }
@@ -3061,6 +3151,36 @@ export default class coincatch extends Exchange {
             'cancelled': 'canceled',
         };
         return this.safeString (satuses, status, status); // todo check other statuses
+    }
+
+    parseOrderSide (side: Str): Str {
+        const sides = {
+            'buy': 'buy',
+            'sell': 'sell',
+            'open_long': 'buy',
+            'open_short': 'sell',
+            'close_long': 'sell',
+            'close_short': 'buy',
+            'reduce_close_long': 'sell',
+            'reduce_close_short': 'buy',
+            'offset_close_long': 'sell',
+            'offset_close_short': 'buy',
+            'burst_close_long': 'sell',
+            'burst_close_short': 'buy',
+            'delivery_close_long': 'sell',
+            'delivery_close_short': 'buy',
+        };
+        return this.safeString (sides, side, side);
+    }
+
+    parseOrderTimeInForce (timeInForce: Str): Str {
+        const timeInForces = {
+            'normal': 'GTC',
+            'post_only': 'PO',
+            'iok': 'IOC',
+            'fok': 'FOK',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     parseFeeDetailString (feeDetailString: Str) {
