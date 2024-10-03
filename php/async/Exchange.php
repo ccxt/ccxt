@@ -187,6 +187,17 @@ class Exchange extends \ccxt\Exchange {
             $http_status_text = $result->getReasonPhrase();
             $response_body = strval($result->getBody());
 
+            if (array_key_exists('Content-Encoding', $response_headers) && $response_headers['Content-Encoding'] !== null) {
+                if (preg_match('~[^\x20-\x7E\t\r\n]~', $response_body) > 0) { // only decompress if the message is a binary
+                    $contentEncoding = $response_headers['Content-Encoding'];
+                    if (strpos($contentEncoding, 'gzip') >= 0) {
+                        $response_body = \ccxt\pro\gunzip($response_body);
+                    } else if (strpos($contentEncoding, 'deflate') >= 0) {
+                        $response_body = \ccxt\pro\inflate($response_body);
+                    }
+                }
+            }
+
             $response_body = $this->on_rest_response($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $headers, $body);
 
             if ($this->enableLastHttpResponse) {
