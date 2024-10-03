@@ -21,7 +21,9 @@ const isWebWorker = typeof WorkerGlobalScope !== 'undefined' && (self instanceof
 
 const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
-const isNode = !(isBrowser || isWebWorker)
+const isDeno = typeof Deno !== 'undefined'
+
+const isNode = !(isBrowser || isWebWorker || isDeno)
 
 // ----------------------------------------------------------------------------
 
@@ -30,5 +32,6 @@ export {
     isElectron,
     isWebWorker,
     isNode,
+    isDeno,
     isWindows,
 }

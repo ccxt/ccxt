@@ -58,7 +58,7 @@ async def main():
     max_concurrency = 5  # how many exchanges at once
 
     tasks = set()
-
+    loop = asyncio.get_running_loop()
     # loop over all exchanges
     for exchange_id in ccxt.exchanges:
 

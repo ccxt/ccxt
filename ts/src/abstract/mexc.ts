@@ -32,9 +32,11 @@ interface Exchange {
     spotPrivateGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetCapitalWithdrawAddress (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalDepositAddress (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalTransfer (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalTransferTranId (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetCapitalTransferInternal (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalSubAccountUniversalTransfer (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalConvert (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetCapitalConvertList (params?: {}): Promise<implicitReturnType>;
@@ -56,6 +58,9 @@ interface Exchange {
     spotPrivateGetRebateDetail (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetRebateDetailKickback (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetRebateReferCode (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetRebateAffiliateCommission (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetRebateAffiliateWithdraw (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetRebateAffiliateCommissionDetail (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetMxDeductEnable (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetUserDataStream (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
@@ -66,14 +71,12 @@ interface Exchange {
     spotPrivatePostSubAccountMargin (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
+    spotPrivatePostCapitalWithdraw (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalTransfer (params?: {}): Promise<implicitReturnType>;
+    spotPrivatePostCapitalTransferInternal (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalDepositAddress (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalSubAccountUniversalTransfer (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalConvert (params?: {}): Promise<implicitReturnType>;
-    spotPrivatePostMarginTradeMode (params?: {}): Promise<implicitReturnType>;
-    spotPrivatePostMarginOrder (params?: {}): Promise<implicitReturnType>;
-    spotPrivatePostMarginLoan (params?: {}): Promise<implicitReturnType>;
-    spotPrivatePostMarginRepay (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostMxDeductEnable (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostUserDataStream (params?: {}): Promise<implicitReturnType>;
     spotPrivatePutUserDataStream (params?: {}): Promise<implicitReturnType>;
@@ -83,6 +86,7 @@ interface Exchange {
     spotPrivateDeleteMarginOrder (params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteMarginOpenOrders (params?: {}): Promise<implicitReturnType>;
     spotPrivateDeleteUserDataStream (params?: {}): Promise<implicitReturnType>;
+    spotPrivateDeleteCapitalWithdraw (params?: {}): Promise<implicitReturnType>;
     contractPublicGetPing (params?: {}): Promise<implicitReturnType>;
     contractPublicGetDetail (params?: {}): Promise<implicitReturnType>;
     contractPublicGetSupportCurrencies (params?: {}): Promise<implicitReturnType>;

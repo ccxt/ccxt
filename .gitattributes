@@ -4,3 +4,4 @@ php/*.php linguist-generated=true
 php/abstract/*.php linguist-generated=true
 php/async/abstract/*.php linguist-generated=true
 php/pro/*.php linguist-generated=true
+*.png binary

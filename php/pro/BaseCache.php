@@ -53,4 +53,13 @@ class BaseCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, 
     public function __toString() {
         return print_r($this->deque, true);
     }
+
+    // meant to be overriden
+    public function getLimit($symbol, $limit) {
+    }
+
+    // support transpiled snake_case calls
+    public function get_limit($symbol, $limit) {
+        return $this->getLimit($symbol, $limit);
+    }
 }

@@ -1,0 +1,236 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "name": "BTC",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 0.002
+            }
+        },
+        "info": {
+            "code": "BTC",
+            "contract": false,
+            "commodity": false,
+            "fiat": false,
+            "description": "",
+            "precision": "8",
+            "scale": "0",
+            "minimumCurrencyAmount": "0.00000001",
+            "minimalWithdrawalAmount": "0.002"
+        }
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "name": "USDT",
+        "active": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "withdraw": {
+                "min": 10
+            }
+        },
+        "info": {
+            "code": "USDT",
+            "contract": false,
+            "commodity": false,
+            "fiat": false,
+            "description": "",
+            "precision": "6",
+            "scale": "0",
+            "minimumCurrencyAmount": "0.000001",
+            "minimalWithdrawalAmount": "10"
+        }
+    },
+    "EUR": {
+        "id": "EUR",
+        "code": "EUR",
+        "name": "EUR",
+        "active": true,
+        "precision": 0.01,
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "withdraw": {
+                "min": -1
+            }
+        },
+        "info": {
+            "code": "EUR",
+            "contract": false,
+            "commodity": false,
+            "fiat": true,
+            "description": "",
+            "precision": "2",
+            "scale": "0",
+            "minimumCurrencyAmount": "0.01",
+            "minimalWithdrawalAmount": "-1"
+        }
+    },
+    "USD": {
+        "id": "USD",
+        "code": "USD",
+        "name": "USD",
+        "active": true,
+        "precision": 0.01,
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "withdraw": {
+                "min": -1
+            }
+        },
+        "info": {
+            "code": "USD",
+            "contract": false,
+            "commodity": false,
+            "fiat": true,
+            "description": "",
+            "precision": "2",
+            "scale": "0",
+            "minimumCurrencyAmount": "0.01",
+            "minimalWithdrawalAmount": "-1"
+        }
+    },
+    "LTC": {
+        "id": "LTC",
+        "code": "LTC",
+        "name": "LTC",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 0.1
+            }
+        },
+        "info": {
+            "code": "LTC",
+            "contract": false,
+            "commodity": false,
+            "fiat": false,
+            "description": "",
+            "precision": "8",
+            "scale": "0",
+            "minimumCurrencyAmount": "0.00000001",
+            "minimalWithdrawalAmount": "0.1"
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "name": "ETH",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "withdraw": {
+                "min": 0.02
+            }
+        },
+        "info": {
+            "code": "ETH",
+            "contract": false,
+            "commodity": false,
+            "fiat": false,
+            "description": "",
+            "precision": "8",
+            "scale": "2",
+            "minimumCurrencyAmount": "0.00000100",
+            "minimalWithdrawalAmount": "0.02"
+        }
+    },
+    "ADA": {
+        "id": "ADA",
+        "code": "ADA",
+        "name": "ADA",
+        "active": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "withdraw": {
+                "min": 10
+            }
+        },
+        "info": {
+            "code": "ADA",
+            "contract": false,
+            "commodity": false,
+            "fiat": false,
+            "description": "",
+            "precision": "6",
+            "scale": "0",
+            "minimumCurrencyAmount": "0.000001",
+            "minimalWithdrawalAmount": "10"
+        }
+    },
+    "XRP": {
+        "id": "XRP",
+        "code": "XRP",
+        "name": "XRP",
+        "active": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "withdraw": {
+                "min": 0.1
+            }
+        },
+        "info": {
+            "code": "XRP",
+            "contract": false,
+            "commodity": false,
+            "fiat": false,
+            "description": "",
+            "precision": "6",
+            "scale": "0",
+            "minimumCurrencyAmount": "0.000001",
+            "minimalWithdrawalAmount": "0.1"
+        }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USDC",
+        "active": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "withdraw": {
+                "min": 10
+            }
+        },
+        "info": {
+            "code": "USDC",
+            "contract": false,
+            "commodity": false,
+            "fiat": false,
+            "description": "",
+            "precision": "6",
+            "scale": "0",
+            "minimumCurrencyAmount": "0.000001",
+            "minimalWithdrawalAmount": "10"
+        }
+    }
+}

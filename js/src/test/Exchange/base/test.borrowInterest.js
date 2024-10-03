@@ -18,7 +18,7 @@ function testBorrowInterest(exchange, skippedProperties, method, entry, requeste
     };
     const emptyAllowedFor = ['account'];
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, entry);
+    testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
     testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, entry['currency'], requestedCode);
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, entry['account'], requestedSymbol);
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'interest', '0');

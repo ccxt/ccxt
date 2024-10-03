@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import mexcRest from '../mexc.js';
-import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,20 +15,31 @@ export default class mexc extends mexcRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'cancelAllOrdersWs': false,
+                'cancelOrdersWs': false,
+                'cancelOrderWs': false,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchBalanceWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'fetchTradesWs': false,
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {
                     'ws': {
                         'spot': 'wss://wbs.mexc.com/ws',
-                        'swap': 'wss://contract.mexc.com/ws',
+                        'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
             },
@@ -49,27 +60,29 @@ export default class mexc extends mexcRest {
                 },
                 'watchOrderBook': {
                     'snapshotDelay': 25,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'listenKey': undefined,
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 10000,
+                'keepAlive': 8000,
             },
             'exceptions': {
             },
         });
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name mexc3#watchTicker
+         * @name mexc#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -79,7 +92,7 @@ export default class mexc extends mexcRest {
             return await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.ticker';
-            const requestParams = {
+            const requestParams: Dict = {
                 'symbol': market['id'],
             };
             return await this.watchSwapPublic (channel, messageHash, requestParams, params);
@@ -89,17 +102,18 @@ export default class mexc extends mexcRest {
     handleTicker (client: Client, message) {
         //
         //    {
-        //        c: 'spot@public.bookTicker.v3.api@BTCUSDT',
-        //        d: {
-        //            A: '4.70432',
-        //            B: '6.714863',
-        //            a: '20744.54',
-        //            b: '20744.17'
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
         //        },
-        //        s: 'BTCUSDT',
-        //        t: 1678643605721
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
         //    }
         //
+        this.handleBidAsk (client, message);
         const rawTicker = this.safeValue2 (message, 'd', 'data');
         const marketId = this.safeString2 (message, 's', 'symbol');
         const timestamp = this.safeInteger (message, 't');
@@ -118,14 +132,93 @@ export default class mexc extends mexcRest {
         client.resolve (ticker, messageHash);
     }
 
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name mexc#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHashes = [];
+        const marketIds = this.marketIds (symbols);
+        const firstMarket = this.market (symbols[0]);
+        const isSpot = firstMarket['spot'];
+        const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
+        const request: Dict = {};
+        if (isSpot) {
+            const topics = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                messageHashes.push ('ticker:' + symbols[i]);
+                topics.push ('spot@public.bookTicker.v3.api@' + marketId);
+            }
+            request['method'] = 'SUBSCRIPTION';
+            request['params'] = topics;
+        } else {
+            request['method'] = 'sub.tickers';
+            request['params'] = {};
+            messageHashes.push ('ticker');
+        }
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (isSpot && this.newUpdates) {
+            const result: Dict = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    handleTickers (client: Client, message) {
+        //
+        //     {
+        //       "channel": "push.tickers",
+        //       "data": [
+        //         {
+        //           "symbol": "ETH_USDT",
+        //           "lastPrice": 2324.5,
+        //           "riseFallRate": 0.0356,
+        //           "fairPrice": 2324.32,
+        //           "indexPrice": 2325.44,
+        //           "volume24": 25868309,
+        //           "amount24": 591752573.9792,
+        //           "maxBidPrice": 2557.98,
+        //           "minAskPrice": 2092.89,
+        //           "lower24Price": 2239.39,
+        //           "high24Price": 2332.59,
+        //           "timestamp": 1725872514111
+        //         }
+        //       ],
+        //       "ts": 1725872514111
+        //     }
+        //
+        const data = this.safeList (message, 'data');
+        const topic = 'ticker';
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseTicker (data[i]);
+            const symbol = ticker['symbol'];
+            this.tickers[symbol] = ticker;
+            result.push (ticker);
+            const messageHash = topic + ':' + symbol;
+            client.resolve (ticker, messageHash);
+        }
+        client.resolve (result, topic);
+    }
+
     parseWsTicker (ticker, market = undefined) {
         //
         // spot
         //    {
-        //        A: '4.70432',
-        //        B: '6.714863',
-        //        a: '20744.54',
-        //        b: '20744.17'
+        //        "A": "4.70432",
+        //        "B": "6.714863",
+        //        "a": "20744.54",
+        //        "b": "20744.17"
         //    }
         //
         return this.safeTicker ({
@@ -151,9 +244,93 @@ export default class mexc extends mexcRest {
         }, market);
     }
 
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name mexc#watchBidsAsks
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        let marketType = undefined;
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + 'watchBidsAsks required symbols argument');
+        }
+        const markets = this.marketsForSymbols (symbols);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', markets[0], params);
+        const isSpot = marketType === 'spot';
+        if (!isSpot) {
+            throw new NotSupported (this.id + 'watchBidsAsks only support spot market');
+        }
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            if (isSpot) {
+                const market = this.market (symbols[i]);
+                topics.push ('spot@public.bookTicker.v3.api@' + market['id']);
+            }
+            messageHashes.push ('bidask:' + symbols[i]);
+        }
+        const url = this.urls['api']['ws']['spot'];
+        const request: Dict = {
+            'method': 'SUBSCRIPTION',
+            'params': topics,
+        };
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //    {
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
+        //    }
+        //
+        const parsedTicker = this.parseWsBidAsk (message);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = 'bidask:' + symbol;
+        client.resolve (parsedTicker, messageHash);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const data = this.safeDict (ticker, 'd');
+        const marketId = this.safeString (ticker, 's');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (ticker, 't');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (data, 'a'),
+            'askVolume': this.safeNumber (data, 'A'),
+            'bid': this.safeNumber (data, 'b'),
+            'bidVolume': this.safeNumber (data, 'B'),
+            'info': ticker,
+        }, market);
+    }
+
     async watchSpotPublic (channel, messageHash, params = {}) {
         const url = this.urls['api']['ws']['spot'];
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIPTION',
             'params': [ channel ],
         };
@@ -164,7 +341,7 @@ export default class mexc extends mexcRest {
         this.checkRequiredCredentials ();
         const listenKey = await this.authenticate (channel);
         const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
-        const request = {
+        const request: Dict = {
             'method': 'SUBSCRIPTION',
             'params': [ channel ],
         };
@@ -173,7 +350,7 @@ export default class mexc extends mexcRest {
 
     async watchSwapPublic (channel, messageHash, requestParams, params = {}) {
         const url = this.urls['api']['ws']['swap'];
-        const request = {
+        const request: Dict = {
             'method': channel,
             'param': requestParams,
         };
@@ -188,7 +365,7 @@ export default class mexc extends mexcRest {
         const timestamp = this.milliseconds ().toString ();
         const payload = this.apiKey + timestamp;
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
-        const request = {
+        const request: Dict = {
             'method': channel,
             'param': {
                 'apiKey': this.apiKey,
@@ -200,18 +377,18 @@ export default class mexc extends mexcRest {
         return await this.watch (url, messageHash, message, channel);
     }
 
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
-         * @name mexc3#watchOHLCV
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
+         * @name mexc#watchOHLCV
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -225,7 +402,7 @@ export default class mexc extends mexcRest {
             ohlcv = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.kline';
-            const requestParams = {
+            const requestParams: Dict = {
                 'symbol': market['id'],
                 'interval': timeframeId,
             };
@@ -242,46 +419,46 @@ export default class mexc extends mexcRest {
         // spot
         //
         //    {
-        //        d: {
-        //            e: 'spot@public.kline.v3.api',
-        //            k: {
-        //                t: 1678642260,
-        //                o: 20626.94,
-        //                c: 20599.69,
-        //                h: 20626.94,
-        //                l: 20597.06,
-        //                v: 27.678686,
-        //                a: 570332.77,
-        //                T: 1678642320,
-        //                i: 'Min1'
+        //        "d": {
+        //            "e": "spot@public.kline.v3.api",
+        //            "k": {
+        //                "t": 1678642261,
+        //                "o": 20626.94,
+        //                "c": 20599.69,
+        //                "h": 20626.94,
+        //                "l": 20597.06,
+        //                "v": 27.678686,
+        //                "a": 570332.77,
+        //                "T": 1678642320,
+        //                "i": "Min1"
         //            }
         //        },
-        //        c: 'spot@public.kline.v3.api@BTCUSDT@Min1',
-        //        t: 1678642276459,
-        //        s: 'BTCUSDT'
+        //        "c": "spot@public.kline.v3.api@BTCUSDT@Min1",
+        //        "t": 1678642276459,
+        //        "s": "BTCUSDT"
         //    }
         //
         // swap
         //
         //   {
-        //       channel: 'push.kline',
-        //       data: {
-        //         a: 325653.3287,
-        //         c: 38839,
-        //         h: 38909.5,
-        //         interval: 'Min1',
-        //         l: 38833,
-        //         o: 38901.5,
-        //         q: 83808,
-        //         rc: 38839,
-        //         rh: 38909.5,
-        //         rl: 38833,
-        //         ro: 38909.5,
-        //         symbol: 'BTC_USDT',
-        //         t: 1651230660
+        //       "channel": "push.kline",
+        //       "data": {
+        //         "a": 325653.3287,
+        //         "c": 38839,
+        //         "h": 38909.5,
+        //         "interval": "Min1",
+        //         "l": 38833,
+        //         "o": 38901.5,
+        //         "q": 83808,
+        //         "rc": 38839,
+        //         "rh": 38909.5,
+        //         "rl": 38833,
+        //         "ro": 38909.5,
+        //         "symbol": "BTC_USDT",
+        //         "t": 1651230660
         //       },
-        //       symbol: 'BTC_USDT',
-        //       ts: 1651230713067
+        //       "symbol": "BTC_USDT",
+        //       "ts": 1651230713067
         //   }
         //
         const d = this.safeValue2 (message, 'd', 'data', {});
@@ -305,41 +482,41 @@ export default class mexc extends mexcRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         //
         // spot
         //
         //    {
-        //        t: 1678642260,
-        //        o: 20626.94,
-        //        c: 20599.69,
-        //        h: 20626.94,
-        //        l: 20597.06,
-        //        v: 27.678686,
-        //        a: 570332.77,
-        //        T: 1678642320,
-        //        i: 'Min1'
+        //        "t": 1678642260,
+        //        "o": 20626.94,
+        //        "c": 20599.69,
+        //        "h": 20626.94,
+        //        "l": 20597.06,
+        //        "v": 27.678686,
+        //        "a": 570332.77,
+        //        "T": 1678642320,
+        //        "i": "Min1"
         //    }
         //
         // swap
         //    {
-        //       symbol: 'BTC_USDT',
-        //       interval: 'Min1',
-        //       t: 1680055080,
-        //       o: 27301.9,
-        //       c: 27301.8,
-        //       h: 27301.9,
-        //       l: 27301.8,
-        //       a: 8.19054,
-        //       q: 3,
-        //       ro: 27301.8,
-        //       rc: 27301.8,
-        //       rh: 27301.8,
-        //       rl: 27301.8
+        //       "symbol": "BTC_USDT",
+        //       "interval": "Min1",
+        //       "t": 1680055080,
+        //       "o": 27301.9,
+        //       "c": 27301.8,
+        //       "h": 27301.9,
+        //       "l": 27301.8,
+        //       "a": 8.19054,
+        //       "q": 3,
+        //       "ro": 27301.8,
+        //       "rc": 27301.8,
+        //       "rh": 27301.8,
+        //       "rl": 27301.8
         //     }
         //
         return [
-            this.safeIntegerProduct (ohlcv, 't', 1000),
+            this.safeTimestamp (ohlcv, 't'),
             this.safeNumber (ohlcv, 'o'),
             this.safeNumber (ohlcv, 'h'),
             this.safeNumber (ohlcv, 'l'),
@@ -348,16 +525,17 @@ export default class mexc extends mexcRest {
         ];
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name mexc3#watchOrderBook
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+         * @name mexc#watchOrderBook
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -369,7 +547,7 @@ export default class mexc extends mexcRest {
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.depth';
-            const requestParams = {
+            const requestParams: Dict = {
                 'symbol': market['id'],
             };
             orderbook = await this.watchSwapPublic (channel, messageHash, requestParams, params);
@@ -379,7 +557,7 @@ export default class mexc extends mexcRest {
 
     handleOrderBookSubscription (client: Client, message) {
         // spot
-        //     { id: 0, code: 0, msg: 'spot@public.increase.depth.v3.api@BTCUSDT' }
+        //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         const msg = this.safeString (message, 'msg');
         const parts = msg.split ('@');
@@ -455,26 +633,27 @@ export default class mexc extends mexcRest {
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol;
         const subscription = this.safeValue (client.subscriptions, messageHash);
+        const limit = this.safeInteger (subscription, 'limit');
         if (subscription === true) {
             // we set client.subscriptions[messageHash] to 1
             // once we have received the first delta and initialized the orderbook
             client.subscriptions[messageHash] = 1;
             this.orderbooks[symbol] = this.countedOrderBook ({});
         }
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
             if (cacheLength === snapshotDelay) {
-                this.spawn (this.loadOrderBook, client, messageHash, symbol);
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
             }
             storedOrderBook.cache.push (data);
             return;
         }
         try {
             this.handleDelta (storedOrderBook, data);
-            const timestamp = this.safeInteger (message, 't');
+            const timestamp = this.safeInteger2 (message, 't', 'ts');
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         } catch (e) {
@@ -504,31 +683,34 @@ export default class mexc extends mexcRest {
     }
 
     handleDelta (orderbook, delta) {
-        const nonce = this.safeInteger (orderbook, 'nonce');
+        const existingNonce = this.safeInteger (orderbook, 'nonce');
         const deltaNonce = this.safeInteger2 (delta, 'r', 'version');
-        if (deltaNonce !== nonce && deltaNonce !== nonce + 1) {
-            throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
+        if (deltaNonce < existingNonce) {
+            // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         orderbook['nonce'] = deltaNonce;
-        const asks = this.safeValue (delta, 'asks', []);
-        const bids = this.safeValue (delta, 'bids', []);
+        const asks = this.safeList (delta, 'asks', []);
+        const bids = this.safeList (delta, 'bids', []);
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         this.handleBooksideDelta (asksOrderSide, asks);
         this.handleBooksideDelta (bidsOrderSide, bids);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name mexc3#watchTrades
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+         * @name mexc#watchTrades
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -540,7 +722,7 @@ export default class mexc extends mexcRest {
             trades = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.deal';
-            const requestParams = {
+            const requestParams: Dict = {
                 'symbol': market['id'],
             };
             trades = await this.watchSwapPublic (channel, messageHash, requestParams, params);
@@ -554,18 +736,18 @@ export default class mexc extends mexcRest {
     handleTrades (client: Client, message) {
         //
         //    {
-        //        c: "spot@public.deals.v3.api@BTCUSDT",
-        //        d: {
-        //            deals: [{
-        //                p: "20382.70",
-        //                v: "0.043800",
-        //                S: 1,
-        //                t: 1678593222456,
+        //        "c": "spot@public.deals.v3.api@BTCUSDT",
+        //        "d": {
+        //            "deals": [{
+        //                "p": "20382.70",
+        //                "v": "0.043800",
+        //                "S": 1,
+        //                "t": 1678593222456,
         //            }, ],
-        //            e: "spot@public.deals.v3.api",
+        //            "e": "spot@public.deals.v3.api",
         //        },
-        //        s: "BTCUSDT",
-        //        t: 1678593222460,
+        //        "s": "BTCUSDT",
+        //        "t": 1678593222460,
         //    }
         //
         // swap
@@ -607,17 +789,18 @@ export default class mexc extends mexcRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name mexc3#watchMyTrades
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+         * @name mexc#watchMyTrades
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let messageHash = 'myTrades';
@@ -645,20 +828,20 @@ export default class mexc extends mexcRest {
     handleMyTrade (client: Client, message, subscription = undefined) {
         //
         //    {
-        //        c: 'spot@private.deals.v3.api',
-        //        d: {
-        //            p: '22339.99',
-        //            v: '0.000235',
-        //            S: 1,
-        //            T: 1678670940695,
-        //            t: '9f6a47fb926442e496c5c4c104076ae3',
-        //            c: '',
-        //            i: 'e2b9835d1b6745f8a10ab74a81a16d50',
-        //            m: 0,
-        //            st: 0
+        //        "c": "spot@private.deals.v3.api",
+        //        "d": {
+        //            "p": "22339.99",
+        //            "v": "0.000235",
+        //            "S": 1,
+        //            "T": 1678670940695,
+        //            "t": "9f6a47fb926442e496c5c4c104076ae3",
+        //            "c": '',
+        //            "i": "e2b9835d1b6745f8a10ab74a81a16d50",
+        //            "m": 0,
+        //            "st": 0
         //        },
-        //        s: 'BTCUSDT',
-        //        t: 1678670940700
+        //        "s": "BTCUSDT",
+        //        "t": 1678670940700
         //    }
         //
         const messageHash = 'myTrades';
@@ -689,10 +872,10 @@ export default class mexc extends mexcRest {
         //
         // public trade
         //    {
-        //        p: "20382.70",
-        //        v: "0.043800",
-        //        S: 1,
-        //        t: 1678593222456,
+        //        "p": "20382.70",
+        //        "v": "0.043800",
+        //        "S": 1,
+        //        "t": 1678593222456,
         //    }
         // private trade
         //    {
@@ -707,6 +890,21 @@ export default class mexc extends mexcRest {
         //        "v": "5"
         //    }
         //
+        //
+        //   d: {
+        //       p: '1.0005',
+        //       v: '5.71',
+        //       a: '5.712855',
+        //       S: 1,
+        //       T: 1714325698237,
+        //       t: 'edafcd9fdc2f426e82443d114691f724',
+        //       c: '',
+        //       i: 'C02__413321238354677760043',
+        //       m: 0,
+        //       st: 0,
+        //       n: '0.005712855',
+        //       N: 'USDT'
+        //   }
         let timestamp = this.safeInteger (trade, 'T');
         let tradeId = this.safeString (trade, 't');
         if (timestamp === undefined) {
@@ -718,6 +916,8 @@ export default class mexc extends mexcRest {
         const rawSide = this.safeString (trade, 'S');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger (trade, 'm');
+        const feeAmount = this.safeNumber (trade, 'n');
+        const feeCurrencyId = this.safeString (trade, 'N');
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
@@ -731,23 +931,26 @@ export default class mexc extends mexcRest {
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': undefined,
+            'fee': {
+                'cost': feeAmount,
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            },
         }, market);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name mexc3#watchOrders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+         * @name mexc#watchOrders
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @params {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         params = this.omit (params, 'type');
@@ -770,7 +973,7 @@ export default class mexc extends mexcRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrder (client: Client, message) {
@@ -952,7 +1155,7 @@ export default class mexc extends mexcRest {
     }
 
     parseWsOrderStatus (status, market = undefined) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'open',     // new order
             '2': 'closed',   // filled
             '3': 'open',     // partially filled
@@ -968,7 +1171,7 @@ export default class mexc extends mexcRest {
     }
 
     parseWsOrderType (type) {
-        const types = {
+        const types: Dict = {
             '1': 'limit',   // LIMIT_ORDER
             '2': undefined, // POST_ONLY
             '3': undefined, // IMMEDIATE_OR_CANCEL
@@ -980,7 +1183,7 @@ export default class mexc extends mexcRest {
     }
 
     parseWsTimeInForce (timeInForce) {
-        const timeInForceIds = {
+        const timeInForceIds: Dict = {
             '1': 'GTC',   // LIMIT_ORDER
             '2': 'PO', // POST_ONLY
             '3': 'IOC', // IMMEDIATE_OR_CANCEL
@@ -991,14 +1194,14 @@ export default class mexc extends mexcRest {
         return this.safeString (timeInForceIds, timeInForce);
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name mexc3#watchBalance
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @name mexc#watchBalance
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
@@ -1089,7 +1292,7 @@ export default class mexc extends mexcRest {
         if (listenKey === undefined) {
             return;
         }
-        const request = {
+        const request: Dict = {
             'listenKey': listenKey,
         };
         try {
@@ -1097,7 +1300,7 @@ export default class mexc extends mexcRest {
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
         } catch (error) {
-            const url = this.urls['api']['ws'] + '?listenKey=' + listenKey;
+            const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
             const client = this.client (url);
             this.options['listenKey'] = undefined;
             client.reject (error);
@@ -1113,18 +1316,18 @@ export default class mexc extends mexcRest {
     handleSubscriptionStatus (client: Client, message) {
         //
         //    {
-        //        id: 0,
-        //        code: 0,
-        //        msg: 'spot@public.increase.depth.v3.api@BTCUSDT'
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
-        //
-        const msg = this.safeString (message, 'msg');
+        // Set the default to an empty string if the message is empty during the test.
+        const msg = this.safeString (message, 'msg', '');
         if (msg === 'PONG') {
-            return this.handlePong (client, message);
+            this.handlePong (client, message);
         } else if (msg.indexOf ('@') > -1) {
             const parts = msg.split ('@');
             const channel = this.safeString (parts, 1);
-            const methods = {
+            const methods: Dict = {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
             };
             const method = this.safeValue (methods, channel);
@@ -1143,7 +1346,8 @@ export default class mexc extends mexcRest {
             return;
         }
         if ('msg' in message) {
-            return this.handleSubscriptionStatus (client, message);
+            this.handleSubscriptionStatus (client, message);
+            return;
         }
         const c = this.safeString (message, 'c');
         let channel = undefined;
@@ -1153,13 +1357,14 @@ export default class mexc extends mexcRest {
             const parts = c.split ('@');
             channel = this.safeString (parts, 1);
         }
-        const methods = {
+        const methods: Dict = {
             'public.deals.v3.api': this.handleTrades,
             'push.deal': this.handleTrades,
             'public.kline.v3.api': this.handleOHLCV,
             'push.kline': this.handleOHLCV,
             'public.bookTicker.v3.api': this.handleTicker,
             'push.ticker': this.handleTicker,
+            'push.tickers': this.handleTickers,
             'public.increase.depth.v3.api': this.handleOrderBook,
             'push.depth': this.handleOrderBook,
             'private.orders.v3.api': this.handleOrder,
@@ -1176,7 +1381,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return { 'method': 'ping' };
     }
 }

@@ -12,6 +12,11 @@
 // Author: github.com/frosty00
 // Email: carlo.revelli@berkeley.edu
 //
+/**
+ *
+ * @param array
+ * @param x
+ */
 function bisectLeft(array, x) {
     let low = 0;
     let high = array.length - 1;
@@ -96,8 +101,8 @@ class OrderBookSide extends Array {
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 // this class stores vector arrays of values indexed by price
 class CountedOrderBookSide extends OrderBookSide {
-    store(price, size, count) {
-        this.storeArray([price, size, count]);
+    store(price, size) {
+        throw new Error('CountedOrderBookSide.store() is not supported, use storeArray([price, size, count]) instead');
     }
     storeArray(delta) {
         const price = delta[0];
@@ -161,8 +166,8 @@ class IndexedOrderBookSide extends Array {
             this.storeArray(deltas[i].slice()); // slice is muy importante
         }
     }
-    store(price, size, id) {
-        this.storeArray([price, size, id]);
+    store(price, size) {
+        throw new Error('IndexedOrderBook.store() is not supported, use storeArray([price, size, id]) instead');
     }
     storeArray(delta) {
         const price = delta[0];
@@ -182,14 +187,22 @@ class IndexedOrderBookSide extends Array {
                 // in case price is not sent
                 delta[0] = Math.abs(index_price);
                 if (index_price === old_price) {
-                    const index = bisectLeft(this.index, index_price);
+                    // find index by price and advance till the id is found
+                    let index = bisectLeft(this.index, index_price);
+                    while (this[index][2] !== id) {
+                        index++;
+                    }
                     this.index[index] = index_price;
                     this[index] = delta;
                     return;
                 }
                 else {
                     // remove old price from index
-                    const old_index = bisectLeft(this.index, old_price);
+                    // find index by price and advance till the id is found
+                    let old_index = bisectLeft(this.index, old_price);
+                    while (this[old_index][2] !== id) {
+                        old_index++;
+                    }
                     this.index.copyWithin(old_index, old_index + 1, this.index.length);
                     this.index[this.length - 1] = Number.MAX_VALUE;
                     this.copyWithin(old_index, old_index + 1, this.length);
@@ -198,7 +211,12 @@ class IndexedOrderBookSide extends Array {
             }
             // insert new price level
             this.hashmap.set(id, index_price);
-            const index = bisectLeft(this.index, index_price);
+            // find index by price to insert
+            let index = bisectLeft(this.index, index_price);
+            // if several with the same price order by id
+            while (index < this.length && this.index[index] === index_price && this[index][2] < id) {
+                index++;
+            }
             // insert new price level into index
             this.length++;
             this.index.copyWithin(index + 1, index, this.index.length);
@@ -215,7 +233,10 @@ class IndexedOrderBookSide extends Array {
         }
         else if (this.hashmap.has(id)) {
             const old_price = this.hashmap.get(id);
-            const index = bisectLeft(this.index, old_price);
+            let index = bisectLeft(this.index, old_price);
+            while (this[index][2] !== id) {
+                index++;
+            }
             this.index.copyWithin(index, index + 1, this.index.length);
             this.index[this.length - 1] = Number.MAX_VALUE;
             this.copyWithin(index, index + 1, this.length);
@@ -262,4 +283,4 @@ Asks, Bids, OrderBookSide,
 // count-based
 CountedAsks, CountedBids, CountedOrderBookSide, 
 // order-id based
-IndexedAsks, IndexedBids, IndexedOrderBookSide, };
+IndexedAsks, IndexedBids, IndexedOrderBookSide };

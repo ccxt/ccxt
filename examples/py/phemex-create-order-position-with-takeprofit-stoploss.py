@@ -10,9 +10,7 @@ sys.path.append(root + '/python')
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 # ----------------------------------------------------------------------------
-import asyncio
-import ccxt.async_support as ccxt  # noqa: E402
-
+undefined
 
 # AUTO-TRANSPILE #
 # ------------------------------------------------------------------------------
@@ -51,8 +49,8 @@ async def example():
         created_order = await exchange.create_order(symbol, order_type, side, amount, price, params)
         print('Created an order', created_order)
         # Fetch all your open orders for this symbol
-        all_open_rders = await exchange.fetch_open_orders(symbol)
-        print('Fetched all your orders for this symbol', all_open_rders)
+        all_open_orders = await exchange.fetch_open_orders(symbol)
+        print('Fetched all your orders for this symbol', all_open_orders)
     except Exception as e:
         print(str(e))
 

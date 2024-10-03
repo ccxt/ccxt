@@ -7,15 +7,14 @@ const minusOne = BigInt(-1);
 const base = BigInt(10);
 class Precise {
     constructor(number, decimals = undefined) {
-        this.decimals = undefined;
-        this.integer = undefined;
         this.base = undefined;
         if (decimals === undefined) {
             let modifier = 0;
             number = number.toLowerCase();
             if (number.indexOf('e') > -1) {
-                [number, modifier] = number.split('e');
-                modifier = parseInt(modifier.toString());
+                let modifierString = '0';
+                [number, modifierString] = number.split('e');
+                modifier = parseInt(modifierString);
             }
             const decimalIndex = number.indexOf('.');
             this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0;
@@ -35,7 +34,7 @@ class Precise {
     }
     div(other, precision = 18) {
         const distance = precision - this.decimals + other.decimals;
-        let numerator = undefined;
+        let numerator;
         if (distance === 0) {
             numerator = this.integer;
         }
@@ -80,6 +79,10 @@ class Precise {
     }
     neg() {
         return new Precise(-this.integer, this.decimals);
+    }
+    or(other) {
+        const integerResult = this.integer | other.integer;
+        return new Precise(integerResult, this.decimals);
     }
     min(other) {
         return this.lt(other) ? this : other;
@@ -210,6 +213,12 @@ class Precise {
             return undefined;
         }
         return (new Precise(string1)).mod(new Precise(string2)).toString();
+    }
+    static stringOr(string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined;
+        }
+        return (new Precise(string1)).or(new Precise(string2)).toString();
     }
     static stringEquals(string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {

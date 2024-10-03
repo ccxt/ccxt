@@ -8,6 +8,7 @@ interface Exchange {
     publicGetPairTransactions(params?: {}): Promise<implicitReturnType>;
     publicGetPairTransactionsYyyymmdd(params?: {}): Promise<implicitReturnType>;
     publicGetPairCandlestickCandletypeYyyymmdd(params?: {}): Promise<implicitReturnType>;
+    publicGetPairCircuitBreakInfo(params?: {}): Promise<implicitReturnType>;
     privateGetUserAssets(params?: {}): Promise<implicitReturnType>;
     privateGetUserSpotOrder(params?: {}): Promise<implicitReturnType>;
     privateGetUserSpotActiveOrders(params?: {}): Promise<implicitReturnType>;

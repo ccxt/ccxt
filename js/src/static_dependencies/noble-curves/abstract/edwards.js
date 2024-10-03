@@ -359,9 +359,9 @@ export function twistedEdwards(curveDef) {
     }
     /** Signs message with privateKey. RFC8032 5.1.6 */
     function sign(msg, privKey, context) {
-        /*
         msg = ensureBytes('message', msg);
-        if (preHash) msg = preHash(msg); // for ed25519ph etc.
+        if (preHash)
+            msg = preHash(msg); // for ed25519ph etc.
         const { prefix, scalar, pointBytes } = getExtendedPublicKey(privKey);
         const r = hashDomainToScalar(context, prefix, msg); // r = dom2(F, C) || prefix || PH(M)
         const R = G.multiply(r).toRawBytes(); // R = rG
@@ -370,7 +370,8 @@ export function twistedEdwards(curveDef) {
         assertGE0(s); // 0 <= s < l
         const res = ut.concatBytes(R, ut.numberToBytesLE(s, Fp.BYTES));
         return ensureBytes('result', res, nByteLength * 2); // 64-byte signature
-         */
+    }
+    function signModified(msg, privKey, context) {
         msg = ensureBytes('message', msg);
         const privKeyBytes = ensureBytes('privKey', privKey);
         const privKeyNumber = ut.bytesToNumberLE(privKeyBytes);
@@ -423,6 +424,7 @@ export function twistedEdwards(curveDef) {
         CURVE,
         getPublicKey,
         sign,
+        signModified,
         verify,
         ExtendedPoint: Point,
         utils,

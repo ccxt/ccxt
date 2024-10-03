@@ -1,2 +1,3 @@
-declare function testTradingFee(exchange: any, skippedProperties: any, method: any, symbol: any, entry: any): void;
+import { Exchange } from "../../../../ccxt";
+declare function testTradingFee(exchange: Exchange, skippedProperties: object, method: string, symbol: string, entry: object): void;
 export default testTradingFee;

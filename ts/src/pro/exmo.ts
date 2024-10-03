@@ -5,7 +5,7 @@ import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int } from '../base/types.js';
+import type { Int, Str, OrderBook, Trade, Ticker, Balances, Dict, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ export default class exmo extends exmoRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchMyTrades': true,
                 'watchOrders': false, // TODO
@@ -48,19 +48,19 @@ export default class exmo extends exmoRest {
         return requestId;
     }
 
-    async watchBalance (params = {}) {
+    async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name exmo#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the exmo api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
         const url = this.urls['api']['ws'][type];
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'subscribe',
             'topics': [ type + '/wallet' ],
             'id': this.requestId (),
@@ -73,18 +73,18 @@ export default class exmo extends exmoRest {
         //
         //  spot
         //     {
-        //         ts: 1654208766007,
-        //         event: 'snapshot',
-        //         topic: 'spot/wallet',
-        //         data: {
-        //             balances: {
-        //                 ADA: '0',
-        //                 ALGO: '0',
+        //         "ts": 1654208766007,
+        //         "event": "snapshot",
+        //         "topic": "spot/wallet",
+        //         "data": {
+        //             "balances": {
+        //                 "ADA": "0",
+        //                 "ALGO": "0",
         //                 ...
         //             },
-        //             reserved: {
-        //                 ADA: '0',
-        //                 ALGO: '0',
+        //             "reserved": {
+        //                 "ADA": "0",
+        //                 "ALGO": "0",
         //                 ...
         //             }
         //         }
@@ -158,19 +158,17 @@ export default class exmo extends exmoRest {
             for (let i = 0; i < currencies.length; i++) {
                 const currencyId = currencies[i];
                 const code = this.safeCurrencyCode (currencyId);
-                const free = balances[currencyId];
-                const used = reserved[currencyId];
                 const account = this.account ();
-                account['free'] = this.parseNumber (free);
-                account['used'] = this.parseNumber (used);
+                account['free'] = this.safeString (balances, currencyId);
+                account['used'] = this.safeString (reserved, currencyId);
                 this.balance[code] = account;
             }
         } else if (event === 'update') {
             const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (data, 'balance');
-            account['used'] = this.safeNumber (data, 'reserved');
+            account['free'] = this.safeString (data, 'balance');
+            account['used'] = this.safeString (data, 'reserved');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
@@ -199,21 +197,22 @@ export default class exmo extends exmoRest {
             const code = this.safeCurrencyCode (currencyId);
             const wallet = this.safeValue (data, currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (wallet, 'free');
-            account['used'] = this.safeNumber (wallet, 'used');
-            account['total'] = this.safeNumber (wallet, 'balance');
+            account['free'] = this.safeString (wallet, 'free');
+            account['used'] = this.safeString (wallet, 'used');
+            account['total'] = this.safeString (wallet, 'balance');
             this.balance[code] = account;
             this.balance = this.safeBalance (this.balance);
         }
     }
 
-    async watchTicker (symbol: string, params = {}) {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name exmo#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the exmo api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -221,7 +220,7 @@ export default class exmo extends exmoRest {
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'ticker:' + symbol;
-        const message = {
+        const message: Dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/ticker:' + market['id'],
@@ -232,23 +231,53 @@ export default class exmo extends exmoRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name exmo#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            messageHashes.push ('ticker:' + market['symbol']);
+            args.push ('spot/ticker:' + market['id']);
+        }
+        const url = this.urls['api']['ws']['public'];
+        const message: Dict = {
+            'method': 'subscribe',
+            'topics': args,
+            'id': this.requestId (),
+        };
+        const request = this.deepExtend (message, params);
+        await this.watchMultiple (url, messageHashes, request, messageHashes, request);
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
     handleTicker (client: Client, message) {
         //
         //  spot
         //      {
-        //          ts: 1654205085473,
-        //          event: 'update',
-        //          topic: 'spot/ticker:BTC_USDT',
-        //          data: {
-        //              buy_price: '30285.84',
-        //              sell_price: '30299.97',
-        //              last_trade: '30295.01',
-        //              high: '30386.7',
-        //              low: '29542.76',
-        //              avg: '29974.16178449',
-        //              vol: '118.79538518',
-        //              vol_curr: '3598907.38200826',
-        //              updated: 1654205084
+        //          "ts": 1654205085473,
+        //          "event": "update",
+        //          "topic": "spot/ticker:BTC_USDT",
+        //          "data": {
+        //              "buy_price": "30285.84",
+        //              "sell_price": "30299.97",
+        //              "last_trade": "30295.01",
+        //              "high": "30386.7",
+        //              "low": "29542.76",
+        //              "avg": "29974.16178449",
+        //              "vol": "118.79538518",
+        //              "vol_curr": "3598907.38200826",
+        //              "updated": 1654205084
         //          }
         //      }
         //
@@ -264,23 +293,23 @@ export default class exmo extends exmoRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name exmo#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the exmo api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'trades:' + symbol;
-        const message = {
+        const message: Dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/trades:' + market['id'],
@@ -295,16 +324,16 @@ export default class exmo extends exmoRest {
     handleTrades (client: Client, message) {
         //
         //      {
-        //          ts: 1654206084001,
-        //          event: 'update',
-        //          topic: 'spot/trades:BTC_USDT',
-        //          data: [{
-        //              trade_id: 389704729,
-        //              type: 'sell',
-        //              price: '30310.95',
-        //              quantity: '0.0197',
-        //              amount: '597.125715',
-        //              date: 1654206083
+        //          "ts": 1654206084001,
+        //          "event": "update",
+        //          "topic": "spot/trades:BTC_USDT",
+        //          "data": [{
+        //              "trade_id": 389704729,
+        //              "type": "sell",
+        //              "price": "30310.95",
+        //              "quantity": "0.0197",
+        //              "amount": "597.125715",
+        //              "date": 1654206083
         //          }]
         //      }
         //
@@ -330,16 +359,16 @@ export default class exmo extends exmoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name exmo#watchTrades
          * @description get the list of trades associated with the user
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the exmo api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         await this.authenticate (params);
@@ -353,7 +382,7 @@ export default class exmo extends exmoRest {
             symbol = market['symbol'];
             messageHash = 'myTrades:' + market['symbol'];
         }
-        const message = {
+        const message: Dict = {
             'method': 'subscribe',
             'topics': [
                 type + '/user_trades',
@@ -369,23 +398,23 @@ export default class exmo extends exmoRest {
         //
         //  spot
         //     {
-        //         ts: 1654210290219,
-        //         event: 'update',
-        //         topic: 'spot/user_trades',
-        //         data: {
-        //             trade_id: 389715807,
-        //             type: 'buy',
-        //             price: '30527.77',
-        //             quantity: '0.0001',
-        //             amount: '3.052777',
-        //             date: 1654210290,
-        //             order_id: 27352777112,
-        //             client_id: 0,
-        //             pair: 'BTC_USDT',
-        //             exec_type: 'taker',
-        //             commission_amount: '0.0000001',
-        //             commission_currency: 'BTC',
-        //             commission_percent: '0.1'
+        //         "ts": 1654210290219,
+        //         "event": "update",
+        //         "topic": "spot/user_trades",
+        //         "data": {
+        //             "trade_id": 389715807,
+        //             "type": "buy",
+        //             "price": "30527.77",
+        //             "quantity": "0.0001",
+        //             "amount": "3.052777",
+        //             "date": 1654210290,
+        //             "order_id": 27352777112,
+        //             "client_id": 0,
+        //             "pair": "BTC_USDT",
+        //             "exec_type": "taker",
+        //             "commission_amount": "0.0000001",
+        //             "commission_currency": "BTC",
+        //             "commission_percent": "0.1"
         //         }
         //     }
         //
@@ -444,7 +473,7 @@ export default class exmo extends exmoRest {
             rawTrades = [ rawTrade ];
         }
         const trades = this.parseTrades (rawTrades);
-        const symbols = {};
+        const symbols: Dict = {};
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             myTrades.append (trade);
@@ -459,14 +488,14 @@ export default class exmo extends exmoRest {
         client.resolve (myTrades, messageHash);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name exmo#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the exmo api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -475,7 +504,7 @@ export default class exmo extends exmoRest {
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'orderbook:' + symbol;
         params = this.omit (params, 'aggregation');
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'subscribe',
             'id': this.requestId (),
             'topics': [
@@ -527,25 +556,24 @@ export default class exmo extends exmoRest {
         const symbol = this.safeSymbol (marketId);
         const orderBook = this.safeValue (message, 'data', {});
         const messageHash = 'orderbook:' + symbol;
-        const timestamp = this.safeNumber (message, 'ts');
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        const timestamp = this.safeInteger (message, 'ts');
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         const event = this.safeString (message, 'event');
         if (event === 'snapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'bid', 'ask');
-            storedOrderBook.reset (snapshot);
+            orderbook.reset (snapshot);
         } else {
-            const asks = this.safeValue (orderBook, 'ask', []);
-            const bids = this.safeValue (orderBook, 'bid', []);
-            this.handleDeltas (storedOrderBook['asks'], asks);
-            this.handleDeltas (storedOrderBook['bids'], bids);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            const asks = this.safeList (orderBook, 'ask', []);
+            const bids = this.safeList (orderBook, 'bid', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     handleDelta (bookside, delta) {
@@ -562,35 +590,36 @@ export default class exmo extends exmoRest {
     handleMessage (client: Client, message) {
         //
         // {
-        //     ts: 1654206362552,
-        //     event: 'info',
-        //     code: 1,
-        //     message: 'connection established',
-        //     session_id: '7548931b-c2a4-45dd-8d71-877881a7251a'
+        //     "ts": 1654206362552,
+        //     "event": "info",
+        //     "code": 1,
+        //     "message": "connection established",
+        //     "session_id": "7548931b-c2a4-45dd-8d71-877881a7251a"
         // }
         //
         // {
-        //     ts: 1654206491399,
-        //     event: 'subscribed',
-        //     id: 1,
-        //     topic: 'spot/ticker:BTC_USDT'
+        //     "ts": 1654206491399,
+        //     "event": "subscribed",
+        //     "id": 1,
+        //     "topic": "spot/ticker:BTC_USDT"
         // }
         const event = this.safeString (message, 'event');
-        const events = {
+        const events: Dict = {
             'logged_in': this.handleAuthenticationMessage,
             'info': this.handleInfo,
             'subscribed': this.handleSubscribed,
         };
         const eventHandler = this.safeValue (events, event);
         if (eventHandler !== undefined) {
-            return eventHandler.call (this, client, message);
+            eventHandler.call (this, client, message);
+            return;
         }
         if ((event === 'update') || (event === 'snapshot')) {
             const topic = this.safeString (message, 'topic');
             if (topic !== undefined) {
                 const parts = topic.split (':');
                 const channel = this.safeString (parts, 0);
-                const handlers = {
+                const handlers: Dict = {
                     'spot/ticker': this.handleTicker,
                     'spot/wallet': this.handleBalance,
                     'margin/wallet': this.handleBalance,
@@ -605,7 +634,8 @@ export default class exmo extends exmoRest {
                 };
                 const handler = this.safeValue (handlers, channel);
                 if (handler !== undefined) {
-                    return handler.call (this, client, message);
+                    handler.call (this, client, message);
+                    return;
                 }
             }
         }
@@ -615,9 +645,9 @@ export default class exmo extends exmoRest {
     handleSubscribed (client: Client, message) {
         //
         // {
-        //     method: 'subscribe',
-        //     id: 2,
-        //     topics: ['spot/orders']
+        //     "method": "subscribe",
+        //     "id": 2,
+        //     "topics": ["spot/orders"]
         // }
         //
         return message;
@@ -626,11 +656,11 @@ export default class exmo extends exmoRest {
     handleInfo (client: Client, message) {
         //
         // {
-        //     ts: 1654215731659,
-        //     event: 'info',
-        //     code: 1,
-        //     message: 'connection established',
-        //     session_id: '4c496262-e259-4c27-b805-f20b46209c17'
+        //     "ts": 1654215731659,
+        //     "event": "info",
+        //     "code": 1,
+        //     "message": "connection established",
+        //     "session_id": "4c496262-e259-4c27-b805-f20b46209c17"
         // }
         //
         return message;
@@ -639,18 +669,18 @@ export default class exmo extends exmoRest {
     handleAuthenticationMessage (client: Client, message) {
         //
         //     {
-        //         method: 'login',
-        //         id: 1,
-        //         api_key: 'K-************************',
-        //         sign: '******************************************************************',
-        //         nonce: 1654215729887
+        //         "method": "login",
+        //         "id": 1,
+        //         "api_key": "K-************************",
+        //         "sign": "******************************************************************",
+        //         "nonce": 1654215729887
         //     }
         //
         const messageHash = 'authenticated';
         client.resolve (message, messageHash);
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const messageHash = 'authenticated';
         const [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
@@ -662,7 +692,7 @@ export default class exmo extends exmoRest {
             const requestId = this.requestId ();
             const signData = this.apiKey + time.toString ();
             const sign = this.hmac (this.encode (signData), this.encode (this.secret), sha512, 'base64');
-            const request = {
+            const request: Dict = {
                 'method': 'login',
                 'id': requestId,
                 'api_key': this.apiKey,
@@ -670,7 +700,7 @@ export default class exmo extends exmoRest {
                 'nonce': time,
             };
             const message = this.extend (request, query);
-            future = this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

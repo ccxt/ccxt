@@ -15,7 +15,7 @@ function testFundingRateHistory(exchange, skippedProperties, method, entry, symb
     };
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format);
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);
-    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, entry);
+    testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'fundingRate', '-100');
     testSharedMethods.assertLess(exchange, skippedProperties, method, entry, 'fundingRate', '100');
 }

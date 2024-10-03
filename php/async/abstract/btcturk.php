@@ -16,6 +16,9 @@ abstract class btcturk extends \ccxt\async\Exchange {
     public function public_get_trades($params = array()) {
         return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_ohlc($params = array()) {
+        return $this->request('ohlc', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_server_exchangeinfo($params = array()) {
         return $this->request('server/exchangeinfo', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -30,6 +33,12 @@ abstract class btcturk extends \ccxt\async\Exchange {
     }
     public function private_get_users_transactions_trade($params = array()) {
         return $this->request('users/transactions/trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_users_transactions_crypto($params = array()) {
+        return $this->request('users/transactions/crypto', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_users_transactions_fiat($params = array()) {
+        return $this->request('users/transactions/fiat', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_order($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -55,6 +64,9 @@ abstract class btcturk extends \ccxt\async\Exchange {
     public function publicGetTrades($params = array()) {
         return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetOhlc($params = array()) {
+        return $this->request('ohlc', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetServerExchangeinfo($params = array()) {
         return $this->request('server/exchangeinfo', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -69,6 +81,12 @@ abstract class btcturk extends \ccxt\async\Exchange {
     }
     public function privateGetUsersTransactionsTrade($params = array()) {
         return $this->request('users/transactions/trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostUsersTransactionsCrypto($params = array()) {
+        return $this->request('users/transactions/crypto', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostUsersTransactionsFiat($params = array()) {
+        return $this->request('users/transactions/fiat', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOrder($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));

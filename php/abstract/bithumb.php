@@ -7,32 +7,44 @@ namespace ccxt\abstract;
 
 
 abstract class bithumb extends \ccxt\Exchange {
-    public function public_get_ticker_currency($params = array()) {
-        return $this->request('ticker/{currency}', 'public', 'GET', $params, null, null, array());
+    public function public_get_ticker_all_quoteid($params = array()) {
+        return $this->request('ticker/ALL_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_ticker_all($params = array()) {
-        return $this->request('ticker/all', 'public', 'GET', $params, null, null, array());
+    public function public_get_ticker_baseid_quoteid($params = array()) {
+        return $this->request('ticker/{baseId}_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_ticker_all_btc($params = array()) {
-        return $this->request('ticker/ALL_BTC', 'public', 'GET', $params, null, null, array());
+    public function public_get_orderbook_all_quoteid($params = array()) {
+        return $this->request('orderbook/ALL_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_ticker_all_krw($params = array()) {
-        return $this->request('ticker/ALL_KRW', 'public', 'GET', $params, null, null, array());
+    public function public_get_orderbook_baseid_quoteid($params = array()) {
+        return $this->request('orderbook/{baseId}_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_orderbook_currency($params = array()) {
-        return $this->request('orderbook/{currency}', 'public', 'GET', $params, null, null, array());
+    public function public_get_transaction_history_baseid_quoteid($params = array()) {
+        return $this->request('transaction_history/{baseId}_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_orderbook_all($params = array()) {
-        return $this->request('orderbook/all', 'public', 'GET', $params, null, null, array());
+    public function public_get_network_info($params = array()) {
+        return $this->request('network-info', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_transaction_history_currency($params = array()) {
-        return $this->request('transaction_history/{currency}', 'public', 'GET', $params, null, null, array());
+    public function public_get_assetsstatus_multichain_all($params = array()) {
+        return $this->request('assetsstatus/multichain/ALL', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_transaction_history_all($params = array()) {
-        return $this->request('transaction_history/all', 'public', 'GET', $params, null, null, array());
+    public function public_get_assetsstatus_multichain_currency($params = array()) {
+        return $this->request('assetsstatus/multichain/{currency}', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_candlestick_currency_interval($params = array()) {
-        return $this->request('candlestick/{currency}/{interval}', 'public', 'GET', $params, null, null, array());
+    public function public_get_withdraw_minimum_all($params = array()) {
+        return $this->request('withdraw/minimum/ALL', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_withdraw_minimum_currency($params = array()) {
+        return $this->request('withdraw/minimum/{currency}', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_assetsstatus_all($params = array()) {
+        return $this->request('assetsstatus/ALL', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_assetsstatus_baseid($params = array()) {
+        return $this->request('assetsstatus/{baseId}', 'public', 'GET', $params, null, null, array());
+    }
+    public function public_get_candlestick_baseid_quoteid_interval($params = array()) {
+        return $this->request('candlestick/{baseId}_{quoteId}/{interval}', 'public', 'GET', $params, null, null, array());
     }
     public function private_post_info_account($params = array()) {
         return $this->request('info/account', 'private', 'POST', $params, null, null, array());
@@ -76,32 +88,47 @@ abstract class bithumb extends \ccxt\Exchange {
     public function private_post_trade_market_sell($params = array()) {
         return $this->request('trade/market_sell', 'private', 'POST', $params, null, null, array());
     }
-    public function publicGetTickerCurrency($params = array()) {
-        return $this->request('ticker/{currency}', 'public', 'GET', $params, null, null, array());
+    public function private_post_trade_stop_limit($params = array()) {
+        return $this->request('trade/stop_limit', 'private', 'POST', $params, null, null, array());
     }
-    public function publicGetTickerAll($params = array()) {
-        return $this->request('ticker/all', 'public', 'GET', $params, null, null, array());
+    public function publicGetTickerALLQuoteId($params = array()) {
+        return $this->request('ticker/ALL_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function publicGetTickerALLBTC($params = array()) {
-        return $this->request('ticker/ALL_BTC', 'public', 'GET', $params, null, null, array());
+    public function publicGetTickerBaseIdQuoteId($params = array()) {
+        return $this->request('ticker/{baseId}_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function publicGetTickerALLKRW($params = array()) {
-        return $this->request('ticker/ALL_KRW', 'public', 'GET', $params, null, null, array());
+    public function publicGetOrderbookALLQuoteId($params = array()) {
+        return $this->request('orderbook/ALL_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function publicGetOrderbookCurrency($params = array()) {
-        return $this->request('orderbook/{currency}', 'public', 'GET', $params, null, null, array());
+    public function publicGetOrderbookBaseIdQuoteId($params = array()) {
+        return $this->request('orderbook/{baseId}_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function publicGetOrderbookAll($params = array()) {
-        return $this->request('orderbook/all', 'public', 'GET', $params, null, null, array());
+    public function publicGetTransactionHistoryBaseIdQuoteId($params = array()) {
+        return $this->request('transaction_history/{baseId}_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
-    public function publicGetTransactionHistoryCurrency($params = array()) {
-        return $this->request('transaction_history/{currency}', 'public', 'GET', $params, null, null, array());
+    public function publicGetNetworkInfo($params = array()) {
+        return $this->request('network-info', 'public', 'GET', $params, null, null, array());
     }
-    public function publicGetTransactionHistoryAll($params = array()) {
-        return $this->request('transaction_history/all', 'public', 'GET', $params, null, null, array());
+    public function publicGetAssetsstatusMultichainALL($params = array()) {
+        return $this->request('assetsstatus/multichain/ALL', 'public', 'GET', $params, null, null, array());
     }
-    public function publicGetCandlestickCurrencyInterval($params = array()) {
-        return $this->request('candlestick/{currency}/{interval}', 'public', 'GET', $params, null, null, array());
+    public function publicGetAssetsstatusMultichainCurrency($params = array()) {
+        return $this->request('assetsstatus/multichain/{currency}', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetWithdrawMinimumALL($params = array()) {
+        return $this->request('withdraw/minimum/ALL', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetWithdrawMinimumCurrency($params = array()) {
+        return $this->request('withdraw/minimum/{currency}', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetAssetsstatusALL($params = array()) {
+        return $this->request('assetsstatus/ALL', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetAssetsstatusBaseId($params = array()) {
+        return $this->request('assetsstatus/{baseId}', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetCandlestickBaseIdQuoteIdInterval($params = array()) {
+        return $this->request('candlestick/{baseId}_{quoteId}/{interval}', 'public', 'GET', $params, null, null, array());
     }
     public function privatePostInfoAccount($params = array()) {
         return $this->request('info/account', 'private', 'POST', $params, null, null, array());
@@ -144,5 +171,8 @@ abstract class bithumb extends \ccxt\Exchange {
     }
     public function privatePostTradeMarketSell($params = array()) {
         return $this->request('trade/market_sell', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostTradeStopLimit($params = array()) {
+        return $this->request('trade/stop_limit', 'private', 'POST', $params, null, null, array());
     }
 }

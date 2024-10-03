@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -22,6 +22,7 @@ class wazirx(ccxt.async_support.wazirx):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -47,18 +48,18 @@ class wazirx(ccxt.async_support.wazirx):
             },
         })
 
-    async def watch_balance(self, params={}):
+    async def watch_balance(self, params={}) -> Balances:
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.wazirx.com/#account-update
-        :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://docs.wazirx.com/#account-update
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         token = await self.authenticate(params)
         messageHash = 'balance'
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'streams': ['outboundAccountPosition'],
             'auth_key': token,
@@ -93,8 +94,8 @@ class wazirx(ccxt.async_support.wazirx):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
-            available = self.safe_number(balance, 'b')
-            locked = self.safe_number(balance, 'l')
+            available = self.safe_string(balance, 'b')
+            locked = self.safe_string(balance, 'l')
             account = self.account()
             account['free'] = available
             account['used'] = locked
@@ -163,12 +164,12 @@ class wazirx(ccxt.async_support.wazirx):
             'fee': fee,
         }, market)
 
-    async def watch_ticker(self, symbol: str, params={}):
+    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.wazirx.com/#all-market-tickers-stream
+        :see: https://docs.wazirx.com/#all-market-tickers-stream
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -177,19 +178,19 @@ class wazirx(ccxt.async_support.wazirx):
         messageHash = 'ticker:' + market['symbol']
         subscribeHash = 'tickers'
         stream = '!' + 'ticker@arr'
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'streams': [stream],
         }
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, subscribeHash)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        see https://docs.wazirx.com/#all-market-tickers-stream
-        :param [str] symbols: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :see: https://docs.wazirx.com/#all-market-tickers-stream
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -197,7 +198,7 @@ class wazirx(ccxt.async_support.wazirx):
         url = self.urls['api']['ws']
         messageHash = 'tickers'
         stream = '!' + 'ticker@arr'
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'streams': [stream],
         }
@@ -280,21 +281,22 @@ class wazirx(ccxt.async_support.wazirx):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://docs.wazirx.com/#trade-streams
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = market['id'] + '@trades'
         url = self.urls['api']['ws']
-        message = {
+        message: dict = {
             'event': 'subscribe',
             'streams': [messageHash],
         }
@@ -340,15 +342,15 @@ class wazirx(ccxt.async_support.wazirx):
             trades.append(parsedTrade)
         client.resolve(trades, messageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watch trades by user
-        see https://docs.wazirx.com/#trade-update
+        :see: https://docs.wazirx.com/#trade-update
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         token = await self.authenticate(params)
@@ -357,7 +359,7 @@ class wazirx(ccxt.async_support.wazirx):
             symbol = market['symbol']
         url = self.urls['api']['ws']
         messageHash = 'myTrades'
-        message = {
+        message: dict = {
             'event': 'subscribe',
             'streams': ['ownTrade'],
             'auth_key': token,
@@ -368,15 +370,16 @@ class wazirx(ccxt.async_support.wazirx):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://docs.wazirx.com/#kline-candlestick-stream
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -384,7 +387,7 @@ class wazirx(ccxt.async_support.wazirx):
         url = self.urls['api']['ws']
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         stream = market['id'] + '@kline_' + timeframe
-        message = {
+        message: dict = {
             'event': 'subscribe',
             'streams': [stream],
         }
@@ -428,7 +431,7 @@ class wazirx(ccxt.async_support.wazirx):
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        "E":1631683058904,      Event time
@@ -452,13 +455,13 @@ class wazirx(ccxt.async_support.wazirx):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://docs.wazirx.com/#depth-stream
+        :see: https://docs.wazirx.com/#depth-stream
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -467,7 +470,7 @@ class wazirx(ccxt.async_support.wazirx):
         url = self.urls['api']['ws']
         messageHash = 'orderbook:' + symbol
         stream = market['id'] + '@depth'
-        subscribe = {
+        subscribe: dict = {
             'event': 'subscribe',
             'streams': [stream],
         }
@@ -505,30 +508,30 @@ class wazirx(ccxt.async_support.wazirx):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        currentOrderBook = self.safe_value(self.orderbooks, symbol)
-        if currentOrderBook is None:
+        # currentOrderBook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
             snapshot = self.parse_order_book(data, symbol, timestamp, 'b', 'a')
-            orderBook = self.order_book(snapshot)
-            self.orderbooks[symbol] = orderBook
+            self.orderbooks[symbol] = self.order_book(snapshot)
         else:
-            asks = self.safe_value(data, 'a', [])
-            bids = self.safe_value(data, 'b', [])
-            self.handle_deltas(currentOrderBook['asks'], asks)
-            self.handle_deltas(currentOrderBook['bids'], bids)
-            currentOrderBook['nonce'] = timestamp
-            currentOrderBook['timestamp'] = timestamp
-            currentOrderBook['datetime'] = self.iso8601(timestamp)
-            self.orderbooks[symbol] = currentOrderBook
+            orderbook = self.orderbooks[symbol]
+            asks = self.safe_list(data, 'a', [])
+            bids = self.safe_list(data, 'b', [])
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['nonce'] = timestamp
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+            self.orderbooks[symbol] = orderbook
         client.resolve(self.orderbooks[symbol], messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
         token = await self.authenticate(params)
         messageHash = 'orders'
-        message = {
+        message: dict = {
             'event': 'subscribe',
             'streams': ['orderUpdate'],
             'auth_key': token,
@@ -538,7 +541,7 @@ class wazirx(ccxt.async_support.wazirx):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_order(self, client: Client, message):
         #
@@ -565,7 +568,8 @@ class wazirx(ccxt.async_support.wazirx):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
-        self.orders.append(parsedOrder)
+        orders = self.orders
+        orders.append(parsedOrder)
         messageHash = 'orders'
         client.resolve(self.orders, messageHash)
         messageHash += ':' + parsedOrder['symbol']
@@ -627,8 +631,8 @@ class wazirx(ccxt.async_support.wazirx):
         #             "a": 114144050,
         #             "b": 114144121,
         #             "f": "0.2",
-        #             "ga": '0.0',
-        #             "gc": 'usdt',
+        #             "ga": "0.0",
+        #             "gc": "usdt",
         #             "m": True,
         #             "o": 26946170,
         #             "p": "5.0",
@@ -656,10 +660,10 @@ class wazirx(ccxt.async_support.wazirx):
     def handle_connected(self, client: Client, message):
         #
         #     {
-        #         data: {
-        #             timeout_duration: 1800
+        #         "data": {
+        #             "timeout_duration": 1800
         #         },
-        #         event: 'connected'
+        #         "event": "connected"
         #     }
         #
         return message
@@ -667,11 +671,11 @@ class wazirx(ccxt.async_support.wazirx):
     def handle_subscribed(self, client: Client, message):
         #
         #     {
-        #         data: {
-        #             streams: ['not ticker@arr']
+        #         "data": {
+        #             "streams": ["not ticker@arr"]
         #         },
-        #         event: 'subscribed',
-        #         id: 0
+        #         "event": "subscribed",
+        #         "id": 0
         #     }
         #
         return message
@@ -688,8 +692,8 @@ class wazirx(ccxt.async_support.wazirx):
         #     }
         #
         #     {
-        #         message: 'HeartBeat message not received, closing the connection',
-        #         status: 'error'
+        #         "message": "HeartBeat message not received, closing the connection",
+        #         "status": "error"
         #     }
         #
         raise ExchangeError(self.id + ' ' + self.json(message))
@@ -697,18 +701,20 @@ class wazirx(ccxt.async_support.wazirx):
     def handle_message(self, client: Client, message):
         status = self.safe_string(message, 'status')
         if status == 'error':
-            return self.handle_error(client, message)
+            self.handle_error(client, message)
+            return
         event = self.safe_string(message, 'event')
-        eventHandlers = {
+        eventHandlers: dict = {
             'error': self.handle_error,
             'connected': self.handle_connected,
             'subscribed': self.handle_subscribed,
         }
         eventHandler = self.safe_value(eventHandlers, event)
         if eventHandler is not None:
-            return eventHandler(client, message)
+            eventHandler(client, message)
+            return
         stream = self.safe_string(message, 'stream', '')
-        streamHandlers = {
+        streamHandlers: dict = {
             'ticker@arr': self.handle_ticker,
             '@depth': self.handle_order_book,
             '@kline': self.handle_ohlcv,
@@ -719,9 +725,11 @@ class wazirx(ccxt.async_support.wazirx):
         }
         streams = list(streamHandlers.keys())
         for i in range(0, len(streams)):
-            if self.in_array(streams[i], stream):
+            streamContains = stream.find(streams[i]) > -1
+            if streamContains:
                 handler = streamHandlers[streams[i]]
-                return handler(client, message)
+                handler(client, message)
+                return
         raise NotSupported(self.id + ' self message type is not supported yet. Message: ' + self.json(message))
 
     async def authenticate(self, params={}):

@@ -1,0 +1,401 @@
+{
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "price": {},
+            "cost": {
+                "min": 1
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "BTC_USDT",
+            "baseCurrencyName": "BTC",
+            "quoteCurrencyName": "USDT",
+            "displayName": "BTC/USDT",
+            "state": "NORMAL",
+            "visibleStartTime": 1659018819512,
+            "tradableStartTime": 1659018819512,
+            "symbolTradeLimit": {
+                "symbol": "BTC_USDT",
+                "priceScale": 2,
+                "quantityScale": 6,
+                "amountScale": 2,
+                "minQuantity": "0.000001",
+                "minAmount": "1",
+                "highestBid": "0",
+                "lowestAsk": "0"
+            },
+            "crossMargin": {
+                "supportCrossMargin": true,
+                "maxLeverage": 3
+            }
+        },
+        "taker": 0.0009,
+        "maker": 0.0009,
+        "feeSide": "get",
+        "created": 1659018819512
+    },
+    "LTC/USDT": {
+        "id": "LTC_USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "price": {},
+            "cost": {
+                "min": 1
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "LTC_USDT",
+            "baseCurrencyName": "LTC",
+            "quoteCurrencyName": "USDT",
+            "displayName": "LTC/USDT",
+            "state": "NORMAL",
+            "visibleStartTime": 1659018819655,
+            "tradableStartTime": 1659018819655,
+            "symbolTradeLimit": {
+                "symbol": "LTC_USDT",
+                "priceScale": 3,
+                "quantityScale": 6,
+                "amountScale": 2,
+                "minQuantity": "0.000001",
+                "minAmount": "1",
+                "highestBid": "0",
+                "lowestAsk": "0"
+            },
+            "crossMargin": {
+                "supportCrossMargin": true,
+                "maxLeverage": 3
+            }
+        },
+        "taker": 0.0009,
+        "maker": 0.0009,
+        "feeSide": "get",
+        "created": 1659018819655
+    },
+    "ADA/USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 1
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "ADA_USDT",
+            "baseCurrencyName": "ADA",
+            "quoteCurrencyName": "USDT",
+            "displayName": "ADA/USDT",
+            "state": "NORMAL",
+            "visibleStartTime": 1659018850462,
+            "tradableStartTime": 1659018850462,
+            "symbolTradeLimit": {
+                "symbol": "ADA_USDT",
+                "priceScale": 5,
+                "quantityScale": 4,
+                "amountScale": 4,
+                "minQuantity": "0.0001",
+                "minAmount": "1",
+                "highestBid": "0",
+                "lowestAsk": "0"
+            },
+            "crossMargin": {
+                "supportCrossMargin": false,
+                "maxLeverage": 1
+            }
+        },
+        "taker": 0.0009,
+        "maker": 0.0009,
+        "feeSide": "get",
+        "created": 1659018850462
+    },
+    "XRP/USDT": {
+        "id": "XRP_USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {
+                "min": 1
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "XRP_USDT",
+            "baseCurrencyName": "XRP",
+            "quoteCurrencyName": "USDT",
+            "displayName": "XRP/USDT",
+            "state": "NORMAL",
+            "visibleStartTime": 1659018819871,
+            "tradableStartTime": 1659018819871,
+            "symbolTradeLimit": {
+                "symbol": "XRP_USDT",
+                "priceScale": 4,
+                "quantityScale": 4,
+                "amountScale": 4,
+                "minQuantity": "0.0001",
+                "minAmount": "1",
+                "highestBid": "0",
+                "lowestAsk": "0"
+            },
+            "crossMargin": {
+                "supportCrossMargin": true,
+                "maxLeverage": 3
+            }
+        },
+        "taker": 0.0009,
+        "maker": 0.0009,
+        "feeSide": "get",
+        "created": 1659018819871
+    },
+    "SOL/USDT": {
+        "id": "SOL_USDT",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "price": {},
+            "cost": {
+                "min": 1
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "SOL_USDT",
+            "baseCurrencyName": "SOL",
+            "quoteCurrencyName": "USDT",
+            "displayName": "SOL/USDT",
+            "state": "NORMAL",
+            "visibleStartTime": 1659018848969,
+            "tradableStartTime": 1659018848969,
+            "symbolTradeLimit": {
+                "symbol": "SOL_USDT",
+                "priceScale": 3,
+                "quantityScale": 6,
+                "amountScale": 2,
+                "minQuantity": "0.000001",
+                "minAmount": "1",
+                "highestBid": "0",
+                "lowestAsk": "0"
+            },
+            "crossMargin": {
+                "supportCrossMargin": true,
+                "maxLeverage": 3
+            }
+        },
+        "taker": 0.0009,
+        "maker": 0.0009,
+        "feeSide": "get",
+        "created": 1659018848969
+    },
+    "TRX/USDT": {
+        "id": "TRX_USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {
+                "min": 1
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "TRX_USDT",
+            "baseCurrencyName": "TRX",
+            "quoteCurrencyName": "USDT",
+            "displayName": "TRX/USDT",
+            "state": "NORMAL",
+            "visibleStartTime": 1659018823984,
+            "tradableStartTime": 1659018823985,
+            "symbolTradeLimit": {
+                "symbol": "TRX_USDT",
+                "priceScale": 5,
+                "quantityScale": 3,
+                "amountScale": 5,
+                "minQuantity": "0.001",
+                "minAmount": "1",
+                "highestBid": "0",
+                "lowestAsk": "0"
+            },
+            "crossMargin": {
+                "supportCrossMargin": true,
+                "maxLeverage": 3
+            }
+        },
+        "taker": 0.0009,
+        "maker": 0.0009,
+        "feeSide": "get",
+        "created": 1659018823985
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0009,
+        "maker": 0.0009,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.000001
+            },
+            "price": {},
+            "cost": {
+                "min": 1
+            }
+        },
+        "created": 1659018820007,
+        "info": {
+            "symbol": "ETH_USDT",
+            "baseCurrencyName": "ETH",
+            "quoteCurrencyName": "USDT",
+            "displayName": "ETH/USDT",
+            "state": "NORMAL",
+            "visibleStartTime": 1659018820007,
+            "tradableStartTime": 1659018820007,
+            "symbolTradeLimit": {
+                "symbol": "ETH_USDT",
+                "priceScale": 2,
+                "quantityScale": 6,
+                "amountScale": 2,
+                "minQuantity": "0.000001",
+                "minAmount": "1",
+                "highestBid": "0",
+                "lowestAsk": "0"
+            },
+            "crossMargin": {
+                "supportCrossMargin": true,
+                "maxLeverage": 3
+            }
+        },
+        "feeSide": "get"
+    }
+}

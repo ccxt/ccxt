@@ -28,6 +28,9 @@ abstract class bitbank extends \ccxt\async\Exchange {
     public function public_get_pair_candlestick_candletype_yyyymmdd($params = array()) {
         return $this->request('{pair}/candlestick/{candletype}/{yyyymmdd}', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_pair_circuit_break_info($params = array()) {
+        return $this->request('{pair}/circuit_break_info', 'public', 'GET', $params, null, null, array());
+    }
     public function private_get_user_assets($params = array()) {
         return $this->request('user/assets', 'private', 'GET', $params, null, null, array());
     }
@@ -93,6 +96,9 @@ abstract class bitbank extends \ccxt\async\Exchange {
     }
     public function publicGetPairCandlestickCandletypeYyyymmdd($params = array()) {
         return $this->request('{pair}/candlestick/{candletype}/{yyyymmdd}', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetPairCircuitBreakInfo($params = array()) {
+        return $this->request('{pair}/circuit_break_info', 'public', 'GET', $params, null, null, array());
     }
     public function privateGetUserAssets($params = array()) {
         return $this->request('user/assets', 'private', 'GET', $params, null, null, array());

@@ -1,6 +1,6 @@
 import { implicitReturnType } from '../base/types.js';
-import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+import _onetrading from '../onetrading.js';
+interface onetrading {
     publicGetCurrencies(params?: {}): Promise<implicitReturnType>;
     publicGetCandlesticksInstrumentCode(params?: {}): Promise<implicitReturnType>;
     publicGetFees(params?: {}): Promise<implicitReturnType>;
@@ -33,6 +33,6 @@ interface Exchange {
     privateDeleteAccountOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateDeleteAccountOrdersClientClientId(params?: {}): Promise<implicitReturnType>;
 }
-declare abstract class Exchange extends _Exchange {
+declare abstract class onetrading extends _onetrading {
 }
-export default Exchange;
+export default onetrading;

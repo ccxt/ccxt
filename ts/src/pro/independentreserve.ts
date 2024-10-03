@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import independentreserveRest from '../independentreserve.js';
-import { NotSupported, InvalidNonce } from '../base/errors.js';
+import { NotSupported, ChecksumError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import type { Int, OrderBook, Trade, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -17,6 +17,7 @@ export default class independentreserve extends independentreserveRest {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': false,
                 'watchOrderBook': true,
@@ -28,7 +29,9 @@ export default class independentreserve extends independentreserveRest {
                 },
             },
             'options': {
-                'checksum': false, // TODO: currently only working for snapshot
+                'watchOrderBook': {
+                    'checksum': true, // TODO: currently only working for snapshot
+                },
             },
             'streaming': {
             },
@@ -37,16 +40,16 @@ export default class independentreserve extends independentreserveRest {
         });
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name independentreserve#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -60,20 +63,20 @@ export default class independentreserve extends independentreserveRest {
     handleTrades (client: Client, message) {
         //
         //    {
-        //        Channel: 'ticker-btc-usd',
-        //        Nonce: 130,
-        //        Data: {
-        //          TradeGuid: '7a669f2a-d564-472b-8493-6ef982eb1e96',
-        //          Pair: 'btc-aud',
-        //          TradeDate: '2023-02-12T10:04:13.0804889+11:00',
-        //          Price: 31640,
-        //          Volume: 0.00079029,
-        //          BidGuid: 'ba8a78b5-be69-4d33-92bb-9df0daa6314e',
-        //          OfferGuid: '27d20270-f21f-4c25-9905-152e70b2f6ec',
-        //          Side: 'Buy'
+        //        "Channel": "ticker-btc-usd",
+        //        "Nonce": 130,
+        //        "Data": {
+        //          "TradeGuid": "7a669f2a-d564-472b-8493-6ef982eb1e96",
+        //          "Pair": "btc-aud",
+        //          "TradeDate": "2023-02-12T10:04:13.0804889+11:00",
+        //          "Price": 31640,
+        //          "Volume": 0.00079029,
+        //          "BidGuid": "ba8a78b5-be69-4d33-92bb-9df0daa6314e",
+        //          "OfferGuid": "27d20270-f21f-4c25-9905-152e70b2f6ec",
+        //          "Side": "Buy"
         //        },
-        //        Time: 1676156653111,
-        //        Event: 'Trade'
+        //        "Time": 1676156653111,
+        //        "Event": "Trade"
         //    }
         //
         const data = this.safeValue (message, 'Data', {});
@@ -124,14 +127,14 @@ export default class independentreserve extends independentreserveRest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name independentreserve#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -140,10 +143,10 @@ export default class independentreserve extends independentreserveRest {
         if (limit === undefined) {
             limit = 100;
         }
-        limit = this.numberToString (limit);
-        const url = this.urls['api']['ws'] + '/orderbook/' + limit + '?subscribe=' + market['base'] + '-' + market['quote'];
-        const messageHash = 'orderbook:' + symbol + ':' + limit;
-        const subscription = {
+        const limitString = this.numberToString (limit);
+        const url = this.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
+        const messageHash = 'orderbook:' + symbol + ':' + limitString;
+        const subscription: Dict = {
             'receivedSnapshot': false,
         };
         const orderbook = await this.watch (url, messageHash, undefined, messageHash, subscription);
@@ -153,24 +156,24 @@ export default class independentreserve extends independentreserveRest {
     handleOrderBook (client: Client, message) {
         //
         //    {
-        //        Channel: "orderbook/1/eth/aud",
-        //        Data: {
-        //          Bids: [
+        //        "Channel": "orderbook/1/eth/aud",
+        //        "Data": {
+        //          "Bids": [
         //            {
-        //              Price: 2198.09,
-        //              Volume: 0.16143952,
+        //              "Price": 2198.09,
+        //              "Volume": 0.16143952,
         //            },
         //          ],
-        //          Offers: [
+        //          "Offers": [
         //            {
-        //              Price: 2201.25,
-        //              Volume: 15,
+        //              "Price": 2201.25,
+        //              "Volume": 15,
         //            },
         //          ],
-        //          Crc32: 1519697650,
+        //          "Crc32": 1519697650,
         //        },
-        //        Time: 1676150558254,
-        //        Event: "OrderBookSnapshot",
+        //        "Time": 1676150558254,
+        //        "Event": "OrderBookSnapshot",
         //    }
         //
         const event = this.safeString (message, 'Event');
@@ -182,32 +185,32 @@ export default class independentreserve extends independentreserveRest {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const orderBook = this.safeValue (message, 'Data', {});
+        const orderBook = this.safeDict (message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
-        const receivedSnapshot = this.safeValue (subscription, 'receivedSnapshot', false);
+        const receivedSnapshot = this.safeBool (subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger (message, 'Time');
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
-            storedOrderBook.reset (snapshot);
+            orderbook.reset (snapshot);
             subscription['receivedSnapshot'] = true;
         } else {
-            const asks = this.safeValue (orderBook, 'Offers', []);
-            const bids = this.safeValue (orderBook, 'Bids', []);
-            this.handleDeltas (storedOrderBook['asks'], asks);
-            this.handleDeltas (storedOrderBook['bids'], bids);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            const asks = this.safeList (orderBook, 'Offers', []);
+            const bids = this.safeList (orderBook, 'Bids', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        const checksum = this.safeValue (this.options, 'checksum', true);
+        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
         if (checksum && receivedSnapshot) {
-            const storedAsks = storedOrderBook['asks'];
-            const storedBids = storedOrderBook['bids'];
+            const storedAsks = orderbook['asks'];
+            const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
             let payload = '';
@@ -224,12 +227,14 @@ export default class independentreserve extends independentreserveRest {
             const calculatedChecksum = this.crc32 (payload, true);
             const responseChecksum = this.safeInteger (orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
-                const error = new InvalidNonce (this.id + ' invalid checksum');
+                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
                 client.reject (error, messageHash);
             }
         }
         if (receivedSnapshot) {
-            client.resolve (storedOrderBook, messageHash);
+            client.resolve (orderbook, messageHash);
         }
     }
 
@@ -256,8 +261,8 @@ export default class independentreserve extends independentreserveRest {
     handleHeartbeat (client: Client, message) {
         //
         //    {
-        //        Time: 1676156208182,
-        //        Event: 'Heartbeat'
+        //        "Time": 1676156208182,
+        //        "Event": "Heartbeat"
         //    }
         //
         return message;
@@ -266,9 +271,9 @@ export default class independentreserve extends independentreserveRest {
     handleSubscriptions (client: Client, message) {
         //
         //    {
-        //        Data: [ 'ticker-btc-sgd' ],
-        //        Time: 1676157556223,
-        //        Event: 'Subscriptions'
+        //        "Data": [ "ticker-btc-sgd" ],
+        //        "Time": 1676157556223,
+        //        "Event": "Subscriptions"
         //    }
         //
         return message;
@@ -276,7 +281,7 @@ export default class independentreserve extends independentreserveRest {
 
     handleMessage (client: Client, message) {
         const event = this.safeString (message, 'Event');
-        const handlers = {
+        const handlers: Dict = {
             'Subscriptions': this.handleSubscriptions,
             'Heartbeat': this.handleHeartbeat,
             'Trade': this.handleTrades,
@@ -285,7 +290,8 @@ export default class independentreserve extends independentreserveRest {
         };
         const handler = this.safeValue (handlers, event);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
+            return;
         }
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }

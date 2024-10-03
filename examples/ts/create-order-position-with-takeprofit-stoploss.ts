@@ -12,13 +12,13 @@ async function example () {
     const exchange = new ccxt.okx ({
         "apiKey": "YOUR_API_KEY",
         "secret": "YOUR_API_SECRET",
-        "password": "YOUR_API_PASSWORD",
+        "password": "YOUR_API_PASSWORD", // if exchange does not require password, comment out this line
     });
 
     const symbol = 'DOGE/USDT:USDT';
-    const side = 'buy'; // set it to 'buy' for a long position, 'sell' for a short position
-    const order_type = 'limit'; // set it to 'market' or 'limit'
-    const amount = 1; // how many contracts
+    const side = 'buy'; // 'buy' | 'sell'
+    const order_type = 'limit'; // 'market' | 'limit'
+    const amount = 1; // how many contracts (see `market(symbol).contractSize` to find out coin portion per one contract)
 
     await exchange.loadMarkets ();
     const market = exchange.market (symbol);
@@ -45,14 +45,16 @@ async function example () {
     const params = {
         'stopLoss': {
             'triggerPrice': stop_loss_trigger_price,
-            // set a 'price' to act as limit order or leave commented for a market order
-            // 'price': stop_loss_trigger_price * 0.98,
+            // set a 'price' to act as limit order, otherwise remove it for a market order
+            'price': stop_loss_trigger_price * 0.98,
         },
         'takeProfit': {
             'triggerPrice': take_profit_trigger_price,
-            // set a 'price' to act as limit order or leave commented for a market order
-            // 'price': take_profit_limit_price * 0.98,
+            // set a 'price' to act as limit order, otherwise remove it for a market order
+            'price': take_profit_trigger_price * 0.98,
         },
+        // note that some exchanges might require some exchange specific parameter when opening a position, i.e.:
+        // 'posSide': 'long',  // for phemex hedge-mode api
     };
 
     const position_amount = market['contractSize'] * amount;
@@ -71,8 +73,8 @@ async function example () {
         // Fetch all your open orders for this symbol
         // - use 'fetchOpenOrders' or 'fetchOrders' and filter with 'open' status
         // - note, that some exchanges might return one order object with embedded stoploss/takeprofit fields, while other exchanges might have separate stoploss/takeprofit order objects
-        const all_open_rders = await exchange.fetchOpenOrders (symbol);
-        console.log ("Fetched all your orders for this symbol", all_open_rders);
+        const all_open_orders = await exchange.fetchOpenOrders (symbol);
+        console.log ("Fetched all your orders for this symbol", all_open_orders);
 
         // To cancel a limit order, use "exchange.cancel_order(created_order['id'], symbol)""
     } catch (e) {
