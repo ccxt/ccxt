@@ -6,7 +6,7 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        public void testJson()
+        public void testJsonInner()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "regirock" },
@@ -33,5 +33,25 @@ public partial class BaseTest
             object str = "ccxt, rocks!";
             object serializedString = exchange.json(str);
             Assert(isEqual(serializedString, "\"ccxt, rocks!\""));
+        }
+        public void testJson()
+        {
+            testJsonInner();
+        }
+        public void testJson2()
+        {
+            try
+            {
+                testJsonInner();
+            } catch(Exception exc)
+            {
+                // todo: the reason this tests was commented in `base/test.init.ts` is that as it needs fix of ast-tranpsiler - it adds extra backslashes in PHP double-quoted json which are read as literal chars in PHP
+                object message = ((object)exc).ToString();
+                // transpiler trick
+                if (!isTrue((((object)(add(message, ""))).ToString()).Contains("json.php")))
+                {
+                    throw exc;
+                }
+            }
         }
 }
