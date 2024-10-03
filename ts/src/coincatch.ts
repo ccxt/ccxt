@@ -3991,6 +3991,8 @@ export default class coincatch extends Exchange {
             //
             const data = this.safeDict (response, 'data', {});
             result = this.safeList (data, 'result', []);
+        } else {
+            throw new NotSupported (this.id + methodName + '() does not support market type ' + marketType);
         }
         return this.parseLedger (result, currency, since, limit);
     }
