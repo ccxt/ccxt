@@ -27,7 +27,7 @@ export default class mexc extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': true,
+                'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -1114,7 +1114,6 @@ export default class mexc extends Exchange {
             if ((status === '1') && (isSpotTradingAllowed)) {
                 active = true;
             }
-            const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed');
             const makerCommission = this.safeNumber (market, 'makerCommission');
             const takerCommission = this.safeNumber (market, 'takerCommission');
             const maxQuoteAmount = this.safeNumber (market, 'maxQuoteAmount');
@@ -1129,7 +1128,7 @@ export default class mexc extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': isMarginTradingAllowed,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -2148,7 +2147,7 @@ export default class mexc extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+         * @param {string} [params.marginMode] *contract only*
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
@@ -2209,9 +2208,7 @@ export default class mexc extends Exchange {
             params = this.omit (params, [ 'type', 'clientOrderId' ]);
         }
         if (marginMode !== undefined) {
-            if (marginMode !== 'isolated') {
-                throw new BadRequest (this.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
-            }
+            throw new BadRequest (this.id + ' createOrder() does not support margin trading for spot markets');
         }
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', params);
@@ -2256,16 +2253,6 @@ export default class mexc extends Exchange {
         //         "symbol": "BTCUSDT",
         //         "orderId": "123738410679123456",
         //         "orderListId": -1
-        //     }
-        //
-        // margin
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "orderId": "762634301354414080",
-        //         "clientOrderId": null,
-        //         "isIsolated": true,
-        //         "transactTime": 1661992652132
         //     }
         //
         const order = this.parseOrder (response, market);
@@ -2489,7 +2476,6 @@ export default class mexc extends Exchange {
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -2511,10 +2497,7 @@ export default class mexc extends Exchange {
             }
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
             if (marginMode !== undefined) {
-                if (marginMode !== 'isolated') {
-                    throw new BadRequest (this.id + ' fetchOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
-                }
-                data = await this.spotPrivateGetMarginOrder (this.extend (request, query));
+                throw new BadRequest (this.id + ' does not support margin trading for spot markets ');
             } else {
                 data = await this.spotPrivateGetOrder (this.extend (request, query));
             }
@@ -2614,7 +2597,6 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2638,10 +2620,7 @@ export default class mexc extends Exchange {
             }
             let response = undefined;
             if (marginMode !== undefined) {
-                if (marginMode !== 'isolated') {
-                    throw new BadRequest (this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
-                }
-                response = await this.spotPrivateGetMarginAllOrders (this.extend (request, queryInner));
+                throw new BadRequest (this.id + ' fetchOrders() does not support margin trading for spot markets ');
             } else {
                 response = await this.spotPrivateGetAllOrders (this.extend (request, queryInner));
             }
@@ -2847,7 +2826,6 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2866,10 +2844,7 @@ export default class mexc extends Exchange {
             const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
             let response = undefined;
             if (marginMode !== undefined) {
-                if (marginMode !== 'isolated') {
-                    throw new BadRequest (this.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
-                }
-                response = await this.spotPrivateGetMarginOpenOrders (this.extend (request, query));
+                throw new BadRequest (this.id + ' does not support margin trading for spot markets');
             } else {
                 response = await this.spotPrivateGetOpenOrders (this.extend (request, query));
             }
@@ -2989,7 +2964,6 @@ export default class mexc extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3018,10 +2992,7 @@ export default class mexc extends Exchange {
                 requestInner['orderId'] = id;
             }
             if (marginMode !== undefined) {
-                if (marginMode !== 'isolated') {
-                    throw new BadRequest (this.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
-                }
-                data = await this.spotPrivateDeleteMarginOrder (this.extend (requestInner, query));
+                throw new BadRequest (this.id + ' does not support margin trading for spot markets');
             } else {
                 data = await this.spotPrivateDeleteOrder (this.extend (requestInner, query));
             }
@@ -3140,7 +3111,6 @@ export default class mexc extends Exchange {
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3156,10 +3126,7 @@ export default class mexc extends Exchange {
             request['symbol'] = market['id'];
             let response = undefined;
             if (marginMode !== undefined) {
-                if (marginMode !== 'isolated') {
-                    throw new BadRequest (this.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
-                }
-                response = await this.spotPrivateDeleteMarginOpenOrders (this.extend (request, query));
+                throw new BadRequest (this.id + ' does not support margin trading for spot markets');
             } else {
                 response = await this.spotPrivateDeleteOpenOrders (this.extend (request, query));
             }
