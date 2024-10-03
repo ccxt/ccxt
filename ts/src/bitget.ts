@@ -2640,7 +2640,6 @@ export default class bitget extends Exchange {
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'indexPrice': this.safeString (ticker, 'indexPrice'),
-            'markPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
