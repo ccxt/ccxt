@@ -3,27 +3,27 @@
 import fs from 'fs'
 import path from 'path'
 import asTable from 'as-table'
-import ccxt, { pro } from '../ccxt.js'
+import ccxt from '../ccxt.js'
 import { Agent } from 'https'
 
 const fsPromises = fs.promises;
 
-// #################################################################
-// ########### adopted from npmjs.com/package/yoctocolors ###########
-// #################################################################
+// ##########################################################
+// ####### adopted from npmjs.com/package/yoctocolors #######
+// ##########################################################
 
 const colorString = () => {
-    const f = (open, close) => {
+    const _ = (open, close) => {
         const o = `\u001B[${open}m`, c = `\u001B[${close}m`;
         return str => { str = str + ''; return !str.includes(c) ? o + str + c : o + str.replaceAll(c, o) + c; };
     }
     return {
-        reset:  f(0, 0),
-        bold:  f(1, 22), dim:  f(2, 22), italic:  f(3, 23), underline:  f(4, 24), overline:  f(53, 55), inverse:  f(7, 27), hidden:  f(8, 28), strikethrough:  f(9, 29),
-        black:  f(30, 39), red:  f(31, 39), green:  f(32, 39), yellow:  f(33, 39), blue:  f(34, 39), magenta:  f(35, 39), cyan:  f(36, 39), white:  f(37, 39), gray:  f(90, 39),
-        bgBlack:  f(40, 49), bgRed:  f(41, 49), bgGreen:  f(42, 49), bgYellow:  f(43, 49), bgBlue:  f(44, 49), bgMagenta:  f(45, 49), bgCyan:  f(46, 49), bgWhite:  f(47, 49), bgGray:  f(100, 49),
-        redBright:  f(91, 39), greenBright:  f(92, 39), yellowBright:  f(93, 39), blueBright:  f(94, 39), magentaBright:  f(95, 39), cyanBright:  f(96, 39), whiteBright:  f(97, 39),
-        bgRedBright:  f(101, 49), bgGreenBright:  f(102, 49), bgYellowBright:  f(103, 49), bgBlueBright:  f(104, 49), bgMagentaBright:  f(105, 49), bgCyanBright:  f(106, 49), bgWhiteBright:  f(107, 49)
+        reset: _(0, 0),
+        bold: _(1, 22), dim: _(2, 22), italic: _(3, 23), underline: _(4, 24), overline: _(53, 55), inverse: _(7, 27), hidden: _(8, 28), strikethrough: _(9, 29),
+        black: _(30, 39), red: _(31, 39), green: _(32, 39), yellow: _(33, 39), blue: _(34, 39), magenta: _(35, 39), cyan: _(36, 39), white: _(37, 39), gray: _(90, 39),
+        bgBlack: _(40, 49), bgRed: _(41, 49), bgGreen: _(42, 49), bgYellow: _(43, 49), bgBlue: _(44, 49), bgMagenta: _(45, 49), bgCyan: _(46, 49), bgWhite: _(47, 49), bgGray: _(100, 49),
+        redBright: _(91, 39), greenBright: _(92, 39), yellowBright: _(93, 39), blueBright: _(94, 39), magentaBright: _(95, 39), cyanBright: _(96, 39), whiteBright: _(97, 39),
+        bgRedBright: _(101, 49), bgGreenBright: _(102, 49), bgYellowBright: _(103, 49), bgBlueBright: _(104, 49), bgMagentaBright: _(105, 49), bgCyanBright: _(106, 49), bgWhiteBright: _(107, 49)
     }
 };
 for (const [key,value] of Object.entries(colorString())) {
@@ -33,8 +33,8 @@ for (const [key,value] of Object.entries(colorString())) {
         return value(this);
     });
 }
-// #################################################################
-// #################################################################
+// ##########################################################
+// ##########################################################
 
 
 function log (...args) {
@@ -79,17 +79,12 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
 if (!raw) {
     log ((new Date ()).toISOString())
     log ('Node.js:', process.version)
-    log ('CCXT v', ccxt.version)
+    log ('CCXT v' + ccxt.version)
 }
 
 //-----------------------------------------------------------------------------
-function errExit (e) {
-    log ((e.toString ()).red);
-    log (e.message.red);
-    process.exit (1);
-}
-process.on ('uncaughtException',  errExit);
-process.on ('unhandledRejection', errExit);
+process.on ('uncaughtException',  (e: any)=> { log ((e.toString ()).red); log (e.message.red); process.exit (1); });
+process.on ('unhandledRejection', (e: any)=> { log ((e.toString ()).red); log (e.message.red); process.exit (1); });
 
 //-----------------------------------------------------------------------------
 const currentFilePath = process.argv[1];
@@ -114,7 +109,7 @@ if (fs.existsSync (keysGlobal)) {
 } else if (fs.existsSync (keysLocal)) {
     allSettings = JSON.parse(fs.readFileSync(keysLocal).toString())
 } else {
-    log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist. See sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
+    log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
 }
 
 const settings = allSettings[exchangeId] ? allSettings[exchangeId] : {};
@@ -233,14 +228,13 @@ function printSupportedExchanges () {
 
 function printUsage () {
     log ('This is an example of a basic command-line interface to all exchanges')
-    log ('   Usage:')
-    log (commandToShow, ('exchangeid' as any).green, ('method' as any).yellow, ('"param1" param2 "param3" param4 ...' as any).blue)
-    log ('   Examples:')
+    log ('Usage:', commandToShow, ('exchangeid' as any).green, ('method' as any).yellow, ('"param1" param2 "param3" param4 ...' as any).blue)
+    log ('Examples:')
     log (commandToShow, 'okcoin fetchOHLCV BTC/USD 15m')
     log (commandToShow, 'bitfinex fetchBalance')
     log (commandToShow, 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
-    log ('   Supported options:')
+    log ('Supported options:')
     log ('--verbose         Print verbose output')
     log ('--debug           Print debugging output')
     log ('--poll            Repeat continuously in rate-limited mode')
@@ -365,14 +359,14 @@ async function run () {
 
             exchange.verbose = no_send
             exchange.fetch = function fetch (url, method = 'GET', headers = undefined, body = undefined) {
-                log ('-------------------------------------------')
-                log (exchange.iso8601 (exchange.milliseconds ()))
-                log ({
-                    url: url.green,
-                    method: (method as any).green,
+                log (('-------------------------------------------' as any).dim)
+                log ((exchange.iso8601 (exchange.milliseconds ()) as any).dim)
+                log ((JSON.stringify ({
+                    url,
+                    method,
                     headers,
-                    body: (body as any).green,
-                })
+                    body,
+                }) as any).green)
             }
         }
 
@@ -412,12 +406,12 @@ async function run () {
                         start = end
                     } catch (e) {
                         if (e instanceof ExchangeError) {
-                            log (((e.constructor.name + e.message) as any).red)
+                            log (((e.constructor.name + ' ' + e.message) as any).red)
                         } else if (e instanceof NetworkError) {
-                            log (((e.constructor.name + e.message) as any).yellow)
+                            log (((e.constructor.name + ' ' + e.message) as any).yellow)
                         }
 
-                        log ('---------------------------------------------------')
+                        log (('---------------------------------------------------' as any).dim)
 
                         // rethrow for call-stack // other errors
                         throw e

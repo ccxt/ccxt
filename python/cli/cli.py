@@ -122,7 +122,7 @@ async def main():
         with open(keys_file, encoding="utf-8") as file:
             keys = json.load(file)
     else:
-        print("Note, CCXT CLI is being loaded without api keys, because " + keys_local + " does not exist. See sample at https://github.com/ccxt/ccxt/blob/master/keys.json")
+        print("Note, CCXT CLI is being loaded without api keys, because " + keys_local + " does not exist. You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json")
         keys = {}
 
     config = {
