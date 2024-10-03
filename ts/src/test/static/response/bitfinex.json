@@ -85,6 +85,8 @@
                     "average": 73350,
                     "baseVolume": 2638.48854375,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "mid": "73350.0",
                         "bid": "73341.0",

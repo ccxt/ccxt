@@ -1779,6 +1779,7 @@ export default class Exchange {
                 'fetchTicker': true,
                 'fetchTickerWs': undefined,
                 'fetchTickers': undefined,
+                'fetchMarkPrices': undefined,
                 'fetchTickersWs': undefined,
                 'fetchTime': undefined,
                 'fetchTrades': true,
@@ -3615,6 +3616,8 @@ export default class Exchange {
             'baseVolume': this.parseNumber (baseVolume),
             'quoteVolume': this.parseNumber (quoteVolume),
             'previousClose': this.safeNumber (ticker, 'previousClose'),
+            'indexPrice': this.safeNumber (ticker, 'indexPrice'),
+            'markPrice': this.safeNumber (ticker, 'markPrice'),
         });
     }
 
@@ -4919,6 +4922,10 @@ export default class Exchange {
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
+    }
+
+    async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' fetchMarkPrices() is not supported yet');
     }
 
     async fetchTickersWs (symbols: Strings = undefined, params = {}): Promise<Tickers> {

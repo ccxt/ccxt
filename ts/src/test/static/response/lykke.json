@@ -93,6 +93,8 @@
                     "average": null,
                     "baseVolume": 0.15272551,
                     "quoteVolume": 11072.026873,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "assetPairId": "BTCUSDT",
                         "volumeBase": "0.15272551",
