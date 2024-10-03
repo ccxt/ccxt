@@ -22,6 +22,8 @@ export default class binance extends binanceRest {
             watchPositions: boolean;
             watchTicker: boolean;
             watchTickers: boolean;
+            watchMarkPrices: boolean;
+            watchMarkPrice: boolean;
             watchTrades: boolean;
             watchTradesForSymbols: boolean;
             createOrderWs: boolean;
@@ -136,6 +138,7 @@ export default class binance extends binanceRest {
             tickerChannelsMap: {
                 '24hrTicker': string;
                 '24hrMiniTicker': string;
+                markPriceUpdate: string;
                 '1hTicker': string;
                 '4hTicker': string;
                 '1dTicker': string;
@@ -181,6 +184,8 @@ export default class binance extends binanceRest {
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleFetchOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     unWatchTicker(symbol: string, params?: {}): Promise<any>;

@@ -1036,6 +1036,9 @@ class Exchange(BaseExchange):
     async def fetch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
+    async def fetch_mark_prices(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchMarkPrices() is not supported yet')
+
     async def fetch_tickers_ws(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 

@@ -1159,6 +1159,8 @@ public partial class digifinex : Exchange
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "vol", "volume_24h") },
             { "quoteVolume", this.safeString(ticker, "base_vol") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", indexPrice },
             { "info", ticker },
         }, market);
     }

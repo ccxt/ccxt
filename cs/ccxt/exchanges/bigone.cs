@@ -647,6 +647,8 @@ public partial class bigone : Exchange
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "volume", "volume24h") },
             { "quoteVolume", this.safeString(ticker, "volume24hInUsd") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }

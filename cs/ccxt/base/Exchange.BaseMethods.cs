@@ -183,6 +183,7 @@ public partial class Exchange
                 { "fetchTicker", true },
                 { "fetchTickerWs", null },
                 { "fetchTickers", null },
+                { "fetchMarkPrices", null },
                 { "fetchTickersWs", null },
                 { "fetchTime", null },
                 { "fetchTrades", true },
@@ -2422,6 +2423,8 @@ public partial class Exchange
             { "baseVolume", this.parseNumber(baseVolume) },
             { "quoteVolume", this.parseNumber(quoteVolume) },
             { "previousClose", this.safeNumber(ticker, "previousClose") },
+            { "indexPrice", this.safeNumber(ticker, "indexPrice") },
+            { "markPrice", this.safeNumber(ticker, "markPrice") },
         });
     }
 
@@ -4106,6 +4109,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)

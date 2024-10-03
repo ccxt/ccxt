@@ -944,6 +944,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volumeOf24h'),
             'quoteVolume': self.safe_string(ticker, 'turnoverOf24h'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
 

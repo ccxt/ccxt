@@ -146,6 +146,8 @@ public partial class phemex : ccxt.phemex
             { "average", average },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "markPrice"), market)) },
+            { "indexPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "indexPrice"), market)) },
             { "info", ticker },
         };
         return result;

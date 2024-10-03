@@ -859,6 +859,7 @@ class oxfun extends oxfun$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'currencyVolume24h'),
             'quoteVolume': undefined,
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }

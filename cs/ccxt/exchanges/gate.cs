@@ -2692,6 +2692,8 @@ public partial class gate : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }

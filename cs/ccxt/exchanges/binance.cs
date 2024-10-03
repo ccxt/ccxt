@@ -98,6 +98,7 @@ public partial class binance : Exchange
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMarkPrices", true },
                 { "fetchMyLiquidations", true },
                 { "fetchMySettlementHistory", true },
                 { "fetchMyTrades", true },
@@ -3827,6 +3828,18 @@ public partial class binance : Exchange
 
     public override object parseTicker(object ticker, object market = null)
     {
+        // markPrices
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "markPrice": "11793.63104562",  // mark price
+        //         "indexPrice": "11781.80495970", // index price
+        //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts.
+        //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
+        //         "nextFundingTime": 1597392000000,
+        //         "interestRate": "0.00010000",
+        //         "time": 1597370495002
+        //     }
         //
         //     {
         //         "symbol": "ETHBTC",
@@ -3930,7 +3943,7 @@ public partial class binance : Exchange
         //         "time":"1673899278514"
         //     }
         //
-        object timestamp = this.safeInteger(ticker, "closeTime");
+        object timestamp = this.safeInteger2(ticker, "closeTime", "time");
         object marketType = null;
         if (isTrue((inOp(ticker, "time"))))
         {
@@ -3977,6 +3990,8 @@ public partial class binance : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }
@@ -4247,6 +4262,44 @@ public partial class binance : Exchange
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
+        }
+        return this.parseTickers(response, symbols);
+    }
+
+    public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchMarkPrices
+        * @description fetches mark prices for multiple markets
+        * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = this.getMarketFromSymbols(symbols);
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(this.isLinear(type, subType)))
+        {
+            response = await this.fapiPublicGetPremiumIndex(parameters);
+        } else if (isTrue(this.isInverse(type, subType)))
+        {
+            response = await this.dapiPublicGetPremiumIndex(parameters);
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchMarkPrices() does not support "), type), " markets yet")) ;
         }
         return this.parseTickers(response, symbols);
     }

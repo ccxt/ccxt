@@ -2642,6 +2642,7 @@ class bitget extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
     }

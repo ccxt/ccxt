@@ -92,6 +92,7 @@ class okx extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrices' => true,
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -1794,6 +1795,13 @@ class okx extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
+        //      {
+        //          "instType":"SWAP",
+        //          "instId":"BTC-USDT-SWAP",
+        //          "markPx":"200",
+        //          "ts":"1597026383085"
+        //      }
+        //
         //     {
         //         "instType" => "SPOT",
         //         "instId" => "ETH-BTC",
@@ -1844,6 +1852,7 @@ class okx extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'markPx'),
             'info' => $ticker,
         ), $market);
     }
@@ -1945,6 +1954,36 @@ class okx extends Exchange {
         //         )
         //     }
         //
+        $tickers = $this->safe_list($response, 'data', array());
+        return $this->parse_tickers($tickers, $symbols);
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $market = $this->get_market_from_symbols($symbols);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+        $request = array(
+            'instType' => $this->convert_to_instrument_type($marketType),
+        );
+        if ($marketType === 'option') {
+            $defaultUnderlying = $this->safe_string($this->options, 'defaultUnderlying', 'BTC-USD');
+            $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
+            if ($currencyId === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
+            } else {
+                $request['uly'] = $currencyId;
+            }
+        }
+        $response = $this->publicGetPublicMarkPrice ($this->extend($request, $params));
         $tickers = $this->safe_list($response, 'data', array());
         return $this->parse_tickers($tickers, $symbols);
     }

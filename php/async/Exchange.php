@@ -515,6 +515,7 @@ class Exchange extends \ccxt\Exchange {
                 'fetchTicker' => true,
                 'fetchTickerWs' => null,
                 'fetchTickers' => null,
+                'fetchMarkPrices' => null,
                 'fetchTickersWs' => null,
                 'fetchTime' => null,
                 'fetchTrades' => true,
@@ -2349,6 +2350,8 @@ class Exchange extends \ccxt\Exchange {
             'baseVolume' => $this->parse_number($baseVolume),
             'quoteVolume' => $this->parse_number($quoteVolume),
             'previousClose' => $this->safe_number($ticker, 'previousClose'),
+            'indexPrice' => $this->safe_number($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_number($ticker, 'markPrice'),
         ));
     }
 
@@ -3685,6 +3688,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
     }
 
     public function fetch_tickers_ws(?array $symbols = null, $params = array ()) {
