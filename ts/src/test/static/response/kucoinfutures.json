@@ -545,6 +545,8 @@
                     "average": null,
                     "baseVolume": null,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "sequence": 1699691075217,
                         "symbol": "XBTUSDTM",
