@@ -267,7 +267,7 @@
                         "average": null,
                         "baseVolume": null,
                         "quoteVolume": 2611476.262600002,
-                        "markPrice":  null,
+                        "markPrice":  67307.7225876,
                         "indexPrice": null,
                         "info": {
                             "symbol": "BTC-USD-PERP",
@@ -334,7 +334,7 @@
                     "average": null,
                     "baseVolume": null,
                     "quoteVolume": 2611476.262600002,
-                    "markPrice":  null,
+                    "markPrice":  67275.25940213,
                     "indexPrice": null,
                     "info": {
                         "symbol": "BTC-USD-PERP",

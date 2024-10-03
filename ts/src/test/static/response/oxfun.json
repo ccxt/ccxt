@@ -396,7 +396,7 @@
                     "average": null,
                     "baseVolume": 0,
                     "quoteVolume": null,
-                    "markPrice":  null,
+                    "markPrice":  3775.4,
                     "indexPrice": null,
                     "info": {
                     "marketCode": "ETH-USDT",
