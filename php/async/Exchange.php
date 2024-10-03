@@ -181,15 +181,15 @@ class Exchange extends \ccxt\Exchange {
             $raw_header_keys = array_keys($raw_response_headers);
             $response_headers = array();
             foreach ($raw_header_keys as $header) {
-                $response_headers[$header] = $result->getHeaderLine($header);
+                $response_headers[strtolower($header)] = $result->getHeaderLine($header);
             }
             $http_status_code = $result->getStatusCode();
             $http_status_text = $result->getReasonPhrase();
             $response_body = strval($result->getBody());
 
-            if (array_key_exists('Content-Encoding', $response_headers) && $response_headers['Content-Encoding'] !== null) {
+            if (array_key_exists('content-encoding', $response_headers) && $response_headers['content-encoding'] !== null) {
                 if (preg_match('~[^\x20-\x7E\t\r\n]~', $response_body) > 0) { // only decompress if the message is a binary
-                    $contentEncoding = $response_headers['Content-Encoding'];
+                    $contentEncoding = $response_headers['content-encoding'];
                     if (strpos($contentEncoding, 'gzip') >= 0) {
                         $response_body = \ccxt\pro\gunzip($response_body);
                     } else if (strpos($contentEncoding, 'deflate') >= 0) {
