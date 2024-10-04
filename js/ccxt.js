@@ -151,6 +151,7 @@ import yobit from './src/yobit.js';
 import zaif from './src/zaif.js';
 import zonda from './src/zonda.js';
 // pro exchanges
+import alephxPro from './src/pro/alephx.js';
 import alpacaPro from './src/pro/alpaca.js';
 import ascendexPro from './src/pro/ascendex.js';
 import bequantPro from './src/pro/bequant.js';
@@ -334,6 +335,7 @@ const exchanges = {
     'zonda': zonda,
 };
 const pro = {
+    'alephx': alephxPro,
     'alpaca': alpacaPro,
     'ascendex': ascendexPro,
     'bequant': bequantPro,

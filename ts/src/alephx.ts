@@ -428,7 +428,7 @@ export default class alephx extends Exchange {
             'timestamp': this.parse8601 (createdDateTime),
             'datetime': createdDateTime,
             'symbol': this.safeString (trade, 'symbol'),
-            'type': undefined,
+            'type': 'gtc',
             'side': traderSide,
             'takerOrMaker': undefined,
             'price': this.safeString (trade, 'price'),

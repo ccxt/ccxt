@@ -410,7 +410,7 @@ class alephx(Exchange, ImplicitAPI):
             'timestamp': self.parse8601(createdDateTime),
             'datetime': createdDateTime,
             'symbol': self.safe_string(trade, 'symbol'),
-            'type': None,
+            'type': 'gtc',
             'side': traderSide,
             'takerOrMaker': None,
             'price': self.safe_string(trade, 'price'),

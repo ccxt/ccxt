@@ -158,6 +158,7 @@ import zonda from  './src/zonda.js'
 
 
 // pro exchanges
+import alephxPro from  './src/pro/alephx.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import bequantPro from  './src/pro/bequant.js'
@@ -343,6 +344,7 @@ const exchanges = {
 }
 
 const pro = {
+    'alephx':                 alephxPro,
     'alpaca':                 alpacaPro,
     'ascendex':               ascendexPro,
     'bequant':                bequantPro,

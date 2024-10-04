@@ -114,6 +114,7 @@ import xt from './src/xt.js';
 import yobit from './src/yobit.js';
 import zaif from './src/zaif.js';
 import zonda from './src/zonda.js';
+import alephxPro from './src/pro/alephx.js';
 import alpacaPro from './src/pro/alpaca.js';
 import ascendexPro from './src/pro/ascendex.js';
 import bequantPro from './src/pro/bequant.js';
@@ -297,6 +298,7 @@ declare const exchanges: {
     zonda: typeof zonda;
 };
 declare const pro: {
+    alephx: typeof alephxPro;
     alpaca: typeof alpacaPro;
     ascendex: typeof ascendexPro;
     bequant: typeof bequantPro;
@@ -375,6 +377,7 @@ declare const ccxt: {
     Precise: typeof Precise;
     exchanges: string[];
     pro: {
+        alephx: typeof alephxPro;
         alpaca: typeof alpacaPro;
         ascendex: typeof ascendexPro;
         bequant: typeof bequantPro;

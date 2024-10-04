@@ -12,6 +12,7 @@ from ccxt.async_support.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
+from ccxt.pro.alephx import alephx                                        # noqa: F401
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
@@ -85,6 +86,7 @@ from ccxt.pro.woofipro import woofipro                                    # noqa
 from ccxt.pro.xt import xt                                                # noqa: F401
 
 exchanges = [
+    'alephx',
     'alpaca',
     'ascendex',
     'bequant',

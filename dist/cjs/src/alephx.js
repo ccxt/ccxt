@@ -421,7 +421,7 @@ class alephx extends alephx$1 {
             'timestamp': this.parse8601(createdDateTime),
             'datetime': createdDateTime,
             'symbol': this.safeString(trade, 'symbol'),
-            'type': undefined,
+            'type': 'gtc',
             'side': traderSide,
             'takerOrMaker': undefined,
             'price': this.safeString(trade, 'price'),

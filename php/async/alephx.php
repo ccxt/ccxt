@@ -430,7 +430,7 @@ class alephx extends Exchange {
             'timestamp' => $this->parse8601($createdDateTime),
             'datetime' => $createdDateTime,
             'symbol' => $this->safe_string($trade, 'symbol'),
-            'type' => null,
+            'type' => 'gtc',
             'side' => $traderSide,
             'takerOrMaker' => null,
             'price' => $this->safe_string($trade, 'price'),

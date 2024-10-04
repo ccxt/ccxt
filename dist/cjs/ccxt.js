@@ -121,6 +121,7 @@ var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
+var alephx$1 = require('./src/pro/alephx.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
 var bequant$1 = require('./src/pro/bequant.js');
@@ -309,6 +310,7 @@ const exchanges = {
     'zonda': zonda,
 };
 const pro = {
+    'alephx': alephx$1,
     'alpaca': alpaca$1,
     'ascendex': ascendex$1,
     'bequant': bequant$1,
