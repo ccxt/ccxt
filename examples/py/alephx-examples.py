@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
 import os
 import sys
-import asyncio
 from pprint import pprint
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
-
-import ccxt.async_support as ccxt  # noqa: E402
 
 # ----------------------------------------------------------------------------
 
@@ -15,8 +11,11 @@ import ccxt.async_support as ccxt  # noqa: E402
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 # ----------------------------------------------------------------------------
+import asyncio
+import ccxt.async_support as ccxt  # noqa: E402
+
 # AUTO-TRANSPILE #
-async def main():
+async def example():
     exchange = ccxt.alephx({
         'apiKey': 'API_KEY',
         'secret': 'SECRET',
@@ -56,4 +55,4 @@ async def main():
     await exchange.close()
 
 
-asyncio.run(main())
+asyncio.run(example())
