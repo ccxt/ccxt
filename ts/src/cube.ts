@@ -765,7 +765,7 @@ export default class cube extends Exchange {
         return this.safeBalance (result);
     }
 
-    async sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         // Construct the base URL
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
