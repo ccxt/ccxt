@@ -15,12 +15,17 @@ sys.path.append(root)
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES  # noqa E402
 from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402
 import numbers  # noqa E402
+import json  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.base.errors import OnMaintenance  # noqa E402
 from ccxt.base.errors import OperationFailed  # noqa E402
 
 def log_template(exchange, method, entry):
-    return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> '
+    # there are cases when exchange is undefined (eg. base tests)
+    id = exchange.id if (exchange is not None) else 'undefined'
+    method_string = method if (method is not None) else 'undefined'
+    entry_string = exchange.json(entry) if (exchange is not None) else ''
+    return ' <<< ' + id + ' ' + method_string + ' ::: ' + entry_string + ' >>> '
 
 
 def is_temporary_failure(e):
@@ -312,7 +317,8 @@ def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
             num_str = num
             assert_non_equal(exchange, skipped_properties, method, entry, key, num_str)
     else:
-        assert_integer(exchange, skipped_properties, method, entry, key)  # should be integer
+        # todo: significant-digits return doubles from `this.parseNumber`, so for now can't assert against integer atm
+        # assertInteger (exchange, skippedProperties, method, entry, key); # should be integer
         assert_less_or_equal(exchange, skipped_properties, method, entry, key, '18')  # should be under 18 decimals
         assert_greater_or_equal(exchange, skipped_properties, method, entry, key, '-8')  # in real-world cases, there would not be less than that
 
@@ -355,3 +361,12 @@ def assert_round_minute_timestamp(exchange, skipped_properties, method, entry, k
     log_text = log_template(exchange, method, entry)
     ts = exchange.safe_string(entry, key)
     assert Precise.string_mod(ts, '60000') == '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + log_text
+
+
+def deep_equal(a, b):
+    return json.dumps(a) == json.dumps(b)
+
+
+def assert_deep_equal(exchange, skipped_properties, method, a, b):
+    log_text = log_template(exchange, method, {})
+    assert deep_equal(a, b), 'two dicts do not match: ' + json.dumps(a) + ' != ' + json.dumps(b) + log_text

@@ -10,7 +10,11 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function log_template($exchange, $method, $entry) {
-    return ' <<< ' . $exchange->id . ' ' . $method . ' ::: ' . $exchange->json($entry) . ' >>> ';
+    // there are cases when exchange is undefined (eg. base tests)
+    $id = ($exchange !== null) ? $exchange->id : 'undefined';
+    $method_string = ($method !== null) ? $method : 'undefined';
+    $entry_string = ($exchange !== null) ? $exchange->json($entry) : '';
+    return ' <<< ' . $id . ' ' . $method_string . ' ::: ' . $entry_string . ' >>> ';
 }
 
 
@@ -374,7 +378,8 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
             assert_non_equal($exchange, $skipped_properties, $method, $entry, $key, $num_str);
         }
     } else {
-        assert_integer($exchange, $skipped_properties, $method, $entry, $key); // should be integer
+        // todo: significant-digits return doubles from `this.parseNumber`, so for now can't assert against integer atm
+        // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
         assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $key, '18'); // should be under 18 decimals
         assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, $key, '-8'); // in real-world cases, there would not be less than that
     }
@@ -425,4 +430,15 @@ function assert_round_minute_timestamp($exchange, $skipped_properties, $method, 
     $log_text = log_template($exchange, $method, $entry);
     $ts = $exchange->safe_string($entry, $key);
     assert(Precise::string_mod($ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' . $log_text);
+}
+
+
+function deep_equal($a, $b) {
+    return json_encode($a) === json_encode($b);
+}
+
+
+function assert_deep_equal($exchange, $skipped_properties, $method, $a, $b) {
+    $log_text = log_template($exchange, $method, array());
+    assert(deep_equal($a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
 }
