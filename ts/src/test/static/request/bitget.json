@@ -1742,9 +1742,7 @@
                 "method": "fetchFundingInterval",
                 "url": "https://api.bitget.com/api/v2/mix/market/funding-time?symbol=BTCUSDT&productType=USDT-FUTURES",
                 "input": [
-                  [
                     "BTC/USDT:USDT"
-                  ]
                 ]
             }
         ]
