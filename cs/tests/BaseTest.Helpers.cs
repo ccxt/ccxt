@@ -12,22 +12,22 @@ using dict = Dictionary<string, object>;
 public partial class testMainClass : BaseTest
 {
     public static SharedMethods testSharedMethods = new SharedMethods();
-    public Exchange exchange = new Exchange();
-    public string rootDir = Tests.ccxtBaseDir + "/";
-    public string rootDirForSkips = Tests.ccxtBaseDir + "/";
-    public object skippedSettingsForExchange = null;
-    public object skippedMethods = null;
-    public object publicTests = null;
-    public object checkedPublicTests = null;
-    public bool sandbox = false;
-    public object envVars = null;
-    public dict testFiles = new dict();
-    public bool privateTestOnly = Tests.privateOnly;
-    public bool privateTest = Tests.privateTests;
-    public bool info = Tests.info;
-    public bool verbose = Tests.verbose;
-    public bool debug = Tests.debug;
+    // public Exchange exchange = new Exchange();
+    // public dict testFiles = new dict();
+    // consts to be accessed from transpiled tests
+    public static string EXT = "cs";
+    public static string LANG = "C#";
+    public static bool IS_SYNCHRONOUS = false;
+    public static string PROXY_TEST_FILE_NAME = "proxies";
+    public static string ROOT_DIR = Tests.ccxtBaseDir + "/";
+    public static dict ENV_VARS = null;
+    public static string NEW_LINE = "\n";
+
+    //public bool info = Tests.info;
+    //public bool verbose = Tests.verbose;
+    //public bool debug = Tests.debug;
     public static string httpsAgent = "";
+<<<<<<< HEAD
     public string ext = "cs";
     public bool loadKeys = false;
 
@@ -50,6 +50,9 @@ public partial class testMainClass : BaseTest
 
     public object newLine = "\n";
 
+=======
+    //public bool loadKeys = false;
+>>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
@@ -118,11 +121,11 @@ public partial class testMainClass : BaseTest
             var testFilePath = "";
             if (!ws)
             {
-                testFilePath = rootDir + "cs/tests/Generated/Exchange/test." + key + ".cs";
+                testFilePath = ROOT_DIR + "cs/tests/Generated/Exchange/test." + key + ".cs";
             }
             else
             {
-                testFilePath = rootDir + "cs/tests/Generated/Exchange/Ws/test." + key + ".cs";
+                testFilePath = ROOT_DIR + "cs/tests/Generated/Exchange/Ws/test." + key + ".cs";
             }
             if (ioFileExists(testFilePath))
             {
@@ -223,7 +226,11 @@ public partial class testMainClass : BaseTest
         var argsWithExchange = new List<object> { exchange };
         foreach (var arg in args)
         {
+<<<<<<< HEAD
             if (arg == null) continue;
+=======
+            if (arg == null) continue; // skip if no arguments passed into method
+>>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
             // emulate ... spread operator in c#
             if (arg.GetType() == typeof(List<object>))
             {
@@ -393,6 +400,7 @@ public partial class testMainClass : BaseTest
 
     public partial class SharedMethods
     {
+<<<<<<< HEAD
         // stub, the actual content is generated inside Generated/Exchange
 
         // this method is needed because of ast-transpiler
@@ -400,5 +408,13 @@ public partial class testMainClass : BaseTest
         {
             return Exchange.Json(a);
         }        
+=======
+        // ast-transpiler uses "json()" method in transpiled C# content,
+        // which should pre-exist in the language-specific helpers for project
+        public object json(object a)
+        {
+            return Exchange.Json(a);
+        }     
+>>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
     }
 }

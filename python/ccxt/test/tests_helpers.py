@@ -105,14 +105,15 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # non-transpiled part, but shared names among langs
 
-is_synchronous = argv.sync  # 'async' not in os.path.basename(__file__)
-
-rootDir = DIR_NAME + '/../../../'
-rootDirForSkips = DIR_NAME + '/../../../'
-envVars = os.environ
+EXT = 'py'
+LANG = 'PY'
+IS_SYNCHRONOUS = argv.sync  # 'async' not in os.path.basename(__file__)
+PROXY_TEST_FILE_NAME = 'proxies'
+ROOT_DIR = DIR_NAME + '/../../../'
+ENV_VARS = os.environ
+NEW_LINE = '\n'
 LOG_CHARS_LENGTH = 10000
-ext = 'py'
-proxyTestFileName = 'proxies'
+
 
 
 def get_cli_arg_value(arg):
@@ -125,6 +126,7 @@ def get_cli_arg_value(arg):
 
 isWsTests = get_cli_arg_value('--ws')
 
+<<<<<<< HEAD
 
 class baseMainTestClass():
     lang = 'PY'
@@ -150,6 +152,8 @@ class baseMainTestClass():
     pass
 
 
+=======
+>>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
@@ -249,7 +253,7 @@ def set_exchange_prop(exchange, prop, value):
 
 
 def init_exchange(exchangeId, args, is_ws=False):
-    if is_synchronous:
+    if IS_SYNCHRONOUS:
         return getattr(ccxt_sync, exchangeId)(args)
     if (is_ws):
         return getattr(ccxtpro, exchangeId)(args)
@@ -258,6 +262,7 @@ def init_exchange(exchangeId, args, is_ws=False):
 
 def get_test_files_sync(properties, ws=False, is_base_tests=False):
     tests = {}
+<<<<<<< HEAD
     if (is_base_tests):
         namespace = 'pro.' if ws else ''
         path = DIR_NAME + '../pro/test/base/' if ws else DIR_NAME + '/base/'
@@ -279,10 +284,13 @@ def get_test_files_sync(properties, ws=False, is_base_tests=False):
         tests['languageSpecific'] = imp
         return tests
     finalPropList = properties + [proxyTestFileName]
+=======
+    finalPropList = properties + [PROXY_TEST_FILE_NAME]
+>>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
     for i in range(0, len(finalPropList)):
         methodName = finalPropList[i]
         name_snake_case = convert_to_snake_case(methodName)
-        prefix = 'async' if not is_synchronous else 'sync'
+        prefix = 'async' if not IS_SYNCHRONOUS else 'sync'
         dir_to_test = DIR_NAME + '/exchange/' + prefix + '/'
         module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
         if (ws):
@@ -299,14 +307,14 @@ async def get_test_files(properties, ws=False, is_base_tests=False):
     return get_test_files_sync(properties, ws, is_base_tests)
 
 async def close(exchange):
-    if (not is_synchronous and hasattr(exchange, 'close')):
+    if (not IS_SYNCHRONOUS and hasattr(exchange, 'close')):
         await exchange.close()
 
 def is_null_value(value):
     return value is None
 
 def set_fetch_response(exchange: ccxt.Exchange, data):
-    if (is_synchronous):
+    if (IS_SYNCHRONOUS):
         def fetch(url, method='GET', headers=None, body=None):
             return data
         exchange.fetch = fetch
