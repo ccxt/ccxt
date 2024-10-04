@@ -151,7 +151,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, FundingRateInterval, FundingRateIntervals }  from './types.js';
+import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int }  from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js'
@@ -260,7 +260,6 @@ export default class Exchange {
     orderbooks: Dictionary<Ob>   = {}
     tickers: Dictionary<Ticker>  = {}
     fundingRates: Dictionary<FundingRate> = {}
-    fundingRateIntervals: Dictionary<FundingRate> = {}
     bidsasks: Dictionary<Ticker>  = {}
     orders: ArrayCache       = undefined
     triggerOrders: ArrayCache = undefined
@@ -1720,8 +1719,8 @@ export default class Exchange {
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
-                'fetchFundingRateInterval': undefined,
-                'fetchFundingRateIntervals': undefined,
+                'fetchFundingInterval': undefined,
+                'fetchFundingIntervals': undefined,
                 'fetchFundingRates': undefined,
                 'fetchGreeks': undefined,
                 'fetchIndexOHLCV': undefined,
@@ -2531,8 +2530,8 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
     }
 
-    async fetchFundingRateIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRateIntervals> {
-        throw new NotSupported (this.id + ' fetchFundingRateIntervals() is not supported yet');
+    async fetchFundingIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        throw new NotSupported (this.id + ' fetchFundingIntervals() is not supported yet');
     }
 
     async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
@@ -6116,19 +6115,6 @@ export default class Exchange {
         return result;
     }
 
-    parseFundingRateInterval (contract: string, market: Market = undefined): FundingRateInterval {
-        throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
-    }
-
-    parseFundingRateIntervals (response, market: Market = undefined): FundingRateIntervals {
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseFundingRateInterval (response[i], market);
-            result[parsed['symbol']] = parsed;
-        }
-        return result;
-    }
-
     handleTriggerAndParams (params) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {
@@ -6262,23 +6248,23 @@ export default class Exchange {
         }
     }
 
-    async fetchFundingRateInterval (symbol: string, params = {}): Promise<FundingRateInterval> {
-        if (this.has['fetchFundingRateIntervals']) {
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.has['fetchFundingIntervals']) {
             await this.loadMarkets ();
             const market = this.market (symbol);
             symbol = market['symbol'];
             if (!market['contract']) {
-                throw new BadSymbol (this.id + ' fetchFundingRateInterval() supports contract markets only');
+                throw new BadSymbol (this.id + ' fetchFundingInterval() supports contract markets only');
             }
-            const rates = await this.fetchFundingRateIntervals ([ symbol ], params);
+            const rates = await this.fetchFundingIntervals ([ symbol ], params);
             const rate = this.safeValue (rates, symbol);
             if (rate === undefined) {
-                throw new NullResponse (this.id + ' fetchFundingRateInterval() returned no data for ' + symbol);
+                throw new NullResponse (this.id + ' fetchFundingInterval() returned no data for ' + symbol);
             } else {
                 return rate;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchFundingRateInterval() is not supported yet');
+            throw new NotSupported (this.id + ' fetchFundingInterval() is not supported yet');
         }
     }
 
