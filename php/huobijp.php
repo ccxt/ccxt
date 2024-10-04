@@ -304,6 +304,7 @@ class huobijp extends Exchange {
                 'fetchMarketsMethod' => 'publicGetCommonSymbols',
                 'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
+                'currencyToPrecisionRoundingMode' => TRUNCATE,
                 'language' => 'en-US',
                 'broker' => array(
                     'id' => 'AA03022abc',
@@ -1624,20 +1625,6 @@ class huobijp extends Exchange {
                 'info' => $data,
             )),
         );
-    }
-
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision'], $this->precisionMode);
-    }
-
-    public function safe_network($networkId) {
-        $lastCharacterIndex = strlen($networkId) - 1;
-        $lastCharacter = $networkId[$lastCharacterIndex];
-        if ($lastCharacter === '1') {
-            $networkId = mb_substr($networkId, 0, $lastCharacterIndex - 0);
-        }
-        $networksById = array();
-        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {

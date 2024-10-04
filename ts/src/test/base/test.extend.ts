@@ -1,11 +1,13 @@
 
+// AUTO_TRANSPILE_ENABLED
+
+import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 function testExtend () {
 
     const exchange = new ccxt.Exchange ({
-        'id': 'sampleexchange',
+        'id': 'regirock',
     });
 
     const obj1 = {
@@ -44,29 +46,28 @@ function testExtend () {
 
     // extend
     const extended = exchange.extend (obj1, obj2);
-    const compareTo = {
-        "a": 2,
-        "b": [ 3, 4 ],
-        "c": [ {
-            "test1": 2,
-            "test3": 3,
-        } ],
-        "d": "not_undefined",
-        "e": undefined,
-        "sub": {
-            "a": 2,
-            "b": [ 3, 4 ],
-            "c": [ {
-                "test1": 2,
-                "test3": 3,
-            } ],
-            "d": "not_undefined",
-            "other2": "y",
-        },
-        "other1": "x",
-        "other2": "y",
-    };
-    // todo: testSharedMethods.assertDeepEqual (exchange, undefined, 'testExtend', extended, compareTo);
+    tbfeCheckExtended (extended, true);
+    // deepExtend
+    const deepExtended = exchange.deepExtend (obj1, obj2);
+    tbfeCheckExtended (extended, true);
+    // todo !
+    // tbfeCheckExtended (deepExtended["sub"], false);
+}
+
+function tbfeCheckExtended (extended: any, hasSub: boolean) {
+    assert (extended["a"] === 2);
+    assert (extended["b"][0] === 3);
+    assert (extended["b"][1] === 4);
+    assert (extended["c"][0]["test1"] === 2);
+    assert (!("test2" in extended["c"][0]));
+    assert (extended["c"][0]["test3"] === 3);
+    assert (extended["d"] === "not_undefined");
+    assert (extended["e"] === undefined);
+    assert (extended["other1"] === "x");
+    assert (extended["other2"] === "y");
+    if (hasSub) {
+        assert ("sub" in extended);
+    }
 }
 
 export default testExtend;

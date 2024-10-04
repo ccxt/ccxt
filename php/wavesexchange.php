@@ -1294,7 +1294,8 @@ class wavesexchange extends Exchange {
             throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders to determine the max $price for buy and the min $price for sell');
         }
         $timestamp = $this->milliseconds();
-        $defaultExpiryDelta = $this->safe_integer($this->options, 'createOrderDefaultExpiry', 2419200000);
+        $defaultExpiryDelta = null;
+        list($defaultExpiryDelta, $params) = $this->handle_option_and_params($params, 'createOrder', 'defaultExpiry', $this->safe_integer($this->options, 'createOrderDefaultExpiry', 2419200000));
         $expiration = $this->sum($timestamp, $defaultExpiryDelta);
         $matcherFees = $this->get_fees_for_asset($symbol, $side, $amount, $price);
         // {
@@ -1440,11 +1441,11 @@ class wavesexchange extends Exchange {
         //     }
         //
         if ($isMarketOrder) {
-            $response = $this->matcherPostMatcherOrderbookMarket ($body);
+            $response = $this->matcherPostMatcherOrderbookMarket ($this->extend($body, $params));
             $value = $this->safe_dict($response, 'message');
             return $this->parse_order($value, $market);
         } else {
-            $response = $this->matcherPostMatcherOrderbook ($body);
+            $response = $this->matcherPostMatcherOrderbook ($this->extend($body, $params));
             $value = $this->safe_dict($response, 'message');
             return $this->parse_order($value, $market);
         }

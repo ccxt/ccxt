@@ -80,6 +80,7 @@ public partial class Exchange
     public string password { get; set; }
     public string uid { get; set; }
     public string accountId { get; set; }
+    public int minFundingAddressLength { get; set; } = 1;
 
     public dict userAgents { get; set; } = new dict(){
         {"chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"},

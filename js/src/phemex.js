@@ -2498,6 +2498,8 @@ export default class phemex extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {string} [params.posSide] *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2599,15 +2601,22 @@ export default class phemex extends Exchange {
             }
         }
         else if (market['swap']) {
+            const hedged = this.safeBool(params, 'hedged', false);
+            params = this.omit(params, 'hedged');
             let posSide = this.safeStringLower(params, 'posSide');
             if (posSide === undefined) {
-                posSide = 'Merged';
+                if (hedged) {
+                    if (reduceOnly) {
+                        side = (side === 'buy') ? 'sell' : 'buy';
+                    }
+                    posSide = (side === 'buy') ? 'Long' : 'Short';
+                }
+                else {
+                    posSide = 'Merged';
+                }
             }
             posSide = this.capitalize(posSide);
             request['posSide'] = posSide;
-            if (reduceOnly !== undefined) {
-                request['reduceOnly'] = reduceOnly;
-            }
             if (market['settle'] === 'USDT') {
                 request['orderQtyRq'] = amount;
             }
@@ -2986,6 +2995,7 @@ export default class phemex extends Exchange {
          * @name phemex#fetchOrder
          * @see https://phemex-docs.github.io/#query-orders-by-ids
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3011,7 +3021,7 @@ export default class phemex extends Exchange {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, params));
         }
         else if (market['spot']) {
-            response = await this.privateGetSpotOrdersActive(this.extend(request, params));
+            response = await this.privateGetApiDataSpotsOrdersByOrderId(this.extend(request, params));
         }
         else {
             response = await this.privateGetExchangeOrder(this.extend(request, params));
@@ -3028,7 +3038,11 @@ export default class phemex extends Exchange {
                     throw new OrderNotFound(this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
                 }
             }
-            order = this.safeValue(data, 0, {});
+            order = this.safeDict(data, 0, {});
+        }
+        else if (market['spot']) {
+            const rows = this.safeList(data, 'rows', []);
+            order = this.safeDict(rows, 0, {});
         }
         return this.parseOrder(order, market);
     }
@@ -3067,7 +3081,7 @@ export default class phemex extends Exchange {
             response = await this.privateGetExchangeOrderList(this.extend(request, params));
         }
         else {
-            response = await this.privateGetSpotOrders(this.extend(request, params));
+            response = await this.privateGetApiDataSpotsOrders(this.extend(request, params));
         }
         const data = this.safeValue(response, 'data', {});
         const rows = this.safeList(data, 'rows', data);
@@ -4126,6 +4140,7 @@ export default class phemex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async setMargin(symbol, amount, params = {}) {

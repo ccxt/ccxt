@@ -22,6 +22,7 @@ class independentreserve(ccxt.async_support.independentreserve):
                 'watchTicker': False,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': False,
                 'watchOrderBook': True,

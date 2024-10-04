@@ -60,6 +60,8 @@ class xt extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -1134,12 +1136,14 @@ class xt extends Exchange {
         $maxCost = null;
         $minPrice = null;
         $maxPrice = null;
+        $amountPrecision = null;
         for ($i = 0; $i < count($filters); $i++) {
             $entry = $filters[$i];
             $filter = $this->safe_string($entry, 'filter');
             if ($filter === 'QUANTITY') {
                 $minAmount = $this->safe_number($entry, 'min');
                 $maxAmount = $this->safe_number($entry, 'max');
+                $amountPrecision = $this->safe_number($entry, 'tickSize');
             }
             if ($filter === 'QUOTE_QTY') {
                 $minCost = $this->safe_number($entry, 'min');
@@ -1148,6 +1152,9 @@ class xt extends Exchange {
                 $minPrice = $this->safe_number($entry, 'min');
                 $maxPrice = $this->safe_number($entry, 'max');
             }
+        }
+        if ($amountPrecision === null) {
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision')));
         }
         $underlyingType = $this->safe_string($market, 'underlyingType');
         $linear = null;
@@ -1228,7 +1235,7 @@ class xt extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
-                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision'))),
+                'amount' => $amountPrecision,
                 'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseCoinPrecision'))),
                 'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteCoinPrecision'))),
             ),
@@ -1366,7 +1373,7 @@ class xt extends Exchange {
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
             $this->safe_number($ohlcv, 'c'),
-            $this->safe_number_2($ohlcv, $volumeIndex, 'v'),
+            $this->safe_number_2($ohlcv, 'q', $volumeIndex),
         );
     }
 
@@ -3430,7 +3437,7 @@ class xt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://doc.xt.com/#futures_usergetBalanceBill
@@ -3492,7 +3499,7 @@ class xt extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, $currency = null): array {
         //
         //     {
         //         "id" => "207260567109387524",
@@ -3508,8 +3515,10 @@ class xt extends Exchange {
         $side = $this->safe_string($item, 'side');
         $direction = ($side === 'ADD') ? 'in' : 'out';
         $currencyId = $this->safe_string($item, 'coin');
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'createdTime');
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string($item, 'id'),
             'direction' => $direction,
             'account' => null,
@@ -3527,8 +3536,7 @@ class xt extends Exchange {
                 'currency' => null,
                 'cost' => null,
             ),
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -4195,7 +4203,18 @@ class xt extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_interval(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate interval
+         * @see https://doc.xt.com/#futures_quotesgetFundingRate
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        return $this->fetch_funding_rate($symbol, $params);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://doc.xt.com/#futures_quotesgetFundingRate
@@ -4236,7 +4255,7 @@ class xt extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, $market = null): array {
         //
         //     {
         //         "symbol" => "btc_usdt",
@@ -4248,6 +4267,7 @@ class xt extends Exchange {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_', 'swap');
         $timestamp = $this->safe_integer($contract, 'nextCollectionTime');
+        $interval = $this->safe_string($contract, 'collectionInternal');
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -4266,6 +4286,7 @@ class xt extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => $interval . 'h',
         );
     }
 

@@ -1,7 +1,11 @@
+
+// AUTO_TRANSPILE_ENABLED
+// todo: per https://github.com/ttodua/ccxt/blob/17fc70fd7ccd8f6f5357e2dbd08aa30a1df0948b/ts/src/test/base/test.json.ts#L1
+
 import assert from 'assert';
 import ccxt, { BadRequest } from '../../../ccxt.js';
 
-function testJsonInner () {
+function testJson () {
 
     const exchange = new ccxt.Exchange ({
         'id': 'regirock',
@@ -30,19 +34,6 @@ function testJsonInner () {
     const serializedString = exchange.json (str);
     assert (serializedString === "\"ccxt, rocks!\"");
 
-}
-
-function testJson () {
-    try {
-        testJsonInner ();
-    } catch (exc) {
-        // todo: skip PHP, as it needs fix of ast-tranpsiler - it adds extra backslashes which are read as literal chars in PHP
-        const message = exc.toString ();
-        // transpiler trick
-        if (!((message + '').toString ()).includes ('json.php')) {
-            throw exc;
-        }
-    }
 }
 
 export default testJson;

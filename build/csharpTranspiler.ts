@@ -320,6 +320,10 @@ class NewTranspiler {
             return `Task<ccxt.pro.IOrderBook>`;
         }
 
+        if (name === 'watchOHLCVForSymbols') {
+            return `Task<Dictionary<string, Dictionary<string, List<OHLCV>>>>`;
+        }
+
         if (name === 'fetchTime'){
             return `Task<Int64>`; // custom handling for now
         }
@@ -508,6 +512,10 @@ class NewTranspiler {
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
             return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+        }
+
+        if (methodName === 'watchOHLCVForSymbols') {
+            return `return Helper.ConvertToDictionaryOHLCVList(res);`
         }
 
         // custom handling for now
@@ -1000,8 +1008,8 @@ class NewTranspiler {
     // ---------------------------------------------------------------------------------------------
     transpileWsOrderbookTestsToCSharp (outDir: string) {
 
-        const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
-        const csharpFile = `${outDir}/Ws/test.OrderBook.cs`;
+        const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
+        const csharpFile = `${outDir}/Ws/test.orderBook.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1040,8 +1048,8 @@ class NewTranspiler {
     // ---------------------------------------------------------------------------------------------
     transpileWsCacheTestsToCSharp (outDir: string) {
 
-        const jsFile = './ts/src/pro/test/base/test.Cache.ts';
-        const csharpFile = `${outDir}/Ws/test.Cache.cs`;
+        const jsFile = './ts/src/pro/test/base/test.cache.ts';
+        const csharpFile = `${outDir}/Ws/test.cache.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1177,10 +1185,14 @@ class NewTranspiler {
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-        baseFunctionTests = baseFunctionTests.filter (filename => filename !== 'test.cryptography');
 
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
+            const tsContent = fs.readFileSync(tsFile).toString();
+            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+                continue;
+            }
+
             const csharpFile = `${outDir}/${testName}.cs`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
@@ -1191,8 +1203,7 @@ class NewTranspiler {
                 [/object  = functions;/g, '' ], // tmp fix
                 [/assert/g, 'Assert'],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // remove equals
-
+                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
             ]).trim ()
 
             const contentLines = content.split ('\n');
@@ -1240,7 +1251,7 @@ class NewTranspiler {
             [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
             [ /object exchange =/g, 'Exchange exchange =' ],
             [ /throw new Error/g, 'throw new Exception' ],
-            [/class testMainClass : baseMainTestClass/g, 'public partial class testMainClass : BaseTest'],
+            [/class testMainClass/g, 'public partial class testMainClass'],
         ])
 
         const file = [

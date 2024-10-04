@@ -86,6 +86,8 @@
                     "average": null,
                     "baseVolume": 0.03106127,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "timestamp": "1710328246",
                         "low": "70500",

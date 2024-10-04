@@ -527,11 +527,11 @@ public partial class bitfinex : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object ids = await this.publicGetSymbols();
+        object idsPromise = this.publicGetSymbols();
         //
         //     [ "btcusd", "ltcusd", "ltcbtc" ]
         //
-        object details = await this.publicGetSymbolsDetails();
+        object detailsPromise = this.publicGetSymbolsDetails();
         //
         //     [
         //         {
@@ -546,6 +546,9 @@ public partial class bitfinex : Exchange
         //         },
         //     ]
         //
+        var idsdetailsVariable = await promiseAll(new List<object>() {idsPromise, detailsPromise});
+        var ids = ((IList<object>) idsdetailsVariable)[0];
+        var details = ((IList<object>) idsdetailsVariable)[1];
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
         {
@@ -846,7 +849,7 @@ public partial class bitfinex : Exchange
         * @method
         * @name bitfinex#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
@@ -857,9 +860,7 @@ public partial class bitfinex : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(new Dictionary<string, object>() {
-                { "result", getValue(response, i) },
-            });
+            object ticker = this.parseTicker(getValue(response, i));
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = ticker;
         }
@@ -1386,6 +1387,7 @@ public partial class bitfinex : Exchange
         * @name bitfinex#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+        * @param {string} id the order id
         * @param {string} symbol not used by bitfinex fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

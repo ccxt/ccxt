@@ -26,6 +26,7 @@ public partial class htx : ccxt.htx
                 { "watchTickers", false },
                 { "watchTicker", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchBalance", true },
                 { "watchOHLCV", true },
@@ -134,6 +135,8 @@ public partial class htx : ccxt.htx
         * @method
         * @name huobi#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -210,6 +213,9 @@ public partial class htx : ccxt.htx
         * @method
         * @name huobi#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -281,6 +287,9 @@ public partial class htx : ccxt.htx
         * @method
         * @name huobi#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -471,8 +480,8 @@ public partial class htx : ccxt.htx
             }
         } catch(Exception e)
         {
-
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }
@@ -510,7 +519,7 @@ public partial class htx : ccxt.htx
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
         return null;
@@ -729,6 +738,7 @@ public partial class htx : ccxt.htx
         * @method
         * @name huobi#watchMyTrades
         * @description watches information on multiple trades made by the user
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
         * @param {string} symbol unified market symbol of the market trades were made in
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -846,6 +856,7 @@ public partial class htx : ccxt.htx
         * @method
         * @name huobi#watchOrders
         * @description watches information on multiple orders made by the user
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1464,6 +1475,10 @@ public partial class htx : ccxt.htx
         * @method
         * @name huobi#watchBalance
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -1849,7 +1864,7 @@ public partial class htx : ccxt.htx
             // clean up
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             }
         }
     }
@@ -2134,7 +2149,7 @@ public partial class htx : ccxt.htx
                     ((WebSocketClient)client).reject(e, id);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
                     {
-
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
                     }
                 }
             }
@@ -2156,7 +2171,7 @@ public partial class htx : ccxt.htx
                     object method = "auth";
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
                     {
-
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
                     }
                     return false;
                 } else

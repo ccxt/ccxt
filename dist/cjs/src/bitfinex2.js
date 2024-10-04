@@ -63,7 +63,7 @@ class bitfinex2 extends bitfinex2$1 {
                 'fetchDepositAddress': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': true,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -335,9 +335,9 @@ class bitfinex2 extends bitfinex2$1 {
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
                 'exchangeTypes': {
-                    // 'MARKET': undefined,
+                    'MARKET': 'market',
                     'EXCHANGE MARKET': 'market',
-                    // 'LIMIT': undefined,
+                    'LIMIT': 'limit',
                     'EXCHANGE LIMIT': 'limit',
                     // 'STOP': undefined,
                     'EXCHANGE STOP': 'market',
@@ -377,6 +377,25 @@ class bitfinex2 extends bitfinex2$1 {
                 },
                 'withdraw': {
                     'includeFee': false,
+                },
+                'networks': {
+                    'BTC': 'BITCOIN',
+                    'LTC': 'LITECOIN',
+                    'ERC20': 'ETHEREUM',
+                    'OMNI': 'TETHERUSO',
+                    'LIQUID': 'TETHERUSL',
+                    'TRC20': 'TETHERUSX',
+                    'EOS': 'TETHERUSS',
+                    'AVAX': 'TETHERUSDTAVAX',
+                    'SOL': 'TETHERUSDTSOL',
+                    'ALGO': 'TETHERUSDTALG',
+                    'BCH': 'TETHERUSDTBCH',
+                    'KSM': 'TETHERUSDTKSM',
+                    'DVF': 'TETHERUSDTDVF',
+                    'OMG': 'TETHERUSDTOMG',
+                },
+                'networksById': {
+                    'TETHERUSE': 'ERC20',
                 },
             },
             'exceptions': {
@@ -501,12 +520,13 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        let spotMarketsInfo = await this.publicGetConfPubInfoPair(params);
-        let futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures(params);
-        spotMarketsInfo = this.safeValue(spotMarketsInfo, 0, []);
-        futuresMarketsInfo = this.safeValue(futuresMarketsInfo, 0, []);
+        const spotMarketsInfoPromise = this.publicGetConfPubInfoPair(params);
+        const futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(params);
+        const marginIdsPromise = this.publicGetConfPubListPairMargin(params);
+        let [spotMarketsInfo, futuresMarketsInfo, marginIds] = await Promise.all([spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise]);
+        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, []);
+        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, []);
         const markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        let marginIds = await this.publicGetConfPubListPairMargin(params);
         marginIds = this.safeValue(marginIds, 0, []);
         //
         //    [
@@ -786,7 +806,7 @@ class bitfinex2 extends bitfinex2$1 {
                 const networkId = this.safeString(pair, 0);
                 const currencyId = this.safeString(this.safeValue(pair, 1, []), 0);
                 if (currencyId === cleanId) {
-                    const network = this.safeNetwork(networkId);
+                    const network = this.networkIdToCode(networkId);
                     networks[network] = {
                         'info': networkId,
                         'id': networkId.toLowerCase(),
@@ -812,26 +832,6 @@ class bitfinex2 extends bitfinex2$1 {
             }
         }
         return result;
-    }
-    safeNetwork(networkId) {
-        const networksById = {
-            'BITCOIN': 'BTC',
-            'LITECOIN': 'LTC',
-            'ETHEREUM': 'ERC20',
-            'TETHERUSE': 'ERC20',
-            'TETHERUSO': 'OMNI',
-            'TETHERUSL': 'LIQUID',
-            'TETHERUSX': 'TRC20',
-            'TETHERUSS': 'EOS',
-            'TETHERUSDTAVAX': 'AVAX',
-            'TETHERUSDTSOL': 'SOL',
-            'TETHERUSDTALG': 'ALGO',
-            'TETHERUSDTBCH': 'BCH',
-            'TETHERUSDTKSM': 'KSM',
-            'TETHERUSDTDVF': 'DVF',
-            'TETHERUSDTOMG': 'OMG',
-        };
-        return this.safeString(networksById, networkId, networkId);
     }
     async fetchBalance(params = {}) {
         /**
@@ -2371,7 +2371,7 @@ class bitfinex2 extends bitfinex2$1 {
             const currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             const networkId = this.safeString(transaction, 2);
-            network = this.safeNetwork(networkId);
+            network = this.networkIdToCode(networkId);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));
@@ -2917,6 +2917,7 @@ class bitfinex2 extends bitfinex2$1 {
         const id = this.safeString(itemList, 0);
         const currencyId = this.safeString(itemList, 1);
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(itemList, 3);
         const amount = this.safeNumber(itemList, 5);
         const after = this.safeNumber(itemList, 6);
@@ -2926,7 +2927,8 @@ class bitfinex2 extends bitfinex2$1 {
             const first = this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': id,
             'direction': undefined,
             'account': undefined,
@@ -2941,18 +2943,17 @@ class bitfinex2 extends bitfinex2$1 {
             'after': after,
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined max is 2500
+         * @param {int} [limit] max number of ledger entries to return, default is undefined, max is 2500
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -3004,27 +3005,15 @@ class bitfinex2 extends bitfinex2$1 {
         }
         return this.parseLedger(ledgerObjects, currency, since, limit);
     }
-    async fetchFundingRate(symbol, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
-        return await this.fetchFundingRates([symbol], params);
-    }
     async fetchFundingRates(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name bitfinex2#fetchFundingRate
-         * @description fetch the current funding rate
+         * @name bitfinex2#fetchFundingRates
+         * @description fetch the current funding rate for multiple symbols
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
          * @param {string[]} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRates() requires a symbols argument');
@@ -3195,6 +3184,7 @@ class bitfinex2 extends bitfinex2$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     parseFundingRateHistory(contract, market = undefined) {

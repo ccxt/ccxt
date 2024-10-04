@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
@@ -154,11 +155,12 @@ class independentreserve(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        baseCurrencies = await self.publicGetGetValidPrimaryCurrencyCodes(params)
+        baseCurrenciesPromise = self.publicGetGetValidPrimaryCurrencyCodes(params)
         #     ['Xbt', 'Eth', 'Usdt', ...]
-        quoteCurrencies = await self.publicGetGetValidSecondaryCurrencyCodes(params)
+        quoteCurrenciesPromise = self.publicGetGetValidSecondaryCurrencyCodes(params)
         #     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        limits = await self.publicGetGetOrderMinimumVolumes(params)
+        limitsPromise = self.publicGetGetOrderMinimumVolumes(params)
+        baseCurrencies, quoteCurrencies, limits = await asyncio.gather(*[baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise])
         #
         #     {
         #         "Xbt": 0.0001,

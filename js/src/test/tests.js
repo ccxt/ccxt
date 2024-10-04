@@ -12,8 +12,37 @@ AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, O
 // shared
 getCliArgValue, 
 //
-baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, isNullValue, close, } from './tests.helpers.js';
-class testMainClass extends baseMainTestClass {
+ENV_VARS, NEW_LINE, LANG, EXT, ROOT_DIR, PROXY_TEST_FILE_NAME, IS_SYNCHRONOUS, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, isNullValue, close, } from './tests.helpers.js';
+class testMainClass {
+    constructor() {
+        this.isSynchronous = IS_SYNCHRONOUS;
+        this.idTests = false;
+        this.requestTestsFailed = false;
+        this.responseTestsFailed = false;
+        this.requestTests = false;
+        this.wsTests = false;
+        this.responseTests = false;
+        this.staticTests = false;
+        this.info = false;
+        this.verbose = false;
+        this.debug = false;
+        this.privateTest = false;
+        this.privateTestOnly = false;
+        this.loadKeys = false;
+        this.sandbox = false;
+        this.proxyTestFileName = PROXY_TEST_FILE_NAME;
+        this.onlySpecificTests = [];
+        this.skippedSettingsForExchange = {};
+        this.skippedMethods = {};
+        this.checkedPublicTests = {};
+        this.testFiles = {};
+        this.publicTests = {};
+        this.newLine = NEW_LINE;
+        this.rootDir = ROOT_DIR;
+        this.envVars = ENV_VARS;
+        this.ext = EXT;
+        this.lang = LANG;
+    }
     parseCliArgs() {
         this.responseTests = getCliArgValue('--responseTests');
         this.idTests = getCliArgValue('--idTests');
@@ -141,7 +170,7 @@ class testMainClass extends baseMainTestClass {
             this.loadCredentialsFromEnv(exchange);
         }
         // skipped tests
-        const skippedFile = this.rootDirForSkips + 'skip-tests.json';
+        const skippedFile = this.rootDir + 'skip-tests.json';
         const skippedSettings = ioFileRead(skippedFile);
         this.skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, {});
         const skippedSettingsForExchange = this.skippedSettingsForExchange;
@@ -170,29 +199,6 @@ class testMainClass extends baseMainTestClass {
             }
         }
         return message + res;
-    }
-    exchangeHint(exchange, market = undefined) {
-        let marketType = exchange.safeString2(exchange.options, 'defaultType', 'type', '');
-        let marketSubType = exchange.safeString2(exchange.options, 'defaultSubType', 'subType');
-        if (market !== undefined) {
-            marketType = market['type'];
-            if (market['linear']) {
-                marketSubType = 'linear';
-            }
-            else if (market['inverse']) {
-                marketSubType = 'inverse';
-            }
-            else if (exchange.safeValue(market, 'quanto') === true) {
-                marketSubType = 'quanto';
-            }
-        }
-        const isWs = ('ws' in exchange.has);
-        const wsFlag = isWs ? '(WS)' : '';
-        let result = exchange.id + ' ' + wsFlag + ' ' + marketType;
-        if (marketSubType !== undefined) {
-            result = result + ' [subType: ' + marketSubType + '] ';
-        }
-        return result;
     }
     async testMethod(methodName, exchange, args, isPublic) {
         // todo: temporary skip for c#
@@ -229,15 +235,16 @@ class testMainClass extends baseMainTestClass {
         if (isLoadMarkets) {
             await exchange.loadMarkets(true);
         }
+        const name = exchange.id;
         if (skipMessage) {
             if (this.info) {
-                dump(this.addPadding(skipMessage, 25), this.exchangeHint(exchange), methodName);
+                dump(this.addPadding(skipMessage, 25), name, methodName);
             }
             return;
         }
         if (this.info) {
             const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(this.addPadding('[INFO] TESTING', 25), this.exchangeHint(exchange), methodName, argsStringified);
+            dump(this.addPadding('[INFO] TESTING', 25), name, methodName, argsStringified);
         }
         if (this.isSynchronous) {
             callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
@@ -246,7 +253,7 @@ class testMainClass extends baseMainTestClass {
             await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         }
         if (this.info) {
-            dump(this.addPadding('[INFO] TESTING DONE', 25), this.exchangeHint(exchange), methodName);
+            dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
         }
         // add to the list of successed tests
         if (isPublic) {
@@ -359,13 +366,13 @@ class testMainClass extends baseMainTestClass {
                         }
                         // output the message
                         const failType = shouldFail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
-                        dump(failType, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
+                        dump(failType, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified, exceptionMessage(e));
                         return returnSuccess;
                     }
                     else {
                         // wait and retry again
                         // (increase wait time on every retry)
-                        await exchange.sleep(i * 1000);
+                        await exchange.sleep((i + 1) * 1000);
                         continue;
                     }
                 }
@@ -373,27 +380,27 @@ class testMainClass extends baseMainTestClass {
                 else {
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
                     if (isLoadMarkets) {
-                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exceptionMessage(e), this.exchangeHint(exchange), methodName, argsStringified);
+                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exceptionMessage(e), exchange.id, methodName, argsStringified);
                         return false;
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
                     // then let's don't fail the test
                     if (isNotSupported) {
                         if (this.info) {
-                            dump('[INFO] NOT_SUPPORTED', exceptionMessage(e), this.exchangeHint(exchange), methodName, argsStringified);
+                            dump('[INFO] NOT_SUPPORTED', exceptionMessage(e), exchange.id, methodName, argsStringified);
                         }
                         return true;
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if (isPublic && isAuthError) {
                         if (this.info) {
-                            dump('[INFO]', 'Authentication problem for public method', exceptionMessage(e), this.exchangeHint(exchange), methodName, argsStringified);
+                            dump('[INFO]', 'Authentication problem for public method', exceptionMessage(e), exchange.id, methodName, argsStringified);
                         }
                         return true;
                     }
                     // in rest of the cases, fail the test
                     else {
-                        dump('[TEST_FAILURE]', exceptionMessage(e), this.exchangeHint(exchange), methodName, argsStringified);
+                        dump('[TEST_FAILURE]', exceptionMessage(e), exchange.id, methodName, argsStringified);
                         return false;
                     }
                 }
@@ -471,10 +478,10 @@ class testMainClass extends baseMainTestClass {
         const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
         if (failedMethods.length) {
             const errorsString = failedMethods.join(', ');
-            dump('[TEST_FAILURE]', this.exchangeHint(exchange), testPrefixString, 'Failed methods : ' + errorsString);
+            dump('[TEST_FAILURE]', exchange.id, testPrefixString, 'Failed methods : ' + errorsString);
         }
         if (this.info) {
-            dump(this.addPadding('[INFO] END ' + testPrefixString + ' ' + this.exchangeHint(exchange), 25));
+            dump(this.addPadding('[INFO] END ' + testPrefixString + ' ' + exchange.id, 25));
         }
     }
     async loadExchange(exchange) {
@@ -1121,7 +1128,7 @@ class testMainClass extends baseMainTestClass {
         }
         catch (e) {
             this.requestTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + this.exchangeHint(exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
     }
@@ -1140,7 +1147,7 @@ class testMainClass extends baseMainTestClass {
         }
         catch (e) {
             this.responseTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + this.exchangeHint(exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
         setFetchResponse(exchange, undefined); // reset state
@@ -1196,6 +1203,14 @@ class testMainClass extends baseMainTestClass {
                 }
                 const isDisabled = exchange.safeBool(result, 'disabled', false);
                 if (isDisabled) {
+                    continue;
+                }
+                const disabledString = exchange.safeString(result, 'disabled', '');
+                if (disabledString !== '') {
+                    continue;
+                }
+                const isDisabledCSharp = exchange.safeBool(result, 'disabledCS', false);
+                if (isDisabledCSharp && (this.lang === 'C#')) {
                     continue;
                 }
                 const type = exchange.safeString(exchangeData, 'outputType');
@@ -1365,7 +1380,8 @@ class testMainClass extends baseMainTestClass {
             this.testOxfun(),
             this.testXT(),
             this.testVertex(),
-            this.testParadex()
+            this.testParadex(),
+            this.testHashkey()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1864,6 +1880,23 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testHashkey() {
+        const exchange = this.initOfflineExchange('hashkey');
+        let reqHeaders = undefined;
+        const id = "10000700011";
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
         if (!this.isSynchronous) {
             await close(exchange);
         }

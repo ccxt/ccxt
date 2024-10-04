@@ -17,6 +17,7 @@ export default class coincheck extends coincheckRest {
                 'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,

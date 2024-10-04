@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -84,6 +84,8 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': True,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -921,6 +923,8 @@ class coinex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
         }, market)
 
@@ -1198,7 +1202,10 @@ class coinex(Exchange, ImplicitAPI):
         #         "side": "buy",
         #         "order_id": 136915589622,
         #         "price": "64376",
-        #         "amount": "0.0001"
+        #         "amount": "0.0001",
+        #         "role": "taker",
+        #         "fee": "0.0299",
+        #         "fee_ccy": "USDT"
         #     }
         #
         timestamp = self.safe_integer(trade, 'created_at')
@@ -1207,6 +1214,15 @@ class coinex(Exchange, ImplicitAPI):
             defaultType = market['type']
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
+        feeCostString = self.safe_string(trade, 'fee')
+        fee = None
+        if feeCostString is not None:
+            feeCurrencyId = self.safe_string(trade, 'fee_ccy')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
+            }
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1216,11 +1232,11 @@ class coinex(Exchange, ImplicitAPI):
             'order': self.safe_string(trade, 'order_id'),
             'type': None,
             'side': self.safe_string(trade, 'side'),
-            'takerOrMaker': None,
+            'takerOrMaker': self.safe_string(trade, 'role'),
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string(trade, 'amount'),
             'cost': self.safe_string(trade, 'deal_money'),
-            'fee': None,
+            'fee': fee,
         }, market)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -3558,23 +3574,8 @@ class coinex(Exchange, ImplicitAPI):
         options = self.safe_dict(self.options, 'fetchDepositAddress', {})
         fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
-            depositAddress['network'] = self.safe_network_code(network, currency)
+            depositAddress['network'] = self.network_id_to_code(network, currency).upper()
         return depositAddress
-
-    def safe_network(self, networkId, currency: Currency = None):
-        networks = self.safe_value(currency, 'networks', {})
-        networksCodes = list(networks.keys())
-        networksCodesLength = len(networksCodes)
-        if networkId is None and networksCodesLength == 1:
-            return networks[networksCodes[0]]
-        return {
-            'id': networkId,
-            'network': None if (networkId is None) else networkId.upper(),
-        }
-
-    def safe_network_code(self, networkId, currency: Currency = None):
-        network = self.safe_network(networkId, currency)
-        return network['network']
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
@@ -4256,7 +4257,7 @@ class coinex(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
@@ -4294,9 +4295,19 @@ class coinex(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(first, market)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rate(symbol, params)
+
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
-        # fetchFundingRate, fetchFundingRates
+        # fetchFundingRate, fetchFundingRates, fetchFundingInterval
         #
         #     {
         #         "latest_funding_rate": "0",
@@ -4311,6 +4322,9 @@ class coinex(Exchange, ImplicitAPI):
         #
         currentFundingTimestamp = self.safe_integer(contract, 'latest_funding_time')
         futureFundingTimestamp = self.safe_integer(contract, 'next_funding_time')
+        fundingTimeString = self.safe_string(contract, 'latest_funding_time')
+        nextFundingTimeString = self.safe_string(contract, 'next_funding_time')
+        millisecondsInterval = Precise.string_sub(nextFundingTimeString, fundingTimeString)
         marketId = self.safe_string(contract, 'market')
         return {
             'info': contract,
@@ -4330,11 +4344,22 @@ class coinex(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    def parse_funding_interval(self, interval):
+        intervals: dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        }
+        return self.safe_string(intervals, interval, interval)
+
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
-        fetch the current funding rates
+        fetch the current funding rates for multiple markets
         :see: https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5268,7 +5293,7 @@ class coinex(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> Position:
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
         fetches historical positions
         :see: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position

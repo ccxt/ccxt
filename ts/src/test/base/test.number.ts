@@ -1,4 +1,6 @@
 
+// AUTO_TRANSPILE_ENABLED
+
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } from '../../base/functions/number.js';

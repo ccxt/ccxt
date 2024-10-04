@@ -25,6 +25,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 'watchTickers': False,
                 'watchOrderBook': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchBalance': True,
                 'watchOHLCV': True,

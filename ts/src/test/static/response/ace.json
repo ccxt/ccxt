@@ -126,6 +126,8 @@
                     "average": null,
                     "baseVolume": 125.7654,
                     "quoteVolume": 9005897.861012,
+                    "markPrice": null,
+                    "indexPrice": null,
                     "info": {
                         "base_volume": "125.7654",
                         "changeRate": "1.79",
@@ -173,6 +175,8 @@
                         "average": null,
                         "baseVolume": 87.5876,
                         "quoteVolume": 5643084.033087,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "base_volume": "87.5876",
                             "changeRate": "3.64",

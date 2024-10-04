@@ -13,7 +13,36 @@ use ccxt\OnMaintenance;
 
 require_once __DIR__ . '/tests_helpers.php';
 
-class testMainClass extends baseMainTestClass {
+#[\AllowDynamicProperties]
+class testMainClass {
+    public $is_synchronous = IS_SYNCHRONOUS;
+    public $id_tests = false;
+    public $request_tests_failed = false;
+    public $response_tests_failed = false;
+    public $request_tests = false;
+    public $ws_tests = false;
+    public $response_tests = false;
+    public $static_tests = false;
+    public $info = false;
+    public $verbose = false;
+    public $debug = false;
+    public $private_test = false;
+    public $private_test_only = false;
+    private $load_keys = false;
+    public $sandbox = false;
+    public $proxy_test_file_name = PROXY_TEST_FILE_NAME;
+    public $only_specific_tests = [];
+    public $skipped_settings_for_exchange = array();
+    public $skipped_methods = array();
+    public $checked_public_tests = array();
+    public $test_files = array();
+    public $public_tests = array();
+    public $new_line = NEW_LINE;
+    public $root_dir = ROOT_DIR;
+    public $env_vars = ENV_VARS;
+    public $ext = EXT;
+    public $lang = LANG;
+
     public function parse_cli_args() {
         $this->response_tests = get_cli_arg_value('--responseTests');
         $this->id_tests = get_cli_arg_value('--idTests');
@@ -149,7 +178,7 @@ class testMainClass extends baseMainTestClass {
             $this->load_credentials_from_env($exchange);
         }
         // skipped tests
-        $skipped_file = $this->root_dir_for_skips . 'skip-tests.json';
+        $skipped_file = $this->root_dir . 'skip-tests.json';
         $skipped_settings = io_file_read($skipped_file);
         $this->skipped_settings_for_exchange = $exchange->safe_value($skipped_settings, $exchange_id, array());
         $skipped_settings_for_exchange = $this->skipped_settings_for_exchange;
@@ -179,28 +208,6 @@ class testMainClass extends baseMainTestClass {
             }
         }
         return $message . $res;
-    }
-
-    public function exchange_hint($exchange, $market = null) {
-        $market_type = $exchange->safe_string_2($exchange->options, 'defaultType', 'type', '');
-        $market_sub_type = $exchange->safe_string_2($exchange->options, 'defaultSubType', 'subType');
-        if ($market !== null) {
-            $market_type = $market['type'];
-            if ($market['linear']) {
-                $market_sub_type = 'linear';
-            } elseif ($market['inverse']) {
-                $market_sub_type = 'inverse';
-            } elseif ($exchange->safe_value($market, 'quanto') === true) {
-                $market_sub_type = 'quanto';
-            }
-        }
-        $is_ws = (is_array($exchange->has) && array_key_exists('ws', $exchange->has));
-        $ws_flag = $is_ws ? '(WS)' : '';
-        $result = $exchange->id . ' ' . $ws_flag . ' ' . $market_type;
-        if ($market_sub_type !== null) {
-            $result = $result . ' [subType: ' . $market_sub_type . '] ';
-        }
-        return $result;
     }
 
     public function test_method($method_name, $exchange, $args, $is_public) {
@@ -235,15 +242,16 @@ class testMainClass extends baseMainTestClass {
         if ($is_load_markets) {
             $exchange->load_markets(true);
         }
+        $name = $exchange->id;
         if ($skip_message) {
             if ($this->info) {
-                dump($this->add_padding($skip_message, 25), $this->exchange_hint($exchange), $method_name);
+                dump($this->add_padding($skip_message, 25), $name, $method_name);
             }
             return;
         }
         if ($this->info) {
             $args_stringified = '(' . $exchange->json($args) . ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump($this->add_padding('[INFO] TESTING', 25), $this->exchange_hint($exchange), $method_name, $args_stringified);
+            dump($this->add_padding('[INFO] TESTING', 25), $name, $method_name, $args_stringified);
         }
         if ($this->is_synchronous) {
             call_method_sync($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args);
@@ -251,7 +259,7 @@ class testMainClass extends baseMainTestClass {
             call_method($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args);
         }
         if ($this->info) {
-            dump($this->add_padding('[INFO] TESTING DONE', 25), $this->exchange_hint($exchange), $method_name);
+            dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
         }
         // add to the list of successed tests
         if ($is_public) {
@@ -361,36 +369,36 @@ class testMainClass extends baseMainTestClass {
                         }
                         // output the message
                         $fail_type = $should_fail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
-                        dump($fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $this->exchange_hint($exchange), $method_name, $args_stringified, exception_message($e));
+                        dump($fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $exchange->id, $method_name, $args_stringified, exception_message($e));
                         return $return_success;
                     } else {
                         // wait and retry again
                         // (increase wait time on every retry)
-                        $exchange->sleep($i * 1000);
+                        $exchange->sleep(($i + 1) * 1000);
                         continue;
                     }
                 } else {
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
                     if ($is_load_markets) {
-                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
+                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message($e), $exchange->id, $method_name, $args_stringified);
                         return false;
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
                     // then let's don't fail the test
                     if ($is_not_supported) {
                         if ($this->info) {
-                            dump('[INFO] NOT_SUPPORTED', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
+                            dump('[INFO] NOT_SUPPORTED', exception_message($e), $exchange->id, $method_name, $args_stringified);
                         }
                         return true;
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if ($is_public && $is_auth_error) {
                         if ($this->info) {
-                            dump('[INFO]', 'Authentication problem for public method', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
+                            dump('[INFO]', 'Authentication problem for public method', exception_message($e), $exchange->id, $method_name, $args_stringified);
                         }
                         return true;
                     } else {
-                        dump('[TEST_FAILURE]', exception_message($e), $this->exchange_hint($exchange), $method_name, $args_stringified);
+                        dump('[TEST_FAILURE]', exception_message($e), $exchange->id, $method_name, $args_stringified);
                         return false;
                     }
                 }
@@ -468,10 +476,10 @@ class testMainClass extends baseMainTestClass {
         $test_prefix_string = $is_public_test ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
         if (count($failed_methods)) {
             $errors_string = implode(', ', $failed_methods);
-            dump('[TEST_FAILURE]', $this->exchange_hint($exchange), $test_prefix_string, 'Failed methods : ' . $errors_string);
+            dump('[TEST_FAILURE]', $exchange->id, $test_prefix_string, 'Failed methods : ' . $errors_string);
         }
         if ($this->info) {
-            dump($this->add_padding('[INFO] END ' . $test_prefix_string . ' ' . $this->exchange_hint($exchange), 25));
+            dump($this->add_padding('[INFO] END ' . $test_prefix_string . ' ' . $exchange->id, 25));
         }
     }
 
@@ -885,7 +893,7 @@ class testMainClass extends baseMainTestClass {
                 $new_value = $new_output[$key];
                 $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
             }
-        } elseif (gettype($stored_output) === 'array' && array_keys($stored_output) === array_keys(array_keys($stored_output)) && (gettype($new_output) === 'array' && array_keys($new_output) === array_keys(array_keys($new_output)))) {
+        } elseif (gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
             $stored_array_length = count($stored_output);
             $new_array_length = count($new_output);
             $this->assert_static_error($stored_array_length === $new_array_length, 'output length mismatch', $stored_output, $new_output);
@@ -1037,7 +1045,7 @@ class testMainClass extends baseMainTestClass {
             $this->assert_static_request_output($exchange, $type, $skip_keys, $data['url'], $request_url, $call_output, $output);
         } catch(\Throwable $e) {
             $this->request_tests_failed = true;
-            $error_message = '[' . $this->lang . '][STATIC_REQUEST_TEST_FAILURE]' . '[' . $this->exchange_hint($exchange) . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+            $error_message = '[' . $this->lang . '][STATIC_REQUEST_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
             dump('[TEST_FAILURE]' . $error_message);
         }
     }
@@ -1055,7 +1063,7 @@ class testMainClass extends baseMainTestClass {
             }
         } catch(\Throwable $e) {
             $this->response_tests_failed = true;
-            $error_message = '[' . $this->lang . '][STATIC_RESPONSE_TEST_FAILURE]' . '[' . $this->exchange_hint($exchange) . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+            $error_message = '[' . $this->lang . '][STATIC_RESPONSE_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
             dump('[TEST_FAILURE]' . $error_message);
         }
         set_fetch_response($exchange, null); // reset state
@@ -1138,6 +1146,14 @@ class testMainClass extends baseMainTestClass {
                 }
                 $is_disabled = $exchange->safe_bool($result, 'disabled', false);
                 if ($is_disabled) {
+                    continue;
+                }
+                $disabled_string = $exchange->safe_string($result, 'disabled', '');
+                if ($disabled_string !== '') {
+                    continue;
+                }
+                $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
+                if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
                     continue;
                 }
                 $type = $exchange->safe_string($exchange_data, 'outputType');
@@ -1284,7 +1300,7 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1803,6 +1819,23 @@ class testMainClass extends baseMainTestClass {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['PARADEX-PARTNER'] === $id, 'paradex - id: ' . $id . ' not in headers');
+        if (!$this->is_synchronous) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_hashkey() {
+        $exchange = $this->init_offline_exchange('hashkey');
+        $req_headers = null;
+        $id = '10000700011';
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['INPUT-SOURCE'] === $id, 'hashkey - id: ' . $id . ' not in headers.');
         if (!$this->is_synchronous) {
             close($exchange);
         }

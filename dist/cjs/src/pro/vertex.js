@@ -20,6 +20,7 @@ class vertex extends vertex$1 {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchPositions': true,
             },
             'urls': {

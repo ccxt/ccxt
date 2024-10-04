@@ -100,7 +100,6 @@ class blofin extends blofin$1 {
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPermissions': undefined,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': false,
@@ -794,17 +793,10 @@ class blofin extends blofin$1 {
         //        "fundingRate": "0.00027815",
         //        "fundingTime": "1634256000000",
         //        "instId": "BTC-USD-SWAP",
-        //        "instType": "SWAP",
-        //        "nextFundingRate": "0.00017",
-        //        "nextFundingTime": "1634284800000"
         //    }
         //
-        // in the response above nextFundingRate is actually two funding rates from now
-        //
-        const nextFundingRateTimestamp = this.safeInteger(contract, 'nextFundingTime');
         const marketId = this.safeString(contract, 'instId');
         const symbol = this.safeSymbol(marketId, market);
-        const nextFundingRate = this.safeNumber(contract, 'nextFundingRate');
         const fundingTime = this.safeInteger(contract, 'fundingTime');
         // > The current interest is 0.
         return {
@@ -819,12 +811,13 @@ class blofin extends blofin$1 {
             'fundingRate': this.safeNumber(contract, 'fundingRate'),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': this.iso8601(fundingTime),
-            'nextFundingRate': nextFundingRate,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'nextFundingDatetime': this.iso8601(nextFundingRateTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRate(symbol, params = {}) {
@@ -854,9 +847,6 @@ class blofin extends blofin$1 {
         //                "fundingRate": "0.00027815",
         //                "fundingTime": "1634256000000",
         //                "instId": "BTC-USD-SWAP",
-        //                "instType": "SWAP",
-        //                "nextFundingRate": "0.00017",
-        //                "nextFundingTime": "1634284800000"
         //            }
         //        ],
         //        "msg": ""
@@ -1504,15 +1494,15 @@ class blofin extends blofin$1 {
         /**
          * @method
          * @name blofin#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://blofin.com/docs#get-funds-transfer-history
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -1648,29 +1638,27 @@ class blofin extends blofin$1 {
         return this.safeString(types, type, type);
     }
     parseLedgerEntry(item, currency = undefined) {
-        const id = this.safeString(item, 'transferId');
-        const referenceId = this.safeString(item, 'clientId');
-        const fromAccount = this.safeString(item, 'fromAccount');
-        const toAccount = this.safeString(item, 'toAccount');
-        const type = this.parseLedgerEntryType(this.safeString(item, 'type'));
-        const code = this.safeCurrencyCode(this.safeString(item, 'currency'), currency);
-        const amountString = this.safeString(item, 'amount');
-        const amount = this.parseNumber(amountString);
+        const currencyId = this.safeString(item, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(item, 'ts');
-        const status = 'ok';
-        return {
-            'id': id,
+        return this.safeLedgerEntry({
             'info': item,
+            'id': this.safeString(item, 'transferId'),
+            'direction': undefined,
+            'account': undefined,
+            'referenceId': this.safeString(item, 'clientId'),
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
+            'currency': code,
+            'amount': this.safeNumber(item, 'amount'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'type': type,
-            'currency': code,
-            'amount': amount,
-            'clientId': referenceId,
-            'status': status,
-        };
+            'before': undefined,
+            'after': undefined,
+            'status': 'ok',
+            'fee': undefined,
+        }, currency);
     }
     parseIds(ids) {
         /**

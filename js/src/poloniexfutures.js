@@ -40,6 +40,8 @@ export default class poloniexfutures extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchL3OrderBook': true,
@@ -1418,6 +1420,7 @@ export default class poloniexfutures extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://api-docs.poloniex.com/futures/api/orders#get-details-of-a-single-order
          * @see https://api-docs.poloniex.com/futures/api/orders#get-single-order-by-clientoid
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1636,28 +1639,63 @@ export default class poloniexfutures extends Exchange {
         //        "predictedValue": 0.00375
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data', {});
+        return this.parseFundingRate(data, market);
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
+    }
+    parseFundingRate(data, market = undefined) {
+        //
+        //     {
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "granularity": 28800000,
+        //         "timePoint": 1637380800000,
+        //         "value": 0.0001,
+        //         "predictedValue": 0.0001,
+        //     }
+        //
         const fundingTimestamp = this.safeInteger(data, 'timePoint');
-        // the website displayes the previous funding rate as "funding rate"
+        const marketId = this.safeString(data, 'symbol');
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber(data, 'predictedValue'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': undefined,
+            'fundingRate': this.safeNumber(data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': this.safeNumber(data, 'predictedValue'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber(data, 'value'),
-            'previousFundingTimestamp': fundingTimestamp,
-            'previousFundingDatetime': this.iso8601(fundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(this.safeString(data, 'granularity')),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

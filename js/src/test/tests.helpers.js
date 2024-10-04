@@ -46,45 +46,18 @@ const argvExchange = argvs_filtered[0];
 const argvSymbol = selectArgv(argv, '/');
 const argvMethod = selectArgv(argv, '()');
 // #################################################### //
-// non-transpiled part, but shared names among langs
-const fileParts = import.meta.url.split('.');
-const ext = fileParts[fileParts.length - 1];
 function getCliArgValue(arg) {
     return process.argv.includes(arg) || false;
 }
-const proxyTestFileName = 'proxies';
-class baseMainTestClass {
-    constructor() {
-        this.lang = 'JS';
-        this.isSynchronous = false;
-        this.idTests = false;
-        this.requestTestsFailed = false;
-        this.responseTestsFailed = false;
-        this.requestTests = false;
-        this.wsTests = false;
-        this.responseTests = false;
-        this.staticTests = false;
-        this.info = false;
-        this.verbose = false;
-        this.debug = false;
-        this.privateTest = false;
-        this.privateTestOnly = false;
-        this.loadKeys = false;
-        this.sandbox = false;
-        this.skippedSettingsForExchange = {};
-        this.skippedMethods = {};
-        this.checkedPublicTests = {};
-        this.testFiles = {};
-        this.publicTests = {};
-        this.newLine = '\n';
-        this.rootDir = DIR_NAME + '/../../../';
-        this.rootDirForSkips = DIR_NAME + '/../../../';
-        this.onlySpecificTests = [];
-        this.envVars = process.env;
-        this.proxyTestFileName = proxyTestFileName;
-        this.ext = ext;
-    }
-}
+// non-transpiled part, but shared names among langs
+const fileParts = import.meta.url.split('.');
+const EXT = fileParts[fileParts.length - 1];
+const LANG = 'JS';
+const IS_SYNCHRONOUS = false;
+const PROXY_TEST_FILE_NAME = 'proxies';
+const ROOT_DIR = DIR_NAME + '/../../../';
+const ENV_VARS = process.env;
+const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
 function dump(...args) {
     console.log(...args);
@@ -166,11 +139,11 @@ async function getTestFiles(properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
-    const finalPropList = properties.concat([proxyTestFileName]);
+    const finalPropList = properties.concat([PROXY_TEST_FILE_NAME]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;
-        if (ioFileExists(filePathWoExt + '.' + ext)) {
+        if (ioFileExists(filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile(filePathWoExt);
         }
@@ -180,7 +153,7 @@ async function getTestFiles(properties, ws = false) {
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
         const filePathWoExt = path + '/base/errors/test.' + name;
-        if (ioFileExists(filePathWoExt + '.' + ext)) {
+        if (ioFileExists(filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile(filePathWoExt);
         }
@@ -203,5 +176,5 @@ AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, Exchange
 // shared
 getCliArgValue, 
 //
-baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, argvExchange, argvSymbol, argvMethod, };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, argvExchange, argvSymbol, argvMethod, IS_SYNCHRONOUS, LANG, ENV_VARS, NEW_LINE, EXT, ROOT_DIR, PROXY_TEST_FILE_NAME, };
 export default {};

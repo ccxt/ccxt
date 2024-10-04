@@ -15,6 +15,7 @@ public partial class bitstamp : ccxt.bitstamp
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchOHLCV", false },
                 { "watchTicker", false },
                 { "watchTickers", false },

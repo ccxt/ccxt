@@ -819,11 +819,12 @@ export default class coinbaseinternational extends Exchange {
         const currencyId = this.safeString (network, 'asset_name');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const networkId = this.safeString (network, 'network_arn_id');
+        const networkIdForCode = this.safeStringN (network, [ 'network_name', 'display_name', 'network_arn_id' ], '');
         return this.safeNetwork ({
             'info': network,
             'id': networkId,
             'name': this.safeString (network, 'display_name'),
-            'network': this.networkIdToCode (this.safeStringN (network, [ 'network_name', 'display_name', 'network_arn_id' ], ''), currencyCode),
+            'network': this.networkIdToCode (networkIdForCode, currencyCode),
             'active': undefined,
             'deposit': undefined,
             'withdraw': undefined,
@@ -1538,6 +1539,8 @@ export default class coinbaseinternational extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'previousClose': undefined,
+            'markPrice': this.safeNumber (ticker, 'mark_price'),
+            'indexPrice': this.safeNumber (ticker, 'index_price'),
         });
     }
 

@@ -5,6 +5,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var totp = require('./base/functions/totp.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -55,7 +56,7 @@ class bitmex extends bitmex$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -883,6 +884,7 @@ class bitmex extends bitmex$1 {
          * @name bitmex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1141,6 +1143,7 @@ class bitmex extends bitmex$1 {
         const type = this.parseLedgerEntryType(this.safeString(item, 'transactType'));
         const currencyId = this.safeString(item, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const amountString = this.safeString(item, 'amount');
         let amount = this.convertToRealAmount(code, amountString);
         let timestamp = this.parse8601(this.safeString(item, 'transactTime'));
@@ -1155,14 +1158,14 @@ class bitmex extends bitmex$1 {
             feeCost = this.convertToRealAmount(code, feeCost);
         }
         const fee = {
-            'cost': this.parseNumber(feeCost),
+            'cost': this.parseToNumeric(feeCost),
             'currency': code,
         };
         let after = this.safeString(item, 'walletBalance');
         if (after !== undefined) {
             after = this.convertToRealAmount(code, after);
         }
-        const before = this.parseNumber(Precise["default"].stringSub(this.numberToString(after), this.numberToString(amount)));
+        const before = this.parseToNumeric(Precise["default"].stringSub(this.numberToString(after), this.numberToString(amount)));
         let direction = undefined;
         if (Precise["default"].stringLt(amountString, '0')) {
             direction = 'out';
@@ -1172,9 +1175,9 @@ class bitmex extends bitmex$1 {
             direction = 'in';
         }
         const status = this.parseTransactionStatus(this.safeString(item, 'transactStatus'));
-        return {
-            'id': id,
+        return this.safeLedgerEntry({
             'info': item,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'direction': direction,
@@ -1183,22 +1186,22 @@ class bitmex extends bitmex$1 {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseToNumeric(amount),
             'before': before,
-            'after': this.parseNumber(after),
+            'after': this.parseToNumeric(after),
             'status': status,
             'fee': fee,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -1434,6 +1437,7 @@ class bitmex extends bitmex$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'homeNotional24h'),
             'quoteVolume': this.safeString(ticker, 'foreignNotional24h'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -2455,6 +2459,9 @@ class bitmex extends bitmex$1 {
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
+        if (this.twofa !== undefined) {
+            request['otpToken'] = totp.totp(this.twofa);
+        }
         const response = await this.privatePostUserRequestWithdrawal(this.extend(request, params));
         //
         //     {
@@ -2483,7 +2490,7 @@ class bitmex extends bitmex$1 {
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.publicGetInstrumentActiveAndIndices(params);
@@ -2517,7 +2524,7 @@ class bitmex extends bitmex$1 {
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'fundingRate': this.safeNumber(contract, 'fundingRate'),
-            'fundingTimestamp': this.iso8601(fundingDatetime),
+            'fundingTimestamp': this.parseToNumeric(this.iso8601(fundingDatetime)),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': this.safeNumber(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': undefined,
@@ -2525,6 +2532,7 @@ class bitmex extends bitmex$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

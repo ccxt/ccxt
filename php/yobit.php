@@ -234,6 +234,7 @@ class yobit extends Exchange {
                 'XIN' => 'XINCoin',
                 'XMT' => 'SummitCoin',
                 'XRA' => 'Ratecoin',
+                'BCHN' => 'BSV',
             ),
             'options' => array(
                 'maxUrlLength' => 2048,

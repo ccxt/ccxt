@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:ts/src/test/base/custom/test.throttle.ts
 
+========
+/* eslint-disable */
+>>>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab:ts/src/test/base/language_specific/test.throttle.ts
 import { Throttler } from '../../../base/functions/throttle.js'
 
 function testThrottle () {

@@ -637,6 +637,7 @@ export default class poloniex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'quantity'),
             'quoteVolume': this.safeString (ticker, 'amount'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -1123,8 +1124,10 @@ export default class poloniex extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         let resultingTrades = this.safeValue (order, 'resultingTrades');
-        if (!Array.isArray (resultingTrades)) {
-            resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
+        if (resultingTrades !== undefined) {
+            if (!Array.isArray (resultingTrades)) {
+                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
+            }
         }
         const price = this.safeString2 (order, 'price', 'rate');
         const amount = this.safeString (order, 'quantity');

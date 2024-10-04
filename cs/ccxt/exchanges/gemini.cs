@@ -870,8 +870,11 @@ public partial class gemini : Exchange
     public async virtual Task<object> fetchTickerV1AndV2(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object tickerA = await this.fetchTickerV1(symbol, parameters);
-        object tickerB = await this.fetchTickerV2(symbol, parameters);
+        object tickerPromiseA = this.fetchTickerV1(symbol, parameters);
+        object tickerPromiseB = this.fetchTickerV2(symbol, parameters);
+        var tickerAtickerBVariable = await promiseAll(new List<object>() {tickerPromiseA, tickerPromiseB});
+        var tickerA = ((IList<object>) tickerAtickerBVariable)[0];
+        var tickerB = ((IList<object>) tickerAtickerBVariable)[1];
         return this.deepExtend(tickerA, new Dictionary<string, object>() {
             { "open", getValue(tickerB, "open") },
             { "high", getValue(tickerB, "high") },

@@ -269,6 +269,7 @@ export default class bitvavo extends Exchange {
                 },
             },
             'options': {
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW': 10000,
                 'networks': {
                     'ERC20': 'ETH',
@@ -280,9 +281,6 @@ export default class bitvavo extends Exchange {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
         });
-    }
-    currencyToPrecision(code, fee, networkCode = undefined) {
-        return this.decimalToPrecision(fee, 0, this.currencies[code]['precision'], DECIMAL_PLACES);
     }
     amountToPrecision(symbol, amount) {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
@@ -1310,6 +1308,7 @@ export default class bitvavo extends Exchange {
          * @name bitvavo#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

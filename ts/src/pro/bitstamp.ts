@@ -17,6 +17,7 @@ export default class bitstamp extends bitstampRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,

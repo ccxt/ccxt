@@ -16,6 +16,7 @@ public partial class independentreserve : ccxt.independentreserve
                 { "watchTicker", false },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", false },
                 { "watchOrders", false },
                 { "watchOrderBook", true },
@@ -242,8 +243,8 @@ public partial class independentreserve : ccxt.independentreserve
             if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
             {
                 var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }

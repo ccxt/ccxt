@@ -103,6 +103,8 @@
                   "average": null,
                   "baseVolume": 434035.6696803,
                   "quoteVolume": null,
+                  "markPrice":  null,
+                  "indexPrice": null,
                   "info": {
                     "success": true,
                     "initialprice": "68244.43002928",

@@ -49,9 +49,9 @@ class oceanex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchDepositAddress' => false,
-                'fetchDepositAddresses' => false,
-                'fetchDepositAddressesByNetwork' => false,
+                'fetchDepositAddress' => 'emulated',
+                'fetchDepositAddresses' => null,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchMarkets' => true,
@@ -112,6 +112,11 @@ class oceanex extends Exchange {
                         'order/delete',
                         'order/delete/multi',
                         'orders/clear',
+                        '/withdraws/special/new',
+                        '/deposit_address',
+                        '/deposit_addresses',
+                        '/deposit_history',
+                        '/withdraw_history',
                     ),
                 ),
             ),
@@ -938,6 +943,83 @@ class oceanex extends Exchange {
             $data = $this->safe_list($response, 'data');
             return $this->parse_orders($data);
         }) ();
+    }
+
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit addresses for a $currency associated with this account
+             * @see https://api.oceanex.pro/doc/v1/#deposit-addresses-post
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary ~@link https://docs.ccxt.com/#/?id=address-structure address structures~, indexed by the network
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+            );
+            $response = Async\await($this->privatePostDepositAddresses ($this->extend($request, $params)));
+            //
+            //    {
+            //        $code => '0',
+            //        message => 'Operation successful',
+            //        $data => {
+            //          $data => {
+            //            currency_id => 'usdt',
+            //            display_name => 'USDT',
+            //            num_of_resources => '3',
+            //            $resources => array(
+            //              array(
+            //                chain_name => 'TRC20',
+            //                currency_id => 'usdt',
+            //                address => 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+            //                memo => '',
+            //                deposit_status => 'enabled'
+            //              ),
+            //              ...
+            //            )
+            //          }
+            //        }
+            //    }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $data2 = $this->safe_dict($data, 'data', array());
+            $resources = $this->safe_list($data2, 'resources', array());
+            $result = array();
+            for ($i = 0; $i < count($resources); $i++) {
+                $resource = $resources[$i];
+                $enabled = $this->safe_string($resource, 'deposit_status');
+                if ($enabled === 'enabled') {
+                    $parsedAddress = $this->parse_deposit_address($resource, $currency);
+                    $result[$parsedAddress['currency']] = $parsedAddress;
+                }
+            }
+            return $result;
+        }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+        //
+        //    {
+        //        chain_name => 'TRC20',
+        //        currency_id => 'usdt',
+        //        $address => 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        //        memo => '',
+        //        deposit_status => 'enabled'
+        //    }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $this->check_address($address);
+        $currencyId = $this->safe_string($depositAddress, 'currency_id');
+        $networkId = $this->safe_string($depositAddress, 'chain_name');
+        return array(
+            'info' => $depositAddress,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'address' => $address,
+            'tag' => $this->safe_string($depositAddress, 'memo'),
+            'network' => $this->network_id_to_code($networkId),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

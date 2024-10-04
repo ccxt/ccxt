@@ -2216,11 +2216,11 @@ public partial class coinlist : Exchange
         /**
         * @method
         * @name coinlist#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return (default 200, max 500)
+        * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] the latest time in ms to fetch entries for
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -2413,8 +2413,9 @@ public partial class coinlist : Exchange
         }
         object currencyId = this.safeString(item, "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
             { "timestamp", timestamp },
@@ -2430,7 +2431,7 @@ public partial class coinlist : Exchange
             { "after", null },
             { "status", "ok" },
             { "fee", null },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)

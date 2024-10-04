@@ -85,8 +85,8 @@ public partial class cryptocom : Exchange
                 { "fetchTickers", true },
                 { "fetchTime", false },
                 { "fetchTrades", true },
-                { "fetchTradingFee", false },
-                { "fetchTradingFees", false },
+                { "fetchTradingFee", true },
+                { "fetchTradingFees", true },
                 { "fetchTransactionFees", false },
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
@@ -132,7 +132,7 @@ public partial class cryptocom : Exchange
                 { "www", "https://crypto.com/" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://crypto.com/exch/kdacthrnxt" },
-                    { "discount", 0.15 },
+                    { "discount", 0.75 },
                 } },
                 { "doc", new List<object>() {"https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html", "https://exchange-docs.crypto.com/spot/index.html", "https://exchange-docs.crypto.com/derivatives/index.html"} },
                 { "fees", "https://crypto.com/exchange/document/fees-limits" },
@@ -183,6 +183,8 @@ public partial class cryptocom : Exchange
                             { "private/get-accounts", divide(10, 3) },
                             { "private/get-withdrawal-history", divide(10, 3) },
                             { "private/get-deposit-history", divide(10, 3) },
+                            { "private/get-fee-rate", 2 },
+                            { "private/get-instrument-fee-rate", 2 },
                             { "private/staking/stake", 2 },
                             { "private/staking/unstake", 2 },
                             { "private/staking/get-staking-position", 2 },
@@ -576,7 +578,7 @@ public partial class cryptocom : Exchange
         * @method
         * @name cryptocom#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1931,6 +1933,7 @@ public partial class cryptocom : Exchange
         * @method
         * @name cryptocom#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1947,20 +1950,6 @@ public partial class cryptocom : Exchange
             object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
             return getValue(depositAddresses, getValue(keys, 0));
         }
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "BTC", "BTC" },
-            { "ETH", "ETH" },
-            { "SOL", "SOL" },
-            { "BNB", "BNB" },
-            { "CRONOS", "CRONOS" },
-            { "MATIC", "MATIC" },
-            { "OP", "OP" },
-        };
-        return this.safeString(networksById, networkId, networkId);
     }
 
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2603,7 +2592,7 @@ public partial class cryptocom : Exchange
         * @name cryptocom#fetchLedger
         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-        * @param {string} code unified currency code
+        * @param {string} [code] unified currency code
         * @param {int} [since] timestamp in ms of the earliest ledger entry
         * @param {int} [limit] max number of ledger entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2691,6 +2680,8 @@ public partial class cryptocom : Exchange
         //
         object timestamp = this.safeInteger(item, "event_timestamp_ms");
         object currencyId = this.safeString(item, "instrument_name");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeString(item, "transaction_qty");
         object direction = null;
         if (isTrue(Precise.stringLt(amount, "0")))
@@ -2701,14 +2692,15 @@ public partial class cryptocom : Exchange
         {
             direction = "in";
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "order_id") },
             { "direction", direction },
             { "account", this.safeString(item, "account_id") },
             { "referenceId", this.safeString(item, "trade_id") },
             { "referenceAccount", this.safeString(item, "trade_match_id") },
             { "type", this.parseLedgerEntryType(this.safeString(item, "journal_type")) },
-            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "currency", code },
             { "amount", this.parseNumber(amount) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -2719,8 +2711,7 @@ public partial class cryptocom : Exchange
                 { "currency", null },
                 { "cost", null },
             } },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -3285,6 +3276,130 @@ public partial class cryptocom : Exchange
         //
         object result = this.safeDict(response, "result");
         return this.parseOrder(result, market);
+    }
+
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#fetchTradingFee
+        * @description fetch the trading fees for a market
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "instrument_name", getValue(market, "id") },
+        };
+        object response = await this.v1PrivatePostPrivateGetInstrumentFeeRate(this.extend(request, parameters));
+        //
+        //    {
+        //        "id": 1,
+        //        "code": 0,
+        //        "method": "private/staking/unstake",
+        //        "result": {
+        //          "staking_id": "1",
+        //          "instrument_name": "SOL.staked",
+        //          "status": "NEW",
+        //          "quantity": "1",
+        //          "underlying_inst_name": "SOL",
+        //          "reason": "NO_ERROR"
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseTradingFee(data, market);
+    }
+
+    public async override Task<object> fetchTradingFees(object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#fetchTradingFees
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+        * @description fetch the trading fees for multiple markets
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.v1PrivatePostPrivateGetFeeRate(parameters);
+        //
+        //   {
+        //       "id": 1,
+        //       "method": "/private/get-fee-rate",
+        //       "code": 0,
+        //       "result": {
+        //         "spot_tier": "3",
+        //         "deriv_tier": "3",
+        //         "effective_spot_maker_rate_bps": "6.5",
+        //         "effective_spot_taker_rate_bps": "6.9",
+        //         "effective_deriv_maker_rate_bps": "1.1",
+        //         "effective_deriv_taker_rate_bps": "3"
+        //       }
+        //   }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseTradingFees(result);
+    }
+
+    public virtual object parseTradingFees(object response)
+    {
+        //
+        // {
+        //         "spot_tier": "3",
+        //         "deriv_tier": "3",
+        //         "effective_spot_maker_rate_bps": "6.5",
+        //         "effective_spot_taker_rate_bps": "6.9",
+        //         "effective_deriv_maker_rate_bps": "1.1",
+        //         "effective_deriv_taker_rate_bps": "3"
+        //  }
+        //
+        object result = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)result)["info"] = response;
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            object isSwap = getValue(market, "swap");
+            object takerFeeKey = ((bool) isTrue(isSwap)) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
+            object makerFeeKey = ((bool) isTrue(isSwap)) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
+            object tradingFee = new Dictionary<string, object>() {
+                { "info", response },
+                { "symbol", symbol },
+                { "maker", this.parseNumber(Precise.stringDiv(this.safeString(response, makerFeeKey), "10000")) },
+                { "taker", this.parseNumber(Precise.stringDiv(this.safeString(response, takerFeeKey), "10000")) },
+                { "percentage", null },
+                { "tierBased", null },
+            };
+            ((IDictionary<string,object>)result)[(string)symbol] = tradingFee;
+        }
+        return result;
+    }
+
+    public virtual object parseTradingFee(object fee, object market = null)
+    {
+        //
+        // {
+        //      "instrument_name": "BTC_USD",
+        //      "effective_maker_rate_bps": "6.5",
+        //      "effective_taker_rate_bps": "6.9"
+        // }
+        //
+        object marketId = this.safeString(fee, "instrument_name");
+        object symbol = this.safeSymbol(marketId, market);
+        return new Dictionary<string, object>() {
+            { "info", fee },
+            { "symbol", symbol },
+            { "maker", this.parseNumber(Precise.stringDiv(this.safeString(fee, "effective_maker_rate_bps"), "10000")) },
+            { "taker", this.parseNumber(Precise.stringDiv(this.safeString(fee, "effective_taker_rate_bps"), "10000")) },
+            { "percentage", null },
+            { "tierBased", null },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

@@ -754,11 +754,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currencyId = self.safe_string(network, 'asset_name')
         currencyCode = self.safe_currency_code(currencyId)
         networkId = self.safe_string(network, 'network_arn_id')
+        networkIdForCode = self.safe_string_n(network, ['network_name', 'display_name', 'network_arn_id'], '')
         return self.safe_network({
             'info': network,
             'id': networkId,
             'name': self.safe_string(network, 'display_name'),
-            'network': self.network_id_to_code(self.safe_string_n(network, ['network_name', 'display_name', 'network_arn_id'], ''), currencyCode),
+            'network': self.network_id_to_code(networkIdForCode, currencyCode),
             'active': None,
             'deposit': None,
             'withdraw': None,
@@ -1425,6 +1426,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'baseVolume': None,
             'quoteVolume': None,
             'previousClose': None,
+            'markPrice': self.safe_number(ticker, 'mark_price'),
+            'indexPrice': self.safe_number(ticker, 'index_price'),
         })
 
     async def fetch_balance(self, params={}) -> Balances:

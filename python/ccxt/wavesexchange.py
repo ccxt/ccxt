@@ -1238,7 +1238,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         if (isMarketOrder) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell')
         timestamp = self.milliseconds()
-        defaultExpiryDelta = self.safe_integer(self.options, 'createOrderDefaultExpiry', 2419200000)
+        defaultExpiryDelta = None
+        defaultExpiryDelta, params = self.handle_option_and_params(params, 'createOrder', 'defaultExpiry', self.safe_integer(self.options, 'createOrderDefaultExpiry', 2419200000))
         expiration = self.sum(timestamp, defaultExpiryDelta)
         matcherFees = self.get_fees_for_asset(symbol, side, amount, price)
         # {
@@ -1373,11 +1374,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         #     }
         #
         if isMarketOrder:
-            response = self.matcherPostMatcherOrderbookMarket(body)
+            response = self.matcherPostMatcherOrderbookMarket(self.extend(body, params))
             value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
         else:
-            response = self.matcherPostMatcherOrderbook(body)
+            response = self.matcherPostMatcherOrderbook(self.extend(body, params))
             value = self.safe_dict(response, 'message')
             return self.parse_order(value, market)
 

@@ -787,11 +787,12 @@ class coinbaseinternational extends Exchange {
         $currencyId = $this->safe_string($network, 'asset_name');
         $currencyCode = $this->safe_currency_code($currencyId);
         $networkId = $this->safe_string($network, 'network_arn_id');
+        $networkIdForCode = $this->safe_string_n($network, array( 'network_name', 'display_name', 'network_arn_id' ), '');
         return $this->safe_network(array(
             'info' => $network,
             'id' => $networkId,
             'name' => $this->safe_string($network, 'display_name'),
-            'network' => $this->network_id_to_code($this->safe_string_n($network, array( 'network_name', 'display_name', 'network_arn_id' ), ''), $currencyCode),
+            'network' => $this->network_id_to_code($networkIdForCode, $currencyCode),
             'active' => null,
             'deposit' => null,
             'withdraw' => null,
@@ -1486,6 +1487,8 @@ class coinbaseinternational extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'previousClose' => null,
+            'markPrice' => $this->safe_number($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_number($ticker, 'index_price'),
         ));
     }
 

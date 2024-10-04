@@ -15,6 +15,7 @@ use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class bitfinex2 extends Exchange {
@@ -69,7 +70,7 @@ class bitfinex2 extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => true,
+                'fetchFundingRate' => 'emulated', // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -341,9 +342,9 @@ class bitfinex2 extends Exchange {
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
                 'exchangeTypes' => array(
-                    // 'MARKET' => null,
+                    'MARKET' => 'market',
                     'EXCHANGE MARKET' => 'market',
-                    // 'LIMIT' => null,
+                    'LIMIT' => 'limit',
                     'EXCHANGE LIMIT' => 'limit',
                     // 'STOP' => null,
                     'EXCHANGE STOP' => 'market',
@@ -383,6 +384,25 @@ class bitfinex2 extends Exchange {
                 ),
                 'withdraw' => array(
                     'includeFee' => false,
+                ),
+                'networks' => array(
+                    'BTC' => 'BITCOIN',
+                    'LTC' => 'LITECOIN',
+                    'ERC20' => 'ETHEREUM',
+                    'OMNI' => 'TETHERUSO',
+                    'LIQUID' => 'TETHERUSL',
+                    'TRC20' => 'TETHERUSX',
+                    'EOS' => 'TETHERUSS',
+                    'AVAX' => 'TETHERUSDTAVAX',
+                    'SOL' => 'TETHERUSDTSOL',
+                    'ALGO' => 'TETHERUSDTALG',
+                    'BCH' => 'TETHERUSDTBCH',
+                    'KSM' => 'TETHERUSDTKSM',
+                    'DVF' => 'TETHERUSDTDVF',
+                    'OMG' => 'TETHERUSDTOMG',
+                ),
+                'networksById' => array(
+                    'TETHERUSE' => 'ERC20',
                 ),
             ),
             'exceptions' => array(
@@ -513,12 +533,13 @@ class bitfinex2 extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $spotMarketsInfo = Async\await($this->publicGetConfPubInfoPair ($params));
-            $futuresMarketsInfo = Async\await($this->publicGetConfPubInfoPairFutures ($params));
-            $spotMarketsInfo = $this->safe_value($spotMarketsInfo, 0, array());
-            $futuresMarketsInfo = $this->safe_value($futuresMarketsInfo, 0, array());
+            $spotMarketsInfoPromise = $this->publicGetConfPubInfoPair ($params);
+            $futuresMarketsInfoPromise = $this->publicGetConfPubInfoPairFutures ($params);
+            $marginIdsPromise = $this->publicGetConfPubListPairMargin ($params);
+            list($spotMarketsInfo, $futuresMarketsInfo, $marginIds) = Async\await(Promise\all(array( $spotMarketsInfoPromise, $futuresMarketsInfoPromise, $marginIdsPromise )));
+            $spotMarketsInfo = $this->safe_list($spotMarketsInfo, 0, array());
+            $futuresMarketsInfo = $this->safe_list($futuresMarketsInfo, 0, array());
             $markets = $this->array_concat($spotMarketsInfo, $futuresMarketsInfo);
-            $marginIds = Async\await($this->publicGetConfPubListPairMargin ($params));
             $marginIds = $this->safe_value($marginIds, 0, array());
             //
             //    array(
@@ -798,7 +819,7 @@ class bitfinex2 extends Exchange {
                     $networkId = $this->safe_string($pair, 0);
                     $currencyId = $this->safe_string($this->safe_value($pair, 1, array()), 0);
                     if ($currencyId === $cleanId) {
-                        $network = $this->safe_network($networkId);
+                        $network = $this->network_id_to_code($networkId);
                         $networks[$network] = array(
                             'info' => $networkId,
                             'id' => strtolower($networkId),
@@ -825,27 +846,6 @@ class bitfinex2 extends Exchange {
             }
             return $result;
         }) ();
-    }
-
-    public function safe_network($networkId) {
-        $networksById = array(
-            'BITCOIN' => 'BTC',
-            'LITECOIN' => 'LTC',
-            'ETHEREUM' => 'ERC20',
-            'TETHERUSE' => 'ERC20',
-            'TETHERUSO' => 'OMNI',
-            'TETHERUSL' => 'LIQUID',
-            'TETHERUSX' => 'TRC20',
-            'TETHERUSS' => 'EOS',
-            'TETHERUSDTAVAX' => 'AVAX',
-            'TETHERUSDTSOL' => 'SOL',
-            'TETHERUSDTALG' => 'ALGO',
-            'TETHERUSDTBCH' => 'BCH',
-            'TETHERUSDTKSM' => 'KSM',
-            'TETHERUSDTDVF' => 'DVF',
-            'TETHERUSDTOMG' => 'OMG',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_balance($params = array ()): PromiseInterface {
@@ -2403,7 +2403,7 @@ class bitfinex2 extends Exchange {
             $currencyId = $this->safe_string($transaction, 1);
             $code = $this->safe_currency_code($currencyId, $currency);
             $networkId = $this->safe_string($transaction, 2);
-            $network = $this->safe_network($networkId);
+            $network = $this->network_id_to_code($networkId);
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
@@ -2925,7 +2925,7 @@ class bitfinex2 extends Exchange {
         }
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     array(
         //         array(
@@ -2946,6 +2946,7 @@ class bitfinex2 extends Exchange {
         $id = $this->safe_string($itemList, 0);
         $currencyId = $this->safe_string($itemList, 1);
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($itemList, 3);
         $amount = $this->safe_number($itemList, 5);
         $after = $this->safe_number($itemList, 6);
@@ -2955,7 +2956,8 @@ class bitfinex2 extends Exchange {
             $first = $this->safe_string_lower($parts, 0);
             $type = $this->parse_ledger_entry_type($first);
         }
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $id,
             'direction' => null,
             'account' => null,
@@ -2970,18 +2972,17 @@ class bitfinex2 extends Exchange {
             'after' => $after,
             'status' => null,
             'fee' => null,
-            'info' => $item,
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
-             * @param {string} $code unified $currency $code, default is null
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null max is 2500
+             * @param {int} [$limit] max number of ledger entries to return, default is null, max is 2500
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -3034,27 +3035,14 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch the current funding rate
-             * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-             * @param {string} $symbol unified market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
-             */
-            return Async\await($this->fetch_funding_rates(array( $symbol ), $params));
-        }) ();
-    }
-
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetch the current funding rate
+             * fetch the current funding rate for multiple $symbols
              * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
              * @param {string[]} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRates() requires a $symbols argument');
@@ -3178,7 +3166,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //       array(
         //          "tBTCF0:USTF0",
@@ -3228,6 +3216,7 @@ class bitfinex2 extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 

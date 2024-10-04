@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2402,6 +2402,8 @@ class phemex(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param str [params.posSide]: *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+        :param bool [params.hedged]: *swap only* True for hedged mode, False for one way mode, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2486,13 +2488,18 @@ class phemex(Exchange, ImplicitAPI):
                 amountString = self.number_to_string(amount)
                 request['baseQtyEv'] = self.to_ev(amountString, market)
         elif market['swap']:
+            hedged = self.safe_bool(params, 'hedged', False)
+            params = self.omit(params, 'hedged')
             posSide = self.safe_string_lower(params, 'posSide')
             if posSide is None:
-                posSide = 'Merged'
+                if hedged:
+                    if reduceOnly:
+                        side = 'sell' if (side == 'buy') else 'buy'
+                    posSide = 'Long' if (side == 'buy') else 'Short'
+                else:
+                    posSide = 'Merged'
             posSide = self.capitalize(posSide)
             request['posSide'] = posSide
-            if reduceOnly is not None:
-                request['reduceOnly'] = reduceOnly
             if market['settle'] == 'USDT':
                 request['orderQtyRq'] = amount
             else:
@@ -2800,6 +2807,7 @@ class phemex(Exchange, ImplicitAPI):
         """
         :see: https://phemex-docs.github.io/#query-orders-by-ids
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2821,7 +2829,7 @@ class phemex(Exchange, ImplicitAPI):
         if market['settle'] == 'USDT':
             response = self.privateGetApiDataGFuturesOrdersByOrderId(self.extend(request, params))
         elif market['spot']:
-            response = self.privateGetSpotOrdersActive(self.extend(request, params))
+            response = self.privateGetApiDataSpotsOrdersByOrderId(self.extend(request, params))
         else:
             response = self.privateGetExchangeOrder(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
@@ -2833,7 +2841,10 @@ class phemex(Exchange, ImplicitAPI):
                     raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with clientOrderId ' + clientOrderId + ' not found')
                 else:
                     raise OrderNotFound(self.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found')
-            order = self.safe_value(data, 0, {})
+            order = self.safe_dict(data, 0, {})
+        elif market['spot']:
+            rows = self.safe_list(data, 'rows', [])
+            order = self.safe_dict(rows, 0, {})
         return self.parse_order(order, market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -2864,7 +2875,7 @@ class phemex(Exchange, ImplicitAPI):
         elif market['swap']:
             response = self.privateGetExchangeOrderList(self.extend(request, params))
         else:
-            response = self.privateGetSpotOrders(self.extend(request, params))
+            response = self.privateGetApiDataSpotsOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         rows = self.safe_list(data, 'rows', data)
         return self.parse_orders(rows, market, since, limit)
@@ -3737,7 +3748,7 @@ class phemex(Exchange, ImplicitAPI):
             value = Precise.string_mul(value, tickPrecision)
         return value
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :param str symbol: unified market symbol
@@ -3782,7 +3793,7 @@ class phemex(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
         #         "askEp": 2332500,
@@ -3841,6 +3852,7 @@ class phemex(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
     def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:

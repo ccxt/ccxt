@@ -17,6 +17,7 @@ export default class independentreserve extends independentreserveRest {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': false,
                 'watchOrderBook': true,

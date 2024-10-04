@@ -826,11 +826,12 @@ public partial class coinbaseinternational : Exchange
         object currencyId = this.safeString(network, "asset_name");
         object currencyCode = this.safeCurrencyCode(currencyId);
         object networkId = this.safeString(network, "network_arn_id");
+        object networkIdForCode = this.safeStringN(network, new List<object>() {"network_name", "display_name", "network_arn_id"}, "");
         return this.safeNetwork(new Dictionary<string, object>() {
             { "info", network },
             { "id", networkId },
             { "name", this.safeString(network, "display_name") },
-            { "network", this.networkIdToCode(this.safeStringN(network, new List<object>() {"network_name", "display_name", "network_arn_id"}, ""), currencyCode) },
+            { "network", this.networkIdToCode(networkIdForCode, currencyCode) },
             { "active", null },
             { "deposit", null },
             { "withdraw", null },
@@ -1597,6 +1598,8 @@ public partial class coinbaseinternational : Exchange
             { "baseVolume", null },
             { "quoteVolume", null },
             { "previousClose", null },
+            { "markPrice", this.safeNumber(ticker, "mark_price") },
+            { "indexPrice", this.safeNumber(ticker, "index_price") },
         });
     }
 

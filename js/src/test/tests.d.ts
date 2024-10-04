@@ -1,7 +1,33 @@
 import { Exchange } from '../../ccxt.js';
 import { Str } from '../base/types.js';
-import { baseMainTestClass } from './tests.helpers.js';
-declare class testMainClass extends baseMainTestClass {
+declare class testMainClass {
+    isSynchronous: boolean;
+    idTests: boolean;
+    requestTestsFailed: boolean;
+    responseTestsFailed: boolean;
+    requestTests: boolean;
+    wsTests: boolean;
+    responseTests: boolean;
+    staticTests: boolean;
+    info: boolean;
+    verbose: boolean;
+    debug: boolean;
+    privateTest: boolean;
+    privateTestOnly: boolean;
+    private loadKeys;
+    sandbox: boolean;
+    proxyTestFileName: string;
+    onlySpecificTests: string[];
+    skippedSettingsForExchange: {};
+    skippedMethods: {};
+    checkedPublicTests: {};
+    testFiles: any;
+    publicTests: {};
+    newLine: string;
+    rootDir: string;
+    envVars: any;
+    ext: string;
+    lang: string;
     parseCliArgs(): void;
     init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<void>;
     checkIfSpecificTestIsChosen(methodArgv: any): void;
@@ -9,7 +35,6 @@ declare class testMainClass extends baseMainTestClass {
     loadCredentialsFromEnv(exchange: Exchange): void;
     expandSettings(exchange: Exchange): void;
     addPadding(message: string, size: any): string;
-    exchangeHint(exchange: any, market?: any): string;
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<void>;
     getSkips(exchange: Exchange, methodName: string): any;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<any>;
@@ -67,5 +92,6 @@ declare class testMainClass extends baseMainTestClass {
     testXT(): Promise<boolean>;
     testVertex(): Promise<boolean>;
     testParadex(): Promise<boolean>;
+    testHashkey(): Promise<boolean>;
 }
 export default testMainClass;

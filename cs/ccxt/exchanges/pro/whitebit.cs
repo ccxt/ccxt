@@ -18,7 +18,9 @@ public partial class whitebit : ccxt.whitebit
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchTicker", true },
+                { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -63,6 +65,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://docs.whitebit.com/public/websocket/#kline
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -147,6 +150,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://docs.whitebit.com/public/websocket/#market-depth
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -260,6 +264,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://docs.whitebit.com/public/websocket/#market-statistics
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -272,6 +277,40 @@ public partial class whitebit : ccxt.whitebit
         object messageHash = add("ticker:", symbol);
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
         return await this.watchMultipleSubscription(messageHash, method, symbol, false, parameters);
+    }
+
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name whitebit#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://docs.whitebit.com/public/websocket/#market-statistics
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object method = "market_subscribe";
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object id = this.nonce();
+        object messageHashes = new List<object>() {};
+        object args = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+            ((IList<object>)args).Add(getValue(market, "id"));
+        }
+        object request = new Dictionary<string, object>() {
+            { "id", id },
+            { "method", method },
+            { "params", args },
+        };
+        await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
     public virtual object handleTicker(WebSocketClient client, object message)
@@ -333,6 +372,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://docs.whitebit.com/public/websocket/#market-trades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -407,6 +447,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchMyTrades
         * @description watches trades made by the user
+        * @see https://docs.whitebit.com/private/websocket/#deals
         * @param {str} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -517,6 +558,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchOrders
         * @description watches information on multiple orders made by the user
+        * @see https://docs.whitebit.com/private/websocket/#orders-pending
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -710,6 +752,8 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchBalance
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://docs.whitebit.com/private/websocket/#balance-spot
+        * @see https://docs.whitebit.com/private/websocket/#balance-margin
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -850,7 +894,7 @@ public partial class whitebit : ccxt.whitebit
                 };
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
                 }
                 return await this.watch(url, messageHash, resubRequest, method, subscription);
             }
@@ -907,7 +951,7 @@ public partial class whitebit : ccxt.whitebit
                 await this.watch(url, messageHash, request, messageHash, subscription);
             } catch(Exception e)
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 ((Future)future).reject(e);
             }
         }
@@ -949,7 +993,7 @@ public partial class whitebit : ccxt.whitebit
                 ((WebSocketClient)client).reject(e, "authenticated");
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, "authenticated")))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
                 }
                 return false;
             }

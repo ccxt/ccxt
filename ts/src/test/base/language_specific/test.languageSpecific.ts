@@ -9,6 +9,7 @@ import testThrottle from './test.throttle.js';
 import testSafeBalance from './test.safeBalance.js';
 import testLegacyHas from './test.legacyHas.js';
 import testTypes from './test.type.js';
+// todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
 // import './test.timeout_hang.js' :todo
 
@@ -19,6 +20,7 @@ function testLanguageSpecific () {
     testSafeBalance ();
     testLegacyHas ();
     testTypes ();
+    // testConfig ();
 }
 
 export default testLanguageSpecific;

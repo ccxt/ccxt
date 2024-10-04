@@ -751,6 +751,7 @@ public partial class bitflyer : Exchange
         * @name bitflyer#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1141,11 +1142,11 @@ public partial class bitflyer : Exchange
         object feedback = add(add(this.id, " "), body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         object errorMessage = this.safeString(response, "error_message");
-        object statusCode = this.safeNumber(response, "status");
+        object statusCode = this.safeInteger(response, "status");
         if (isTrue(!isEqual(errorMessage, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), statusCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

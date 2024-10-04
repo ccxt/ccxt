@@ -27,6 +27,7 @@ class vertex extends \ccxt\async\vertex {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPositions' => true,
             ),
             'urls' => array(

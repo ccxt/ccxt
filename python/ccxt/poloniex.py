@@ -633,6 +633,7 @@ class poloniex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'quantity'),
             'quoteVolume': self.safe_string(ticker, 'amount'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
         }, market)
 
@@ -1088,8 +1089,9 @@ class poloniex(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
         resultingTrades = self.safe_value(order, 'resultingTrades')
-        if not isinstance(resultingTrades, list):
-            resultingTrades = self.safe_value(resultingTrades, self.safe_string(market, 'id', marketId))
+        if resultingTrades is not None:
+            if not isinstance(resultingTrades, list):
+                resultingTrades = self.safe_value(resultingTrades, self.safe_string(market, 'id', marketId))
         price = self.safe_string_2(order, 'price', 'rate')
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filledQuantity')

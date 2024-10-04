@@ -64,7 +64,7 @@ public partial class alpaca
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#orderbooks"/>  <br/>
+    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>

@@ -16,6 +16,7 @@ public partial class probit : ccxt.probit
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -251,6 +252,7 @@ public partial class probit : ccxt.probit
         * @method
         * @name probit#watchMyTrades
         * @description get the list of trades associated with the user
+        * @see https://docs-en.probit.com/reference/trade_history
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -478,7 +480,8 @@ public partial class probit : ccxt.probit
             filters = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
             if (!isTrue((inOp(filters, filter))))
             {
-
+                // resubscribe
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscriptionHash);
             }
         }
         ((IDictionary<string,object>)filters)[(string)filter] = true;
@@ -590,7 +593,7 @@ public partial class probit : ccxt.probit
         } else
         {
             ((Future)future).reject(message);
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
         }
     }
 

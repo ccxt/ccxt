@@ -626,6 +626,7 @@ class poloniex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'quantity'),
             'quoteVolume' => $this->safe_string($ticker, 'amount'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -1102,8 +1103,10 @@ class poloniex extends Exchange {
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
         $resultingTrades = $this->safe_value($order, 'resultingTrades');
-        if (gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades))) {
-            $resultingTrades = $this->safe_value($resultingTrades, $this->safe_string($market, 'id', $marketId));
+        if ($resultingTrades !== null) {
+            if (gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades))) {
+                $resultingTrades = $this->safe_value($resultingTrades, $this->safe_string($market, 'id', $marketId));
+            }
         }
         $price = $this->safe_string_2($order, 'price', 'rate');
         $amount = $this->safe_string($order, 'quantity');

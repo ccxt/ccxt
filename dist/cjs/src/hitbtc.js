@@ -1415,8 +1415,10 @@ class hitbtc extends hitbtc$1 {
     }
     parseTransactionStatus(status) {
         const statuses = {
+            'CREATED': 'pending',
             'PENDING': 'pending',
             'FAILED': 'failed',
+            'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
         return this.safeString(statuses, status, status);
@@ -2736,7 +2738,7 @@ class hitbtc extends hitbtc$1 {
          * @see https://api.hitbtc.com/#futures-info
          * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -3232,6 +3234,7 @@ class hitbtc extends hitbtc$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {

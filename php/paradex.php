@@ -645,7 +645,7 @@ class paradex extends Exchange {
             'low' => null,
             'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'sdk'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -657,6 +657,7 @@ class paradex extends Exchange {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($ticker, 'volume_24h'),
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
             'info' => $ticker,
         ), $market);
     }

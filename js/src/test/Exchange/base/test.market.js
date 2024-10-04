@@ -56,6 +56,10 @@ function testMarket(exchange, skippedProperties, method, market) {
                 'max': exchange.parseNumber('1000'), // order cost should be < max
             },
         },
+        'marginModes': {
+            'cross': true,
+            'isolated': false,
+        },
         'info': {},
     };
     const emptyAllowedFor = ['linear', 'inverse', 'settle', 'settleId', 'expiry', 'expiryDatetime', 'optionType', 'strike', 'margin', 'contractSize'];
@@ -216,5 +220,13 @@ function testMarket(exchange, skippedProperties, method, market) {
         testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, market['settleId'], market['settle']);
     }
     testSharedMethods.assertTimestamp(exchange, skippedProperties, method, market, undefined, 'created');
+    // margin modes
+    if (!('marginModes' in skippedProperties)) {
+        const marginModes = exchange.safeDict(market, 'marginModes'); // in future, remove safeDict
+        assert('cross' in marginModes, 'marginModes should have "cross" key' + logText);
+        assert('isolated' in marginModes, 'marginModes should have "isolated" key' + logText);
+        testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, 'cross', [true, false, undefined]);
+        testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, 'isolated', [true, false, undefined]);
+    }
 }
 export default testMarket;

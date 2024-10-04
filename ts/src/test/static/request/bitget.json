@@ -1533,6 +1533,17 @@
                 "input": [
                     "USDT"
                 ]
+            },
+            {
+                "description": "fetchDepositAddress with network TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-address?chain=TRC20&coin=USDT",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "TRC20"
+                  }
+                ]
             }
         ],
         "fetchLeverage": [
@@ -1561,6 +1572,15 @@
                 "method": "fetchTime",
                 "url": "https://api.bitget.com/api/v2/public/time",
                 "input": []
+            }
+        ],
+        "fetchMarkPrice": [
+            {
+                "method": "fetchMarkPrice",
+                "url": "https://api.bitget.com/api/v2/mix/market/symbol-price?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchTicker": [
@@ -1723,6 +1743,16 @@
                 "method": "fetchConvertTradeHistory",
                 "url": "https://api.bitget.com/api/v2/convert/convert-record?endTime=1713423544995&startTime=1713337144995",
                 "input": []
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://api.bitget.com/api/v2/mix/market/funding-time?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ]
     }

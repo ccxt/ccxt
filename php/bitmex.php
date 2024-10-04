@@ -52,7 +52,7 @@ class bitmex extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => 'emulated', // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -874,6 +874,7 @@ class bitmex extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1081,7 +1082,7 @@ class bitmex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "transactID" => "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1130,6 +1131,7 @@ class bitmex extends Exchange {
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'transactType'));
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amountString = $this->safe_string($item, 'amount');
         $amount = $this->convert_to_real_amount($code, $amountString);
         $timestamp = $this->parse8601($this->safe_string($item, 'transactTime'));
@@ -1144,14 +1146,14 @@ class bitmex extends Exchange {
             $feeCost = $this->convert_to_real_amount($code, $feeCost);
         }
         $fee = array(
-            'cost' => $this->parse_number($feeCost),
+            'cost' => $this->parse_to_numeric($feeCost),
             'currency' => $code,
         );
         $after = $this->safe_string($item, 'walletBalance');
         if ($after !== null) {
             $after = $this->convert_to_real_amount($code, $after);
         }
-        $before = $this->parse_number(Precise::string_sub($this->number_to_string($after), $this->number_to_string($amount)));
+        $before = $this->parse_to_numeric(Precise::string_sub($this->number_to_string($after), $this->number_to_string($amount)));
         $direction = null;
         if (Precise::string_lt($amountString, '0')) {
             $direction = 'out';
@@ -1160,9 +1162,9 @@ class bitmex extends Exchange {
             $direction = 'in';
         }
         $status = $this->parse_transaction_status($this->safe_string($item, 'transactStatus'));
-        return array(
-            'id' => $id,
+        return $this->safe_ledger_entry(array(
             'info' => $item,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'direction' => $direction,
@@ -1171,21 +1173,21 @@ class bitmex extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_to_numeric($amount),
             'before' => $before,
-            'after' => $this->parse_number($after),
+            'after' => $this->parse_to_numeric($after),
             'status' => $status,
             'fee' => $fee,
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-         * @param {string} $code unified $currency $code, default is null
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
@@ -1420,6 +1422,7 @@ class bitmex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'homeNotional24h'),
             'quoteVolume' => $this->safe_string($ticker, 'foreignNotional24h'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -2423,6 +2426,9 @@ class bitmex extends Exchange {
             // 'otpToken' => '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee' => 0.001, // bitcoin network fee
         );
+        if ($this->twofa !== null) {
+            $request['otpToken'] = $this->totp($this->twofa);
+        }
         $response = $this->privatePostUserRequestWithdrawal ($this->extend($request, $params));
         //
         //     {
@@ -2444,13 +2450,13 @@ class bitmex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the funding rate for multiple markets
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by $market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
          */
         $this->load_markets();
         $response = $this->publicGetInstrumentActiveAndIndices ($params);
@@ -2470,7 +2476,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         $datetime = $this->safe_string($contract, 'timestamp');
         $marketId = $this->safe_string($contract, 'symbol');
@@ -2485,7 +2491,7 @@ class bitmex extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
-            'fundingTimestamp' => $this->iso8601($fundingDatetime),
+            'fundingTimestamp' => $this->parse_to_numeric($this->iso8601($fundingDatetime)),
             'fundingDatetime' => $fundingDatetime,
             'nextFundingRate' => $this->safe_number($contract, 'indicativeFundingRate'),
             'nextFundingTimestamp' => null,
@@ -2493,6 +2499,7 @@ class bitmex extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
