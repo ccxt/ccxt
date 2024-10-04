@@ -1,5 +1,49 @@
 package ccxt
 
+func (this *Exchange) GetSymbols() []string{} {
+	return this.Symbols
+}
+
+func (this *Exchange) GetAlias() interface{} {
+	return this.Alias
+}
+
+func (this *Exchange) GetLast_request_url() interface{} {
+	return this.Last_request_url
+}
+
+func (this *Exchange) GetLast_request_body() interface{} {
+	return this.Last_request_body
+}
+
+func (this *Exchange) GetLast_request_headers() map[string]interface{} {
+	return this.Last_request_headers.(map[string]interface{})
+}
+
+func (this *Exchange) GetId() string {
+	return this.Id
+}
+
+func (this *Exchange) GetHas() map[string]interface{} {
+	return this.Has
+}
+
+func (this *Exchange) GetOptions() map[string]interface{} {
+	return this.Options
+}
+
+func (this *Exchange) GetCurrencies() map[string]interface{} {
+	return this.Currencies
+}
+
+func (this *Exchange) GetMarkets() map[string]interface{} {
+	return this.Markets
+}
+
+func (this *Exchange) SetPrivateKey(privateKey interface{}) {
+	this.PrivateKey = privateKey.(string)
+}
+
 func (this *Exchange) SetWalletAddress(publicKey interface{}) {
 	this.WalletAddress = publicKey.(string)
 }
