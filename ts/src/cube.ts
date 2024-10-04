@@ -766,32 +766,32 @@ export default class cube extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // Construct the base URL
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        // Define which paths should be public despite using the private base URL
+        const publicEndpoints = [ 'markets', 'history/klines' ];
+        // Check if the path is one of the public endpoints
+        const isPublicEndpoint = publicEndpoints.some ((endpoint) => path.includes (endpoint));
+        // Use 'private' URL, but treat as public if it's one of the public endpoints
+        let url = this.urls['api']['private'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (isPublicEndpoint) {
             // Handle public API requests
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
-            // Handle private API requests
+        } else {
+            // Handle private API requests (authentication needed)
             this.checkRequiredCredentials ();
-            // Create the timestamp
-            const timestamp = this.milliseconds ().toString ();  // AscendEX uses milliseconds
-            // Prepare the payload and signature
-            const payload = timestamp + '+' + path;  // Create a payload string (adjust this as needed for Cube)
+            const timestamp = this.milliseconds ().toString ();
+            const payload = timestamp + '+' + path;  // Create payload string
             const encodedPayload = this.encode (payload);
             const encodedSecret = this.encode (this.secret);
             const signature = this.hmac (encodedPayload, encodedSecret, sha256, 'hex');
-            // Construct headers
             headers = {
                 'Content-Type': 'application/json',
                 'X-Cube-Api-Key': this.apiKey,
                 'X-Cube-Api-Timestamp': timestamp,
                 'X-Cube-Api-Signature': signature,
             };
-            // Handle GET or POST requests
             if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
