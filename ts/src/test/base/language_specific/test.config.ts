@@ -3,7 +3,7 @@
 // todo: https://github.com/ttodua/ccxt/blob/b93163dd6c4e553143d0af8ada54f51401599714/ts/src/test/base/test.config.ts#L1
 
 import assert, { strictEqual, deepEqual } from 'assert';
-import ccxt, { Exchange, functions } from '../../../ccxt.js';
+import ccxt, { Exchange, functions } from '../../../../ccxt.js';
 
 const { index, aggregate, unCamelCase } = functions;
 
