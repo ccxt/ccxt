@@ -87,6 +87,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrice': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -757,6 +758,23 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.parse_ticker(response['data'], market)
 
+    async def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = await self.futuresPublicGetMarkPriceSymbolCurrent(self.extend(request, params))
+        #
+        return self.parse_ticker(response['data'], market)
+
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -842,6 +860,14 @@ class kucoinfutures(kucoin, ImplicitAPI):
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "LTCUSDTM",
+        #         "granularity": 1000,
+        #         "timePoint": 1727967339000,
+        #         "value": 62.37, mark price
+        #         "indexPrice": 62.37
+        #      }
         #
         #     {
         #         "code": "200000",
@@ -944,7 +970,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volumeOf24h'),
             'quoteVolume': self.safe_string(ticker, 'turnoverOf24h'),
-            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'markPrice': self.safe_string_2(ticker, 'markPrice', 'value'),
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)

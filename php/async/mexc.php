@@ -2619,6 +2619,7 @@ class mexc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -2629,6 +2630,8 @@ class mexc extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
             list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
             if ($marketType === 'spot') {
                 if ($symbol === null) {
@@ -2637,6 +2640,9 @@ class mexc extends Exchange {
                 list($marginMode, $queryInner) = $this->handle_margin_mode_and_params('fetchOrders', $params);
                 if ($since !== null) {
                     $request['startTime'] = $since;
+                }
+                if ($until !== null) {
+                    $request['endTime'] = $until;
                 }
                 if ($limit !== null) {
                     $request['limit'] = $limit;
@@ -2702,10 +2708,19 @@ class mexc extends Exchange {
             } else {
                 if ($since !== null) {
                     $request['start_time'] = $since;
-                    $end = $this->safe_integer($params, 'end_time');
+                    $end = $this->safe_integer($params, 'end_time', $until);
                     if ($end === null) {
                         $request['end_time'] = $this->sum($since, $this->options['maxTimeTillEnd']);
+                    } else {
+                        if (($end - $since) > $this->options['maxTimeTillEnd']) {
+                            throw new BadRequest($this->id . ' $end is invalid, i.e. exceeds allowed 90 days.');
+                        } else {
+                            $request['end_time'] = $until;
+                        }
                     }
+                } elseif ($until !== null) {
+                    $request['start_time'] = $this->sum($until, $this->options['maxTimeTillEnd'] * -1);
+                    $request['end_time'] = $until;
                 }
                 if ($limit !== null) {
                     $request['page_size'] = $limit;

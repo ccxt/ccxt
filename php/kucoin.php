@@ -75,6 +75,8 @@ class kucoin extends Exchange {
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => true,
+                'fetchMarkPrices' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
@@ -1653,7 +1655,7 @@ class kucoin extends Exchange {
         $symbol = $market['symbol'];
         $baseVolume = $this->safe_string($ticker, 'vol');
         $quoteVolume = $this->safe_string($ticker, 'volValue');
-        $timestamp = $this->safe_integer_2($ticker, 'time', 'datetime');
+        $timestamp = $this->safe_integer_n($ticker, array( 'time', 'datetime', 'timePoint' ));
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1674,6 +1676,7 @@ class kucoin extends Exchange {
             'average' => $this->safe_string($ticker, 'averagePrice'),
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'value'),
             'info' => $ticker,
         ), $market);
     }
@@ -1732,6 +1735,21 @@ class kucoin extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches the mark price for multiple markets
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->publicGetMarkPriceAllSymbols ($params);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_tickers($data);
+    }
+
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1768,6 +1786,25 @@ class kucoin extends Exchange {
         //             "makerCoefficient" => "1" // Maker Fee Coefficient
         //         }
         //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_ticker($data, $market);
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array ()): array {
+        /**
+         * fetches the mark price for a specific $market
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetMarkPriceSymbolCurrent ($this->extend($request, $params));
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);

@@ -87,6 +87,7 @@ class kucoinfutures extends kucoinfutures$1 {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
+                'fetchMarkPrice': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
@@ -775,6 +776,25 @@ class kucoinfutures extends kucoinfutures$1 {
         //
         return this.parseTicker(response['data'], market);
     }
+    async fetchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchMarkPrice
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, params));
+        //
+        return this.parseTicker(response['data'], market);
+    }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
          * @method
@@ -864,6 +884,14 @@ class kucoinfutures extends kucoinfutures$1 {
         return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
+        //
+        //     {
+        //         "symbol": "LTCUSDTM",
+        //         "granularity": 1000,
+        //         "timePoint": 1727967339000,
+        //         "value": 62.37, mark price
+        //         "indexPrice": 62.37
+        //      }
         //
         //     {
         //         "code": "200000",
@@ -966,7 +994,7 @@ class kucoinfutures extends kucoinfutures$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volumeOf24h'),
             'quoteVolume': this.safeString(ticker, 'turnoverOf24h'),
-            'markPrice': this.safeString(ticker, 'markPrice'),
+            'markPrice': this.safeString2(ticker, 'markPrice', 'value'),
             'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         }, market);

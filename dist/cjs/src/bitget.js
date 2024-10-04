@@ -114,6 +114,7 @@ class bitget extends bitget$1 {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
+                'fetchMarkPrice': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
@@ -2535,6 +2536,14 @@ class bitget extends bitget$1 {
     }
     parseTicker(ticker, market = undefined) {
         //
+        //   {
+        //       "symbol": "BTCUSDT",
+        //       "price": "26242",
+        //       "indexPrice": "34867",
+        //       "markPrice": "25555",
+        //       "ts": "1695793390482"
+        //   }
+        //
         // spot: fetchTicker, fetchTickers
         //
         //     {
@@ -2641,6 +2650,7 @@ class bitget extends bitget$1 {
             'baseVolume': this.safeString(ticker, 'baseVolume'),
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),
             'indexPrice': this.safeString(ticker, 'indexPrice'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -2741,6 +2751,42 @@ class bitget extends bitget$1 {
         //         ]
         //     }
         //
+        const data = this.safeList(response, 'data', []);
+        return this.parseTicker(data[0], market);
+    }
+    async fetchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchMarkPrice
+         * @description fetches the mark price for a specific market
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        let market = undefined;
+        if (sandboxMode) {
+            const sandboxSymbol = this.convertSymbolForSandbox(symbol);
+            market = this.market(sandboxSymbol);
+        }
+        else {
+            market = this.market(symbol);
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (market['spot']) {
+            throw new errors.NotSupported(this.id + ' fetchMarkPrice() is not supported for spot markets');
+        }
+        else {
+            let productType = undefined;
+            [productType, params] = this.handleProductTypeAndParams(market, params);
+            request['productType'] = productType;
+            response = await this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, params));
+        }
         const data = this.safeList(response, 'data', []);
         return this.parseTicker(data[0], market);
     }

@@ -5523,6 +5523,23 @@ class Exchange {
         }
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()) {
+        if ($this->has['fetchMarkPrices']) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $tickers = $this->fetch_mark_prices(array( $symbol ), $params);
+            $ticker = $this->safe_dict($tickers, $symbol);
+            if ($ticker === null) {
+                throw new NullResponse($this->id . ' fetchMarkPrices() could not find a $ticker for ' . $symbol);
+            } else {
+                return $ticker;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
+        }
+    }
+
     public function fetch_ticker_ws(string $symbol, $params = array ()) {
         if ($this->has['fetchTickersWs']) {
             $this->load_markets();

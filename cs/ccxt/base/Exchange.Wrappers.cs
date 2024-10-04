@@ -497,6 +497,11 @@ public partial class Exchange
         var res = await this.fetchTicker(symbol, parameters);
         return new Ticker(res);
     }
+    public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrice(symbol, parameters);
+        return new Ticker(res);
+    }
     public async Task<Ticker> FetchTickerWs(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickerWs(symbol, parameters);

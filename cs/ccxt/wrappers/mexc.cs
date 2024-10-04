@@ -508,6 +508,12 @@ public partial class mexc
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.marginMode</term>
     /// <description>
     /// string : only 'isolated' is supported, for spot-margin trading

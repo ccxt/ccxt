@@ -3663,6 +3663,25 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['fetchMarkPrices']) {
+                Async\await($this->load_markets());
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $tickers = Async\await($this->fetch_mark_prices(array( $symbol ), $params));
+                $ticker = $this->safe_dict($tickers, $symbol);
+                if ($ticker === null) {
+                    throw new NullResponse($this->id . ' fetchMarkPrices() could not find a $ticker for ' . $symbol);
+                } else {
+                    return $ticker;
+                }
+            } else {
+                throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
+            }
+        }) ();
+    }
+
     public function fetch_ticker_ws(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             if ($this->has['fetchTickersWs']) {

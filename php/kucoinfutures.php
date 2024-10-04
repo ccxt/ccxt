@@ -72,6 +72,7 @@ class kucoinfutures extends kucoin {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -764,6 +765,24 @@ class kucoinfutures extends kucoin {
         return $this->parse_ticker($response['data'], $market);
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()): array {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->futuresPublicGetMarkPriceSymbolCurrent ($this->extend($request, $params));
+        //
+        return $this->parse_ticker($response['data'], $market);
+    }
+
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -851,6 +870,14 @@ class kucoinfutures extends kucoin {
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "LTCUSDTM",
+        //         "granularity" => 1000,
+        //         "timePoint" => 1727967339000,
+        //         "value" => 62.37, mark price
+        //         "indexPrice" => 62.37
+        //      }
         //
         //     {
         //         "code" => "200000",
@@ -953,7 +980,7 @@ class kucoinfutures extends kucoin {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volumeOf24h'),
             'quoteVolume' => $this->safe_string($ticker, 'turnoverOf24h'),
-            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'markPrice' => $this->safe_string_2($ticker, 'markPrice', 'value'),
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);

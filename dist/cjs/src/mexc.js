@@ -2620,6 +2620,7 @@ class mexc extends mexc$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2630,6 +2631,8 @@ class mexc extends mexc$1 {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
@@ -2638,6 +2641,9 @@ class mexc extends mexc$1 {
             const [marginMode, queryInner] = this.handleMarginModeAndParams('fetchOrders', params);
             if (since !== undefined) {
                 request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -2705,10 +2711,22 @@ class mexc extends mexc$1 {
         else {
             if (since !== undefined) {
                 request['start_time'] = since;
-                const end = this.safeInteger(params, 'end_time');
+                const end = this.safeInteger(params, 'end_time', until);
                 if (end === undefined) {
                     request['end_time'] = this.sum(since, this.options['maxTimeTillEnd']);
                 }
+                else {
+                    if ((end - since) > this.options['maxTimeTillEnd']) {
+                        throw new errors.BadRequest(this.id + ' end is invalid, i.e. exceeds allowed 90 days.');
+                    }
+                    else {
+                        request['end_time'] = until;
+                    }
+                }
+            }
+            else if (until !== undefined) {
+                request['start_time'] = this.sum(until, this.options['maxTimeTillEnd'] * -1);
+                request['end_time'] = until;
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;

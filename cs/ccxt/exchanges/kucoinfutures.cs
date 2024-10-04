@@ -68,6 +68,7 @@ public partial class kucoinfutures : kucoin
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
@@ -766,6 +767,28 @@ public partial class kucoinfutures : kucoin
         return this.parseTicker(getValue(response, "data"), market);
     }
 
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchMarkPrice
+        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, parameters));
+        //
+        return this.parseTicker(getValue(response, "data"), market);
+    }
+
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         /**
@@ -862,6 +885,14 @@ public partial class kucoinfutures : kucoin
 
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        //     {
+        //         "symbol": "LTCUSDTM",
+        //         "granularity": 1000,
+        //         "timePoint": 1727967339000,
+        //         "value": 62.37, mark price
+        //         "indexPrice": 62.37
+        //      }
         //
         //     {
         //         "code": "200000",
@@ -964,7 +995,7 @@ public partial class kucoinfutures : kucoin
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volumeOf24h") },
             { "quoteVolume", this.safeString(ticker, "turnoverOf24h") },
-            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "markPrice", this.safeString2(ticker, "markPrice", "value") },
             { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);

@@ -115,6 +115,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMarkPrice': True,
                 'fetchMyLiquidations': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -2466,6 +2467,14 @@ class bitget(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
+        #   {
+        #       "symbol": "BTCUSDT",
+        #       "price": "26242",
+        #       "indexPrice": "34867",
+        #       "markPrice": "25555",
+        #       "ts": "1695793390482"
+        #   }
+        #
         # spot: fetchTicker, fetchTickers
         #
         #     {
@@ -2570,6 +2579,7 @@ class bitget(Exchange, ImplicitAPI):
             'baseVolume': self.safe_string(ticker, 'baseVolume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
         }, market)
 
@@ -2664,6 +2674,36 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_ticker(data[0], market)
+
+    def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches the mark price for a specific market
+        :see: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        market = None
+        if sandboxMode:
+            sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
+            market = self.market(sandboxSymbol)
+        else:
+            market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = None
+        if market['spot']:
+            raise NotSupported(self.id + ' fetchMarkPrice() is not supported for spot markets')
+        else:
+            productType = None
+            productType, params = self.handle_product_type_and_params(market, params)
+            request['productType'] = productType
+            response = self.publicMixGetV2MixMarketSymbolPrice(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_ticker(data[0], market)
 
