@@ -2,6 +2,47 @@ package ccxt
 
 // Exchange interface based on the methods from binance.go
 type IExchange interface {
+	ExtendExchangeOptions(options interface{})
+	GetSymbols() []interface{}
+	SetWssProxy(wssProxy interface{})
+	SetWsProxy(wsProxy interface{})
+	GetAlias() interface{}
+	SetTimeout(timeout interface{})
+	SetHttpsProxy(httpsProxy interface{})
+	SetHttpProxy(httpProxy interface{})
+	SetCurrencies(currencies interface{})
+	SetPrivateKey(privateKey interface{})
+	SetPublicKey(publicKey interface{})
+	SetWalletAddress(walletAddress interface{})
+	SetSecret(secret interface{})
+	SetUid(uid interface{})
+	SetPassword(password interface{})
+	SetApiKey(apiKey interface{})
+	GetLast_request_url() interface{}
+	GetLast_request_body() interface{}
+	GetLast_request_headers() map[string]interface{}
+	GetHas() map[string]interface{}
+	GetId() string
+	GetOptions() map[string]interface{}
+	GetCurrencies() map[string]interface{}
+	GetMarkets() map[string]interface{}
+	CheckRequiredCredentials(optionalArgs ...interface{}) interface{}
+	Sleep(milliseconds interface{}) <-chan bool
+	Json(object interface{}) interface{}
+	FilterBy(aa interface{}, key interface{}, value interface{}) []interface{}
+	IndexBy(array interface{}, key interface{}) interface{}
+	CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
+	Sum(a interface{}, b interface{}) interface{}
+	NumberToString(num interface{}) interface{}
+	ParseToNumeric(value interface{}) interface{}
+	LoadMarkets(params ...interface{}) <-chan interface{}
+	SafeDict(dictionary interface{}, key interface{}, defaultValue ...interface{}) interface{}
+	InArray(needle interface{}, haystack interface{}) interface{}
+	DeepExtend(destination interface{}, source interface{}, optionalArgs ...interface{}) interface{}
+	ParseToInt(value interface{}) interface{}
+	SafeValue(value interface{}, key interface{}, defaultValue ...interface{}) interface{}
+	SafeBool(value interface{}, key interface{}, defaultValue ...interface{}) interface{}
+	SafeString(value interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	Describe() interface{}
 	IsInverse(typeVar interface{}, optionalArgs ...interface{}) interface{}
 	IsLinear(typeVar interface{}, optionalArgs ...interface{}) interface{}
