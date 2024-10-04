@@ -1574,6 +1574,15 @@
                 "input": []
             }
         ],
+        "fetchMarkPrice": [
+            {
+                "method": "fetchMarkPrice",
+                "url": "https://api.bitget.com/api/v2/mix/market/symbol-price?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "Swap ticker",
