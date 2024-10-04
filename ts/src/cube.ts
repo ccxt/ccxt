@@ -768,8 +768,14 @@ export default class cube extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         // Define which paths should be public despite using the private base URL
         const publicEndpoints = [ 'markets', 'history/klines' ];
-        // Check if the path is one of the public endpoints
-        const isPublicEndpoint = publicEndpoints.some ((endpoint) => path.includes (endpoint));
+        // Check if the path is one of the public endpoints (replacing arrow function for PHP compatibility)
+        let isPublicEndpoint = false;
+        for (let i = 0; i < publicEndpoints.length; i++) {
+            if (path.indexOf (publicEndpoints[i]) !== -1) {
+                isPublicEndpoint = true;
+                break;
+            }
+        }
         // Use 'private' URL, but treat as public if it's one of the public endpoints
         let url = this.urls['api']['private'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -781,7 +787,7 @@ export default class cube extends Exchange {
         } else {
             // Handle private API requests (authentication needed)
             this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ().toString ();
+            const timestamp = this.milliseconds ().toString ();  // AscendEX uses milliseconds
             const payload = timestamp + '+' + path;  // Create payload string
             const encodedPayload = this.encode (payload);
             const encodedSecret = this.encode (this.secret);
