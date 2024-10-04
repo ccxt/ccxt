@@ -684,6 +684,16 @@
                 ],
                 "output": "{\"leverage\":10,\"openType\":2,\"symbol\":\"ADA_USDT\",\"positionType\":1}"
             }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://contract.mexc.com/api/v1/contract/funding_rate/BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
