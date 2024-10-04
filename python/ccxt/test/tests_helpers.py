@@ -126,34 +126,6 @@ def get_cli_arg_value(arg):
 
 isWsTests = get_cli_arg_value('--ws')
 
-<<<<<<< HEAD
-
-class baseMainTestClass():
-    lang = 'PY'
-    is_synchronous = is_synchronous
-    request_tests_failed = False
-    response_tests_failed = False
-    response_tests = False
-    ws_tests = False
-    load_keys = False
-    skipped_settings_for_exchange = {}
-    skipped_methods = {}
-    check_public_tests = {}
-    test_files = {}
-    public_tests = {}
-    base_tests = False
-    new_line = '\n'
-    root_dir = rootDir
-    env_vars = envVars
-    ext = ext
-    root_dir_for_skips = rootDirForSkips
-    only_specific_tests = []
-    proxy_test_file_name = proxyTestFileName
-    pass
-
-
-=======
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
 
@@ -262,16 +234,15 @@ def init_exchange(exchangeId, args, is_ws=False):
 
 def get_test_files_sync(properties, ws=False, is_base_tests=False):
     tests = {}
-<<<<<<< HEAD
     if (is_base_tests):
         namespace = 'pro.' if ws else ''
         path = DIR_NAME + '../pro/test/base/' if ws else DIR_NAME + '/base/'
         files = io_dir_read(path)
         for i in range(0, len(files)):
             filename = files[i]
-            filenameWoExt = filename.replace('.' + ext, '')
+            filenameWoExt = filename.replace('.' + EXT, '')
             filePathWoExt = path + filenameWoExt
-            if (io_file_exists(filePathWoExt + '.' + ext)):
+            if (io_file_exists(filePathWoExt + '.' + EXT)):
                 testName = filenameWoExt.replace('test_', '')
                 testName = convert_to_camel_case(testName)
                 name_snake_case = convert_to_snake_case(testName)
@@ -283,10 +254,7 @@ def get_test_files_sync(properties, ws=False, is_base_tests=False):
         imp = importlib.import_module(module_string)
         tests['languageSpecific'] = imp
         return tests
-    finalPropList = properties + [proxyTestFileName]
-=======
     finalPropList = properties + [PROXY_TEST_FILE_NAME]
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
     for i in range(0, len(finalPropList)):
         methodName = finalPropList[i]
         name_snake_case = convert_to_snake_case(methodName)

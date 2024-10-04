@@ -54,42 +54,6 @@ function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
 
-<<<<<<< HEAD
-const proxyTestFileName = 'proxies';
-
-class baseMainTestClass {
-    lang = 'JS';
-    isSynchronous = false;
-    idTests = false;
-    requestTestsFailed = false;
-    responseTestsFailed = false;
-    requestTests = false;
-    wsTests = false;
-    responseTests = false;
-    staticTests = false;
-    info = false;
-    verbose = false;
-    debug = false;
-    privateTest = false;
-    privateTestOnly = false;
-    loadKeys = false;
-    sandbox = false;
-    skippedSettingsForExchange = {};
-    skippedMethods = {};
-    checkedPublicTests = {};
-    testFiles = {};
-    publicTests = {};
-    baseTests = false;
-    newLine = '\n';
-    rootDir = DIR_NAME + '/../../../';
-    rootDirForSkips = DIR_NAME + '/../../../';
-    onlySpecificTests = [];
-    envVars = process.env;
-    proxyTestFileName = proxyTestFileName;
-    ext = ext;
-}
-
-=======
 // non-transpiled part, but shared names among langs
 const fileParts = import.meta.url.split ('.');
 const EXT = fileParts[fileParts.length - 1];
@@ -99,7 +63,6 @@ const PROXY_TEST_FILE_NAME = 'proxies';
 const ROOT_DIR = DIR_NAME + '/../../../';
 const ENV_VARS = process.env;
 const NEW_LINE = '\n';
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
 const LOG_CHARS_LENGTH = 10000;
 
 function dump (...args) {
@@ -202,15 +165,14 @@ function getTestFilesSync (properties, ws = false, isBaseTests = false) {
 async function getTestFiles (properties, ws = false, isBaseTests = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     const tests = {};
-<<<<<<< HEAD
     if (isBaseTests) {
         const basePath = path + 'base/';
         const files = ioDirRead (basePath);
         for (let i = 0; i < files.length; i++) {
             const filename = files[i];
-            const filenameWoExt = filename.replace ('.' + ext, '');
+            const filenameWoExt = filename.replace ('.' + EXT, '');
             const filePathWoExt = basePath + filenameWoExt;
-            if (ioFileExists (filePathWoExt + '.' + ext)) {
+            if (ioFileExists (filePathWoExt + '.' + EXT)) {
                 let testName = filenameWoExt.replace ('test.', '');
                 testName = filenameWoExt.replace ('test_', '');
                 if (![ 'custom', 'errors', 'languageSpecific' ].includes (testName)) {
@@ -222,10 +184,7 @@ async function getTestFiles (properties, ws = false, isBaseTests = false) {
         return tests;
     }
     // exchange tests
-    const finalPropList = properties.concat ([ proxyTestFileName ]);
-=======
     const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME ]);
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;

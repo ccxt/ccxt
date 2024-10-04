@@ -84,44 +84,6 @@ define('ROOT_DIR', rootDir);
 define('ENV_VARS', $_ENV);
 define('NEW_LINE', "\n");
 define('LOG_CHARS_LENGTH', 1000000); // no need to trim
-<<<<<<< HEAD
-define('ext', 'php');
-define('proxyTestFileName', 'proxies');
-
-class baseMainTestClass {
-    public $lang = 'PHP';
-    public $is_synchronous = is_synchronous;
-    public $test_files = [];
-    public $skipped_settings_for_exchange = [];
-    public $skipped_methods = [];
-    public $checked_public_tests = [];
-    public $public_tests = [];
-    public $ws_tests = false;
-    public $info = false;
-    public $verbose = false;
-    public $debug = false;
-    public $private_test = false;
-    public $private_test_only = false;
-    public $sandbox = false;
-    public $static_tests = false;
-    public $request_tests_failed = false;
-    public $response_tests_failed = false;
-    public $id_tests = false;
-    public $base_tests = false;
-    public $response_tests = false;
-    public $request_tests = false;
-    public $load_keys = false;
-
-    public $new_line = "\n";
-    public $root_dir = root_dir;
-    public $env_vars = envVars;
-    public $root_dir_for_skips = rootDirForSkips;
-    public $only_specific_tests = [];
-    public $proxy_test_file_name = proxyTestFileName;
-    public $ext = ext;
-}
-=======
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -314,16 +276,15 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 function get_test_files_sync ($properties = null, $ws = false, $is_base_tests = false) {
     $func = function() use ($properties, $ws, $is_base_tests){
         $tests = array();
-<<<<<<< HEAD
         if ($is_base_tests) {
             $basePath = $ws ? __DIR__ . '../pro/test/base/' : __DIR__ . '/base/';
             $files = io_dir_read ($basePath);
             for ($i = 0; $i < count($files); $i++) {
                 $filename = $files[$i];
-                $filenameWoExt = str_replace('.' . ext, '', $filename);
+                $filenameWoExt = str_replace('.' . EXT, '', $filename);
                 $testName = str_replace('test_', '', $filenameWoExt);
                 $methodName = convert_to_camel_case($testName);
-                $filePathWithExt = $basePath . $filenameWoExt . '.' . ext;
+                $filePathWithExt = $basePath . $filenameWoExt . '.' . EXT;
                 if (io_file_exists ($filePathWithExt)) {
                     if (!in_array($testName, [ 'custom', 'errors', 'languageSpecific' ])) {
                         include_once $filePathWithExt;
@@ -335,10 +296,7 @@ function get_test_files_sync ($properties = null, $ws = false, $is_base_tests = 
             $tests['languageSpecific'] = 'test_language_specific';
             return $tests;
         }
-        $finalPropList = array_merge ($properties, [proxyTestFileName]);
-=======
         $finalPropList = array_merge ($properties, [PROXY_TEST_FILE_NAME]);
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
         for ($i = 0; $i < count($finalPropList); $i++) {
             $methodName = $finalPropList[$i];
             $name_snake_case = convert_to_snake_case($methodName);

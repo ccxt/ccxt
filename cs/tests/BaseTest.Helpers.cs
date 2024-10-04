@@ -27,32 +27,7 @@ public partial class testMainClass : BaseTest
     //public bool verbose = Tests.verbose;
     //public bool debug = Tests.debug;
     public static string httpsAgent = "";
-<<<<<<< HEAD
-    public string ext = "cs";
-    public bool loadKeys = false;
-
-    public bool staticTestsFailed = false;
-    public bool responseTests = false;
-    public bool responseTestsFailed = false;
-    public bool requestTests = false;
-    public bool requestTestsFailed = false;
-    public bool staticTests = false;
-    public bool wsTests = false;
-    public bool idTests = false;
-    public bool baseTests = false;
-
-    public bool isSynchronous = false;
-
-    public List<object> onlySpecificTests = new List<object>();
-    public string proxyTestFileName = "proxies";
-
-    public string lang = "C#";
-
-    public object newLine = "\n";
-
-=======
     //public bool loadKeys = false;
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
@@ -226,11 +201,7 @@ public partial class testMainClass : BaseTest
         var argsWithExchange = new List<object> { exchange };
         foreach (var arg in args)
         {
-<<<<<<< HEAD
-            if (arg == null) continue;
-=======
             if (arg == null) continue; // skip if no arguments passed into method
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
             // emulate ... spread operator in c#
             if (arg.GetType() == typeof(List<object>))
             {
@@ -400,21 +371,11 @@ public partial class testMainClass : BaseTest
 
     public partial class SharedMethods
     {
-<<<<<<< HEAD
-        // stub, the actual content is generated inside Generated/Exchange
-
-        // this method is needed because of ast-transpiler
-        public object json(object a)
-        {
-            return Exchange.Json(a);
-        }        
-=======
         // ast-transpiler uses "json()" method in transpiled C# content,
         // which should pre-exist in the language-specific helpers for project
         public object json(object a)
         {
             return Exchange.Json(a);
         }     
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
     }
 }
