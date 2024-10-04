@@ -4,7 +4,7 @@ import Exchange from './abstract/cube.js';
 import { BadRequest, AuthenticationError, InsufficientFunds, ArgumentsRequired, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, OrderNotFound } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Transaction, Int, int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Num, Dict } from './base/types.js';
+import type { Transaction, Int, int, Market, OHLCV, Order, OrderBook, Position, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, Dict } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
@@ -33,7 +33,7 @@ export default class cube extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
-                'fetchBalance': true,
+                'fetchBalance': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDeposits': true,
@@ -65,8 +65,9 @@ export default class cube extends Exchange {
             },
             'urls': {
                 'api': {
-                    'public': 'https://api.cube.exchange/md/v0',
-                    'private': 'https://api.cube.exchange/os/v0',
+                    'public': 'https://api.cube.exchange/md/v0',  // All public endpoints
+                    'ir': 'https://api.cube.exchange/ir/v0',      // Mostly requires auth (except for markets and history klines)
+                    'private': 'https://api.cube.exchange/os/v0', // All private endpoints
                 },
                 'www': 'https://www.cube.exchange',
                 'doc': 'https://docs.cube.exchange',
@@ -79,30 +80,49 @@ export default class cube extends Exchange {
                         'parsed/tickers',
                         'parsed/book/{market_id}/snapshot',
                         'parsed/book/{market_id}/recent-trades',
-                        'history/klines',
+                        'history/klines',  // No auth required
                         'fetchBookSnapshot',
+                    ],
+                },
+                'ir': {  // New section for mostly authenticated endpoints
+                    'get': [
+                        'markets',                               // No auth required
+                        'history/klines',                       // No auth required
+                        '/users/check',
+                        '/users/subaccounts',
+                        '/users/subaccount/{subaccount_id}',
+                        '/users/subaccount/{subaccount_id}/positions',
+                        '/users/subaccount/{subaccount_id}/transfers',
+                        '/users/subaccount/{subaccount_id}/deposits',
+                        '/users/subaccount/{subaccount_id}/withdrawals',
+                        '/users/subaccount/{subaccount_id}/orders',
+                        '/users/subaccount/{subaccount_id}/fills',
+                        '/users/address',
+                        '/users/address/settings',
+                    ],
+                    'post': [
+                        '/users/apikeys',
+                        '/users/subaccounts',
+                        '/users/fee-estimates',
+                        '/users/withdraw',
+                    ],
+                    'delete': [
+                        '/users/apikeys/{api_key}',
+                    ],
+                    'patch': [
+                        '/users/subaccount/{subaccount_id}',
                     ],
                 },
                 'private': {
                     'get': [
-                        'markets',
-                        'history/klines',
-                        'users/me',
-                        'users/subaccounts',
-                        'users/subaccount/{subaccount_id}/positions',
-                        'users/subaccount/{subaccount_id}/transfers',
-                        'users/subaccount/{subaccount_id}/withdrawals',
-                        'users/subaccount/{subaccount_id}/deposits',
-                        'users/subaccount/{subaccount_id}/orders',
-                        'users/address',
-                        'users/subaccount/{subaccount_id}/orders/{order_id}',
+                        'orders',
+                        'positions',
                     ],
                     'post': [
                         'order',
-                        'users/withdraw',
                     ],
                     'delete': [
-                        'orders',
+                        'order',
                     ],
                     'patch': [
                         'order',
@@ -151,12 +171,11 @@ export default class cube extends Exchange {
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.privateGetMarkets (params);
+        const response = await this.irGetMarkets (params);  // Use the appropriate method for ir
         const result = this.safeValue (response, 'result', {});
         const markets = this.safeValue (result, 'markets', []);
         const assets = this.safeValue (result, 'assets', []);
         const feeTables = this.safeValue (result, 'feeTables', []);
-        // Store assetsById and feeTablesById in this.options
         this.options['assetsById'] = this.indexBy (assets, 'assetId');
         this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId');
         return this.parseMarkets (markets);
@@ -397,7 +416,7 @@ export default class cube extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetHistoryKlines (this.extend (request, params));
+        const response = await this.irGetHistoryKlines (this.extend (request, params));
         //
         //     {
         //         "result": [
@@ -432,7 +451,7 @@ export default class cube extends Exchange {
          * @param {object} params extra parameters specific to the cube api endpoint
          * @returns {object[]} an array of subaccount objects
          */
-        const response = await this.privateGetUsersSubaccounts (params);
+        const response = await this.irGetUsersSubaccounts (params);
         //
         //     {
         //         "result": {
@@ -457,53 +476,6 @@ export default class cube extends Exchange {
         return output;
     }
 
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
-        const subaccountId = this.safeInteger (params, 'subaccountId') as Int;
-        if (subaccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a subaccountId parameter');
-        }
-        params = this.omit (params, 'subaccountId');
-        const request = {
-            'subaccount_id': subaccountId,
-        };
-        const response = await this.privateGetUsersSubaccountSubaccountIdPositions (this.extend (request, params));
-        const result = this.safeValue (response, 'result', {});
-        const subaccountPositions = this.safeValue (result, subaccountId.toString (), {});
-        const innerPositions = this.safeValue (subaccountPositions, 'inner', []);
-        return this.parsePositions (innerPositions, symbols);
-    }
-
-    parsePosition (position, market = undefined): Position {
-        const assetId = this.safeString (position, 'assetId');
-        market = this.safeMarket (assetId, market);
-        const symbol = market['symbol'];
-        const amount = this.safeString (position, 'amount');
-        return {
-            'info': position,
-            'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': undefined,
-            'entryPrice': undefined,
-            'notional': this.parseNumber (amount),
-            'leverage': undefined,
-            'unrealizedPnl': undefined,
-            'contracts': undefined,
-            'contractSize': undefined,
-            'marginRatio': undefined,
-            'liquidationPrice': undefined,
-            'markPrice': undefined,
-            'collateral': this.parseNumber (amount),
-            'marginMode': undefined,
-            'side': undefined,
-            'percentage': undefined,
-        };
-    }
-
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const subaccountId = this.safeInteger (params, 'subaccountId') as Int;
@@ -517,7 +489,7 @@ export default class cube extends Exchange {
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
         }
-        const response = await this.privateGetUsersSubaccountSubaccountIdTransfers (this.extend (request, params));
+        const response = await this.irGetUsersSubaccountSubaccountIdTransfers (this.extend (request, params));
         //
         //     {
         //       "result": {
@@ -588,7 +560,7 @@ export default class cube extends Exchange {
         const request = {
             'subaccount_id': subaccountId,
         };
-        const response = await this.privateGetUsersSubaccountSubaccountIdDeposits (this.extend (request, params));
+        const response = await this.irGetUsersSubaccountSubaccountIdDeposits (this.extend (request, params));
         //
         //  {
         //    "result": {
@@ -680,7 +652,7 @@ export default class cube extends Exchange {
             const market = this.market (symbol);
             request['marketIds'] = market['id'];
         }
-        const response = await this.privateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
+        const response = await this.irGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
         //
         //  {
         //    "result": {
@@ -749,22 +721,6 @@ export default class cube extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}): Promise<Balances> {
-        const response = await this.privateGetUsersMe (params);
-        const balances = response['result']['balances'];
-        const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currency = this.safeCurrencyCode (balance['currency']);
-            result[currency] = {
-                'free': balance['available'],
-                'used': balance['in_order'],
-                'total': balance['total'],
-            };
-        }
-        return this.safeBalance (result);
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         // Define which paths should be public despite using the private base URL
         const publicEndpoints = [ 'markets', 'history/klines' ];
@@ -810,6 +766,53 @@ export default class cube extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const subaccountId = this.safeInteger (params, 'subaccountId') as Int;
+        if (subaccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a subaccountId parameter');
+        }
+        params = this.omit (params, 'subaccountId');
+        const request = {
+            'subaccount_id': subaccountId,
+        };
+        const response = await this.irGetUsersSubaccountSubaccountIdPositions (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const subaccountPositions = this.safeValue (result, subaccountId.toString (), {});
+        const innerPositions = this.safeValue (subaccountPositions, 'inner', []);
+        return this.parsePositions (innerPositions, symbols);
+    }
+
+    parsePosition (position, market = undefined): Position {
+        const assetId = this.safeString (position, 'assetId');
+        market = this.safeMarket (assetId, market);
+        const symbol = market['symbol'];
+        const amount = this.safeString (position, 'amount');
+        return {
+            'info': position,
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': undefined,
+            'notional': this.parseNumber (amount),
+            'leverage': undefined,
+            'unrealizedPnl': undefined,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': undefined,
+            'collateral': this.parseNumber (amount),
+            'marginMode': undefined,
+            'side': undefined,
+            'percentage': undefined,
+        };
+    }
+
     parseTransaction (transaction, currency = undefined) {
         const id = this.safeString (transaction, 'attemptId');
         const txid = this.safeString (transaction, 'txnHash');
@@ -852,21 +855,6 @@ export default class cube extends Exchange {
         return this.safeString (statuses, status, 'pending');
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'subaccount_id': this.safeInteger (params, 'subaccountId'),
-            'order_id': id,
-        };
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['market_id'] = market['id'];
-        }
-        const response = await this.privateGetUsersSubaccountSubaccountIdWithdrawals (this.extend (request, params));
-        const order = this.safeValue (response, 'result', {});
-        return this.parseOrder (order);
-    }
-
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -883,7 +871,7 @@ export default class cube extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         //
         //  {
         //    "result": {
@@ -1129,7 +1117,7 @@ export default class cube extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'destination': address,
         };
-        const response = await this.privatePostUsersWithdraw (this.extend (request, params));
+        const response = await this.irPostUsersWithdraw (this.extend (request, params));
         //
         //     {
         //         "result": {

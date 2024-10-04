@@ -9,28 +9,41 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetTickersSnapshot (params?: {}): Promise<implicitReturnType>;
-    publicGetParsedTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetParsedBookMarketIdSnapshot (params?: {}): Promise<implicitReturnType>;
-    publicGetParsedBookMarketIdRecentTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetHistoryKlines (params?: {}): Promise<implicitReturnType>;
-    publicGetFetchBookSnapshot (params?: {}): Promise<implicitReturnType>;
-    privateGetMarkets (params?: {}): Promise<implicitReturnType>;
-    privateGetHistoryKlines (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersMe (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersSubaccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersSubaccountSubaccountIdPositions (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersSubaccountSubaccountIdTransfers (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersSubaccountSubaccountIdWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersSubaccountSubaccountIdDeposits (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersSubaccountSubaccountIdOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersAddress (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersSubaccountSubaccountIdOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersWithdraw (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    privatePatchOrder (params?: {}): Promise<implicitReturnType>;
+    // Public
+    publicGetTickersSnapshot(params?: {}): Promise<implicitReturnType>;
+    publicGetParsedTickers(params?: {}): Promise<implicitReturnType>;
+    publicGetParsedBookMarketIdSnapshot(params?: {}): Promise<implicitReturnType>;
+    publicGetParsedBookMarketIdRecentTrades(params?: {}): Promise<implicitReturnType>;
+    publicGetHistoryKlines(params?: {}): Promise<implicitReturnType>;
+    publicGetFetchBookSnapshot(params?: {}): Promise<implicitReturnType>;
+    // ir
+    irGetMarkets(params?: {}): Promise<implicitReturnType>;  // No auth required
+    irGetHistoryKlines(params?: {}): Promise<implicitReturnType>;  // No auth required
+    irGetUsersCheck(params?: {}): Promise<implicitReturnType>;
+    irGetUsersSubaccounts(params?: {}): Promise<implicitReturnType>;
+    irGetUsersSubaccountSubaccountId(params?: {}): Promise<implicitReturnType>;
+    irGetUsersSubaccountSubaccountIdPositions(params?: {}): Promise<implicitReturnType>;
+    irGetUsersSubaccountSubaccountIdTransfers(params?: {}): Promise<implicitReturnType>;
+    irGetUsersSubaccountSubaccountIdDeposits(params?: {}): Promise<implicitReturnType>;
+    irGetUsersSubaccountSubaccountIdWithdrawals(params?: {}): Promise<implicitReturnType>;
+    irGetUsersSubaccountSubaccountIdOrders(params?: {}): Promise<implicitReturnType>;
+    irGetUsersSubaccountSubaccountIdFills(params?: {}): Promise<implicitReturnType>;
+    irGetUsersAddress(params?: {}): Promise<implicitReturnType>;
+    irGetUsersAddressSettings(params?: {}): Promise<implicitReturnType>;
+    irPostUsersApiKeys(params?: {}): Promise<implicitReturnType>;
+    irPostUsersSubaccounts(params?: {}): Promise<implicitReturnType>;
+    irPostUsersFeeEstimates(params?: {}): Promise<implicitReturnType>;
+    irPostUsersWithdraw(params?: {}): Promise<implicitReturnType>;  
+    irDeleteUsersApiKeysApiKey(params?: {}): Promise<implicitReturnType>;
+    irPatchUsersSubaccountSubaccountId(params?: {}): Promise<implicitReturnType>;
+    // Private
+    privateGetPositions(params?: {}): Promise<implicitReturnType>;
+    privateGetOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetOrders(params?: {}): Promise<implicitReturnType>;
+    privateDeleteOrders(params?: {}): Promise<implicitReturnType>;
+    privatePatchOrder(params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
-export default Exchange
+export default Exchange;
