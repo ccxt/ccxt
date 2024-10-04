@@ -1981,13 +1981,16 @@ class Transpiler {
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-        baseFunctionTests = baseFunctionTests.filter (filename => filename !== 'test.cryptography');
 
         const tests = [];
 
         for (const testName of baseFunctionTests) {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const tsFile = baseFolders.ts + testName + '.ts';
+            const tsContent = fs.readFileSync(tsFile).toString();
+            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+                continue;
+            }
             const test = {
                 base: true,
                 name: testName,
@@ -2251,7 +2254,6 @@ class Transpiler {
             const imports = result[0].imports;
 
             const usesPrecise = imports.find(x => x.name.includes('Precise'));
-            const usesJson = pythonAsync.includes ('json.load') || pythonAsync.includes ('json.dump');
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
             const usesAsyncio = pythonAsync.indexOf ('asyncio.') >= 0;
@@ -2299,12 +2301,8 @@ class Transpiler {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
             }
-<<<<<<< HEAD
-            if (usesJson) {
-=======
             // py: json
             if (pythonAsync.includes ('json.load') || pythonAsync.includes ('json.dump')) {
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
                 pythonHeaderSync.push ('import json  # noqa E402')
                 pythonHeaderAsync.push ('import json  # noqa E402')
             }

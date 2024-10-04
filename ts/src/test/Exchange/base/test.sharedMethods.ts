@@ -5,10 +5,7 @@ import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 import { Str } from '../../../base/types';
 
 function logTemplate (exchange: Exchange, method: string, entry: object) {
-<<<<<<< HEAD
-=======
     // there are cases when exchange is undefined (eg. base tests)
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
     const id = (exchange !== undefined) ? exchange.id : 'undefined';
     const methodString = (method !== undefined) ? method : 'undefined';
     const entryString = (exchange !== undefined) ? exchange.json (entry) : '';
@@ -415,11 +412,7 @@ function deepEqual (a: any, b: any) {
 
 function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: string, a: any, b: any) {
     const logText = logTemplate (exchange, method, {});
-<<<<<<< HEAD
-    assert (deepEqual (a, b), 'two dicts does not match: ' + JSON.stringify (a) + ' != ' + JSON.stringify (b) + logText);
-=======
     assert (deepEqual (a, b), 'two dicts do not match: ' + JSON.stringify (a) + ' != ' + JSON.stringify (b) + logText);
->>>>>>> 4eeb60265bc3efc96d365637aa4fb384e2169bab
 }
 
 export default {
@@ -450,6 +443,4 @@ export default {
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
-    deepEqual,
-    assertDeepEqual,
 };

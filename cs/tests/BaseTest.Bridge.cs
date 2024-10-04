@@ -179,3 +179,13 @@ public partial class BaseTest
         assert(DeepEqual(a, b), add(add(add(add("two dicts do not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
     }
 }
+
+
+
+public partial class BaseTest
+{
+    public void testLanguageSpecific()
+    {
+
+    }
+}

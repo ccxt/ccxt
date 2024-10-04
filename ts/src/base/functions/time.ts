@@ -52,10 +52,7 @@ class TimedOut extends Error {
         this.message = message;
     }
 }
-const iso8601 = (timestamp = undefined) => {
-    if (timestamp === undefined) {
-        return undefined;
-    }
+const iso8601 = (timestamp) => {
     let _timestampNumber = undefined;
     if (typeof timestamp === 'number') {
         _timestampNumber = Math.floor (timestamp);
@@ -73,7 +70,7 @@ const iso8601 = (timestamp = undefined) => {
         return undefined;
     }
 };
-const parse8601 = (x = undefined) => {
+const parse8601 = (x) => {
     if (typeof x !== 'string' || !x) {
         return undefined;
     }
