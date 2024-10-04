@@ -80,14 +80,14 @@ export default class cube extends Exchange {
                         'parsed/tickers',
                         'parsed/book/{market_id}/snapshot',
                         'parsed/book/{market_id}/recent-trades',
-                        'history/klines',  // No auth required
+                        'history/klines',
                         'fetchBookSnapshot',
                     ],
                 },
-                'ir': {  // New section for mostly authenticated endpoints
+                'ir': {
                     'get': [
-                        'markets',                               // No auth required
-                        'history/klines',                       // No auth required
+                        'markets',
+                        'history/klines',
                         '/users/check',
                         '/users/subaccounts',
                         '/users/subaccount/{subaccount_id}',
