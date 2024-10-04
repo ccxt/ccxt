@@ -307,7 +307,7 @@ export default class alephx extends alephxRest {
             'remaining': this.safeString (order, 'remained_quantity'),
             'status': this.safeStringLower (order, 'status'),
             'fee': {
-                'amount': this.safeString (order, 'cumulative_fee'),
+                'cost': this.safeString (order, 'cumulative_fee'),
                 'currency': this.safeString (market, 'fee_asset'),
             },
             'trades': undefined,

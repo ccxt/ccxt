@@ -311,7 +311,7 @@ class alephx extends \ccxt\async\alephx {
             'remaining' => $this->safe_string($order, 'remained_quantity'),
             'status' => $this->safe_string_lower($order, 'status'),
             'fee' => array(
-                'amount' => $this->safe_string($order, 'cumulative_fee'),
+                'cost' => $this->safe_string($order, 'cumulative_fee'),
                 'currency' => $this->safe_string($market, 'fee_asset'),
             ),
             'trades' => null,

@@ -293,7 +293,7 @@ class alephx(ccxt.async_support.alephx):
             'remaining': self.safe_string(order, 'remained_quantity'),
             'status': self.safe_string_lower(order, 'status'),
             'fee': {
-                'amount': self.safe_string(order, 'cumulative_fee'),
+                'cost': self.safe_string(order, 'cumulative_fee'),
                 'currency': self.safe_string(market, 'fee_asset'),
             },
             'trades': None,
