@@ -8,7 +8,7 @@ from ccxt.abstract.digifinex import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -72,6 +72,8 @@ class digifinex(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -1164,6 +1166,8 @@ class digifinex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'base_vol'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'indexPrice': indexPrice,
             'info': ticker,
         }, market)
 
@@ -2981,7 +2985,7 @@ class digifinex(Exchange, ImplicitAPI):
             result[code] = borrowRate
         return result
 
-    async def fetch_funding_rate(self, symbol: str, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
@@ -3009,10 +3013,20 @@ class digifinex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    async def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return await self.fetch_funding_rate(symbol, params)
+
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",
@@ -3025,6 +3039,9 @@ class digifinex(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'instrument_id')
         timestamp = self.safe_integer(contract, 'funding_time')
         nextTimestamp = self.safe_integer(contract, 'next_funding_time')
+        fundingTimeString = self.safe_string(contract, 'funding_time')
+        nextFundingTimeString = self.safe_string(contract, 'next_funding_time')
+        millisecondsInterval = Precise.string_sub(nextFundingTimeString, fundingTimeString)
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market),
@@ -3037,13 +3054,24 @@ class digifinex(Exchange, ImplicitAPI):
             'fundingRate': self.safe_number(contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': self.iso8601(timestamp),
-            'nextFundingRate': self.safe_string(contract, 'next_funding_rate'),
+            'nextFundingRate': self.safe_number(contract, 'next_funding_rate'),
             'nextFundingTimestamp': nextTimestamp,
             'nextFundingDatetime': self.iso8601(nextTimestamp),
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': self.parse_funding_interval(millisecondsInterval),
         }
+
+    def parse_funding_interval(self, interval):
+        intervals: dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        }
+        return self.safe_string(intervals, interval, interval)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

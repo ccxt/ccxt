@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -82,6 +82,8 @@ export default class okx extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -98,6 +100,7 @@ export default class okx extends Exchange {
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrices': true,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -578,6 +581,7 @@ export default class okx extends Exchange {
                     // General Class
                     '1': ExchangeError,
                     '2': ExchangeError,
+                    '4088': ManualInteractionNeeded,
                     '50000': BadRequest,
                     '50001': OnMaintenance,
                     '50002': BadRequest,
@@ -1804,6 +1808,13 @@ export default class okx extends Exchange {
     }
     parseTicker(ticker, market = undefined) {
         //
+        //      {
+        //          "instType":"SWAP",
+        //          "instId":"BTC-USDT-SWAP",
+        //          "markPx":"200",
+        //          "ts":"1597026383085"
+        //      }
+        //
         //     {
         //         "instType": "SPOT",
         //         "instId": "ETH-BTC",
@@ -1854,6 +1865,7 @@ export default class okx extends Exchange {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'markPx'),
             'info': ticker,
         }, market);
     }
@@ -1958,6 +1970,38 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
+        const tickers = this.safeList(response, 'data', []);
+        return this.parseTickers(tickers, symbols);
+    }
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchMarkPrices
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params, 'swap');
+        const request = {
+            'instType': this.convertToInstrumentType(marketType),
+        };
+        if (marketType === 'option') {
+            const defaultUnderlying = this.safeString(this.options, 'defaultUnderlying', 'BTC-USD');
+            const currencyId = this.safeString2(params, 'uly', 'marketId', defaultUnderlying);
+            if (currencyId === undefined) {
+                throw new ArgumentsRequired(this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
+            }
+            else {
+                request['uly'] = currencyId;
+            }
+        }
+        const response = await this.publicGetPublicMarkPrice(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
         return this.parseTickers(tickers, symbols);
     }
@@ -2939,7 +2983,7 @@ export default class okx extends Exchange {
          * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
          * @param {string} [params.trailingPercent] the percent to trail away from the current market price
          * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
-         * @param {string} [params.hedged] true/false, to automatically set exchange-specific params needed when trading in hedge mode
+         * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4827,38 +4871,30 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] the network name for the deposit address
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
+        await this.loadMarkets();
         const rawNetwork = this.safeStringUpper(params, 'network');
-        const networks = this.safeValue(this.options, 'networks', {});
-        const network = this.safeString(networks, rawNetwork, rawNetwork);
         params = this.omit(params, 'network');
+        code = this.safeCurrencyCode(code);
+        const network = this.networkIdToCode(rawNetwork, code);
         const response = await this.fetchDepositAddressesByNetwork(code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue(response, code);
+        if (network !== undefined) {
+            const result = this.safeDict(response, network);
             if (result === undefined) {
-                const alias = this.safeString(networks, code, code);
-                result = this.safeValue(response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString(this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue(response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values(response);
-                        result = this.safeValue(values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress(this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
-                        }
-                    }
-                }
+                throw new InvalidAddress(this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
             }
             return result;
         }
-        result = this.safeValue(response, network);
-        if (result === undefined) {
-            throw new InvalidAddress(this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        const codeNetwork = this.networkIdToCode(code, code);
+        if (codeNetwork in response) {
+            return response[codeNetwork];
         }
-        return result;
+        // if the network is not specified, return the first address
+        const keys = Object.keys(response);
+        const first = this.safeString(keys, 0);
+        return this.safeDict(response, first);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
@@ -6052,6 +6088,9 @@ export default class okx extends Exchange {
         const symbol = this.safeSymbol(marketId, market);
         const nextFundingRate = this.safeNumber(contract, 'nextFundingRate');
         const fundingTime = this.safeInteger(contract, 'fundingTime');
+        const fundingTimeString = this.safeString(contract, 'fundingTime');
+        const nextFundingTimeString = this.safeString(contract, 'nextFundingRate');
+        const millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return {
@@ -6072,7 +6111,30 @@ export default class okx extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(millisecondsInterval),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**

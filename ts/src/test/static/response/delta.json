@@ -109,6 +109,8 @@
                     "average": 72764.7,
                     "baseVolume": 1.4971349999999992,
                     "quoteVolume": 1.4971349999999992,
+                    "markPrice": 48000,
+                    "indexPrice": 73368.4,
                     "info": {
                         "close": "73394.0",
                         "contract_type": "spot",

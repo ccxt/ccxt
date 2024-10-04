@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// @ts-nocheck
 // AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
@@ -78,6 +77,7 @@ function testSafeMethods() {
     assert(equals(dictObject, compareDict));
     listObject = exchange.safeDict2(inputDict, 'a', 'list');
     assert(listObject === undefined);
+    // @ts-expect-error
     assert(exchange.safeDict2(inputList, 2, 1) === undefined);
     // safeDictN
     dictObject = exchange.safeDictN(inputDict, ['a', 'b', 'dict']);
@@ -94,6 +94,7 @@ function testSafeMethods() {
     listObject = exchange.safeList2(inputDict, 'a', 'list');
     assert(equals(dictObject, compareDict));
     assert(exchange.safeList2(inputDict, 'a', 'dict') === undefined);
+    // @ts-expect-error
     assert(exchange.safeList2(inputList, 2, 1) === undefined);
     // safeListN
     listObject = exchange.safeListN(inputDict, ['a', 'b', 'list']);
@@ -206,19 +207,28 @@ function testSafeMethods() {
     assert(exchange.safeTimestampN(inputDict, ['a', 'b', 'strNumber']) === 3000);
     assert(exchange.safeTimestampN(inputList, [3, 2, 1]) === 2000);
     // safeFloat
+    // @ts-expect-error
     assert(exchange.safeFloat(inputDict, 'i') === parseFloat(1));
     assert(exchange.safeFloat(inputDict, 'f') === 0.123);
+    // @ts-expect-error
     assert(exchange.safeFloat(inputDict, 'strNumber') === parseFloat(3));
+    // @ts-expect-error
     assert(exchange.safeFloat(inputList, 1) === parseFloat(2));
     // safeFloat2
+    // @ts-expect-error
     assert(exchange.safeFloat2(inputDict, 'a', 'i') === parseFloat(1));
     assert(exchange.safeFloat2(inputDict, 'a', 'f') === 0.123);
+    // @ts-expect-error
     assert(exchange.safeFloat2(inputDict, 'a', 'strNumber') === parseFloat(3));
+    // @ts-expect-error
     assert(exchange.safeFloat2(inputList, 2, 1) === parseFloat(2));
     // safeFloatN
+    // @ts-expect-error
     assert(exchange.safeFloatN(inputDict, ['a', 'b', 'i']) === parseFloat(1));
     assert(exchange.safeFloatN(inputDict, ['a', 'b', 'f']) === 0.123);
+    // @ts-expect-error
     assert(exchange.safeFloatN(inputDict, ['a', 'b', 'strNumber']) === parseFloat(3));
+    // @ts-expect-error
     assert(exchange.safeFloatN(inputList, [3, 2, 1]) === parseFloat(2));
     // safeNumber
     assert(exchange.safeNumber(inputDict, 'i') === exchange.parseNumber(1));

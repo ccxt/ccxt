@@ -309,6 +309,7 @@ export default class huobijp extends Exchange {
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
@@ -1671,10 +1672,6 @@ export default class huobijp extends Exchange {
                 'info': data,
             }),
         ];
-    }
-
-    currencyToPrecision (code, fee, networkCode = undefined) {
-        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision'], this.precisionMode);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {

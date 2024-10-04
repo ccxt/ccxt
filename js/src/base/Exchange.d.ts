@@ -209,6 +209,7 @@ export default class Exchange {
     flatten: (x: any[], out?: any[]) => any[];
     unique: (x: any[]) => any[];
     indexBy: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
+    roundTimeframe: (timeframe: string, timestamp: number, direction?: number) => number;
     sortBy: (array: any[], key: IndexType, descending?: boolean, defaultValue?: any, direction?: number) => any[];
     sortBy2: (array: any[], key1: IndexType, key2: IndexType, descending?: boolean, direction?: number) => any[];
     groupBy: (x: Dictionary<any>, k: string, out?: Dictionary<any>) => Dictionary<any>;
@@ -495,6 +496,8 @@ export default class Exchange {
             fetchFundingHistory: any;
             fetchFundingRate: any;
             fetchFundingRateHistory: any;
+            fetchFundingInterval: any;
+            fetchFundingIntervals: any;
             fetchFundingRates: any;
             fetchGreeks: any;
             fetchIndexOHLCV: any;
@@ -555,6 +558,7 @@ export default class Exchange {
             fetchTicker: boolean;
             fetchTickerWs: any;
             fetchTickers: any;
+            fetchMarkPrices: any;
             fetchTickersWs: any;
             fetchTime: any;
             fetchTrades: boolean;
@@ -771,7 +775,8 @@ export default class Exchange {
     parseWsOrder(order: Dict, market?: Market): Order;
     parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    fetchFundingIntervals(symbols?: Strings, params?: {}): Promise<FundingRates>;
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     watchFundingRates(symbols: string[], params?: {}): Promise<FundingRates>;
     watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<{}>;
@@ -964,9 +969,11 @@ export default class Exchange {
     handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTickersWs(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -1088,8 +1095,8 @@ export default class Exchange {
     parseIsolatedBorrowRates(info: any): IsolatedBorrowRates;
     parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
-    parseFundingRate(contract: string, market?: Market): object;
-    parseFundingRates(response: any, market?: Market): {};
+    parseFundingRate(contract: string, market?: Market): FundingRate;
+    parseFundingRates(response: any, market?: Market): FundingRates;
     handleTriggerAndParams(params: any): any[];
     isTriggerOrder(params: any): any[];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: {}): boolean;
@@ -1102,6 +1109,7 @@ export default class Exchange {
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
     parseOpenInterests(response: any, market?: any, since?: Int, limit?: Int): OpenInterest[];
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
     fetchMarkOHLCV(symbol: any, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchPremiumIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

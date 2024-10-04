@@ -87,6 +87,8 @@
                     "average": 72366,
                     "baseVolume": 135.29692054,
                     "quoteVolume": 9586192.71102062,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "timestamp": "1710328241",
                         "open": "71448",

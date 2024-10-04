@@ -75,6 +75,8 @@ class mexc extends mexc$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
@@ -2147,6 +2149,7 @@ class mexc extends mexc$1 {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
@@ -2291,6 +2294,7 @@ class mexc extends mexc$1 {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [params.reduceOnly] indicates if this order is to reduce the size of a position
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.leverage] leverage is necessary on isolated margin
@@ -2371,18 +2375,31 @@ class mexc extends mexc$1 {
             }
         }
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        if (reduceOnly) {
-            request['side'] = (side === 'buy') ? 2 : 4;
+        const hedged = this.safeBool(params, 'hedged', false);
+        let sideInteger = undefined;
+        if (hedged) {
+            if (reduceOnly) {
+                params = this.omit(params, 'reduceOnly'); // hedged mode does not accept this parameter
+                side = (side === 'buy') ? 'sell' : 'buy';
+            }
+            sideInteger = (side === 'buy') ? 1 : 3;
+            request['positionMode'] = 1;
         }
         else {
-            request['side'] = (side === 'buy') ? 1 : 3;
+            if (reduceOnly) {
+                sideInteger = (side === 'buy') ? 2 : 4;
+            }
+            else {
+                sideInteger = (side === 'buy') ? 1 : 3;
+            }
         }
+        request['side'] = sideInteger;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'externalOid');
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
         const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice']);
+        params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
         let response = undefined;
         if (stopPrice) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
@@ -2605,6 +2622,7 @@ class mexc extends mexc$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2615,6 +2633,8 @@ class mexc extends mexc$1 {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
@@ -2623,6 +2643,9 @@ class mexc extends mexc$1 {
             const [marginMode, queryInner] = this.handleMarginModeAndParams('fetchOrders', params);
             if (since !== undefined) {
                 request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -2690,10 +2713,22 @@ class mexc extends mexc$1 {
         else {
             if (since !== undefined) {
                 request['start_time'] = since;
-                const end = this.safeInteger(params, 'end_time');
+                const end = this.safeInteger(params, 'end_time', until);
                 if (end === undefined) {
                     request['end_time'] = this.sum(since, this.options['maxTimeTillEnd']);
                 }
+                else {
+                    if ((end - since) > this.options['maxTimeTillEnd']) {
+                        throw new errors.BadRequest(this.id + ' end is invalid, i.e. exceeds allowed 90 days.');
+                    }
+                    else {
+                        request['end_time'] = until;
+                    }
+                }
+            }
+            else if (until !== undefined) {
+                request['start_time'] = this.sum(until, this.options['maxTimeTillEnd'] * -1);
+                request['end_time'] = until;
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
@@ -3858,6 +3893,7 @@ class mexc extends mexc$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
@@ -3865,19 +3901,25 @@ class mexc extends mexc$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         const request = {
             'symbol': market['id'],
         };
         let trades = undefined;
         if (marketType === 'spot') {
             if (since !== undefined) {
-                request['start_time'] = since;
+                request['startTime'] = since;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            trades = await this.spotPrivateGetMyTrades(this.extend(request, query));
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['endTime'] = until;
+            }
+            trades = await this.spotPrivateGetMyTrades(this.extend(request, params));
             //
             // spot
             //
@@ -3911,7 +3953,7 @@ class mexc extends mexc$1 {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            const response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, query));
+            const response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, params));
             //
             //     {
             //         "success": true,
@@ -4192,9 +4234,13 @@ class mexc extends mexc$1 {
         const nextFundingRate = this.safeNumber(contract, 'fundingRate');
         const nextFundingTimestamp = this.safeInteger(contract, 'nextSettleTime');
         const marketId = this.safeString(contract, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        const symbol = this.safeSymbol(marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger(contract, 'timestamp');
-        const datetime = this.iso8601(timestamp);
+        const interval = this.safeString(contract, 'collectCycle');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -4203,7 +4249,7 @@ class mexc extends mexc$1 {
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601(timestamp),
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': this.iso8601(nextFundingTimestamp),
@@ -4213,7 +4259,20 @@ class mexc extends mexc$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': intervalString,
         };
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**

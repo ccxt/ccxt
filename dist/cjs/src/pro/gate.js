@@ -341,7 +341,7 @@ class gate extends gate$1 {
                 throw new errors.NotSupported(this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }
         }
-        const [request, requestParams] = this.fetchOrdersByStatusRequest(status, symbol, since, limit, params);
+        const [request, requestParams] = this.prepareOrdersByStatusRequest(status, symbol, since, limit, params);
         const newRequest = this.omit(request, ['settle']);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_list';

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1133,6 +1133,8 @@ class deribit(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_string(stats, 'volume'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
         }, market)
 
@@ -2852,7 +2854,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'result', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    async def fetch_funding_rate(self, symbol: str, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://docs.deribit.com/#public-get_funding_rate_value
@@ -2932,7 +2934,7 @@ class deribit(Exchange, ImplicitAPI):
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #   {
         #       "jsonrpc":"2.0",
@@ -2972,6 +2974,7 @@ class deribit(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': '8h',
         }
 
     async def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):

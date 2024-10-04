@@ -175,11 +175,11 @@ public partial class bybit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
@@ -393,7 +393,13 @@ public partial class bybit
     /// <item>
     /// <term>params.positionIdx</term>
     /// <description>
-    /// string : *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
+    /// string : *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *contracts only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
     /// <item>

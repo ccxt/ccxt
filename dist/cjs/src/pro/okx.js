@@ -1949,7 +1949,7 @@ class okx extends okx$1 {
         const tradeSymbols = Object.keys(symbols);
         for (let i = 0; i < tradeSymbols.length; i++) {
             const symbolMessageHash = messageHash + '::' + tradeSymbols[i];
-            client.resolve(this.orders, symbolMessageHash);
+            client.resolve(this.myTrades, symbolMessageHash);
         }
     }
     requestId() {
@@ -2209,14 +2209,30 @@ class okx extends okx$1 {
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
         //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
-        const errorCode = this.safeString(message, 'code');
+        let errorCode = this.safeString(message, 'code');
         try {
             if (errorCode && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
-                this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
-                const messageString = this.safeValue(message, 'msg');
+                if (errorCode !== '1') {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                }
+                let messageString = this.safeValue(message, 'msg');
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
+                }
+                else {
+                    const data = this.safeList(message, 'data', []);
+                    for (let i = 0; i < data.length; i++) {
+                        const d = data[i];
+                        errorCode = this.safeString(d, 'sCode');
+                        if (errorCode !== undefined) {
+                            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                        }
+                        messageString = this.safeValue(message, 'sMsg');
+                        if (messageString !== undefined) {
+                            this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
+                        }
+                    }
                 }
                 throw new errors.ExchangeError(feedback);
             }

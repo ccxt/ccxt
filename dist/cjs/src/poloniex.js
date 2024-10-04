@@ -627,6 +627,7 @@ class poloniex extends poloniex$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'quantity'),
             'quoteVolume': this.safeString(ticker, 'amount'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }

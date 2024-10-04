@@ -342,6 +342,12 @@ public partial class mexc
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap only* true for hedged mode, false for one way mode, default is false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.leverage</term>
     /// <description>
     /// int : leverage is necessary on isolated margin
@@ -499,6 +505,12 @@ public partial class mexc
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch orders for
     /// </description>
     /// </item>
     /// <item>
@@ -819,6 +831,12 @@ public partial class mexc
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch trades for
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
@@ -919,6 +937,26 @@ public partial class mexc
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
     }
     /// <summary>
+    /// fetch the current funding rate interval
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
@@ -933,10 +971,10 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetches historical funding rate prices

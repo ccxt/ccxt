@@ -523,7 +523,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             if (isTrue(isTrue(!isEqual(account, "futures")) && isTrue(!isEqual(account, "flex_futures"))))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " watchBalance account must be either \'futures\' or \'flex_futures\'")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " watchBalance account must be either 'futures' or 'flex_futures'")) ;
             }
             messageHash = add(messageHash, add(":", account));
         }
@@ -1170,6 +1170,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", this.safeString(ticker, "volumeQuote") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "index") },
         });
     }
 
@@ -1727,7 +1729,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
         return message;

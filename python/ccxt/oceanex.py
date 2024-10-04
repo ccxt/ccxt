@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.oceanex import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -54,9 +54,9 @@ class oceanex(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchDepositAddress': False,
-                'fetchDepositAddresses': False,
-                'fetchDepositAddressesByNetwork': False,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': None,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchMarkets': True,
@@ -117,6 +117,11 @@ class oceanex(Exchange, ImplicitAPI):
                         'order/delete',
                         'order/delete/multi',
                         'orders/clear',
+                        '/withdraws/special/new',
+                        '/deposit_address',
+                        '/deposit_addresses',
+                        '/deposit_history',
+                        '/withdraw_history',
                     ],
                 },
             },
@@ -857,6 +862,77 @@ class oceanex(Exchange, ImplicitAPI):
         response = self.privatePostOrdersClear(params)
         data = self.safe_list(response, 'data')
         return self.parse_orders(data)
+
+    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+        """
+        fetch the deposit addresses for a currency associated with self account
+        :see: https://api.oceanex.pro/doc/v1/#deposit-addresses-post
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary `address structures <https://docs.ccxt.com/#/?id=address-structure>`, indexed by the network
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostDepositAddresses(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        message: 'Operation successful',
+        #        data: {
+        #          data: {
+        #            currency_id: 'usdt',
+        #            display_name: 'USDT',
+        #            num_of_resources: '3',
+        #            resources: [
+        #              {
+        #                chain_name: 'TRC20',
+        #                currency_id: 'usdt',
+        #                address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        #                memo: '',
+        #                deposit_status: 'enabled'
+        #              },
+        #              ...
+        #            ]
+        #          }
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        data2 = self.safe_dict(data, 'data', {})
+        resources = self.safe_list(data2, 'resources', [])
+        result = {}
+        for i in range(0, len(resources)):
+            resource = resources[i]
+            enabled = self.safe_string(resource, 'deposit_status')
+            if enabled == 'enabled':
+                parsedAddress = self.parse_deposit_address(resource, currency)
+                result[parsedAddress['currency']] = parsedAddress
+        return result
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    {
+        #        chain_name: 'TRC20',
+        #        currency_id: 'usdt',
+        #        address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        #        memo: '',
+        #        deposit_status: 'enabled'
+        #    }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        currencyId = self.safe_string(depositAddress, 'currency_id')
+        networkId = self.safe_string(depositAddress, 'chain_name')
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'address': address,
+            'tag': self.safe_string(depositAddress, 'memo'),
+            'network': self.network_id_to_code(networkId),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)

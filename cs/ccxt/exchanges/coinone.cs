@@ -1025,14 +1025,14 @@ public partial class coinone : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {\'price\': 12345, \'qty\': 1.2345, \'is_ask\': 0} in the params argument of cancelOrder.")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")) ;
         }
         object price = this.safeNumber(parameters, "price");
         object qty = this.safeNumber(parameters, "qty");
         object isAsk = this.safeInteger(parameters, "is_ask");
         if (isTrue(isTrue(isTrue((isEqual(price, null))) || isTrue((isEqual(qty, null)))) || isTrue((isEqual(isAsk, null)))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires {\'price\': 12345, \'qty\': 1.2345, \'is_ask\': 0} in the params argument.")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")) ;
         }
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {

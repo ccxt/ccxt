@@ -60,6 +60,8 @@ class xt extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -4201,7 +4203,18 @@ class xt extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_interval(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate interval
+         * @see https://doc.xt.com/#futures_quotesgetFundingRate
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        return $this->fetch_funding_rate($symbol, $params);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://doc.xt.com/#futures_quotesgetFundingRate
@@ -4242,7 +4255,7 @@ class xt extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, $market = null): array {
         //
         //     {
         //         "symbol" => "btc_usdt",
@@ -4254,6 +4267,7 @@ class xt extends Exchange {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_', 'swap');
         $timestamp = $this->safe_integer($contract, 'nextCollectionTime');
+        $interval = $this->safe_string($contract, 'collectionInternal');
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -4272,6 +4286,7 @@ class xt extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => $interval . 'h',
         );
     }
 

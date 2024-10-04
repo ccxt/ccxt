@@ -75,7 +75,7 @@ class bybit extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
-                'fetchFundingRate' => true, // emulated in exchange
+                'fetchFundingRate' => 'emulated', // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchGreeks' => true,
@@ -2096,6 +2096,8 @@ class bybit extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -2408,7 +2410,8 @@ class bybit extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_funding_rate($ticker, ?array $market = null) {
+    public function parse_funding_rate($ticker, ?array $market = null): array {
+        //
         //     {
         //         "symbol" => "BTCUSDT",
         //         "bidPrice" => "19255",
@@ -2459,16 +2462,17 @@ class bybit extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetches funding rates for multiple markets
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {string[]} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $market = null;
@@ -2527,18 +2531,10 @@ class bybit extends Exchange {
         //         "time" => 1663670053454
         //     }
         //
-        $tickerList = $this->safe_value($response, 'result', array());
-        $timestamp = $this->safe_integer($response, 'time');
-        $tickerList = $this->safe_value($tickerList, 'list');
-        $fundingRates = array();
-        for ($i = 0; $i < count($tickerList); $i++) {
-            $rawTicker = $tickerList[$i];
-            $rawTicker['timestamp'] = $timestamp; // will be removed inside the parser
-            $ticker = $this->parse_funding_rate($tickerList[$i], null);
-            $symbol = $ticker['symbol'];
-            $fundingRates[$symbol] = $ticker;
-        }
-        return $this->filter_by_array($fundingRates, 'symbol', $symbols);
+        $data = $this->safe_dict($response, 'result', array());
+        $tickerList = $this->safe_list($data, 'list', array());
+        $result = $this->parse_funding_rates($tickerList);
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3573,7 +3569,8 @@ class bybit extends Exchange {
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK"
          * @param {bool} [$params->postOnly] true or false whether the $order is post-only
          * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
-         * @param {string} [$params->positionIdx] *contracts only*  0 for one-way mode, 1 buy $side  of hedged mode, 2 sell $side of hedged mode
+         * @param {string} [$params->positionIdx] *contracts only* 0 for one-way mode, 1 buy $side of hedged mode, 2 sell $side of hedged mode
+         * @param {bool} [$params->hedged] *contracts only* true for hedged mode, false for one way mode, default is false
          * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [$params->mmp] *option only* $market maker protection
@@ -3658,6 +3655,8 @@ class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         );
+        $hedged = $this->safe_bool($params, 'hedged', false);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
         $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
@@ -3836,7 +3835,14 @@ class bybit extends Exchange {
                 }
             }
         }
-        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice' ));
+        if (!$market['spot'] && $hedged) {
+            if ($reduceOnly) {
+                $params = $this->omit($params, 'reduceOnly');
+                $side = ($side === 'buy') ? 'sell' : 'buy';
+            }
+            $request['positionIdx'] = ($side === 'buy') ? 1 : 2;
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged' ));
         return $this->extend($request, $params);
     }
 
@@ -6710,6 +6716,8 @@ class bybit extends Exchange {
         }
         $maintenanceMarginPercentage = Precise::string_div($maintenanceMarginString, $notional);
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateralString, 4);
+        $positionIdx = $this->safe_string($position, 'positionIdx');
+        $hedged = ($positionIdx !== null) && ($positionIdx !== '0');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -6738,6 +6746,7 @@ class bybit extends Exchange {
             'percentage' => null,
             'stopLossPrice' => $this->safe_number_2($position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice' => $this->safe_number_2($position, 'take_profit', 'takeProfit'),
+            'hedged' => $hedged,
         ));
     }
 

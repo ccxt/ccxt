@@ -12,8 +12,37 @@ AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, O
 // shared
 getCliArgValue, 
 //
-baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, isNullValue, close, } from './tests.helpers.js';
-class testMainClass extends baseMainTestClass {
+ENV_VARS, NEW_LINE, LANG, EXT, ROOT_DIR, PROXY_TEST_FILE_NAME, IS_SYNCHRONOUS, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, getRootException, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, isNullValue, close, } from './tests.helpers.js';
+class testMainClass {
+    constructor() {
+        this.isSynchronous = IS_SYNCHRONOUS;
+        this.idTests = false;
+        this.requestTestsFailed = false;
+        this.responseTestsFailed = false;
+        this.requestTests = false;
+        this.wsTests = false;
+        this.responseTests = false;
+        this.staticTests = false;
+        this.info = false;
+        this.verbose = false;
+        this.debug = false;
+        this.privateTest = false;
+        this.privateTestOnly = false;
+        this.loadKeys = false;
+        this.sandbox = false;
+        this.proxyTestFileName = PROXY_TEST_FILE_NAME;
+        this.onlySpecificTests = [];
+        this.skippedSettingsForExchange = {};
+        this.skippedMethods = {};
+        this.checkedPublicTests = {};
+        this.testFiles = {};
+        this.publicTests = {};
+        this.newLine = NEW_LINE;
+        this.rootDir = ROOT_DIR;
+        this.envVars = ENV_VARS;
+        this.ext = EXT;
+        this.lang = LANG;
+    }
     parseCliArgs() {
         this.responseTests = getCliArgValue('--responseTests');
         this.idTests = getCliArgValue('--idTests');
@@ -141,7 +170,7 @@ class testMainClass extends baseMainTestClass {
             this.loadCredentialsFromEnv(exchange);
         }
         // skipped tests
-        const skippedFile = this.rootDirForSkips + 'skip-tests.json';
+        const skippedFile = this.rootDir + 'skip-tests.json';
         const skippedSettings = ioFileRead(skippedFile);
         this.skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, {});
         const skippedSettingsForExchange = this.skippedSettingsForExchange;

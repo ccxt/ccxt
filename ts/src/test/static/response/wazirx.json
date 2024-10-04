@@ -88,6 +88,8 @@
                     "average": 72631,
                     "baseVolume": 1.03814,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "btcusdt",
                         "baseAsset": "btc",

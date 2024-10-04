@@ -1160,6 +1160,8 @@ export default class deribit extends Exchange {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString(stats, 'volume'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
         }, market);
     }
@@ -3140,6 +3142,7 @@ export default class deribit extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': '8h',
         };
     }
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {

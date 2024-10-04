@@ -45,7 +45,7 @@ function test_watch_ohlcv_for_symbols($exchange, $skipped_properties, $symbol) {
             assert(is_array($symbol_obj), 'Response.Symbol should be a dictionary. ' . $assertion_message);
             assert(is_array($symbol_obj) && array_key_exists($chosen_timeframe_key, $symbol_obj), 'Response.symbol should contain the timeframe key. ' . $assertion_message);
             $ohlcvs = $symbol_obj[$chosen_timeframe_key];
-            assert(gettype($ohlcvs) === 'array' && array_keys($ohlcvs) === array_keys(array_keys($ohlcvs)), 'Response.symbol.timeframe should be an array. ' . $assertion_message);
+            assert(gettype($ohlcvs) === 'array' && array_is_list($ohlcvs), 'Response.symbol.timeframe should be an array. ' . $assertion_message);
             $now = $exchange->milliseconds();
             for ($i = 0; $i < count($ohlcvs); $i++) {
                 test_ohlcv($exchange, $skipped_properties, $method, $ohlcvs[$i], $symbol, $now);

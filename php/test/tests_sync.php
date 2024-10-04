@@ -13,7 +13,36 @@ use ccxt\OnMaintenance;
 
 require_once __DIR__ . '/tests_helpers.php';
 
-class testMainClass extends baseMainTestClass {
+#[\AllowDynamicProperties]
+class testMainClass {
+    public $is_synchronous = IS_SYNCHRONOUS;
+    public $id_tests = false;
+    public $request_tests_failed = false;
+    public $response_tests_failed = false;
+    public $request_tests = false;
+    public $ws_tests = false;
+    public $response_tests = false;
+    public $static_tests = false;
+    public $info = false;
+    public $verbose = false;
+    public $debug = false;
+    public $private_test = false;
+    public $private_test_only = false;
+    private $load_keys = false;
+    public $sandbox = false;
+    public $proxy_test_file_name = PROXY_TEST_FILE_NAME;
+    public $only_specific_tests = [];
+    public $skipped_settings_for_exchange = array();
+    public $skipped_methods = array();
+    public $checked_public_tests = array();
+    public $test_files = array();
+    public $public_tests = array();
+    public $new_line = NEW_LINE;
+    public $root_dir = ROOT_DIR;
+    public $env_vars = ENV_VARS;
+    public $ext = EXT;
+    public $lang = LANG;
+
     public function parse_cli_args() {
         $this->response_tests = get_cli_arg_value('--responseTests');
         $this->id_tests = get_cli_arg_value('--idTests');
@@ -149,7 +178,7 @@ class testMainClass extends baseMainTestClass {
             $this->load_credentials_from_env($exchange);
         }
         // skipped tests
-        $skipped_file = $this->root_dir_for_skips . 'skip-tests.json';
+        $skipped_file = $this->root_dir . 'skip-tests.json';
         $skipped_settings = io_file_read($skipped_file);
         $this->skipped_settings_for_exchange = $exchange->safe_value($skipped_settings, $exchange_id, array());
         $skipped_settings_for_exchange = $this->skipped_settings_for_exchange;
@@ -864,7 +893,7 @@ class testMainClass extends baseMainTestClass {
                 $new_value = $new_output[$key];
                 $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
             }
-        } elseif (gettype($stored_output) === 'array' && array_keys($stored_output) === array_keys(array_keys($stored_output)) && (gettype($new_output) === 'array' && array_keys($new_output) === array_keys(array_keys($new_output)))) {
+        } elseif (gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
             $stored_array_length = count($stored_output);
             $new_array_length = count($new_output);
             $this->assert_static_error($stored_array_length === $new_array_length, 'output length mismatch', $stored_output, $new_output);

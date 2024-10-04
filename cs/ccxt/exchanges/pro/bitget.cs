@@ -2063,7 +2063,7 @@ public partial class bitget : ccxt.bitget
                 ((WebSocketClient)client).reject(e, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             } else
             {
@@ -2220,15 +2220,15 @@ public partial class bitget : ccxt.bitget
         object subMessageHash = add("orderbook:", symbol);
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subMessageHash);
         }
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, "orderbook "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
@@ -2250,15 +2250,15 @@ public partial class bitget : ccxt.bitget
         object subMessageHash = add("trade:", symbol);
         if (isTrue(inOp(this.trades, symbol)))
         {
-
+            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
         }
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subMessageHash);
         }
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, "trades "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
@@ -2280,15 +2280,15 @@ public partial class bitget : ccxt.bitget
         object subMessageHash = add("ticker:", symbol);
         if (isTrue(inOp(this.tickers, symbol)))
         {
-
+            ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
         }
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subMessageHash);
         }
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
         var error = new UnsubscribeError(add(add(this.id, "ticker "), symbol));
         ((WebSocketClient)client).reject(error, subMessageHash);
@@ -2316,7 +2316,7 @@ public partial class bitget : ccxt.bitget
         {
             if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
             {
-
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
             }
         }
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);

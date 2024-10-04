@@ -60,7 +60,7 @@ public partial class oxfun : Exchange
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
-                { "fetchFundingRate", false },
+                { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -872,6 +872,7 @@ public partial class oxfun : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "currencyVolume24h") },
             { "quoteVolume", null },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }
@@ -1022,8 +1023,8 @@ public partial class oxfun : Exchange
         /**
         * @method
         * @name oxfun#fetchFundingRates
+        * @description fetch the current funding rates for multiple markets
         * @see https://docs.ox.fun/?json#get-v3-funding-estimates
-        * @description fetch the current funding rates
         * @param {string[]} symbols unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1062,8 +1063,7 @@ public partial class oxfun : Exchange
         //         "marketCode": "OX-USD-SWAP-LIN",
         //         "fundingAt": "1715515200000",
         //         "estFundingRate": "0.000200000"
-        //     },
-        //
+        //     }
         //
         object symbol = this.safeString(fundingRate, "marketCode");
         market = this.market(symbol);
@@ -1086,6 +1086,7 @@ public partial class oxfun : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

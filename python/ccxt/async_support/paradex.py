@@ -652,6 +652,7 @@ class paradex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_string(ticker, 'volume_24h'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
             'info': ticker,
         }, market)
 

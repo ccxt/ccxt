@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -89,6 +89,8 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
@@ -2054,6 +2056,7 @@ class mexc(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
+        :param bool [params.hedged]: *swap only* True for hedged mode, False for one way mode, default is False
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param int [params.leverage]: *contract only* leverage is necessary on isolated margin
@@ -2179,6 +2182,7 @@ class mexc(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param bool [params.reduceOnly]: indicates if self order is to reduce the size of a position
+        :param bool [params.hedged]: *swap only* True for hedged mode, False for one way mode, default is False
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param int [params.leverage]: leverage is necessary on isolated margin
@@ -2246,15 +2250,25 @@ class mexc(Exchange, ImplicitAPI):
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders')
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-        if reduceOnly:
-            request['side'] = 2 if (side == 'buy') else 4
+        hedged = self.safe_bool(params, 'hedged', False)
+        sideInteger = None
+        if hedged:
+            if reduceOnly:
+                params = self.omit(params, 'reduceOnly')  # hedged mode does not accept self parameter
+                side = 'sell' if (side == 'buy') else 'buy'
+            sideInteger = 1 if (side == 'buy') else 3
+            request['positionMode'] = 1
         else:
-            request['side'] = 1 if (side == 'buy') else 3
+            if reduceOnly:
+                sideInteger = 2 if (side == 'buy') else 4
+            else:
+                sideInteger = 1 if (side == 'buy') else 3
+        request['side'] = sideInteger
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
         stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice'])
+        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged'])
         response = None
         if stopPrice:
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
@@ -2456,6 +2470,7 @@ class mexc(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch orders for
         :param str [params.marginMode]: only 'isolated' is supported, for spot-margin trading
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2465,6 +2480,8 @@ class mexc(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
         marketType, query = self.handle_market_type_and_params('fetchOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
@@ -2472,6 +2489,8 @@ class mexc(Exchange, ImplicitAPI):
             marginMode, queryInner = self.handle_margin_mode_and_params('fetchOrders', params)
             if since is not None:
                 request['startTime'] = since
+            if until is not None:
+                request['endTime'] = until
             if limit is not None:
                 request['limit'] = limit
             response = None
@@ -2533,9 +2552,17 @@ class mexc(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['start_time'] = since
-                end = self.safe_integer(params, 'end_time')
+                end = self.safe_integer(params, 'end_time', until)
                 if end is None:
                     request['end_time'] = self.sum(since, self.options['maxTimeTillEnd'])
+                else:
+                    if (end - since) > self.options['maxTimeTillEnd']:
+                        raise BadRequest(self.id + ' end is invalid, i.e. exceeds allowed 90 days.')
+                    else:
+                        request['end_time'] = until
+            elif until is not None:
+                request['start_time'] = self.sum(until, self.options['maxTimeTillEnd'] * -1)
+                request['end_time'] = until
             if limit is not None:
                 request['page_size'] = limit
             method = self.safe_string(self.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders')
@@ -3615,23 +3642,29 @@ class mexc(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        marketType: Str = None
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request: dict = {
             'symbol': market['id'],
         }
         trades = None
         if marketType == 'spot':
             if since is not None:
-                request['start_time'] = since
+                request['startTime'] = since
             if limit is not None:
                 request['limit'] = limit
-            trades = self.spotPrivateGetMyTrades(self.extend(request, query))
+            until = self.safe_integer(params, 'until')
+            if until is not None:
+                params = self.omit(params, 'until')
+                request['endTime'] = until
+            trades = self.spotPrivateGetMyTrades(self.extend(request, params))
             #
             # spot
             #
@@ -3661,7 +3694,7 @@ class mexc(Exchange, ImplicitAPI):
                     request['end_time'] = self.sum(since, self.options['maxTimeTillEnd'])
             if limit is not None:
                 request['page_size'] = limit
-            response = self.contractPrivateGetOrderListOrderDeals(self.extend(request, query))
+            response = self.contractPrivateGetOrderListOrderDeals(self.extend(request, params))
             #
             #     {
             #         "success": True,
@@ -3904,7 +3937,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -3919,9 +3952,12 @@ class mexc(Exchange, ImplicitAPI):
         nextFundingRate = self.safe_number(contract, 'fundingRate')
         nextFundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
         marketId = self.safe_string(contract, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, 'contract')
         timestamp = self.safe_integer(contract, 'timestamp')
-        datetime = self.iso8601(timestamp)
+        interval = self.safe_string(contract, 'collectCycle')
+        intervalString = None
+        if interval is not None:
+            intervalString = interval + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -3930,7 +3966,7 @@ class mexc(Exchange, ImplicitAPI):
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': self.iso8601(nextFundingTimestamp),
@@ -3940,9 +3976,20 @@ class mexc(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': intervalString,
         }
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rate(symbol, params)
+
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate

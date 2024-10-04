@@ -344,6 +344,7 @@ class bitrue(Exchange, ImplicitAPI):
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -532,13 +533,6 @@ class bitrue(Exchange, ImplicitAPI):
                 },
             },
         })
-
-    def currency_to_precision(self, code, fee, networkCode=None):
-        # info is available in currencies only if the user has configured his api keys
-        if self.safe_value(self.currencies[code], 'precision') is not None:
-            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
-        else:
-            return self.number_to_string(fee)
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']

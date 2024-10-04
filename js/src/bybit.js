@@ -82,7 +82,7 @@ export default class bybit extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': true,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': true,
@@ -2111,6 +2111,8 @@ export default class bybit extends Exchange {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'markPrice'),
+            'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
@@ -2438,6 +2440,7 @@ export default class bybit extends Exchange {
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseFundingRate(ticker, market = undefined) {
+        //
         //     {
         //         "symbol": "BTCUSDT",
         //         "bidPrice": "19255",
@@ -2488,6 +2491,7 @@ export default class bybit extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
@@ -2498,7 +2502,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2558,18 +2562,10 @@ export default class bybit extends Exchange {
         //         "time": 1663670053454
         //     }
         //
-        let tickerList = this.safeValue(response, 'result', []);
-        const timestamp = this.safeInteger(response, 'time');
-        tickerList = this.safeValue(tickerList, 'list');
-        const fundingRates = {};
-        for (let i = 0; i < tickerList.length; i++) {
-            const rawTicker = tickerList[i];
-            rawTicker['timestamp'] = timestamp; // will be removed inside the parser
-            const ticker = this.parseFundingRate(tickerList[i], undefined);
-            const symbol = ticker['symbol'];
-            fundingRates[symbol] = ticker;
-        }
-        return this.filterByArray(fundingRates, 'symbol', symbols);
+        const data = this.safeDict(response, 'result', {});
+        const tickerList = this.safeList(data, 'list', []);
+        const result = this.parseFundingRates(tickerList);
+        return this.filterByArray(result, 'symbol', symbols);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -3627,7 +3623,8 @@ export default class bybit extends Exchange {
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK"
          * @param {bool} [params.postOnly] true or false whether the order is post-only
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
-         * @param {string} [params.positionIdx] *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
+         * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
+         * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
          * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [params.mmp] *option only* market maker protection
@@ -3712,6 +3709,8 @@ export default class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
+        const hedged = this.safeBool(params, 'hedged', false);
+        const reduceOnly = this.safeBool(params, 'reduceOnly');
         let triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
@@ -3910,7 +3909,14 @@ export default class bybit extends Exchange {
                 }
             }
         }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice']);
+        if (!market['spot'] && hedged) {
+            if (reduceOnly) {
+                params = this.omit(params, 'reduceOnly');
+                side = (side === 'buy') ? 'sell' : 'buy';
+            }
+            request['positionIdx'] = (side === 'buy') ? 1 : 2;
+        }
+        params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged']);
         return this.extend(request, params);
     }
     async createOrders(orders, params = {}) {
@@ -6827,6 +6833,8 @@ export default class bybit extends Exchange {
         }
         const maintenanceMarginPercentage = Precise.stringDiv(maintenanceMarginString, notional);
         const marginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
+        const positionIdx = this.safeString(position, 'positionIdx');
+        const hedged = (positionIdx !== undefined) && (positionIdx !== '0');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -6855,6 +6863,7 @@ export default class bybit extends Exchange {
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2(position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice': this.safeNumber2(position, 'take_profit', 'takeProfit'),
+            'hedged': hedged,
         });
     }
     async fetchLeverage(symbol, params = {}) {

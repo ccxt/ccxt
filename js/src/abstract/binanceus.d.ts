@@ -465,6 +465,7 @@ interface binance {
     dapiPublicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetConstituents(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetOpenInterest(params?: {}): Promise<implicitReturnType>;
+    dapiPublicGetFundingInfo(params?: {}): Promise<implicitReturnType>;
     dapiDataGetDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     dapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     dapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
@@ -754,6 +755,7 @@ interface binance {
     papiPostListenKey(params?: {}): Promise<implicitReturnType>;
     papiPostAssetCollection(params?: {}): Promise<implicitReturnType>;
     papiPostMarginRepayDebt(params?: {}): Promise<implicitReturnType>;
+    papiPostUmFeeBurn(params?: {}): Promise<implicitReturnType>;
     papiPutListenKey(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmConditionalOrder(params?: {}): Promise<implicitReturnType>;

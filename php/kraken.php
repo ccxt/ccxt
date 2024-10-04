@@ -43,6 +43,7 @@ class kraken extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'createTrailingAmountOrder' => true,
+                'createTrailingPercentOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
@@ -433,7 +434,9 @@ class kraken extends Exchange {
                 'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
                 'EGeneral:Temporary lockout' => '\\ccxt\\DDoSProtection',
                 'EGeneral:Permission denied' => '\\ccxt\\PermissionDenied',
+                'EGeneral:Invalid arguments:price' => '\\ccxt\\InvalidOrder',
                 'EOrder:Unknown order' => '\\ccxt\\InvalidOrder',
+                'EOrder:Invalid price:Invalid price argument' => '\\ccxt\\InvalidOrder',
                 'EOrder:Order minimum not met' => '\\ccxt\\InvalidOrder',
                 'EGeneral:Invalid arguments' => '\\ccxt\\BadRequest',
                 'ESession:Invalid session' => '\\ccxt\\AuthenticationError',
@@ -1439,8 +1442,8 @@ class kraken extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
-         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * create a trade order
+         * @see https://docs.kraken.com/api/docs/rest-api/add-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1452,7 +1455,9 @@ class kraken extends Exchange {
          * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at
          * @param {string} [$params->trailingAmount] *margin only* the quote $amount to trail away from the current $market $price
+         * @param {string} [$params->trailingPercent] *margin only* the percent to trail away from the current $market $price
          * @param {string} [$params->trailingLimitAmount] *margin only* the quote $amount away from the trailingAmount
+         * @param {string} [$params->trailingLimitPercent] *margin only* the percent away from the trailingAmount
          * @param {string} [$params->offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
          * @param {string} [$params->trigger] *margin only* the activation $price $type, 'last' or 'index', default is 'last'
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1784,8 +1789,11 @@ class kraken extends Exchange {
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $trailingAmount = $this->safe_string($params, 'trailingAmount');
+        $trailingPercent = $this->safe_string($params, 'trailingPercent');
         $trailingLimitAmount = $this->safe_string($params, 'trailingLimitAmount');
+        $trailingLimitPercent = $this->safe_string($params, 'trailingLimitPercent');
         $isTrailingAmountOrder = $trailingAmount !== null;
+        $isTrailingPercentOrder = $trailingPercent !== null;
         $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         $isMarketOrder = $type === 'market';
         $cost = $this->safe_string($params, 'cost');
@@ -1800,7 +1808,7 @@ class kraken extends Exchange {
             }
             $extendedOflags = ($flags !== null) ? $flags . ',viqc' : 'viqc';
             $request['oflags'] = $extendedOflags;
-        } elseif ($isLimitOrder && !$isTrailingAmountOrder) {
+        } elseif ($isLimitOrder && !$isTrailingAmountOrder && !$isTrailingPercentOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
@@ -1823,19 +1831,33 @@ class kraken extends Exchange {
             if ($isLimitOrder) {
                 $request['price2'] = $this->price_to_precision($symbol, $price);
             }
-        } elseif ($isTrailingAmountOrder) {
+        } elseif ($isTrailingAmountOrder || $isTrailingPercentOrder) {
+            $trailingPercentString = null;
+            if ($trailingPercent !== null) {
+                $trailingPercentString = (str_ends_with($trailingPercent, '%')) ? ('+' . $trailingPercent) : ('+' . $trailingPercent . '%');
+            }
+            $trailingAmountString = ($trailingAmount !== null) ? '+' . $trailingAmount : null; // must use . for this
+            $offset = $this->safe_string($params, 'offset', '-'); // can use . or - for this
+            $trailingLimitAmountString = ($trailingLimitAmount !== null) ? $offset . $this->number_to_string($trailingLimitAmount) : null;
             $trailingActivationPriceType = $this->safe_string($params, 'trigger', 'last');
-            $trailingAmountString = '+' . $trailingAmount;
             $request['trigger'] = $trailingActivationPriceType;
-            if ($isLimitOrder || ($trailingLimitAmount !== null)) {
-                $offset = $this->safe_string($params, 'offset', '-');
-                $trailingLimitAmountString = $offset . $this->number_to_string($trailingLimitAmount);
-                $request['price'] = $trailingAmountString;
-                $request['price2'] = $trailingLimitAmountString;
+            if ($isLimitOrder || ($trailingLimitAmount !== null) || ($trailingLimitPercent !== null)) {
                 $request['ordertype'] = 'trailing-stop-limit';
+                if ($trailingLimitPercent !== null) {
+                    $trailingLimitPercentString = (str_ends_with($trailingLimitPercent, '%')) ? ($offset . $trailingLimitPercent) : ($offset . $trailingLimitPercent . '%');
+                    $request['price'] = $trailingPercentString;
+                    $request['price2'] = $trailingLimitPercentString;
+                } elseif ($trailingLimitAmount !== null) {
+                    $request['price'] = $trailingAmountString;
+                    $request['price2'] = $trailingLimitAmountString;
+                }
             } else {
-                $request['price'] = $trailingAmountString;
                 $request['ordertype'] = 'trailing-stop';
+                if ($trailingPercent !== null) {
+                    $request['price'] = $trailingPercentString;
+                } else {
+                    $request['price'] = $trailingAmountString;
+                }
             }
         }
         if ($reduceOnly) {
@@ -1872,7 +1894,7 @@ class kraken extends Exchange {
         if (($flags !== null) && !(is_array($request) && array_key_exists('oflags', $request))) {
             $request['oflags'] = $flags;
         }
-        $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ));
+        $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ));
         return array( $request, $params );
     }
 
@@ -3080,11 +3102,16 @@ class kraken extends Exchange {
                 $url .= '?' . $this->urlencode_nested($params);
             }
         } elseif ($api === 'private') {
+            $price = $this->safe_string($params, 'price');
+            $isTriggerPercent = false;
+            if ($price !== null) {
+                $isTriggerPercent = (str_ends_with($price, '%')) ? true : false;
+            }
             $isCancelOrderBatch = ($path === 'CancelOrderBatch');
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if ($isCancelOrderBatch) {
+            if ($isCancelOrderBatch || $isTriggerPercent) {
                 $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             } else {
                 $body = $this->urlencode_nested($this->extend(array( 'nonce' => $nonce ), $params));
@@ -3098,9 +3125,8 @@ class kraken extends Exchange {
             $headers = array(
                 'API-Key' => $this->apiKey,
                 'API-Sign' => $signature,
-                // 'Content-Type' => 'application/x-www-form-urlencoded',
             );
-            if ($isCancelOrderBatch) {
+            if ($isCancelOrderBatch || $isTriggerPercent) {
                 $headers['Content-Type'] = 'application/json';
             } else {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';

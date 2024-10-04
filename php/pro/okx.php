@@ -2002,7 +2002,7 @@ class okx extends \ccxt\async\okx {
         $tradeSymbols = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($tradeSymbols); $i++) {
             $symbolMessageHash = $messageHash . '::' . $tradeSymbols[$i];
-            $client->resolve ($this->orders, $symbolMessageHash);
+            $client->resolve ($this->myTrades, $symbolMessageHash);
         }
     }
 
@@ -2278,10 +2278,25 @@ class okx extends \ccxt\async\okx {
         try {
             if ($errorCode && $errorCode !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                if ($errorCode !== '1') {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                }
                 $messageString = $this->safe_value($message, 'msg');
                 if ($messageString !== null) {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
+                } else {
+                    $data = $this->safe_list($message, 'data', array());
+                    for ($i = 0; $i < count($data); $i++) {
+                        $d = $data[$i];
+                        $errorCode = $this->safe_string($d, 'sCode');
+                        if ($errorCode !== null) {
+                            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                        }
+                        $messageString = $this->safe_value($message, 'sMsg');
+                        if ($messageString !== null) {
+                            $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
+                        }
+                    }
                 }
                 throw new ExchangeError($feedback);
             }

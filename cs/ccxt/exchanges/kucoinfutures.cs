@@ -54,6 +54,8 @@ public partial class kucoinfutures : kucoin
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchIndexOHLCV", false },
@@ -61,12 +63,14 @@ public partial class kucoinfutures : kucoin
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchL3OrderBook", true },
                 { "fetchLedger", true },
+                { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
                 { "fetchMarginAdjustmentHistory", false },
-                { "fetchMarginMode", false },
+                { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
@@ -87,7 +91,7 @@ public partial class kucoinfutures : kucoin
                 { "fetchTransactionFee", false },
                 { "fetchWithdrawals", true },
                 { "setLeverage", false },
-                { "setMarginMode", false },
+                { "setMarginMode", true },
                 { "transfer", true },
                 { "withdraw", null },
             } },
@@ -161,12 +165,15 @@ public partial class kucoinfutures : kucoin
                         { "trade-fees", 1 },
                         { "history-positions", 1 },
                         { "getMaxOpenSize", 1 },
+                        { "getCrossUserLeverage", 1 },
+                        { "position/getMarginMode", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "withdrawals", 1 },
                         { "transfer-out", 1 },
                         { "transfer-in", 1 },
                         { "orders", 1.33 },
+                        { "st-orders", 1.33 },
                         { "orders/test", 1.33 },
                         { "position/margin/auto-deposit-status", 1 },
                         { "position/margin/deposit-margin", 1 },
@@ -174,6 +181,8 @@ public partial class kucoinfutures : kucoin
                         { "bullet-private", 1 },
                         { "sub/api-key", 1 },
                         { "sub/api-key/update", 1 },
+                        { "changeCrossUserLeverage", 1 },
+                        { "position/changeMarginMode", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "withdrawals/{withdrawalId}", 1 },
@@ -279,9 +288,13 @@ public partial class kucoinfutures : kucoin
                     { "futuresPrivate", new Dictionary<string, object>() {
                         { "GET", new Dictionary<string, object>() {
                             { "getMaxOpenSize", "v2" },
+                            { "getCrossUserLeverage", "v2" },
+                            { "position/getMarginMode", "v2" },
                         } },
                         { "POST", new Dictionary<string, object>() {
                             { "transfer-out", "v2" },
+                            { "changeCrossUserLeverage", "v2" },
+                            { "position/changeMarginMode", "v2" },
                         } },
                     } },
                     { "futuresPublic", new Dictionary<string, object>() {
@@ -756,6 +769,28 @@ public partial class kucoinfutures : kucoin
         return this.parseTicker(getValue(response, "data"), market);
     }
 
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchMarkPrice
+        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, parameters));
+        //
+        return this.parseTicker(getValue(response, "data"), market);
+    }
+
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         /**
@@ -852,6 +887,14 @@ public partial class kucoinfutures : kucoin
 
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        //     {
+        //         "symbol": "LTCUSDTM",
+        //         "granularity": 1000,
+        //         "timePoint": 1727967339000,
+        //         "value": 62.37, mark price
+        //         "indexPrice": 62.37
+        //      }
         //
         //     {
         //         "code": "200000",
@@ -954,6 +997,8 @@ public partial class kucoinfutures : kucoin
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volumeOf24h") },
             { "quoteVolume", this.safeString(ticker, "turnoverOf24h") },
+            { "markPrice", this.safeString2(ticker, "markPrice", "value") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }
@@ -2275,12 +2320,42 @@ public partial class kucoinfutures : kucoin
         //        },
         //    }
         //
-        object data = this.safeValue(response, "data");
-        object fundingTimestamp = this.safeInteger(data, "timePoint");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         // the website displayes the previous funding rate as "funding rate"
+        return this.parseFundingRate(data, market);
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
+    }
+
+    public override object parseFundingRate(object data, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "granularity": 28800000,
+        //         "timePoint": 1637380800000,
+        //         "value": 0.0001,
+        //         "predictedValue": 0.0001,
+        //     }
+        //
+        object fundingTimestamp = this.safeInteger(data, "timePoint");
+        object marketId = this.safeString(data, "symbol");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },
@@ -2296,7 +2371,20 @@ public partial class kucoinfutures : kucoin
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(this.safeString(data, "granularity")) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public override object parseBalance(object response)
@@ -3049,6 +3137,179 @@ public partial class kucoinfutures : kucoin
             { "taker", this.safeNumber(first, "takerFeeRate") },
             { "percentage", true },
             { "tierBased", true },
+        };
+    }
+
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchMarginMode
+        * @description fetches the margin mode of a trading pair
+        * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
+        * @param {string} symbol unified symbol of the market to fetch the margin mode for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.futuresPrivateGetPositionGetMarginMode(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "symbol": "XBTUSDTM",
+        //             "marginMode": "ISOLATED"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marginType = this.safeString(marginMode, "marginMode");
+        marginType = ((bool) isTrue((isEqual(marginType, "ISOLATED")))) ? "isolated" : "cross";
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", marginType },
+        };
+    }
+
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#setMarginMode
+        * @description set margin mode to 'cross' or 'isolated'
+        * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
+        * @param {string} marginMode 'cross' or 'isolated'
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} response from the exchange
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
+        }
+        this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new List<object>() {"cross", "isolated"});
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "marginMode", ((string)marginMode).ToUpper() },
+        };
+        object response = await this.futuresPrivatePostPositionChangeMarginMode(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "marginMode": "ISOLATED"
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseMarginMode(data, market);
+    }
+
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoin#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams(symbol, parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(!isEqual(marginMode, "cross")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.futuresPrivateGetGetCrossUserLeverage(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "leverage": "3"
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object parsed = this.parseLeverage(data, market);
+        return this.extend(parsed, new Dictionary<string, object>() {
+            { "marginMode", marginMode },
+        });
+    }
+
+    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#setLeverage
+        * @description set the level of leverage for a market
+        * @see https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-leverage
+        * @param {float} leverage the rate of leverage
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} response from the exchange
+        */
+        parameters ??= new Dictionary<string, object>();
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams(symbol, parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(!isEqual(marginMode, "cross")))
+        {
+            throw new NotSupported ((string)add(this.id, " setLeverage() currently supports only params[\"marginMode\"] = \"cross\"")) ;
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "leverage", ((object)leverage).ToString() },
+        };
+        object response = await this.futuresPrivatePostChangeCrossUserLeverage(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": true
+        //    }
+        //
+        return this.parseLeverage(response, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marketId = this.safeString(leverage, "symbol");
+        market = this.safeMarket(marketId, market);
+        object leverageNum = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", null },
+            { "longLeverage", leverageNum },
+            { "shortLeverage", leverageNum },
         };
     }
 }
