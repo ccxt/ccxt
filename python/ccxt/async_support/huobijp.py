@@ -323,6 +323,7 @@ class huobijp(Exchange, ImplicitAPI):
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
@@ -1560,9 +1561,6 @@ class huobijp(Exchange, ImplicitAPI):
                 'info': data,
             }),
         ]
-
-    def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], self.precisionMode)
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
