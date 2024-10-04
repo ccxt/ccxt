@@ -20,8 +20,8 @@ use React\Promise;
 function example() {
     return Async\async(function () {
         $exchange = new \ccxt\pro\alephx(array(
-            'apiKey': 'API_KEY',
-            'secret': 'SECRET',
+            'apiKey' => 'API_KEY',
+            'secret' => 'SECRET',
             'urls' => array(
                 'api' => array(
                     'ws' => 'ws://localhost:4000/websocket',
