@@ -1,0 +1,302 @@
+package base
+
+import (
+	"ccxt"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"reflect"
+)
+
+func AuthenticationError(v ...interface{}) interface{} {
+	return ccxt.AuthenticationError(v)
+}
+
+func ExchangeError(v ...interface{}) interface{} {
+	return ccxt.ExchangeError(v)
+}
+
+func NotSupported(v ...interface{}) interface{} {
+	return ccxt.NotSupported(v)
+}
+
+func OnMaintenance(v ...interface{}) interface{} {
+	return ccxt.OnMaintenance(v)
+}
+
+func ExchangeNotAvailable(v ...interface{}) interface{} {
+	return ccxt.ExchangeNotAvailable(v)
+}
+
+func OperationFailed(v ...interface{}) interface{} {
+	return ccxt.OperationFailed(v)
+}
+
+func InvalidProxySettings(v ...interface{}) interface{} {
+	return ccxt.InvalidProxySettings(v)
+}
+
+func SetFetchResponse(exchange interface{}, response interface{}) ccxt.IExchange {
+	// exchange.(ccxt.IExchange).SetFetchResponse(method.(string), response)
+	// return exchange.(ccxt.IExchange)
+	return nil
+}
+
+func GetCliArgValue(arg interface{}) bool {
+	argStr := fmt.Sprintf("%v", arg) // Convert the argument to its string representation
+	for _, v := range os.Args {
+		if v == argStr {
+			return true
+		}
+	}
+	return false
+}
+
+// func JsonParse(elem string) interface{} {
+// 	var result interface{}
+// 	err := json.Unmarshal([]byte(elem), &result)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	return result
+// }
+
+func ConvertAscii(input interface{}) interface{} {
+	return input
+}
+
+func GetTestName(str string) string {
+	return str
+}
+
+// dump function to print passed arguments
+func Dump(args ...interface{}) {
+	fmt.Println(args...)
+}
+
+// jsonParse function to parse a JSON string
+// func JsonParse(elem interface{}) interface{} {
+// 	var result interface{}
+// 	switch e := elem.(type) {
+// 	case string:
+// 		err := json.Unmarshal([]byte(e), &result)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 	default:
+// 		log.Fatal("jsonParse expects a string")
+// 	}
+// 	return result
+// }
+
+// // jsonStringify function to convert an object to JSON string
+// func JsonStringify(elem interface{}) string {
+// 	bytes, err := json.Marshal(elem)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	return string(bytes)
+// }
+
+// convertAscii function (stub)
+// func ConvertAscii(input interface{}) interface{} {
+// 	return input
+// }
+
+// // getTestName function to return the input as is
+// func GetTestName(str interface{}) interface{} {
+// 	return str
+// }
+
+// ioFileExists function to check if a file exists
+func IoFileExists(path interface{}) bool {
+	switch p := path.(type) {
+	case string:
+		_, err := os.Stat(p)
+		return !os.IsNotExist(err)
+	default:
+		log.Fatal("ioFileExists expects a string")
+		return false
+	}
+}
+
+// ioFileRead function to read a file and optionally decode its content
+func IoFileRead(path interface{}, decode ...interface{}) interface{} {
+	var shouldDecode bool
+	if len(decode) > 0 {
+		shouldDecode = decode[0].(bool)
+	}
+
+	switch p := path.(type) {
+	case string:
+		content, err := ioutil.ReadFile(p)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if shouldDecode {
+			var result interface{}
+			err := json.Unmarshal(content, &result)
+			if err != nil {
+				log.Fatal(err)
+			}
+			return result
+		}
+		return string(content)
+	default:
+		log.Fatal("ioFileRead expects a string for the path")
+		return nil
+	}
+}
+
+// ioDirRead function to read directory contents
+func IoDirRead(path interface{}) interface{} {
+	switch p := path.(type) {
+	case string:
+		files, err := ioutil.ReadDir(p)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var fileNames []string
+		for _, file := range files {
+			fileNames = append(fileNames, file.Name())
+		}
+		return fileNames
+	default:
+		log.Fatal("ioDirRead expects a string")
+		return nil
+	}
+}
+
+// callMethodSync function (empty in JS)
+func CallMethodSync(testFiles map[string]interface{}, methodName string, exchange interface{}, skippedProperties interface{}, args []interface{}) interface{} {
+	// Empty in Go, just returning
+	return nil
+}
+
+func CallMethod(testFiles map[string]interface{}, methodName string, exchange interface{}, skippedProperties interface{}, args []interface{}) <-chan interface{} {
+	method := reflect.ValueOf(testFiles[methodName])
+	in := make([]reflect.Value, len(args))
+	for i, arg := range args {
+		in[i] = reflect.ValueOf(arg)
+	}
+	method.Call(in)
+	return nil
+}
+
+// callExchangeMethodDynamically function to call exchange methods dynamically
+func CallExchangeMethodDynamically(exchange interface{}, methodName2 interface{}, args2 interface{}) <-chan interface{} {
+	args := args2.([]interface{})
+	methodName := methodName2.(string)
+	method := reflect.ValueOf(exchange).MethodByName(methodName)
+	if method.IsValid() {
+		in := make([]reflect.Value, len(args))
+		for i, arg := range args {
+			in[i] = reflect.ValueOf(arg)
+		}
+		method.Call(in)
+	}
+	return nil
+}
+
+// callExchangeMethodDynamicallySync function that throws an error
+func CallExchangeMethodDynamicallySync(exchange interface{}, methodName2 interface{}, args interface{}) error {
+	return fmt.Errorf("this function shouldn't be called, only async functions apply here")
+}
+
+// callOverridenMethod function to call an overridden method dynamically
+func CallOverridenMethod(exchange interface{}, methodName string, args []interface{}) interface{} {
+	// return callExchangeMethodDynamically(exchange, methodName, args)
+	return nil
+}
+
+// exceptionMessage function to generate a formatted error message
+func ExceptionMessage(exc interface{}) string {
+	switch e := exc.(type) {
+	case error:
+		return fmt.Sprintf("[%T] %s", e, e.Error())
+	default:
+		return "[Unknown Error] No error message available"
+	}
+}
+
+// getRootException function (stub)
+func GetRootException(exc interface{}) interface{} {
+	return exc
+}
+
+// exitScript function to exit the program
+func ExitScript(code interface{}) {
+	switch c := code.(type) {
+	case int:
+		os.Exit(c)
+	default:
+		os.Exit(0) // default exit code
+	}
+}
+
+// getExchangeProp function to retrieve a property from exchange
+func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue interface{}) interface{} {
+	exchange := exchange2.(map[string]interface{})
+	prop := prop2.(string)
+	if val, ok := exchange[prop]; ok {
+		return val
+	}
+	return defaultValue
+}
+
+// setExchangeProp function to set a property on exchange
+func SetExchangeProp(exchange2 interface{}, prop2 interface{}, value interface{}) {
+	exchange := exchange2.(map[string]interface{})
+	prop := prop2.(string)
+	exchange[prop] = value
+	exchange[UnCamelCase(prop)] = value
+}
+
+// unCamelCase function (basic stub)
+func UnCamelCase(str string) string {
+	return str // Implement actual unCamelCase logic here
+}
+
+// initExchange function to initialize an exchange (stub)
+func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.IExchange {
+	// args := nil
+	// isWs := false
+	// if len(options) > 0 {
+	// 	args = options[0]
+
+	// }
+	// Return an initialized exchange based on input (ccxt)
+	return nil
+}
+
+// importTestFile function (stub for importing test files)
+func ImportTestFile(filePath interface{}) interface{} {
+	// In Go, dynamic import is not straightforward
+	return nil
+}
+
+// getTestFilesSync function (empty in JS)
+func GetTestFilesSync(properties interface{}, ws interface{}) interface{} {
+	// Empty in Go, just returning
+	return nil
+}
+
+// getTestFiles function to dynamically retrieve test files (stub)
+func GetTestFiles(properties interface{}, ws interface{}) <-chan interface{} {
+	// Dynamically get test files logic (stub)
+	return nil
+}
+
+func IsNullValue(value interface{}) bool {
+	return value == nil
+}
+
+func Close(exchange interface{}) <-chan bool {
+	ch := make(chan bool)
+	close(ch)
+	return ch
+}

@@ -56,29 +56,29 @@ func Assert(condition2 interface{}, message2 ...interface{}) {
 	}
 }
 
-func IsEqual(a, b interface{}) bool {
-	return ccxt.IsEqual(a, b)
-}
+// func IsEqual(a, b interface{}) bool {
+// 	return ccxt.IsEqual(a, b)
+// }
 
-func GetValue(obj interface{}, key interface{}) interface{} {
-	return ccxt.GetValue(obj, key)
-}
+// func GetValue(obj interface{}, key interface{}) interface{} {
+// 	return ccxt.GetValue(obj, key)
+// }
 
-func InOp(a, b interface{}) bool {
-	return ccxt.InOp(a, b)
-}
+// func InOp(a, b interface{}) bool {
+// 	return ccxt.InOp(a, b)
+// }
 
-func IsTrue(a interface{}) bool {
-	return ccxt.IsTrue(a)
-}
+// func IsTrue(a interface{}) bool {
+// 	return ccxt.IsTrue(a)
+// }
 
-func OpNeg(a interface{}) interface{} {
-	return ccxt.OpNeg(a)
-}
+// func OpNeg(a interface{}) interface{} {
+// 	return ccxt.OpNeg(a)
+// }
 
-func ParseFloat(num interface{}) interface{} {
-	return ccxt.ParseFloat(num)
-}
+// func ParseFloat(num interface{}) interface{} {
+// 	return ccxt.ParseFloat(num)
+// }
 
 func Equals(a interface{}, b interface{}) bool {
 	// Check if 'a' is a slice
@@ -175,6 +175,6 @@ func Crc32(request2 interface{}, signed2 bool) interface{} {
 	return ccxt.Crc32(request2.(string), signed2)
 }
 
-func Join(interfaceArray interface{}, separator string) string {
-	return ccxt.Join(interfaceArray, separator)
-}
+// func Join(interfaceArray interface{}, separator string) string {
+// 	return ccxt.Join(interfaceArray, separator)
+// }
