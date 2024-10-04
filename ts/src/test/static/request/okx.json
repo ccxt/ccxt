@@ -1554,6 +1554,16 @@
                 "url": "https://www.okx.com/api/v5/account/config",
                 "input": []
             }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USDT-SWAP",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
