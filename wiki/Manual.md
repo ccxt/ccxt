@@ -1747,6 +1747,11 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchOptionChain (code, params)`
 - `fetchConvertQuote (fromCode, toCode, amount, params)`
 - `createConvertTrade (id, fromCode, toCode, amount, params)`
+- `fetchFundingRate (symbol, params)`
+- `fetchFundingRates (symbols, params)`
+- `fetchFundingRateHistory (symbol, since, limit, params)`
+- `fetchFundingRateInterval (symbol, params)`
+- `fetchFundingRateIntervals (symbols, params)`
 - ...
 
 ```text
@@ -3046,7 +3051,43 @@ Parameters
 
 Returns
 
-- a dictionary of [funding rate structures](#funding-rate-structure) indexed by market symbols
+- An array of [funding rate structures](#funding-rate-structure) indexed by market symbols
+
+## Funding Interval
+
+*contract only*
+
+Retrieve the current funding interval using the following methods:
+
+- `fetchFundingInterval (symbol)` for a single market symbol
+- `fetchFundingIntervals ()` for all market symbols
+- `fetchFundingIntervals ([ symbol1, symbol2, ... ])` for multiple market symbols
+
+```javascript
+fetchFundingInterval (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [funding rate structure](#funding-rate-structure)
+
+```javascript
+fetchFundingIntervals (symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [funding rate structures](#funding-rate-structure)
 
 ### Funding Rate Structure
 

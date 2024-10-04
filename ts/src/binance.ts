@@ -92,6 +92,8 @@ export default class binance extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingInterval': 'emulated',
+                'fetchFundingIntervals': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
@@ -712,6 +714,7 @@ export default class binance extends Exchange {
                         'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5 },
                         'constituents': 2,
                         'openInterest': 1,
+                        'fundingInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -9311,16 +9314,28 @@ export default class binance extends Exchange {
     parseFundingRate (contract, market: Market = undefined): FundingRate {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
-        //   {
-        //     "symbol": "BTCUSDT",
-        //     "markPrice": "45802.81129892",
-        //     "indexPrice": "45745.47701915",
-        //     "estimatedSettlePrice": "45133.91753671",
-        //     "lastFundingRate": "0.00063521",
-        //     "interestRate": "0.00010000",
-        //     "nextFundingTime": "1621267200000",
-        //     "time": "1621252344001"
-        //  }
+        // fetchFundingRate, fetchFundingRates
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "markPrice": "45802.81129892",
+        //         "indexPrice": "45745.47701915",
+        //         "estimatedSettlePrice": "45133.91753671",
+        //         "lastFundingRate": "0.00063521",
+        //         "interestRate": "0.00010000",
+        //         "nextFundingTime": "1621267200000",
+        //         "time": "1621252344001"
+        //     }
+        //
+        // fetchFundingInterval, fetchFundingIntervals
+        //
+        //     {
+        //         "symbol": "BLZUSDT",
+        //         "adjustedFundingRateCap": "0.03000000",
+        //         "adjustedFundingRateFloor": "-0.03000000",
+        //         "fundingIntervalHours": 4,
+        //         "disclaimer": false
+        //     }
         //
         const timestamp = this.safeInteger (contract, 'time');
         const marketId = this.safeString (contract, 'symbol');
@@ -9331,6 +9346,11 @@ export default class binance extends Exchange {
         const estimatedSettlePrice = this.safeNumber (contract, 'estimatedSettlePrice');
         const fundingRate = this.safeNumber (contract, 'lastFundingRate');
         const fundingTime = this.safeInteger (contract, 'nextFundingTime');
+        const interval = this.safeString (contract, 'fundingIntervalHours');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -9349,7 +9369,7 @@ export default class binance extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         } as FundingRate;
     }
 
@@ -13449,5 +13469,49 @@ export default class binance extends Exchange {
             'price': undefined,
             'fee': undefined,
         } as Conversion;
+    }
+
+    async fetchFundingIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        /**
+         * @method
+         * @name binance#fetchFundingIntervals
+         * @description fetch the funding rate interval for multiple markets
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            market = this.market (symbols[0]);
+        }
+        const type = 'swap';
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingIntervals', market, params, 'linear');
+        let response = undefined;
+        if (this.isLinear (type, subType)) {
+            response = await this.fapiPublicGetFundingInfo (params);
+        } else if (this.isInverse (type, subType)) {
+            response = await this.dapiPublicGetFundingInfo (params);
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingIntervals() supports linear and inverse swap contracts only');
+        }
+        //
+        //     [
+        //         {
+        //             "symbol": "BLZUSDT",
+        //             "adjustedFundingRateCap": "0.03000000",
+        //             "adjustedFundingRateFloor": "-0.03000000",
+        //             "fundingIntervalHours": 4,
+        //             "disclaimer": false
+        //         },
+        //     ]
+        //
+        const result = this.parseFundingRates (response, market);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 }
