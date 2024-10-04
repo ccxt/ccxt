@@ -1120,6 +1120,7 @@ class testMainClass {
             }
         }
         this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
+        return true;
     }
 
     assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], computedResult, storedResult) {
@@ -1735,6 +1736,7 @@ class testMainClass {
         if (!this.isSynchronous) {
             await close (exchange);
         }
+        return true;
     }
 
     async testPhemex () {
@@ -1752,6 +1754,7 @@ class testMainClass {
         if (!this.isSynchronous) {
             await close (exchange);
         }
+        return true;
     }
 
     async testBlofin () {
@@ -1769,6 +1772,7 @@ class testMainClass {
         if (!this.isSynchronous) {
             await close (exchange);
         }
+        return true;
     }
 
     async testHyperliquid () {
@@ -1785,6 +1789,7 @@ class testMainClass {
         if (!this.isSynchronous) {
             await close (exchange);
         }
+        return true;
     }
 
     async testCoinbaseinternational () {
