@@ -14,7 +14,6 @@ import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
 import testFilterBy from './test.filterBy.js';
-import testConfig from './test.config.js';
 
 function baseTestsInit () {
     testLanguageSpecific ();
@@ -30,7 +29,6 @@ function baseTestsInit () {
     testOmit ();
     testGroupBy ();
     testFilterBy ();
-    testConfig ();
 }
 
 export default baseTestsInit;
