@@ -1407,6 +1407,14 @@
                 ]
             }
         ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetch mark prices",
+                "method": "fetchMarkPrices",
+                "url": "https://www.okx.com/api/v5/public/mark-price?instType=SWAP",
+                "input": []
+              }
+        ],
         "fetchTickers": [
             {
                 "description": "spot tickers",

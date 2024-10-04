@@ -2716,6 +2716,7 @@ public partial class bitget : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "baseVolume") },
             { "quoteVolume", this.safeString(ticker, "quoteVolume") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }

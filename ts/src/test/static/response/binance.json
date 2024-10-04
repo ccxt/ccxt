@@ -2503,6 +2503,8 @@
                     "average": 72775.46,
                     "baseVolume": 72140.348628,
                     "quoteVolume": 5167027510.687287,
+                    "markPrice": null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTCUSDT",
                         "priceChange": "1188.75000000",

@@ -1133,6 +1133,8 @@ class deribit(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_string(stats, 'volume'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
         }, market)
 

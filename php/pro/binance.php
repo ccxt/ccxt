@@ -41,6 +41,8 @@ class binance extends \ccxt\async\binance {
                 'watchPositions' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchMarkPrices' => true,
+                'watchMarkPrice' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'createOrderWs' => true,
@@ -157,6 +159,7 @@ class binance extends \ccxt\async\binance {
                 'tickerChannelsMap' => array(
                     '24hrTicker' => 'ticker',
                     '24hrMiniTicker' => 'miniTicker',
+                    'markPriceUpdate' => 'markPrice',
                     // rolling window tickers
                     '1hTicker' => 'ticker_1h',
                     '4hTicker' => 'ticker_4h',
@@ -1800,6 +1803,46 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function watch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+             * watches a mark price for a specific market
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+            $tickers = Async\await($this->watch_mark_prices(array( $symbol ), $this->extend($params, array( 'callerMethodName' => 'watchMarkPrice' ))));
+            return $tickers[$symbol];
+        }) ();
+    }
+
+    public function watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+             * watches the mark price for all markets
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $channelName = null;
+            // for now watchmarkPrice uses the same messageHash
+            // so it's impossible to watch both at the same time
+            // refactor this to use different messageHashes
+            list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
+            $newTickers = Async\await($this->watch_multi_ticker_helper('watchMarkPrices', $channelName, $symbols, $params));
+            if ($this->newUpdates) {
+                return $newTickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
@@ -1958,13 +2001,17 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($methodName, $channelName, $symbols, $params) {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true, false, true);
+            $isBidAsk = ($channelName === 'bookTicker');
+            $isMarkPrice = ($channelName === 'markPrice');
+            $use1sFreq = $this->safe_bool($params, 'use1sFreq', true);
             $firstMarket = null;
             $marketType = null;
             $symbolsDefined = ($symbols !== null);
             if ($symbolsDefined) {
                 $firstMarket = $this->market($symbols[0]);
             }
-            list($marketType, $params) = $this->handle_market_type_and_params($methodName, $firstMarket, $params);
+            $defaultMarket = ($isMarkPrice) ? 'swap' : 'spot';
+            list($marketType, $params) = $this->handle_market_type_and_params($methodName, $firstMarket, $params, $defaultMarket);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params($methodName, $firstMarket, $params);
             $rawMarketType = null;
@@ -1977,14 +2024,17 @@ class binance extends \ccxt\async\binance {
             } else {
                 throw new NotSupported($this->id . ' ' . $methodName . '() does not support options markets');
             }
-            $isBidAsk = ($channelName === 'bookTicker');
             $subscriptionArgs = array();
             $messageHashes = array();
+            $suffix = '';
+            if ($isMarkPrice) {
+                $suffix = ($use1sFreq) ? '@1s' : '';
+            }
             if ($symbolsDefined) {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];
                     $market = $this->market($symbol);
-                    $subscriptionArgs[] = $market['lowercaseId'] . '@' . $channelName;
+                    $subscriptionArgs[] = $market['lowercaseId'] . '@' . $channelName . $suffix;
                     $messageHashes[] = $this->get_message_hash($channelName, $market['symbol'], $isBidAsk);
                 }
             } else {
@@ -1993,6 +2043,8 @@ class binance extends \ccxt\async\binance {
                         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $symbols for this channel for spot markets');
                     }
                     $subscriptionArgs[] = '!' . $channelName;
+                } elseif ($isMarkPrice) {
+                    $subscriptionArgs[] = '!' . $channelName . '@arr' . $suffix;
                 } else {
                     $subscriptionArgs[] = '!' . $channelName . '@arr';
                 }
@@ -2026,6 +2078,17 @@ class binance extends \ccxt\async\binance {
     }
 
     public function parse_ws_ticker($message, $marketType) {
+        // markPrice
+        //   {
+        //       "e" => "markPriceUpdate",   // Event type
+        //       "E" => 1562305380000,       // Event time
+        //       "s" => "BTCUSDT",           // Symbol
+        //       "p" => "11794.15000000",    // Mark price
+        //       "i" => "11784.62659091",    // Index price
+        //       "P" => "11784.25641265",    // Estimated Settle Price, only useful in the $last hour before the settlement starts
+        //       "r" => "0.00038167",        // Funding rate
+        //       "T" => 1562306400000        // Next funding time
+        //   }
         //
         // ticker
         //     {
@@ -2083,9 +2146,22 @@ class binance extends \ccxt\async\binance {
         //         "time":1589437530011,
         //      }
         //
+        $marketId = $this->safe_string_2($message, 's', 'symbol');
+        $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $event = $this->safe_string($message, 'e', 'bookTicker');
         if ($event === '24hrTicker') {
             $event = 'ticker';
+        }
+        if ($event === 'markPriceUpdate') {
+            // handle this separately because some fields clash with the ticker fields
+            return $this->safe_ticker(array(
+                'symbol' => $symbol,
+                'timestamp' => $this->safe_integer($message, 'E'),
+                'datetime' => $this->iso8601($this->safe_integer($message, 'E')),
+                'info' => $message,
+                'markPrice' => $this->safe_string($message, 'p'),
+                'indexPrice' => $this->safe_string($message, 'i'),
+            ));
         }
         $timestamp = null;
         if ($event === 'bookTicker') {
@@ -2095,8 +2171,6 @@ class binance extends \ccxt\async\binance {
             // take the $timestamp of the closing price for candlestick streams
             $timestamp = $this->safe_integer_n($message, array( 'C', 'E', 'time' ));
         }
-        $marketId = $this->safe_string_2($message, 's', 'symbol');
-        $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $market = $this->safe_market($marketId, null, null, $marketType);
         $last = $this->safe_string_2($message, 'c', 'price');
         return $this->safe_ticker(array(
@@ -4281,6 +4355,8 @@ class binance extends \ccxt\async\binance {
             '1dTicker' => array($this, 'handle_tickers'),
             '24hrTicker' => array($this, 'handle_tickers'),
             '24hrMiniTicker' => array($this, 'handle_tickers'),
+            'markPriceUpdate' => array($this, 'handle_tickers'),
+            'markPriceUpdate@arr' => array($this, 'handle_tickers'),
             'bookTicker' => array($this, 'handle_bids_asks'), // there is no "bookTicker@arr" endpoint
             'outboundAccountPosition' => array($this, 'handle_balance'),
             'balanceUpdate' => array($this, 'handle_balance'),

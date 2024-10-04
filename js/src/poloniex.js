@@ -630,6 +630,7 @@ export default class poloniex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'quantity'),
             'quoteVolume': this.safeString(ticker, 'amount'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }

@@ -1370,6 +1370,7 @@ class bitmex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'homeNotional24h'),
             'quoteVolume': self.safe_string(ticker, 'foreignNotional24h'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
         }, market)
 

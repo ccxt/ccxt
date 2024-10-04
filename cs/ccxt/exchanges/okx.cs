@@ -88,6 +88,7 @@ public partial class okx : Exchange
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMarkPrices", true },
                 { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
@@ -1783,6 +1784,13 @@ public partial class okx : Exchange
     public override object parseTicker(object ticker, object market = null)
     {
         //
+        //      {
+        //          "instType":"SWAP",
+        //          "instId":"BTC-USDT-SWAP",
+        //          "markPx":"200",
+        //          "ts":"1597026383085"
+        //      }
+        //
         //     {
         //         "instType": "SPOT",
         //         "instId": "ETH-BTC",
@@ -1833,6 +1841,7 @@ public partial class okx : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.safeString(ticker, "markPx") },
             { "info", ticker },
         }, market);
     }
@@ -1947,6 +1956,45 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
+        object tickers = this.safeList(response, "data", new List<object>() {});
+        return this.parseTickers(tickers, symbols);
+    }
+
+    public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchMarkPrices
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object market = this.getMarketFromSymbols(symbols);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "instType", this.convertToInstrumentType(marketType) },
+        };
+        if (isTrue(isEqual(marketType, "option")))
+        {
+            object defaultUnderlying = this.safeString(this.options, "defaultUnderlying", "BTC-USD");
+            object currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
+            if (isTrue(isEqual(currencyId, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires an underlying uly or marketId parameter for options markets")) ;
+            } else
+            {
+                ((IDictionary<string,object>)request)["uly"] = currencyId;
+            }
+        }
+        object response = await this.publicGetPublicMarkPrice(this.extend(request, parameters));
         object tickers = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(tickers, symbols);
     }

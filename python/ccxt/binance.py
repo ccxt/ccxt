@@ -132,6 +132,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMarkPrices': True,
                 'fetchMyLiquidations': True,
                 'fetchMySettlementHistory': True,
                 'fetchMyTrades': True,
@@ -1215,6 +1216,9 @@ class binance(Exchange, ImplicitAPI):
                     },
                 },
                 'option': {},
+            },
+            'currencies': {
+                'BNFCR': self.safe_currency_structure({'id': 'BNFCR', 'code': 'BNFCR', 'precision': self.parse_number('0.001')}),
             },
             'commonCurrencies': {
                 'BCC': 'BCC',  # kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -3714,6 +3718,18 @@ class binance(Exchange, ImplicitAPI):
         return orderbook
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        # markPrices
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "markPrice": "11793.63104562",  # mark price
+        #         "indexPrice": "11781.80495970",  # index price
+        #         "estimatedSettlePrice": "11781.16138815",  # Estimated Settle Price, only useful in the last hour before the settlement starts.
+        #         "lastFundingRate": "0.00038246",  # This is the lastest estimated funding rate
+        #         "nextFundingTime": 1597392000000,
+        #         "interestRate": "0.00010000",
+        #         "time": 1597370495002
+        #     }
         #
         #     {
         #         "symbol": "ETHBTC",
@@ -3817,7 +3833,7 @@ class binance(Exchange, ImplicitAPI):
         #         "time":"1673899278514"
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'closeTime')
+        timestamp = self.safe_integer_2(ticker, 'closeTime', 'time')
         marketType = None
         if ('time' in ticker):
             marketType = 'contract'
@@ -3857,6 +3873,8 @@ class binance(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
 
@@ -4085,6 +4103,31 @@ class binance(Exchange, ImplicitAPI):
             response = self.eapiPublicGetTicker(params)
         else:
             raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets yet')
+        return self.parse_tickers(response, symbols)
+
+    def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches mark prices for multiple markets
+        :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: "linear" or "inverse"
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        market = self.get_market_from_symbols(symbols)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params, 'swap')
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
+        response = None
+        if self.is_linear(type, subType):
+            response = self.fapiPublicGetPremiumIndex(params)
+        elif self.is_inverse(type, subType):
+            response = self.dapiPublicGetPremiumIndex(params)
+        else:
+            raise NotSupported(self.id + ' fetchMarkPrices() does not support ' + type + ' markets yet')
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:

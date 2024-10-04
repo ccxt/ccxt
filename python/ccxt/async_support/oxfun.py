@@ -859,6 +859,7 @@ class oxfun(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'currencyVolume24h'),
             'quoteVolume': None,  # the exchange returns cost in OX
+            'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
         }, market)
 

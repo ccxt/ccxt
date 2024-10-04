@@ -966,6 +966,8 @@ class kucoinfutures extends kucoinfutures$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volumeOf24h'),
             'quoteVolume': this.safeString(ticker, 'turnoverOf24h'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
+            'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
