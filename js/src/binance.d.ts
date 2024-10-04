@@ -333,4 +333,5 @@ export default class binance extends Exchange {
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    fetchFundingIntervals(symbols?: Strings, params?: {}): Promise<FundingRates>;
 }

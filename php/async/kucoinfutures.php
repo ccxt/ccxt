@@ -65,6 +65,8 @@ class kucoinfutures extends kucoin {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => false,
@@ -2225,30 +2227,57 @@ class kucoinfutures extends kucoin {
             //        ),
             //    }
             //
-            $data = $this->safe_value($response, 'data');
-            $fundingTimestamp = $this->safe_integer($data, 'timePoint');
+            $data = $this->safe_dict($response, 'data', array());
             // the website displayes the previous funding rate as "funding rate"
-            return array(
-                'info' => $data,
-                'symbol' => $market['symbol'],
-                'markPrice' => null,
-                'indexPrice' => null,
-                'interestRate' => null,
-                'estimatedSettlePrice' => null,
-                'timestamp' => null,
-                'datetime' => null,
-                'fundingRate' => $this->safe_number($data, 'value'),
-                'fundingTimestamp' => $fundingTimestamp,
-                'fundingDatetime' => $this->iso8601($fundingTimestamp),
-                'nextFundingRate' => $this->safe_number($data, 'predictedValue'),
-                'nextFundingTimestamp' => null,
-                'nextFundingDatetime' => null,
-                'previousFundingRate' => null,
-                'previousFundingTimestamp' => null,
-                'previousFundingDatetime' => null,
-                'interval' => $this->parse_funding_interval($this->safe_string($data, 'granularity')),
-            );
+            return $this->parse_funding_rate($data, $market);
         }) ();
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate interval
+             * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rate($symbol, $params));
+        }) ();
+    }
+
+    public function parse_funding_rate($data, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => ".ETHUSDTMFPI8H",
+        //         "granularity" => 28800000,
+        //         "timePoint" => 1637380800000,
+        //         "value" => 0.0001,
+        //         "predictedValue" => 0.0001,
+        //     }
+        //
+        $fundingTimestamp = $this->safe_integer($data, 'timePoint');
+        $marketId = $this->safe_string($data, 'symbol');
+        return array(
+            'info' => $data,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($data, 'value'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => $this->safe_number($data, 'predictedValue'),
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => $this->parse_funding_interval($this->safe_string($data, 'granularity')),
+        );
     }
 
     public function parse_funding_interval($interval) {

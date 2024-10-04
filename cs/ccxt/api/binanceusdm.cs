@@ -2071,6 +2071,11 @@ public partial class binanceusdm : binance
         return await this.callAsync ("dapiPublicGetOpenInterest",parameters);
     }
 
+    public async Task<object> dapiPublicGetFundingInfo (object parameters = null)
+    {
+        return await this.callAsync ("dapiPublicGetFundingInfo",parameters);
+    }
+
     public async Task<object> dapiDataGetDeliveryPrice (object parameters = null)
     {
         return await this.callAsync ("dapiDataGetDeliveryPrice",parameters);

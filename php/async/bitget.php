@@ -86,6 +86,8 @@ class bitget extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -6743,13 +6745,29 @@ class bitget extends Exchange {
 
     public function parse_funding_rate($contract, ?array $market = null): array {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "symbol" => "BTCUSDT",
         //         "fundingRate" => "-0.000182"
         //     }
         //
+        // fetchFundingInterval
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "nextFundingTime" => "1727942400000",
+        //         "ratePeriod" => "8"
+        //     }
+        //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
+        $fundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
+        $interval = $this->safe_string($contract, 'ratePeriod');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -6760,15 +6778,15 @@ class bitget extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 
@@ -8767,6 +8785,51 @@ class bitget extends Exchange {
                 );
             }
             return $result;
+        }) ();
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate interval
+             * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $market = null;
+            if ($sandboxMode) {
+                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                $market = $this->market($sandboxSymbol);
+            } else {
+                $market = $this->market($symbol);
+            }
+            $productType = null;
+            list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+                'productType' => $productType,
+            );
+            $response = Async\await($this->publicMixGetV2MixMarketFundingTime ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1727930153888,
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "BTCUSDT",
+            //                 "nextFundingTime" => "1727942400000",
+            //                 "ratePeriod" => "8"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $first = $this->safe_dict($data, 0, array());
+            return $this->parse_funding_rate($first, $market);
         }) ();
     }
 

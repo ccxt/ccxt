@@ -48,6 +48,8 @@ export default class kucoinfutures extends kucoin {
     fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
+    parseFundingRate(data: any, market?: Market): FundingRate;
     parseFundingInterval(interval: any): string;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
