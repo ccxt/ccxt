@@ -10,8 +10,8 @@ const { index, aggregate, unCamelCase } = functions;
 const equal = strictEqual;
 
 function testExchangeConfigExtension () {
-    const cost = { 'min': 0.001, 'max': 1000 }
-    const precision = { 'amount': 3 }
+    const cost = { 'min': 0.001, 'max': 1000 };
+    const precision = { 'amount': 3 };
     const exchange = new Exchange ({
         'id': 'mock',
         'markets': {
