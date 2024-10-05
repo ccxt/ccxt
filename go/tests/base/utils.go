@@ -16,7 +16,7 @@ const (
 	NEW_LINE             = "\n"
 	PROXY_TEST_FILE_NAME = ""
 	IS_SYNCHRONOUS       = false
-	ROOD_DIR             = "/../../../"
+	ROOD_DIR             = "/../../"
 )
 
 func AuthenticationError(v ...interface{}) interface{} {
@@ -330,7 +330,8 @@ func GetRootDir() string {
 	if err != nil {
 		return ""
 	}
-	return dir + ROOD_DIR
+	res := dir + ROOD_DIR
+	return res
 }
 
 func splitEnv(env string) [2]string {
