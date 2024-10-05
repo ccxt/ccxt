@@ -408,7 +408,8 @@ class testMainClass {
                         // wait and retry again
                         // (increase wait time on every retry)
                         await exchange.sleep ((i + 1) * 1000);
-                        continue;
+                        // continue; should not be used because in go for-loops and try-catches are not compatible
+                        // is this continue even needed?
                     }
                 }
                 // if it's not temporary failure, then ...

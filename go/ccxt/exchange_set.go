@@ -1,6 +1,6 @@
 package ccxt
 
-func (this *Exchange) GetSymbols() []string{} {
+func (this *Exchange) GetSymbols() []string {
 	return this.Symbols
 }
 

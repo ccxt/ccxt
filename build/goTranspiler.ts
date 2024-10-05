@@ -50,7 +50,7 @@ const EXCHANGES_FOLDER = './go/ccxt/';
 // const EXCHANGES_WS_FOLDER = './go/ccxt/exchanges/pro/';
 // const GENERATED_TESTS_FOLDER = './go/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './go/tests/base';
-const BASE_TESTS_FILE =  './go/tests/tests.go';
+const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base/';
 // const EXCHANGE_GENERATED_FOLDER = './go/tests/Generated/Exchange/';
 // const EXAMPLES_INPUT_FOLDER = './examples/ts/';
@@ -899,7 +899,7 @@ class NewTranspiler {
         const options = { csharpFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            // await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
         // this.transpileExamples(); // disabled for now
@@ -915,7 +915,7 @@ class NewTranspiler {
             return;
         }
 
-        this.transpileBaseMethods (exchangeBase)
+        // this.transpileBaseMethods (exchangeBase)
 
         if (baseOnly) {
             return;
@@ -924,7 +924,7 @@ class NewTranspiler {
 
         this.transpileTests()
 
-        this.transpileErrorHierarchy ()
+        // this.transpileErrorHierarchy ()
 
         log.bright.green ('Transpiled successfully.')
     }
@@ -1300,22 +1300,26 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const mainContent = ts;
         const go = this.transpiler.transpileGo(mainContent);
-        // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
         let contentIndentend = go.content;
 
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
-            [ /object mockedExchange =/g, 'var mockedExchange =' ],
-            [ /public virtual object initOfflineExchange/g, 'public virtual Exchange initOfflineExchange' ],
-            [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
-            [ /object exchange =/g, 'Exchange exchange =' ],
-            [ /throw new Error/g, 'throw new Exception' ],
-            [/class testMainClass : baseMainTestClass/g, 'public partial class testMainClass : BaseTest'],
+            [/var exchange interface{} =/g,'var exchange ccxt.IExchange ='],
+            [/var mockedExchange interface{} =/g,'var mockedExchange ccxt.IExchange ='],
+            [/exchange interface\{\},/g, 'exchange ccxt.IExchange,'],
+            [/exchange interface\{\}\)/g, 'exchange ccxt.IExchange)'],
+            [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
+            [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
+            [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.IExchange {'],
+            [/assert\(/g, 'Assert('],
+            [/GetRootException\(ex\)/g, 'GetRootException(e)'],
+            [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests interface{} ']
         ])
 
         const file = [
-            'package main',
+            'package base',
+            'import "ccxt"',
             '',
             this.createGeneratedHeader().join('\n'),
             contentIndentend,
@@ -1446,7 +1450,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileTests(){
-        this.transpileBaseTestsToGo();
+        // this.transpileBaseTestsToGo();
         this.transpileExchangeTests();
         // this.transpileWsExchangeTests();
     }
