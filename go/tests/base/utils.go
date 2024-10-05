@@ -153,7 +153,9 @@ func IoFileRead(path interface{}, decode ...interface{}) interface{} {
 			}
 			return result
 		}
-		return string(content)
+		resStr := string(content)
+		jsonObject := JsonParse(resStr)
+		return jsonObject
 	default:
 		log.Fatal("ioFileRead expects a string for the path")
 		return nil
@@ -275,14 +277,16 @@ func UnCamelCase(str string) string {
 
 // initExchange function to initialize an exchange (stub)
 func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.IExchange {
-	// args := nil
-	// isWs := false
-	// if len(options) > 0 {
-	// 	args = options[0]
-
-	// }
-	// Return an initialized exchange based on input (ccxt)
-	return nil
+	var exchangeOptions interface{} = nil
+	if len(options) > 0 {
+		exchangeOptions = options[0]
+	}
+	instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions)
+	if success == false {
+		return nil
+	}
+	instance.ExtendExchangeOptions(options[0].(map[string]interface{}))
+	return instance
 }
 
 // importTestFile function (stub for importing test files)
