@@ -812,7 +812,7 @@ class NewTranspiler {
 
     createDynamicInstanceFile(){
         const dynamicInstanceFile = DYNAMIC_INSTANCE_FILE;
-        const exchanges = exchangeIds;
+        const exchanges = ['Exchange'].concat(exchangeIds);
 
         const caseStatements = exchanges.map(exchange => {
             return`    case "${exchange}":

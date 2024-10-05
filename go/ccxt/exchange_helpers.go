@@ -12,15 +12,20 @@ import (
 )
 
 func Add(a interface{}, b interface{}) interface{} {
+	if (a == nil) || (b == nil) {
+		return nil
+	}
 	switch aType := a.(type) {
 	case int:
 		if bType, ok := b.(int); ok {
 			return aType + bType // Add as integers
 		}
 	case float64:
-		if bType, ok := b.(float64); ok {
-			return aType + bType // Add as floats
+		bType := ToFloat64(b)
+		if bType == math.NaN() {
+			return nil
 		}
+		return aType + bType
 	case string:
 		if bType, ok := b.(string); ok {
 			return aType + bType // Concatenate as strings
@@ -340,7 +345,7 @@ func NormalizeAndConvert(a, b interface{}) (reflect.Value, reflect.Value, bool) 
 }
 
 func ToFloat64(v interface{}) float64 {
-	var result float64
+	var result float64 = math.NaN()
 	val := reflect.ValueOf(v)
 	switch val.Kind() {
 	case reflect.Int, reflect.Int64:
@@ -352,7 +357,6 @@ func ToFloat64(v interface{}) float64 {
 		if err == nil {
 			return result
 		}
-		result = 0 // Convert string to float64, example implementation
 	}
 	return result
 }
