@@ -124,6 +124,8 @@
                     "average": null,
                     "baseVolume": null,
                     "quoteVolume": 25.9035,
+                    "markPrice":  73367.995,
+                    "indexPrice": 73367.995,
                     "info": {
                         "best_bid_amount": "0.0003",
                         "best_ask_amount": "0.4904",

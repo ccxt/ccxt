@@ -191,7 +191,7 @@ public partial class whitebit : Exchange
                     { "Total is less than", typeof(InvalidOrder) },
                     { "fee must be no less than", typeof(InvalidOrder) },
                     { "Enable your key in API settings", typeof(PermissionDenied) },
-                    { "You don\'t have such amount for transfer", typeof(InsufficientFunds) },
+                    { "You don't have such amount for transfer", typeof(InsufficientFunds) },
                 } },
             } },
         });

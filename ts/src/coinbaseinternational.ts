@@ -1540,6 +1540,8 @@ export default class coinbaseinternational extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'previousClose': undefined,
+            'markPrice': this.safeNumber (ticker, 'mark_price'),
+            'indexPrice': this.safeNumber (ticker, 'index_price'),
         });
     }
 

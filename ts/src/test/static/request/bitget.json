@@ -1574,6 +1574,15 @@
                 "input": []
             }
         ],
+        "fetchMarkPrice": [
+            {
+                "method": "fetchMarkPrice",
+                "url": "https://api.bitget.com/api/v2/mix/market/symbol-price?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "Swap ticker",
@@ -1734,6 +1743,16 @@
                 "method": "fetchConvertTradeHistory",
                 "url": "https://api.bitget.com/api/v2/convert/convert-record?endTime=1713423544995&startTime=1713337144995",
                 "input": []
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://api.bitget.com/api/v2/mix/market/funding-time?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ]
     }

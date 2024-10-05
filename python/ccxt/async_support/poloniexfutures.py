@@ -48,6 +48,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchL3OrderBook': True,
@@ -1550,28 +1552,50 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #        "predictedValue": 0.00375
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_funding_rate(data, market)
+
+    async def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return await self.fetch_funding_rate(symbol, params)
+
+    def parse_funding_rate(self, data, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "symbol": ".ETHUSDTMFPI8H",
+        #         "granularity": 28800000,
+        #         "timePoint": 1637380800000,
+        #         "value": 0.0001,
+        #         "predictedValue": 0.0001,
+        #     }
+        #
         fundingTimestamp = self.safe_integer(data, 'timePoint')
-        # the website displayes the previous funding rate as "funding rate"
+        marketId = self.safe_string(data, 'symbol')
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
             'markPrice': None,
             'indexPrice': None,
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_number(data, 'predictedValue'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': None,
+            'fundingRate': self.safe_number(data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': self.safe_number(data, 'predictedValue'),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
-            'previousFundingRate': self.safe_number(data, 'value'),
-            'previousFundingTimestamp': fundingTimestamp,
-            'previousFundingDatetime': self.iso8601(fundingTimestamp),
-            'interval': self.parse_funding_interval(self.safe_string(data, 'interval')),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': self.parse_funding_interval(self.safe_string(data, 'granularity')),
         }
 
     def parse_funding_interval(self, interval):

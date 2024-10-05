@@ -4271,7 +4271,7 @@ class htx extends Exchange {
                 $this->load_accounts();
                 for ($i = 0; $i < count($this->accounts); $i++) {
                     $account = $this->accounts[$i];
-                    if ($account['type'] === 'spot') {
+                    if ($this->safe_string($account, 'type') === 'spot') {
                         $accountId = $this->safe_string($account, 'id');
                         if ($accountId !== null) {
                             break;
@@ -4947,7 +4947,7 @@ class htx extends Exchange {
             }
         } else {
             $amount = $this->safe_string_2($order, 'volume', 'amount');
-            $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo
+            $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo here
         }
         $filled = $this->safe_string_n($order, array( 'filled-amount', 'field-amount', 'trade_volume' )); // typo in their API, $filled $amount
         $price = $this->safe_string_2($order, 'price', 'order_price');

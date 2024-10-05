@@ -18,7 +18,7 @@ function test_json() {
         'k' => 'v',
     );
     $obj_json = $exchange->json($obj);
-    assert($obj_json === '{\"k\":\"v\"}');
+    assert($obj_json === '{"k":"v"}');
     // Test: list
     $list = [1, 2];
     $list_json = $exchange->json($list);
@@ -27,10 +27,10 @@ function test_json() {
         throw new BadRequest('some error');
     } catch(\Throwable $e) {
         $err_string = $exchange->json($e);
-        assert($err_string === '{\"name\":\"BadRequest\"}');
+        assert($err_string === '{"name":"BadRequest"}');
     }
     // Test: json a string
     $str = 'ccxt, rocks!';
     $serialized_string = $exchange->json($str);
-    assert($serialized_string === '\"ccxt, rocks!\"');
+    assert($serialized_string === '"ccxt, rocks!"');
 }

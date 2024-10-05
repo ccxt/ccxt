@@ -626,6 +626,7 @@ class poloniex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'quantity'),
             'quoteVolume' => $this->safe_string($ticker, 'amount'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }

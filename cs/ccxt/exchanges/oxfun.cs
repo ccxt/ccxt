@@ -872,6 +872,7 @@ public partial class oxfun : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "currencyVolume24h") },
             { "quoteVolume", null },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }

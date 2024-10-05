@@ -89,6 +89,8 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
@@ -2468,6 +2470,7 @@ class mexc(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch orders for
         :param str [params.marginMode]: only 'isolated' is supported, for spot-margin trading
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2477,6 +2480,8 @@ class mexc(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
         marketType, query = self.handle_market_type_and_params('fetchOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
@@ -2484,6 +2489,8 @@ class mexc(Exchange, ImplicitAPI):
             marginMode, queryInner = self.handle_margin_mode_and_params('fetchOrders', params)
             if since is not None:
                 request['startTime'] = since
+            if until is not None:
+                request['endTime'] = until
             if limit is not None:
                 request['limit'] = limit
             response = None
@@ -2545,9 +2552,17 @@ class mexc(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['start_time'] = since
-                end = self.safe_integer(params, 'end_time')
+                end = self.safe_integer(params, 'end_time', until)
                 if end is None:
                     request['end_time'] = self.sum(since, self.options['maxTimeTillEnd'])
+                else:
+                    if (end - since) > self.options['maxTimeTillEnd']:
+                        raise BadRequest(self.id + ' end is invalid, i.e. exceeds allowed 90 days.')
+                    else:
+                        request['end_time'] = until
+            elif until is not None:
+                request['start_time'] = self.sum(until, self.options['maxTimeTillEnd'] * -1)
+                request['end_time'] = until
             if limit is not None:
                 request['page_size'] = limit
             method = self.safe_string(self.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders')
@@ -3937,9 +3952,12 @@ class mexc(Exchange, ImplicitAPI):
         nextFundingRate = self.safe_number(contract, 'fundingRate')
         nextFundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
         marketId = self.safe_string(contract, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, 'contract')
         timestamp = self.safe_integer(contract, 'timestamp')
-        datetime = self.iso8601(timestamp)
+        interval = self.safe_string(contract, 'collectCycle')
+        intervalString = None
+        if interval is not None:
+            intervalString = interval + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -3948,7 +3966,7 @@ class mexc(Exchange, ImplicitAPI):
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': self.iso8601(nextFundingTimestamp),
@@ -3958,8 +3976,18 @@ class mexc(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
+
+    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rate(symbol, params)
 
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 // AUTO_TRANSPILE_ENABLED
 
 import assert from 'assert';
@@ -19,6 +19,7 @@ function testDatetime () {
 
     assert (exchange.iso8601 (-1) === undefined);
     // assert (exchange.iso8601 () === undefined);
+    // todo: assert (exchange.iso8601 () === undefined);
     assert (exchange.iso8601 (undefined) === undefined);
     assert (exchange.iso8601 ('') === undefined);
     assert (exchange.iso8601 ('a') === undefined);
@@ -40,6 +41,7 @@ function testDatetime () {
     assert (exchange.parse8601 ('Sr90') === undefined);
     assert (exchange.parse8601 ('') === undefined);
     // assert (exchange.parse8601 () === undefined);
+    // todo: assert (exchange.parse8601 () === undefined);
     assert (exchange.parse8601 (undefined) === undefined);
     assert (exchange.parse8601 ({}) === undefined);
     assert (exchange.parse8601 (33) === undefined);

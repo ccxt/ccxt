@@ -123,6 +123,8 @@ public partial class Exchange
                 { "fetchFundingHistory", null },
                 { "fetchFundingRate", null },
                 { "fetchFundingRateHistory", null },
+                { "fetchFundingInterval", null },
+                { "fetchFundingIntervals", null },
                 { "fetchFundingRates", null },
                 { "fetchGreeks", null },
                 { "fetchIndexOHLCV", null },
@@ -183,6 +185,7 @@ public partial class Exchange
                 { "fetchTicker", true },
                 { "fetchTickerWs", null },
                 { "fetchTickers", null },
+                { "fetchMarkPrices", null },
                 { "fetchTickersWs", null },
                 { "fetchTime", null },
                 { "fetchTrades", true },
@@ -1118,6 +1121,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchFundingRates() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchFundingIntervals(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchFundingIntervals() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchFundingRate(object symbol, object parameters = null)
@@ -2422,6 +2431,8 @@ public partial class Exchange
             { "baseVolume", this.parseNumber(baseVolume) },
             { "quoteVolume", this.parseNumber(quoteVolume) },
             { "previousClose", this.safeNumber(ticker, "previousClose") },
+            { "indexPrice", this.safeNumber(ticker, "indexPrice") },
+            { "markPrice", this.safeNumber(ticker, "markPrice") },
         });
     }
 
@@ -4073,6 +4084,29 @@ public partial class Exchange
         }
     }
 
+    public async virtual Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchMarkPrices")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            object tickers = await this.fetchMarkPrices(new List<object>() {symbol}, parameters);
+            object ticker = this.safeDict(tickers, symbol);
+            if (isTrue(isEqual(ticker, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchMarkPrices() could not find a ticker for "), symbol)) ;
+            } else
+            {
+                return ticker;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
+        }
+    }
+
     public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4106,6 +4140,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)
@@ -5173,7 +5213,8 @@ public partial class Exchange
             return this.forceString(fee);
         } else
         {
-            return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
+            object roundingMode = this.safeInteger(this.options, "currencyToPrecisionRoundingMode", ROUND);
+            return this.decimalToPrecision(fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
     }
 
@@ -5805,6 +5846,33 @@ public partial class Exchange
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchFundingRate () is not supported yet")) ;
+        }
+    }
+
+    public async virtual Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchFundingIntervals")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            if (!isTrue(getValue(market, "contract")))
+            {
+                throw new BadSymbol ((string)add(this.id, " fetchFundingInterval() supports contract markets only")) ;
+            }
+            object rates = await this.fetchFundingIntervals(new List<object>() {symbol}, parameters);
+            object rate = this.safeValue(rates, symbol);
+            if (isTrue(isEqual(rate, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchFundingInterval() returned no data for "), symbol)) ;
+            } else
+            {
+                return rate;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchFundingInterval() is not supported yet")) ;
         }
     }
 
@@ -6911,11 +6979,11 @@ public partial class Exchange
     {
         if (isTrue(inOp(client.subscriptions, unsubHash)))
         {
-
+            ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
         if (isTrue(inOp(client.subscriptions, subHash)))
         {
-
+            ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
         }
         if (isTrue(inOp(client.futures, subHash)))
         {
@@ -6940,7 +7008,7 @@ public partial class Exchange
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
                 {
-
+                    ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
                 }
             }
         } else if (isTrue(isGreaterThan(symbolsLength, 0)))
@@ -6950,13 +7018,13 @@ public partial class Exchange
                 object symbol = getValue(symbols, i);
                 if (isTrue(isEqual(topic, "trades")))
                 {
-
+                    ((IDictionary<string,object>)this.trades).Remove((string)symbol);
                 } else if (isTrue(isEqual(topic, "orderbook")))
                 {
-
+                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 } else if (isTrue(isEqual(topic, "ticker")))
                 {
-
+                    ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
                 }
             }
         } else
@@ -6968,21 +7036,21 @@ public partial class Exchange
                 object keys = new List<object>(((IDictionary<string,object>)this.myTrades).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
-
+                    ((IDictionary<string,object>)this.myTrades).Remove((string)getValue(keys, i));
                 }
             } else if (isTrue(isEqual(topic, "orders")))
             {
                 object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
                 {
-
+                    ((IDictionary<string,object>)this.orders).Remove((string)getValue(orderSymbols, i));
                 }
             } else if (isTrue(isEqual(topic, "ticker")))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
                 {
-
+                    ((IDictionary<string,object>)this.tickers).Remove((string)getValue(tickerSymbols, i));
                 }
             }
         }

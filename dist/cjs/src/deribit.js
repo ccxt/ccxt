@@ -1157,6 +1157,8 @@ class deribit extends deribit$1 {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString(stats, 'volume'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
         }, market);
     }

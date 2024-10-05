@@ -229,15 +229,15 @@ export default class bitfinex extends bitfinexRest {
         if ((last !== undefined) && (change !== undefined)) {
             open = Precise.stringSub (last, change);
         }
-        const result = {
+        const result = this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeFloat (message, 9),
-            'low': this.safeFloat (message, 10),
-            'bid': this.safeFloat (message, 1),
+            'high': this.safeString (message, 9),
+            'low': this.safeString (message, 10),
+            'bid': this.safeString (message, 1),
             'bidVolume': undefined,
-            'ask': this.safeFloat (message, 3),
+            'ask': this.safeString (message, 3),
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.parseNumber (open),
@@ -245,12 +245,12 @@ export default class bitfinex extends bitfinexRest {
             'last': this.parseNumber (last),
             'previousClose': undefined,
             'change': this.parseNumber (change),
-            'percentage': this.safeFloat (message, 6),
+            'percentage': this.safeString (message, 6),
             'average': undefined,
-            'baseVolume': this.safeFloat (message, 8),
+            'baseVolume': this.safeString (message, 8),
             'quoteVolume': undefined,
             'info': message,
-        };
+        });
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
     }

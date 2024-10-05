@@ -923,8 +923,8 @@ public partial class kraken : ccxt.kraken
                 if (isTrue(!isEqual(localChecksum, c)))
                 {
                     var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                     ((WebSocketClient)client).reject(error, messageHash);
                     return;
                 }
@@ -1369,7 +1369,7 @@ public partial class kraken : ccxt.kraken
                         object first = getValue(stored, 0);
                         if (isTrue(inOp(symbolsByOrderId, getValue(first, "id"))))
                         {
-
+                            ((IDictionary<string,object>)symbolsByOrderId).Remove((string)getValue(first, "id"));
                         }
                     }
                     callDynamically(stored, "append", new object[] {newOrder});

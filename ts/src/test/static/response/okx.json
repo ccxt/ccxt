@@ -2108,6 +2108,8 @@
                     "average": 72775.8,
                     "baseVolume": 21266.19145051,
                     "quoteVolume": 1519926359.5972667,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "instType": "SPOT",
                         "instId": "BTC-USDT",

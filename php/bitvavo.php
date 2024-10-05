@@ -263,6 +263,7 @@ class bitvavo extends Exchange {
                 ),
             ),
             'options' => array(
+                'currencyToPrecisionRoundingMode' => TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
                 'networks' => array(
                     'ERC20' => 'ETH',
@@ -274,10 +275,6 @@ class bitvavo extends Exchange {
                 'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             ),
         ));
-    }
-
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision'], DECIMAL_PLACES);
     }
 
     public function amount_to_precision($symbol, $amount) {

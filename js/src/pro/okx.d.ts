@@ -17,6 +17,8 @@ export default class okx extends okxRest {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;

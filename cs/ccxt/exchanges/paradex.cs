@@ -683,6 +683,7 @@ public partial class paradex : Exchange
             { "average", null },
             { "baseVolume", null },
             { "quoteVolume", this.safeString(ticker, "volume_24h") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
             { "info", ticker },
         }, market);
     }

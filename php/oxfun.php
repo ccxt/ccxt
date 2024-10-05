@@ -855,6 +855,7 @@ class oxfun extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'currencyVolume24h'),
             'quoteVolume' => null, // the exchange returns cost in OX
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
