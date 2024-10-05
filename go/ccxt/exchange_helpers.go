@@ -1005,28 +1005,42 @@ func ParseInt(number interface{}) int64 {
 }
 
 func mathMin(a, b interface{}) interface{} {
-	switch a := a.(type) {
-	case int:
-		b := b.(int)
-		if a < b {
-			return a
-		}
-		return b
-	case float64:
-		b := b.(float64)
-		if a < b {
-			return a
-		}
-		return b
-	case string:
-		b := b.(string)
-		if a < b {
-			return a
-		}
-		return b
-	default:
+
+	af := ToFloat64(a)
+	bf := ToFloat64(b)
+
+	if af == math.NaN() || bf == math.NaN() {
 		return nil
 	}
+
+	if af < bf {
+		return af
+	}
+
+	return bf
+
+	// switch a := a.(type) {
+	// case int:
+	// 	b := b.(int)
+	// 	if a < b {
+	// 		return a
+	// 	}
+	// 	return b
+	// case float64:
+	// 	b := b.(float64)
+	// 	if a < b {
+	// 		return a
+	// 	}
+	// 	return b
+	// case string:
+	// 	b := b.(string)
+	// 	if a < b {
+	// 		return a
+	// 	}
+	// 	return b
+	// default:
+	// 	return nil
+	// }
 }
 
 // mathMax returns the maximum of two values of the same type.
