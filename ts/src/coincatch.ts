@@ -3262,8 +3262,8 @@ export default class coincatch extends Exchange {
         const type = this.safeString (order, 'orderType');
         const side = this.safeString (order, 'side');
         let amount = this.safeString2 (order, 'quantity', 'size');
-        if ((type === 'market') && (side === 'buy')) {
-            amount = undefined; // cost is used instead of amount for market buy orders
+        if ((market['spot']) && (type === 'market') && (side === 'buy')) {
+            amount = undefined; // cost is returned instead of amount for market buy orders on spot markets
         }
         const status = this.safeString2 (order, 'status', 'state');
         const feeDetailString = this.safeString (order, 'feeDetail');
