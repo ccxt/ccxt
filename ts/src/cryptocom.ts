@@ -161,6 +161,7 @@ export default class cryptocom extends Exchange {
                             'public/get-valuations': 1,
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
+                            'public/get-risk-parameters': 1,
                         },
                         'post': {
                             'public/staking/get-conversion-rate': 2,

@@ -284,6 +284,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW': 10000,  # default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
@@ -295,9 +296,6 @@ class bitvavo(Exchange, ImplicitAPI):
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
         })
-
-    def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], DECIMAL_PLACES)
 
     def amount_to_precision(self, symbol, amount):
         # https://docs.bitfinex.com/docs/introduction#amount-precision

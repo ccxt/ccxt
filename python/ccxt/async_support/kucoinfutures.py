@@ -73,6 +73,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': False,
@@ -87,6 +89,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrice': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -757,6 +760,23 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.parse_ticker(response['data'], market)
 
+    async def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = await self.futuresPublicGetMarkPriceSymbolCurrent(self.extend(request, params))
+        #
+        return self.parse_ticker(response['data'], market)
+
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -842,6 +862,14 @@ class kucoinfutures(kucoin, ImplicitAPI):
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "LTCUSDTM",
+        #         "granularity": 1000,
+        #         "timePoint": 1727967339000,
+        #         "value": 62.37, mark price
+        #         "indexPrice": 62.37
+        #      }
         #
         #     {
         #         "code": "200000",
@@ -944,7 +972,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volumeOf24h'),
             'quoteVolume': self.safe_string(ticker, 'turnoverOf24h'),
-            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'markPrice': self.safe_string_2(ticker, 'markPrice', 'value'),
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
@@ -2074,12 +2102,35 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #        },
         #    }
         #
-        data = self.safe_value(response, 'data')
-        fundingTimestamp = self.safe_integer(data, 'timePoint')
+        data = self.safe_dict(response, 'data', {})
         # the website displayes the previous funding rate as "funding rate"
+        return self.parse_funding_rate(data, market)
+
+    async def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return await self.fetch_funding_rate(symbol, params)
+
+    def parse_funding_rate(self, data, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "symbol": ".ETHUSDTMFPI8H",
+        #         "granularity": 28800000,
+        #         "timePoint": 1637380800000,
+        #         "value": 0.0001,
+        #         "predictedValue": 0.0001,
+        #     }
+        #
+        fundingTimestamp = self.safe_integer(data, 'timePoint')
+        marketId = self.safe_string(data, 'symbol')
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
             'markPrice': None,
             'indexPrice': None,
             'interestRate': None,

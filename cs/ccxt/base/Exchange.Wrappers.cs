@@ -176,6 +176,11 @@ public partial class Exchange
         var res = await this.fetchFundingRates(symbols, parameters);
         return new FundingRates(res);
     }
+    public async Task<FundingRates> FetchFundingIntervals(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingIntervals(symbols, parameters);
+        return new FundingRates(res);
+    }
     public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchFundingRate(symbol, parameters);
@@ -495,6 +500,11 @@ public partial class Exchange
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrice(symbol, parameters);
         return new Ticker(res);
     }
     public async Task<Ticker> FetchTickerWs(string symbol, Dictionary<string, object> parameters = null)
@@ -1054,6 +1064,11 @@ public partial class Exchange
     public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
         return new FundingRate(res);
     }
     public async Task<List<OHLCV>> FetchMarkOHLCV(object symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)

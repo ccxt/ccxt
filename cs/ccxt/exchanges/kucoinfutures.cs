@@ -54,6 +54,8 @@ public partial class kucoinfutures : kucoin
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchIndexOHLCV", false },
@@ -68,6 +70,7 @@ public partial class kucoinfutures : kucoin
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
@@ -766,6 +769,28 @@ public partial class kucoinfutures : kucoin
         return this.parseTicker(getValue(response, "data"), market);
     }
 
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchMarkPrice
+        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, parameters));
+        //
+        return this.parseTicker(getValue(response, "data"), market);
+    }
+
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         /**
@@ -862,6 +887,14 @@ public partial class kucoinfutures : kucoin
 
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        //     {
+        //         "symbol": "LTCUSDTM",
+        //         "granularity": 1000,
+        //         "timePoint": 1727967339000,
+        //         "value": 62.37, mark price
+        //         "indexPrice": 62.37
+        //      }
         //
         //     {
         //         "code": "200000",
@@ -964,7 +997,7 @@ public partial class kucoinfutures : kucoin
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volumeOf24h") },
             { "quoteVolume", this.safeString(ticker, "turnoverOf24h") },
-            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "markPrice", this.safeString2(ticker, "markPrice", "value") },
             { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
@@ -2287,12 +2320,42 @@ public partial class kucoinfutures : kucoin
         //        },
         //    }
         //
-        object data = this.safeValue(response, "data");
-        object fundingTimestamp = this.safeInteger(data, "timePoint");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         // the website displayes the previous funding rate as "funding rate"
+        return this.parseFundingRate(data, market);
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
+    }
+
+    public override object parseFundingRate(object data, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "granularity": 28800000,
+        //         "timePoint": 1637380800000,
+        //         "value": 0.0001,
+        //         "predictedValue": 0.0001,
+        //     }
+        //
+        object fundingTimestamp = this.safeInteger(data, "timePoint");
+        object marketId = this.safeString(data, "symbol");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },

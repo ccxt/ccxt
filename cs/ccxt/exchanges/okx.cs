@@ -72,6 +72,8 @@ public partial class okx : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -6432,6 +6434,21 @@ public partial class okx : Exchange
             { "86400000", "24h" },
         };
         return this.safeString(intervals, interval, interval);
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)

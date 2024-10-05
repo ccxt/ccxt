@@ -79,6 +79,8 @@ class woo(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -2589,6 +2591,16 @@ class woo(Exchange, ImplicitAPI):
             'previousFundingDatetime': self.iso8601(lastFundingRateTimestamp),
             'interval': intervalString + 'h',
         }
+
+    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rate(symbol, params)
 
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """

@@ -3585,6 +3585,46 @@
                     "BTC"
                 ]
             }
+        ],
+        "fetchFundingIntervals": [
+            {
+                "description": "swap linear funding interval",
+                "method": "fetchFundingIntervals",
+                "url": "https://fapi.binance.com/fapi/v1/fundingInfo",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "swap inverse funding intervals",
+                "method": "fetchFundingIntervals",
+                "url": "https://dapi.binance.com/dapi/v1/fundingInfo",
+                "input": [
+                  [
+                    "BTC/USD:BTC"
+                  ]
+                ]
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "swap linear fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://fapi.binance.com/fapi/v1/fundingInfo",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap inverse fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://dapi.binance.com/dapi/v1/fundingInfo",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }

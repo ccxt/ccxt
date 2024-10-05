@@ -26,6 +26,7 @@ export default class kucoinfutures extends kucoin {
     }>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -47,6 +48,8 @@ export default class kucoinfutures extends kucoin {
     fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
+    parseFundingRate(data: any, market?: Market): FundingRate;
     parseFundingInterval(interval: any): string;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

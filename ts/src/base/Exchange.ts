@@ -172,6 +172,7 @@ const {
     numberToBE,
     numberToLE,
     numberToString,
+    roundTimeframe,
     omit,
     omitZero,
     ordered,
@@ -489,108 +490,110 @@ export default class Exchange {
     version: Str = undefined;
 
     // WS/PRO options
-    aggregate = aggregate;
+    clients: Dictionary<WsClient> = {}
+    newUpdates: boolean = true
+    streaming = {}
+
+    aggregate = aggregate
     alias: boolean = false;
-    arrayConcat = arrayConcat;
-    base16ToBinary = base16ToBinary;
-    base58ToBinary = base58ToBinary;
-    base64ToBinary = base64ToBinary;
-    base64ToString = base64ToString;
-    binaryConcat = binaryConcat;
-    binaryConcatArray = binaryConcatArray;
-    binaryToBase16 = binaryToBase16;
-    binaryToBase58 = binaryToBase58;
-    binaryToBase64 = binaryToBase64;
-    capitalize = capitalize;
-    clients: Dictionary<WsClient> = {};
-    clone = clone;
-    crc32 = crc32;
-    decimalToPrecision = decimalToPrecision;
-    decode = decode;
-    deepExtend = deepExtend;
-    encode = encode;
-    extend = extend;
-    extractParams = extractParams;
-    filterBy = filterBy;
-    flatten = flatten;
-    groupBy = groupBy;
-    hash = hash;
-    hmac = hmac;
-    implodeParams = implodeParams;
-    inArray = inArray;
-    indexBy = indexBy;
-    isEmpty = isEmpty;
-    isJsonEncodedObject = isJsonEncodedObject;
-    isNode = isNode;
-    iso8601 = iso8601;
-    json = json;
-    keys = keysFunc;
-    keysort = keysort;
-    merge = merge;
-    microseconds = microseconds;
-    milliseconds = milliseconds;
-    newUpdates: boolean = true;
-    now = now;
-    numberToBE = numberToBE;
-    numberToLE = numberToLE;
-    numberToString = numberToString;
-    omit = omit;
-    omitZero = omitZero;
-    ordered = ordered;
+    arrayConcat = arrayConcat
+    base16ToBinary = base16ToBinary
+    base58ToBinary = base58ToBinary
+    base64ToBinary = base64ToBinary
+    base64ToString = base64ToString
+    binaryConcat = binaryConcat
+    binaryConcatArray = binaryConcatArray
+    binaryToBase16 = binaryToBase16
+    binaryToBase58 = binaryToBase58
+    binaryToBase64 = binaryToBase64
+    capitalize = capitalize
+    clone = clone
+    crc32 = crc32
+    decimalToPrecision = decimalToPrecision
+    decode = decode
+    deepExtend = deepExtend
+    encode = encode
+    extend = extend
+    extractParams = extractParams
+    filterBy = filterBy
+    flatten = flatten
+    groupBy = groupBy
+    hash = hash
+    hmac = hmac
+    implodeParams = implodeParams
+    inArray = inArray
+    indexBy = indexBy
+    isEmpty = isEmpty
+    isJsonEncodedObject = isJsonEncodedObject
+    isNode = isNode
+    iso8601 = iso8601
+    json = json
+    keys = keysFunc
+    keysort = keysort
+    merge = merge
+    microseconds = microseconds
+    milliseconds = milliseconds
+    now = now
+    numberToBE = numberToBE
+    numberToLE = numberToLE
+    numberToString = numberToString
+    omit = omit
+    omitZero = omitZero
+    ordered = ordered
     packb = packb
-    parse8601 = parse8601;
-    parseDate = parseDate;
-    parseTimeframe = parseTimeframe;
-    precisionFromString = precisionFromString;
-    rawencode = rawencode;
-    safeFloat = safeFloat;
-    safeFloat2 = safeFloat2;
-    safeFloatN = safeFloatN;
-    safeInteger = safeInteger;
-    safeInteger2 = safeInteger2;
-    safeIntegerN = safeIntegerN;
-    safeIntegerProduct = safeIntegerProduct;
-    safeIntegerProduct2 = safeIntegerProduct2;
-    safeIntegerProductN = safeIntegerProductN;
-    safeString = safeString;
-    safeString2 = safeString2;
-    safeStringLower = safeStringLower;
-    safeStringLower2 = safeStringLower2;
-    safeStringLowerN = safeStringLowerN;
-    safeStringN = safeStringN;
-    safeStringUpper = safeStringUpper;
-    safeStringUpper2 = safeStringUpper2;
-    safeStringUpperN = safeStringUpperN;
-    safeTimestamp = safeTimestamp;
-    safeTimestamp2 = safeTimestamp2;
-    safeTimestampN = safeTimestampN;
-    safeValue = safeValue;
-    safeValue2 = safeValue2;
-    safeValueN = safeValueN;
-    seconds = seconds;
-    sortBy = sortBy;
-    sortBy2 = sortBy2;
-    streaming = {};
-    stringToBase64 = stringToBase64;
-    strip = strip;
-    sum = sum;
-    toArray = toArray;
-    unCamelCase = unCamelCase;
-    unique = unique;
-    urlencode = urlencode;
+    parse8601 = parse8601
+    parseDate = parseDate
+    parseTimeframe = parseTimeframe
+    precisionFromString = precisionFromString
+    rawencode = rawencode
+    roundTimeframe = roundTimeframe
+    safeFloat = safeFloat
+    safeFloat2 = safeFloat2
+    safeFloatN = safeFloatN
+    safeInteger = safeInteger
+    safeInteger2 = safeInteger2
+    safeIntegerN = safeIntegerN
+    safeIntegerProduct = safeIntegerProduct
+    safeIntegerProduct2 = safeIntegerProduct2
+    safeIntegerProductN = safeIntegerProductN
+    safeString = safeString
+    safeString2 = safeString2
+    safeStringLower = safeStringLower
+    safeStringLower2 = safeStringLower2
+    safeStringLowerN = safeStringLowerN
+    safeStringN = safeStringN
+    safeStringUpper = safeStringUpper
+    safeStringUpper2 = safeStringUpper2
+    safeStringUpperN = safeStringUpperN
+    safeTimestamp = safeTimestamp
+    safeTimestamp2 = safeTimestamp2
+    safeTimestampN = safeTimestampN
+    safeValue = safeValue
+    safeValue2 = safeValue2
+    safeValueN = safeValueN
+    seconds = seconds
+    sortBy = sortBy
+    sortBy2 = sortBy2
+    stringToBase64 = stringToBase64
+    strip = strip
+    sum = sum
+    toArray = toArray
+    unCamelCase = unCamelCase
+    unique = unique
+    urlencode = urlencode
     urlencodeBase64 = urlencodeBase64
-    urlencodeNested = urlencodeNested;
-    urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
-    uuid = uuid;
-    uuid16 = uuid16;
-    uuid22 = uuid22;
-    uuidv1 = uuidv1;
-    values = valuesFunc;
-    vwap = vwapFunc;
-    ymd = ymd;
-    ymdhms = ymdhms;
-    yymmdd = yymmdd;
-    yyyymmdd = yyyymmdd;
+    urlencodeNested = urlencodeNested
+    urlencodeWithArrayRepeat = urlencodeWithArrayRepeat
+    uuid = uuid
+    uuid16 = uuid16
+    uuid22 = uuid22
+    uuidv1 = uuidv1
+    values = valuesFunc
+    vwap = vwapFunc
+    ymd = ymd
+    ymdhms = ymdhms
+    yymmdd = yymmdd
+    yyyymmdd = yyyymmdd
 
     constructor (userConfig = {}) {
         Object.assign (this, functions);
@@ -1824,6 +1827,8 @@ export default class Exchange {
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
+                'fetchFundingInterval': undefined,
+                'fetchFundingIntervals': undefined,
                 'fetchFundingRates': undefined,
                 'fetchGreeks': undefined,
                 'fetchIndexOHLCV': undefined,
@@ -2623,6 +2628,10 @@ export default class Exchange {
 
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         throw new NotSupported (this.id + ' fetchFundingRates() is not supported yet');
+    }
+
+    async fetchFundingIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        throw new NotSupported (this.id + ' fetchFundingIntervals() is not supported yet');
     }
 
     async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
@@ -4995,6 +5004,23 @@ export default class Exchange {
         }
     }
 
+    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        if (this.has['fetchMarkPrices']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchMarkPrices ([ symbol ], params);
+            const ticker = this.safeDict (tickers, symbol);
+            if (ticker === undefined) {
+                throw new NullResponse (this.id + ' fetchMarkPrices() could not find a ticker for ' + symbol);
+            } else {
+                return ticker as Ticker;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchMarkPrices() is not supported yet');
+        }
+    }
+
     async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         if (this.has['fetchTickersWs']) {
             await this.loadMarkets ();
@@ -5861,7 +5887,8 @@ export default class Exchange {
         if (precision === undefined) {
             return this.forceString (fee);
         } else {
-            return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
+            const roundingMode = this.safeInteger (this.options, 'currencyToPrecisionRoundingMode', ROUND);
+            return this.decimalToPrecision (fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
     }
 
@@ -6342,6 +6369,26 @@ export default class Exchange {
             }
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
+        }
+    }
+
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.has['fetchFundingIntervals']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchFundingInterval() supports contract markets only');
+            }
+            const rates = await this.fetchFundingIntervals ([ symbol ], params);
+            const rate = this.safeValue (rates, symbol);
+            if (rate === undefined) {
+                throw new NullResponse (this.id + ' fetchFundingInterval() returned no data for ' + symbol);
+            } else {
+                return rate;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingInterval() is not supported yet');
         }
     }
 

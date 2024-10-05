@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 import * as functions from './functions.js';
-const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
+const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
 import { keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
@@ -134,6 +134,7 @@ export default class Exchange {
         this.flatten = flatten;
         this.unique = unique;
         this.indexBy = indexBy;
+        this.roundTimeframe = roundTimeframe;
         this.sortBy = sortBy;
         this.sortBy2 = sortBy2;
         this.groupBy = groupBy;
@@ -1383,6 +1384,8 @@ export default class Exchange {
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
+                'fetchFundingInterval': undefined,
+                'fetchFundingIntervals': undefined,
                 'fetchFundingRates': undefined,
                 'fetchGreeks': undefined,
                 'fetchIndexOHLCV': undefined,
@@ -2130,6 +2133,9 @@ export default class Exchange {
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchFundingRates() is not supported yet');
+    }
+    async fetchFundingIntervals(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchFundingIntervals() is not supported yet');
     }
     async watchFundingRate(symbol, params = {}) {
         throw new NotSupported(this.id + ' watchFundingRate() is not supported yet');
@@ -4400,6 +4406,24 @@ export default class Exchange {
             throw new NotSupported(this.id + ' fetchTicker() is not supported yet');
         }
     }
+    async fetchMarkPrice(symbol, params = {}) {
+        if (this.has['fetchMarkPrices']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchMarkPrices([symbol], params);
+            const ticker = this.safeDict(tickers, symbol);
+            if (ticker === undefined) {
+                throw new NullResponse(this.id + ' fetchMarkPrices() could not find a ticker for ' + symbol);
+            }
+            else {
+                return ticker;
+            }
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
+        }
+    }
     async fetchTickerWs(symbol, params = {}) {
         if (this.has['fetchTickersWs']) {
             await this.loadMarkets();
@@ -5184,7 +5208,8 @@ export default class Exchange {
             return this.forceString(fee);
         }
         else {
-            return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
+            const roundingMode = this.safeInteger(this.options, 'currencyToPrecisionRoundingMode', ROUND);
+            return this.decimalToPrecision(fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
     }
     forceString(value) {
@@ -5630,6 +5655,27 @@ export default class Exchange {
         }
         else {
             throw new NotSupported(this.id + ' fetchFundingRate () is not supported yet');
+        }
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        if (this.has['fetchFundingIntervals']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            if (!market['contract']) {
+                throw new BadSymbol(this.id + ' fetchFundingInterval() supports contract markets only');
+            }
+            const rates = await this.fetchFundingIntervals([symbol], params);
+            const rate = this.safeValue(rates, symbol);
+            if (rate === undefined) {
+                throw new NullResponse(this.id + ' fetchFundingInterval() returned no data for ' + symbol);
+            }
+            else {
+                return rate;
+            }
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchFundingInterval() is not supported yet');
         }
     }
     async fetchMarkOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

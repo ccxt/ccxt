@@ -86,6 +86,8 @@ class bitget extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -101,6 +103,7 @@ class bitget extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrice' => true,
                 'fetchMyLiquidations' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -2540,6 +2543,14 @@ class bitget extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
+        //   {
+        //       "symbol" => "BTCUSDT",
+        //       "price" => "26242",
+        //       "indexPrice" => "34867",
+        //       "markPrice" => "25555",
+        //       "ts" => "1695793390482"
+        //   }
+        //
         // spot => fetchTicker, fetchTickers
         //
         //     {
@@ -2643,6 +2654,7 @@ class bitget extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -2741,6 +2753,41 @@ class bitget extends Exchange {
             //         )
             //     }
             //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_ticker($data[0], $market);
+        }) ();
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the mark price for a specific $market
+             * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $market = null;
+            if ($sandboxMode) {
+                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                $market = $this->market($sandboxSymbol);
+            } else {
+                $market = $this->market($symbol);
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = null;
+            if ($market['spot']) {
+                throw new NotSupported($this->id . ' fetchMarkPrice() is not supported for spot markets');
+            } else {
+                $productType = null;
+                list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+                $request['productType'] = $productType;
+                $response = Async\await($this->publicMixGetV2MixMarketSymbolPrice ($this->extend($request, $params)));
+            }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ticker($data[0], $market);
         }) ();
@@ -6698,13 +6745,29 @@ class bitget extends Exchange {
 
     public function parse_funding_rate($contract, ?array $market = null): array {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "symbol" => "BTCUSDT",
         //         "fundingRate" => "-0.000182"
         //     }
         //
+        // fetchFundingInterval
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "nextFundingTime" => "1727942400000",
+        //         "ratePeriod" => "8"
+        //     }
+        //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
+        $fundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
+        $interval = $this->safe_string($contract, 'ratePeriod');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -6715,15 +6778,15 @@ class bitget extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 
@@ -8722,6 +8785,51 @@ class bitget extends Exchange {
                 );
             }
             return $result;
+        }) ();
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate interval
+             * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $market = null;
+            if ($sandboxMode) {
+                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                $market = $this->market($sandboxSymbol);
+            } else {
+                $market = $this->market($symbol);
+            }
+            $productType = null;
+            list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+                'productType' => $productType,
+            );
+            $response = Async\await($this->publicMixGetV2MixMarketFundingTime ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1727930153888,
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "BTCUSDT",
+            //                 "nextFundingTime" => "1727942400000",
+            //                 "ratePeriod" => "8"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $first = $this->safe_dict($data, 0, array());
+            return $this->parse_funding_rate($first, $market);
         }) ();
     }
 

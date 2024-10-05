@@ -91,6 +91,7 @@ export default class okx extends Exchange {
     };
     parseFundingRate(contract: any, market?: Market): FundingRate;
     parseFundingInterval(interval: any): string;
+    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;

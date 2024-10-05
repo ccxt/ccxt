@@ -71,6 +71,8 @@ class coinex extends coinex$1 {
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -4555,9 +4557,21 @@ class coinex extends coinex$1 {
         const first = this.safeDict(data, 0, {});
         return this.parseFundingRate(first, market);
     }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
+    }
     parseFundingRate(contract, market = undefined) {
         //
-        // fetchFundingRate, fetchFundingRates
+        // fetchFundingRate, fetchFundingRates, fetchFundingInterval
         //
         //     {
         //         "latest_funding_rate": "0",

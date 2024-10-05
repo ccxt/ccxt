@@ -160,11 +160,50 @@
                 ]
             },
             {
+                "description": "Spot orders with until",
+                "method": "fetchOrders",
+                "url": "https://api.mexc.com/api/v3/allOrders?symbol=LTCUSDT&timestamp=1699458295321&recvWindow=5000&signature=5abde0d1bc718a8528ef3fb60023353897cefabdbd0ccb10f583eabe675f2b7c&startTime=1704067200000&endTime=1709251200000&limit=10",
+                "input": [
+                    "LTC/USDT",
+                    1704067200000,
+                    10,
+                    {
+                        "until": 1709251200000
+                    }
+                ]
+            },
+            {
                 "description": "Swap orders",
                 "method": "fetchOrders",
                 "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap orders with until",
+                "method": "fetchOrders",
+                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT&start_time=1704067200000&end_time=1709251200000&page_size=10",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1704067200000,
+                    10,
+                    {
+                        "until": 1709251200000
+                    }
+                ]
+            },
+            {
+                "description": "Swap orders with until only",
+                "method": "fetchOrders",
+                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT&start_time=1701475200001&end_time=1709251200000&page_size=10",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    10,
+                    {
+                        "until": 1709251200000
+                    }
                 ]
             }
         ],
@@ -683,6 +722,16 @@
                   }
                 ],
                 "output": "{\"leverage\":10,\"openType\":2,\"symbol\":\"ADA_USDT\",\"positionType\":1}"
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://contract.mexc.com/api/v1/contract/funding_rate/BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ]
     }

@@ -60,6 +60,8 @@ class kucoinfutures extends kucoinfutures$1 {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': false,
@@ -74,6 +76,7 @@ class kucoinfutures extends kucoinfutures$1 {
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -775,6 +778,25 @@ class kucoinfutures extends kucoinfutures$1 {
         //
         return this.parseTicker(response['data'], market);
     }
+    async fetchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchMarkPrice
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, params));
+        //
+        return this.parseTicker(response['data'], market);
+    }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
          * @method
@@ -864,6 +886,14 @@ class kucoinfutures extends kucoinfutures$1 {
         return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
+        //
+        //     {
+        //         "symbol": "LTCUSDTM",
+        //         "granularity": 1000,
+        //         "timePoint": 1727967339000,
+        //         "value": 62.37, mark price
+        //         "indexPrice": 62.37
+        //      }
         //
         //     {
         //         "code": "200000",
@@ -966,7 +996,7 @@ class kucoinfutures extends kucoinfutures$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volumeOf24h'),
             'quoteVolume': this.safeString(ticker, 'turnoverOf24h'),
-            'markPrice': this.safeString(ticker, 'markPrice'),
+            'markPrice': this.safeString2(ticker, 'markPrice', 'value'),
             'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         }, market);
@@ -2182,12 +2212,37 @@ class kucoinfutures extends kucoinfutures$1 {
         //        },
         //    }
         //
-        const data = this.safeValue(response, 'data');
-        const fundingTimestamp = this.safeInteger(data, 'timePoint');
+        const data = this.safeDict(response, 'data', {});
         // the website displayes the previous funding rate as "funding rate"
+        return this.parseFundingRate(data, market);
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
+    }
+    parseFundingRate(data, market = undefined) {
+        //
+        //     {
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "granularity": 28800000,
+        //         "timePoint": 1637380800000,
+        //         "value": 0.0001,
+        //         "predictedValue": 0.0001,
+        //     }
+        //
+        const fundingTimestamp = this.safeInteger(data, 'timePoint');
+        const marketId = this.safeString(data, 'symbol');
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': undefined,

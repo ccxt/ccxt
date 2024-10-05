@@ -101,6 +101,8 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -116,6 +118,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMarkPrice': True,
                 'fetchMyLiquidations': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -2467,6 +2470,14 @@ class bitget(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
+        #   {
+        #       "symbol": "BTCUSDT",
+        #       "price": "26242",
+        #       "indexPrice": "34867",
+        #       "markPrice": "25555",
+        #       "ts": "1695793390482"
+        #   }
+        #
         # spot: fetchTicker, fetchTickers
         #
         #     {
@@ -2571,6 +2582,7 @@ class bitget(Exchange, ImplicitAPI):
             'baseVolume': self.safe_string(ticker, 'baseVolume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'indexPrice': self.safe_string(ticker, 'indexPrice'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
         }, market)
 
@@ -2665,6 +2677,36 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_ticker(data[0], market)
+
+    async def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches the mark price for a specific market
+        :see: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        market = None
+        if sandboxMode:
+            sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
+            market = self.market(sandboxSymbol)
+        else:
+            market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = None
+        if market['spot']:
+            raise NotSupported(self.id + ' fetchMarkPrice() is not supported for spot markets')
+        else:
+            productType = None
+            productType, params = self.handle_product_type_and_params(market, params)
+            request['productType'] = productType
+            response = await self.publicMixGetV2MixMarketSymbolPrice(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_ticker(data[0], market)
 
@@ -6305,13 +6347,28 @@ class bitget(Exchange, ImplicitAPI):
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
+        # fetchFundingRate
+        #
         #     {
         #         "symbol": "BTCUSDT",
         #         "fundingRate": "-0.000182"
         #     }
         #
+        # fetchFundingInterval
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "nextFundingTime": "1727942400000",
+        #         "ratePeriod": "8"
+        #     }
+        #
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'swap')
+        fundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
+        interval = self.safe_string(contract, 'ratePeriod')
+        intervalString = None
+        if interval is not None:
+            intervalString = interval + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -6322,15 +6379,15 @@ class bitget(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
             'fundingRate': self.safe_number(contract, 'fundingRate'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
@@ -8173,6 +8230,47 @@ class bitget(Exchange, ImplicitAPI):
                 'created': None,
             }
         return result
+
+    async def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        market = None
+        if sandboxMode:
+            sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
+            market = self.market(sandboxSymbol)
+        else:
+            market = self.market(symbol)
+        productType = None
+        productType, params = self.handle_product_type_and_params(market, params)
+        request: dict = {
+            'symbol': market['id'],
+            'productType': productType,
+        }
+        response = await self.publicMixGetV2MixMarketFundingTime(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1727930153888,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT",
+        #                 "nextFundingTime": "1727942400000",
+        #                 "ratePeriod": "8"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        return self.parse_funding_rate(first, market)
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:

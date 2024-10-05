@@ -105,6 +105,7 @@ export default class woo extends Exchange {
     };
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseFundingRate(fundingRate: any, market?: Market): FundingRate;
+    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;

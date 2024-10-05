@@ -112,6 +112,8 @@ class binance(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': 'emulated',
+                'fetchFundingIntervals': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -735,6 +737,7 @@ class binance(Exchange, ImplicitAPI):
                         'ticker/bookTicker': {'cost': 2, 'noSymbol': 5},
                         'constituents': 2,
                         'openInterest': 1,
+                        'fundingInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -8829,16 +8832,28 @@ class binance(Exchange, ImplicitAPI):
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
         #
-        #   {
-        #     "symbol": "BTCUSDT",
-        #     "markPrice": "45802.81129892",
-        #     "indexPrice": "45745.47701915",
-        #     "estimatedSettlePrice": "45133.91753671",
-        #     "lastFundingRate": "0.00063521",
-        #     "interestRate": "0.00010000",
-        #     "nextFundingTime": "1621267200000",
-        #     "time": "1621252344001"
-        #  }
+        # fetchFundingRate, fetchFundingRates
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "markPrice": "45802.81129892",
+        #         "indexPrice": "45745.47701915",
+        #         "estimatedSettlePrice": "45133.91753671",
+        #         "lastFundingRate": "0.00063521",
+        #         "interestRate": "0.00010000",
+        #         "nextFundingTime": "1621267200000",
+        #         "time": "1621252344001"
+        #     }
+        #
+        # fetchFundingInterval, fetchFundingIntervals
+        #
+        #     {
+        #         "symbol": "BLZUSDT",
+        #         "adjustedFundingRateCap": "0.03000000",
+        #         "adjustedFundingRateFloor": "-0.03000000",
+        #         "fundingIntervalHours": 4,
+        #         "disclaimer": False
+        #     }
         #
         timestamp = self.safe_integer(contract, 'time')
         marketId = self.safe_string(contract, 'symbol')
@@ -8849,6 +8864,10 @@ class binance(Exchange, ImplicitAPI):
         estimatedSettlePrice = self.safe_number(contract, 'estimatedSettlePrice')
         fundingRate = self.safe_number(contract, 'lastFundingRate')
         fundingTime = self.safe_integer(contract, 'nextFundingTime')
+        interval = self.safe_string(contract, 'fundingIntervalHours')
+        intervalString = None
+        if interval is not None:
+            intervalString = interval + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -8867,7 +8886,7 @@ class binance(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
 
     def parse_account_positions(self, account, filterClosed=False):
@@ -12581,3 +12600,42 @@ class binance(Exchange, ImplicitAPI):
             'price': None,
             'fee': None,
         }
+
+    async def fetch_funding_intervals(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetch the funding rate interval for multiple markets
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
+        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: "linear" or "inverse"
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            market = self.market(symbols[0])
+        type = 'swap'
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchFundingIntervals', market, params, 'linear')
+        response = None
+        if self.is_linear(type, subType):
+            response = await self.fapiPublicGetFundingInfo(params)
+        elif self.is_inverse(type, subType):
+            response = await self.dapiPublicGetFundingInfo(params)
+        else:
+            raise NotSupported(self.id + ' fetchFundingIntervals() supports linear and inverse swap contracts only')
+        #
+        #     [
+        #         {
+        #             "symbol": "BLZUSDT",
+        #             "adjustedFundingRateCap": "0.03000000",
+        #             "adjustedFundingRateFloor": "-0.03000000",
+        #             "fundingIntervalHours": 4,
+        #             "disclaimer": False
+        #         },
+        #     ]
+        #
+        result = self.parse_funding_rates(response, market)
+        return self.filter_by_array(result, 'symbol', symbols)

@@ -81,6 +81,8 @@ export default class bitget extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -96,6 +98,7 @@ export default class bitget extends Exchange {
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrice': true,
                 'fetchMyLiquidations': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -2535,6 +2538,14 @@ export default class bitget extends Exchange {
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
+        //   {
+        //       "symbol": "BTCUSDT",
+        //       "price": "26242",
+        //       "indexPrice": "34867",
+        //       "markPrice": "25555",
+        //       "ts": "1695793390482"
+        //   }
+        //
         // spot: fetchTicker, fetchTickers
         //
         //     {
@@ -2640,6 +2651,7 @@ export default class bitget extends Exchange {
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -2739,6 +2751,41 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTicker (data[0], market);
+    }
+
+    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name bitget#fetchMarkPrice
+         * @description fetches the mark price for a specific market
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        let market = undefined;
+        if (sandboxMode) {
+            const sandboxSymbol = this.convertSymbolForSandbox (symbol);
+            market = this.market (sandboxSymbol);
+        } else {
+            market = this.market (symbol);
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' fetchMarkPrice() is not supported for spot markets');
+        } else {
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            response = await this.publicMixGetV2MixMarketSymbolPrice (this.extend (request, params));
+        }
         const data = this.safeList (response, 'data', []);
         return this.parseTicker (data[0], market);
     }
@@ -6695,13 +6742,29 @@ export default class bitget extends Exchange {
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "symbol": "BTCUSDT",
         //         "fundingRate": "-0.000182"
         //     }
         //
+        // fetchFundingInterval
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "nextFundingTime": "1727942400000",
+        //         "ratePeriod": "8"
+        //     }
+        //
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
+        const fundingTimestamp = this.safeInteger (contract, 'nextFundingTime');
+        const interval = this.safeString (contract, 'ratePeriod');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -6712,15 +6775,15 @@ export default class bitget extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'fundingRate': this.safeNumber (contract, 'fundingRate'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         } as FundingRate;
     }
 
@@ -8718,6 +8781,51 @@ export default class bitget extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name bitget#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        let market = undefined;
+        if (sandboxMode) {
+            const sandboxSymbol = this.convertSymbolForSandbox (symbol);
+            market = this.market (sandboxSymbol);
+        } else {
+            market = this.market (symbol);
+        }
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const request: Dict = {
+            'symbol': market['id'],
+            'productType': productType,
+        };
+        const response = await this.publicMixGetV2MixMarketFundingTime (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1727930153888,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "nextFundingTime": "1727942400000",
+        //                 "ratePeriod": "8"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseFundingRate (first, market);
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
