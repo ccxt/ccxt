@@ -1,27 +1,38 @@
 package main
 
-import (
-	"ccxt"
-	"fmt"
-	"log"
-	"time"
-)
+type MyStruct struct {
+	OptionalBool *bool
+}
+
+// Function to create MyStruct
+func CreateMyStruct(optionalValue interface{}) MyStruct {
+	var optionalBool *bool
+	if v, ok := optionalValue.(bool); ok {
+		optionalBool = &v
+	}
+	return MyStruct{
+		OptionalBool: optionalBool,
+	}
+}
 
 func main() {
-	fmt.Println("Let's GO CCXT!")
-	bybit := ccxt.Bybit{}
-	bybit.Init(map[string]interface{}{})
-	bybit.SetSandboxMode(true)
-	start := time.Now()
-	log.Printf("will load markets")
-	<-bybit.LoadMarkets()
-	elapsed := time.Since(start)
-	log.Printf("Loading markets took %s", elapsed)
+	// fmt.Println("Let's GO CCXT!")
+	// bybit := ccxt.Bybit{}
+	// bybit.Init(map[string]interface{}{})
+	// bybit.SetSandboxMode(true)
+	// start := time.Now()
+	// log.Printf("will load markets")
+	// <-bybit.LoadMarkets()
+	// // bybit.Verbose = true
+	// elapsed := time.Since(start)
+	// log.Printf("Loading markets took %s", elapsed)
 	// bybit.ApiKey = "luDbnc4jVrDF7F4HFM"
-	bybit.Secret = "AO2jICPaoERif6VBntB7WqOibqSLBkYrAEPx"
-	orderCh := bybit.CreateOrder("ADA/USDT:USDT", "limit", "buy", 20, 0.3)
-	order := <-orderCh
-	fmt.Println(bybit.Json(order))
+	// bybit.Secret = "AO2jICPaoERif6VBntB7WqOibqSLBkYrAEPx"
+	// // orderCh := bybit.CreateOrder("ADA/USDT:USDT", "limit", "buy", 20, 0.3)
+	// orderCh := bybit.FetchMyTrades("ADA/USDT:USDT", nil, nil, nil)
+	// order := <-orderCh
+	// fmt.Println(bybit.Json(order))
+
 }
 
 // func longRunningTask(id string) <-chan int32 {

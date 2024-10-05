@@ -172,12 +172,15 @@ func IoDirRead(path interface{}) interface{} {
 }
 
 // callMethodSync function (empty in JS)
-func CallMethodSync(testFiles map[string]interface{}, methodName string, exchange interface{}, skippedProperties interface{}, args []interface{}) interface{} {
+func CallMethodSync(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args interface{}) interface{} {
 	// Empty in Go, just returning
 	return nil
 }
 
-func CallMethod(testFiles map[string]interface{}, methodName string, exchange interface{}, skippedProperties interface{}, args []interface{}) <-chan interface{} {
+func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args2 interface{}) <-chan interface{} {
+	testFiles := testFiles2.(map[string]interface{})
+	methodName := methodName2.(string)
+	args := args2.([]interface{})
 	method := reflect.ValueOf(testFiles[methodName])
 	in := make([]reflect.Value, len(args))
 	for i, arg := range args {
@@ -239,7 +242,7 @@ func ExitScript(code interface{}) {
 }
 
 // getExchangeProp function to retrieve a property from exchange
-func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue interface{}) interface{} {
+func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue ...interface{}) interface{} {
 	exchange := exchange2.(map[string]interface{})
 	prop := prop2.(string)
 	if val, ok := exchange[prop]; ok {
