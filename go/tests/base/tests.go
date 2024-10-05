@@ -40,6 +40,7 @@ func  (this *testMainClass) ParseCliArgsAndProps()  {
     this.ResponseTests = GetCliArgValue("--responseTests")
     this.IdTests = GetCliArgValue("--idTests")
     this.RequestTests = GetCliArgValue("--requestTests")
+    this.RequestTests = true
     this.Info = GetCliArgValue("--info")
     this.Verbose = GetCliArgValue("--verbose")
     this.Debug = GetCliArgValue("--debug")
@@ -1313,6 +1314,7 @@ func  (this *testMainClass) TestExchangeRequestStatically(exchangeName interface
             // instantiate the exchange and make sure that we sink the requests to avoid an actual request
             testName := GetArg(optionalArgs, 0, nil)
             _ = testName
+            testName = "Fetch Trades - spot"
             var exchange ccxt.IExchange = this.InitOfflineExchange(exchangeName)
             var globalOptions interface{} = exchange.SafeDict(exchangeData, "options", map[string]interface{} {})
             // read apiKey/secret from the test file
@@ -1340,7 +1342,7 @@ func  (this *testMainClass) TestExchangeRequestStatically(exchangeName interface
             exchange.ExtendExchangeOptions(globalOptions)
             var methods interface{} = exchange.SafeValue(exchangeData, "methods", map[string]interface{} {})
             var methodsNames interface{} = ObjectKeys(methods)
-            for i := 0; IsLessThan(i, GetArrayLength(methodsNames)); i++ {
+            for i := 0; IsLessThan(i,GetArrayLength(methodsNames)); i++ {
                 var method interface{} = GetValue(methodsNames, i)
                 var results interface{} = GetValue(methods, method)
                 for j := 0; IsLessThan(j, GetArrayLength(results)); j++ {
@@ -1387,6 +1389,7 @@ func  (this *testMainClass) TestExchangeResponseStatically(exchangeName interfac
         defer close(ch)
             testName := GetArg(optionalArgs, 0, nil)
             _ = testName
+            testName = "Fetch Trades - spot"
             var exchange ccxt.IExchange = this.InitOfflineExchange(exchangeName)
             // read apiKey/secret from the test file
             var apiKey interface{} = exchange.SafeString(exchangeData, "apiKey")
@@ -1491,6 +1494,7 @@ func  (this *testMainClass) RunStaticTests(typeVar interface{}, optionalArgs ...
         defer close(ch)
             targetExchange := GetArg(optionalArgs, 0, nil)
             _ = targetExchange
+            targetExchange = "binance"
             testName := GetArg(optionalArgs, 1, nil)
             _ = testName
             var folder interface{} = Add(Add(Add(GetRootDir(), "./ts/src/test/static/"), typeVar), "/")

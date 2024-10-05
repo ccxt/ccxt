@@ -203,17 +203,8 @@ func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interf
 
 // callExchangeMethodDynamically function to call exchange methods dynamically
 func CallExchangeMethodDynamically(exchange interface{}, methodName2 interface{}, args2 interface{}) <-chan interface{} {
-	args := args2.([]interface{})
-	methodName := methodName2.(string)
-	method := reflect.ValueOf(exchange).MethodByName(methodName)
-	if method.IsValid() {
-		in := make([]reflect.Value, len(args))
-		for i, arg := range args {
-			in[i] = reflect.ValueOf(arg)
-		}
-		method.Call(in)
-	}
-	return nil
+	arg := args2.([]interface{})
+	return CallInternalMethod(exchange, methodName2.(string), arg...)
 }
 
 // callExchangeMethodDynamicallySync function that throws an error
@@ -281,7 +272,10 @@ func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.IExchange
 	if len(options) > 0 {
 		exchangeOptions = options[0]
 	}
-	instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions)
+	if exchangeOptions == nil {
+		exchangeOptions = make(map[string]interface{})
+	}
+	instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
 	if success == false {
 		return nil
 	}

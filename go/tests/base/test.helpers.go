@@ -13,15 +13,20 @@ import (
 )
 
 func Add(a interface{}, b interface{}) interface{} {
+	if (a == nil) || (b == nil) {
+		return nil
+	}
 	switch aType := a.(type) {
 	case int:
 		if bType, ok := b.(int); ok {
 			return aType + bType // Add as integers
 		}
 	case float64:
-		if bType, ok := b.(float64); ok {
-			return aType + bType // Add as floats
+		bType := ToFloat64(b)
+		if bType == math.NaN() {
+			return nil
 		}
+		return aType + bType
 	case string:
 		if bType, ok := b.(string); ok {
 			return aType + bType // Concatenate as strings
@@ -1278,4 +1283,92 @@ func setDefaults(p interface{}) {
 			}
 		}
 	}
+}
+
+func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+	name := Capitalize(name2)
+	baseType := reflect.TypeOf(itf)
+
+	ch := make(chan interface{})
+	go func() {
+		for i := 0; i < baseType.NumMethod(); i++ {
+			method := baseType.Method(i)
+			if name == method.Name {
+				methodType := method.Type
+				numIn := methodType.NumIn()
+				isVariadic := methodType.IsVariadic()
+
+				var in []reflect.Value
+				if isVariadic {
+					// Handle fixed arguments
+					for k := 0; k < numIn-1; k++ {
+						if k < len(args) {
+							in = append(in, reflect.ValueOf(args[k]))
+						} else {
+							paramType := methodType.In(k)
+							in = append(in, reflect.Zero(paramType))
+						}
+					}
+
+					// Handle variadic arguments
+					variadicType := methodType.In(numIn - 1).Elem()
+					for k := numIn - 1; k < len(args); k++ {
+						if args[k] == nil {
+							in = append(in, reflect.Zero(variadicType))
+						} else {
+							in = append(in, reflect.ValueOf(args[k]))
+						}
+					}
+				} else {
+					for k := 0; k < numIn; k++ {
+						if k < len(args) {
+							if args[k] == nil {
+								paramType := methodType.In(k)
+								in = append(in, reflect.Zero(paramType))
+							} else {
+								in = append(in, reflect.ValueOf(args[k]))
+							}
+						} else {
+							paramType := methodType.In(k)
+							in = append(in, reflect.Zero(paramType))
+						}
+					}
+				}
+
+				// Call the method
+				res := reflect.ValueOf(itf).MethodByName(name).Call(in)
+
+				// Check if the result is a channel
+				if len(res) > 0 && res[0].Kind() == reflect.Chan {
+					resultChan := res[0]
+					// Read values from the returned channel and pass them to ch
+					go func() {
+						for {
+							val, ok := resultChan.Recv()
+							if !ok {
+								break // result channel is closed
+							}
+							ch <- val.Interface() // pass the value to the output channel
+						}
+						close(ch) // close the output channel after all values are received
+					}()
+					// Don't close `ch` yet, as it will be closed after the resultChan is read
+					return
+				} else if len(res) > 0 {
+					// Directly return the first result if it's not a channel
+					val := res[0].Interface()
+					ch <- val
+				} else {
+					// Return nil if no results
+					ch <- nil
+				}
+				close(ch)
+				return
+			}
+		}
+		// If no method is found, return nil
+		ch <- nil
+		close(ch)
+	}()
+	return ch
 }

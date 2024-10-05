@@ -4,226 +4,444 @@ package ccxt
 
 
 
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs interface{}) (IExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (IExchange, bool) {
     switch exchangeId {
     case "Exchange":
-        return &Exchange{}, true
+        ExchangeItf := &Exchange{}
+        ExchangeItf.Init(exchangeArgs)
+        return ExchangeItf, true
     case "ace":
-        return &ace{}, true
+        aceItf := &ace{}
+        aceItf.Init(exchangeArgs)
+        return aceItf, true
     case "alpaca":
-        return &alpaca{}, true
+        alpacaItf := &alpaca{}
+        alpacaItf.Init(exchangeArgs)
+        return alpacaItf, true
     case "ascendex":
-        return &ascendex{}, true
+        ascendexItf := &ascendex{}
+        ascendexItf.Init(exchangeArgs)
+        return ascendexItf, true
     case "bequant":
-        return &bequant{}, true
+        bequantItf := &bequant{}
+        bequantItf.Init(exchangeArgs)
+        return bequantItf, true
     case "bigone":
-        return &bigone{}, true
+        bigoneItf := &bigone{}
+        bigoneItf.Init(exchangeArgs)
+        return bigoneItf, true
     case "binance":
-        return &binance{}, true
+        binanceItf := &binance{}
+        binanceItf.Init(exchangeArgs)
+        return binanceItf, true
     case "binancecoinm":
-        return &binancecoinm{}, true
+        binancecoinmItf := &binancecoinm{}
+        binancecoinmItf.Init(exchangeArgs)
+        return binancecoinmItf, true
     case "binanceus":
-        return &binanceus{}, true
+        binanceusItf := &binanceus{}
+        binanceusItf.Init(exchangeArgs)
+        return binanceusItf, true
     case "binanceusdm":
-        return &binanceusdm{}, true
+        binanceusdmItf := &binanceusdm{}
+        binanceusdmItf.Init(exchangeArgs)
+        return binanceusdmItf, true
     case "bingx":
-        return &bingx{}, true
+        bingxItf := &bingx{}
+        bingxItf.Init(exchangeArgs)
+        return bingxItf, true
     case "bit2c":
-        return &bit2c{}, true
+        bit2cItf := &bit2c{}
+        bit2cItf.Init(exchangeArgs)
+        return bit2cItf, true
     case "bitbank":
-        return &bitbank{}, true
+        bitbankItf := &bitbank{}
+        bitbankItf.Init(exchangeArgs)
+        return bitbankItf, true
     case "bitbns":
-        return &bitbns{}, true
+        bitbnsItf := &bitbns{}
+        bitbnsItf.Init(exchangeArgs)
+        return bitbnsItf, true
     case "bitcoincom":
-        return &bitcoincom{}, true
+        bitcoincomItf := &bitcoincom{}
+        bitcoincomItf.Init(exchangeArgs)
+        return bitcoincomItf, true
     case "bitfinex":
-        return &bitfinex{}, true
+        bitfinexItf := &bitfinex{}
+        bitfinexItf.Init(exchangeArgs)
+        return bitfinexItf, true
     case "bitfinex2":
-        return &bitfinex2{}, true
+        bitfinex2Itf := &bitfinex2{}
+        bitfinex2Itf.Init(exchangeArgs)
+        return bitfinex2Itf, true
     case "bitflyer":
-        return &bitflyer{}, true
+        bitflyerItf := &bitflyer{}
+        bitflyerItf.Init(exchangeArgs)
+        return bitflyerItf, true
     case "bitget":
-        return &bitget{}, true
+        bitgetItf := &bitget{}
+        bitgetItf.Init(exchangeArgs)
+        return bitgetItf, true
     case "bithumb":
-        return &bithumb{}, true
+        bithumbItf := &bithumb{}
+        bithumbItf.Init(exchangeArgs)
+        return bithumbItf, true
     case "bitmart":
-        return &bitmart{}, true
+        bitmartItf := &bitmart{}
+        bitmartItf.Init(exchangeArgs)
+        return bitmartItf, true
     case "bitmex":
-        return &bitmex{}, true
+        bitmexItf := &bitmex{}
+        bitmexItf.Init(exchangeArgs)
+        return bitmexItf, true
     case "bitopro":
-        return &bitopro{}, true
+        bitoproItf := &bitopro{}
+        bitoproItf.Init(exchangeArgs)
+        return bitoproItf, true
     case "bitpanda":
-        return &bitpanda{}, true
+        bitpandaItf := &bitpanda{}
+        bitpandaItf.Init(exchangeArgs)
+        return bitpandaItf, true
     case "bitrue":
-        return &bitrue{}, true
+        bitrueItf := &bitrue{}
+        bitrueItf.Init(exchangeArgs)
+        return bitrueItf, true
     case "bitso":
-        return &bitso{}, true
+        bitsoItf := &bitso{}
+        bitsoItf.Init(exchangeArgs)
+        return bitsoItf, true
     case "bitstamp":
-        return &bitstamp{}, true
+        bitstampItf := &bitstamp{}
+        bitstampItf.Init(exchangeArgs)
+        return bitstampItf, true
     case "bitteam":
-        return &bitteam{}, true
+        bitteamItf := &bitteam{}
+        bitteamItf.Init(exchangeArgs)
+        return bitteamItf, true
     case "bitvavo":
-        return &bitvavo{}, true
+        bitvavoItf := &bitvavo{}
+        bitvavoItf.Init(exchangeArgs)
+        return bitvavoItf, true
     case "bl3p":
-        return &bl3p{}, true
+        bl3pItf := &bl3p{}
+        bl3pItf.Init(exchangeArgs)
+        return bl3pItf, true
     case "blockchaincom":
-        return &blockchaincom{}, true
+        blockchaincomItf := &blockchaincom{}
+        blockchaincomItf.Init(exchangeArgs)
+        return blockchaincomItf, true
     case "blofin":
-        return &blofin{}, true
+        blofinItf := &blofin{}
+        blofinItf.Init(exchangeArgs)
+        return blofinItf, true
     case "btcalpha":
-        return &btcalpha{}, true
+        btcalphaItf := &btcalpha{}
+        btcalphaItf.Init(exchangeArgs)
+        return btcalphaItf, true
     case "btcbox":
-        return &btcbox{}, true
+        btcboxItf := &btcbox{}
+        btcboxItf.Init(exchangeArgs)
+        return btcboxItf, true
     case "btcmarkets":
-        return &btcmarkets{}, true
+        btcmarketsItf := &btcmarkets{}
+        btcmarketsItf.Init(exchangeArgs)
+        return btcmarketsItf, true
     case "btcturk":
-        return &btcturk{}, true
+        btcturkItf := &btcturk{}
+        btcturkItf.Init(exchangeArgs)
+        return btcturkItf, true
     case "bybit":
-        return &bybit{}, true
+        bybitItf := &bybit{}
+        bybitItf.Init(exchangeArgs)
+        return bybitItf, true
     case "cex":
-        return &cex{}, true
+        cexItf := &cex{}
+        cexItf.Init(exchangeArgs)
+        return cexItf, true
     case "coinbase":
-        return &coinbase{}, true
+        coinbaseItf := &coinbase{}
+        coinbaseItf.Init(exchangeArgs)
+        return coinbaseItf, true
     case "coinbaseadvanced":
-        return &coinbaseadvanced{}, true
+        coinbaseadvancedItf := &coinbaseadvanced{}
+        coinbaseadvancedItf.Init(exchangeArgs)
+        return coinbaseadvancedItf, true
     case "coinbaseexchange":
-        return &coinbaseexchange{}, true
+        coinbaseexchangeItf := &coinbaseexchange{}
+        coinbaseexchangeItf.Init(exchangeArgs)
+        return coinbaseexchangeItf, true
     case "coinbaseinternational":
-        return &coinbaseinternational{}, true
+        coinbaseinternationalItf := &coinbaseinternational{}
+        coinbaseinternationalItf.Init(exchangeArgs)
+        return coinbaseinternationalItf, true
     case "coincheck":
-        return &coincheck{}, true
+        coincheckItf := &coincheck{}
+        coincheckItf.Init(exchangeArgs)
+        return coincheckItf, true
     case "coinex":
-        return &coinex{}, true
+        coinexItf := &coinex{}
+        coinexItf.Init(exchangeArgs)
+        return coinexItf, true
     case "coinlist":
-        return &coinlist{}, true
+        coinlistItf := &coinlist{}
+        coinlistItf.Init(exchangeArgs)
+        return coinlistItf, true
     case "coinmate":
-        return &coinmate{}, true
+        coinmateItf := &coinmate{}
+        coinmateItf.Init(exchangeArgs)
+        return coinmateItf, true
     case "coinmetro":
-        return &coinmetro{}, true
+        coinmetroItf := &coinmetro{}
+        coinmetroItf.Init(exchangeArgs)
+        return coinmetroItf, true
     case "coinone":
-        return &coinone{}, true
+        coinoneItf := &coinone{}
+        coinoneItf.Init(exchangeArgs)
+        return coinoneItf, true
     case "coinsph":
-        return &coinsph{}, true
+        coinsphItf := &coinsph{}
+        coinsphItf.Init(exchangeArgs)
+        return coinsphItf, true
     case "coinspot":
-        return &coinspot{}, true
+        coinspotItf := &coinspot{}
+        coinspotItf.Init(exchangeArgs)
+        return coinspotItf, true
     case "cryptocom":
-        return &cryptocom{}, true
+        cryptocomItf := &cryptocom{}
+        cryptocomItf.Init(exchangeArgs)
+        return cryptocomItf, true
     case "currencycom":
-        return &currencycom{}, true
+        currencycomItf := &currencycom{}
+        currencycomItf.Init(exchangeArgs)
+        return currencycomItf, true
     case "delta":
-        return &delta{}, true
+        deltaItf := &delta{}
+        deltaItf.Init(exchangeArgs)
+        return deltaItf, true
     case "deribit":
-        return &deribit{}, true
+        deribitItf := &deribit{}
+        deribitItf.Init(exchangeArgs)
+        return deribitItf, true
     case "digifinex":
-        return &digifinex{}, true
+        digifinexItf := &digifinex{}
+        digifinexItf.Init(exchangeArgs)
+        return digifinexItf, true
     case "exmo":
-        return &exmo{}, true
+        exmoItf := &exmo{}
+        exmoItf.Init(exchangeArgs)
+        return exmoItf, true
     case "fmfwio":
-        return &fmfwio{}, true
+        fmfwioItf := &fmfwio{}
+        fmfwioItf.Init(exchangeArgs)
+        return fmfwioItf, true
     case "gate":
-        return &gate{}, true
+        gateItf := &gate{}
+        gateItf.Init(exchangeArgs)
+        return gateItf, true
     case "gateio":
-        return &gateio{}, true
+        gateioItf := &gateio{}
+        gateioItf.Init(exchangeArgs)
+        return gateioItf, true
     case "gemini":
-        return &gemini{}, true
+        geminiItf := &gemini{}
+        geminiItf.Init(exchangeArgs)
+        return geminiItf, true
     case "hashkey":
-        return &hashkey{}, true
+        hashkeyItf := &hashkey{}
+        hashkeyItf.Init(exchangeArgs)
+        return hashkeyItf, true
     case "hitbtc":
-        return &hitbtc{}, true
+        hitbtcItf := &hitbtc{}
+        hitbtcItf.Init(exchangeArgs)
+        return hitbtcItf, true
     case "hollaex":
-        return &hollaex{}, true
+        hollaexItf := &hollaex{}
+        hollaexItf.Init(exchangeArgs)
+        return hollaexItf, true
     case "htx":
-        return &htx{}, true
+        htxItf := &htx{}
+        htxItf.Init(exchangeArgs)
+        return htxItf, true
     case "huobi":
-        return &huobi{}, true
+        huobiItf := &huobi{}
+        huobiItf.Init(exchangeArgs)
+        return huobiItf, true
     case "huobijp":
-        return &huobijp{}, true
+        huobijpItf := &huobijp{}
+        huobijpItf.Init(exchangeArgs)
+        return huobijpItf, true
     case "hyperliquid":
-        return &hyperliquid{}, true
+        hyperliquidItf := &hyperliquid{}
+        hyperliquidItf.Init(exchangeArgs)
+        return hyperliquidItf, true
     case "idex":
-        return &idex{}, true
+        idexItf := &idex{}
+        idexItf.Init(exchangeArgs)
+        return idexItf, true
     case "independentreserve":
-        return &independentreserve{}, true
+        independentreserveItf := &independentreserve{}
+        independentreserveItf.Init(exchangeArgs)
+        return independentreserveItf, true
     case "indodax":
-        return &indodax{}, true
+        indodaxItf := &indodax{}
+        indodaxItf.Init(exchangeArgs)
+        return indodaxItf, true
     case "kraken":
-        return &kraken{}, true
+        krakenItf := &kraken{}
+        krakenItf.Init(exchangeArgs)
+        return krakenItf, true
     case "krakenfutures":
-        return &krakenfutures{}, true
+        krakenfuturesItf := &krakenfutures{}
+        krakenfuturesItf.Init(exchangeArgs)
+        return krakenfuturesItf, true
     case "kucoin":
-        return &kucoin{}, true
+        kucoinItf := &kucoin{}
+        kucoinItf.Init(exchangeArgs)
+        return kucoinItf, true
     case "kucoinfutures":
-        return &kucoinfutures{}, true
+        kucoinfuturesItf := &kucoinfutures{}
+        kucoinfuturesItf.Init(exchangeArgs)
+        return kucoinfuturesItf, true
     case "kuna":
-        return &kuna{}, true
+        kunaItf := &kuna{}
+        kunaItf.Init(exchangeArgs)
+        return kunaItf, true
     case "latoken":
-        return &latoken{}, true
+        latokenItf := &latoken{}
+        latokenItf.Init(exchangeArgs)
+        return latokenItf, true
     case "lbank":
-        return &lbank{}, true
+        lbankItf := &lbank{}
+        lbankItf.Init(exchangeArgs)
+        return lbankItf, true
     case "luno":
-        return &luno{}, true
+        lunoItf := &luno{}
+        lunoItf.Init(exchangeArgs)
+        return lunoItf, true
     case "lykke":
-        return &lykke{}, true
+        lykkeItf := &lykke{}
+        lykkeItf.Init(exchangeArgs)
+        return lykkeItf, true
     case "mercado":
-        return &mercado{}, true
+        mercadoItf := &mercado{}
+        mercadoItf.Init(exchangeArgs)
+        return mercadoItf, true
     case "mexc":
-        return &mexc{}, true
+        mexcItf := &mexc{}
+        mexcItf.Init(exchangeArgs)
+        return mexcItf, true
     case "ndax":
-        return &ndax{}, true
+        ndaxItf := &ndax{}
+        ndaxItf.Init(exchangeArgs)
+        return ndaxItf, true
     case "novadax":
-        return &novadax{}, true
+        novadaxItf := &novadax{}
+        novadaxItf.Init(exchangeArgs)
+        return novadaxItf, true
     case "oceanex":
-        return &oceanex{}, true
+        oceanexItf := &oceanex{}
+        oceanexItf.Init(exchangeArgs)
+        return oceanexItf, true
     case "okcoin":
-        return &okcoin{}, true
+        okcoinItf := &okcoin{}
+        okcoinItf.Init(exchangeArgs)
+        return okcoinItf, true
     case "okx":
-        return &okx{}, true
+        okxItf := &okx{}
+        okxItf.Init(exchangeArgs)
+        return okxItf, true
     case "onetrading":
-        return &onetrading{}, true
+        onetradingItf := &onetrading{}
+        onetradingItf.Init(exchangeArgs)
+        return onetradingItf, true
     case "oxfun":
-        return &oxfun{}, true
+        oxfunItf := &oxfun{}
+        oxfunItf.Init(exchangeArgs)
+        return oxfunItf, true
     case "p2b":
-        return &p2b{}, true
+        p2bItf := &p2b{}
+        p2bItf.Init(exchangeArgs)
+        return p2bItf, true
     case "paradex":
-        return &paradex{}, true
+        paradexItf := &paradex{}
+        paradexItf.Init(exchangeArgs)
+        return paradexItf, true
     case "paymium":
-        return &paymium{}, true
+        paymiumItf := &paymium{}
+        paymiumItf.Init(exchangeArgs)
+        return paymiumItf, true
     case "phemex":
-        return &phemex{}, true
+        phemexItf := &phemex{}
+        phemexItf.Init(exchangeArgs)
+        return phemexItf, true
     case "poloniex":
-        return &poloniex{}, true
+        poloniexItf := &poloniex{}
+        poloniexItf.Init(exchangeArgs)
+        return poloniexItf, true
     case "poloniexfutures":
-        return &poloniexfutures{}, true
+        poloniexfuturesItf := &poloniexfutures{}
+        poloniexfuturesItf.Init(exchangeArgs)
+        return poloniexfuturesItf, true
     case "probit":
-        return &probit{}, true
+        probitItf := &probit{}
+        probitItf.Init(exchangeArgs)
+        return probitItf, true
     case "timex":
-        return &timex{}, true
+        timexItf := &timex{}
+        timexItf.Init(exchangeArgs)
+        return timexItf, true
     case "tokocrypto":
-        return &tokocrypto{}, true
+        tokocryptoItf := &tokocrypto{}
+        tokocryptoItf.Init(exchangeArgs)
+        return tokocryptoItf, true
     case "tradeogre":
-        return &tradeogre{}, true
+        tradeogreItf := &tradeogre{}
+        tradeogreItf.Init(exchangeArgs)
+        return tradeogreItf, true
     case "upbit":
-        return &upbit{}, true
+        upbitItf := &upbit{}
+        upbitItf.Init(exchangeArgs)
+        return upbitItf, true
     case "vertex":
-        return &vertex{}, true
+        vertexItf := &vertex{}
+        vertexItf.Init(exchangeArgs)
+        return vertexItf, true
     case "wavesexchange":
-        return &wavesexchange{}, true
+        wavesexchangeItf := &wavesexchange{}
+        wavesexchangeItf.Init(exchangeArgs)
+        return wavesexchangeItf, true
     case "wazirx":
-        return &wazirx{}, true
+        wazirxItf := &wazirx{}
+        wazirxItf.Init(exchangeArgs)
+        return wazirxItf, true
     case "whitebit":
-        return &whitebit{}, true
+        whitebitItf := &whitebit{}
+        whitebitItf.Init(exchangeArgs)
+        return whitebitItf, true
     case "woo":
-        return &woo{}, true
+        wooItf := &woo{}
+        wooItf.Init(exchangeArgs)
+        return wooItf, true
     case "woofipro":
-        return &woofipro{}, true
+        woofiproItf := &woofipro{}
+        woofiproItf.Init(exchangeArgs)
+        return woofiproItf, true
     case "xt":
-        return &xt{}, true
+        xtItf := &xt{}
+        xtItf.Init(exchangeArgs)
+        return xtItf, true
     case "yobit":
-        return &yobit{}, true
+        yobitItf := &yobit{}
+        yobitItf.Init(exchangeArgs)
+        return yobitItf, true
     case "zaif":
-        return &zaif{}, true
+        zaifItf := &zaif{}
+        zaifItf.Init(exchangeArgs)
+        return zaifItf, true
     case "zonda":
-        return &zonda{}, true
+        zondaItf := &zonda{}
+        zondaItf.Init(exchangeArgs)
+        return zondaItf, true
         default:
             return nil, false
     }

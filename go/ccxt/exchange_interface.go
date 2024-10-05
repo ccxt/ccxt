@@ -70,4 +70,5 @@ type IExchange interface {
 	CreateConvertTrade(id interface{}, fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchConvertTrade(id interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchConvertTradeHistory(optionalArgs ...interface{}) <-chan interface{}
+	Init(params map[string]interface{})
 }
