@@ -66,8 +66,8 @@ class testMainClass {
     checkedPublicTests = {};
     testFiles: any = {};
     publicTests = {};
-    ext: string;
-    lang: string;
+    ext: string = "";
+    lang: string = "";
     proxyTestFileName = "proxies";
 
     parseCliArgsAndProps () {
