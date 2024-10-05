@@ -29,6 +29,16 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		panic("headers must be a map[string]interface{}")
 	}
 
+	// ####### PROXY SETTINGS #######
+	proxyUrl := this.CheckProxyUrlSettings(url, method, headers, body)
+	proxies := this.CheckProxySettings(url, methodStr, headersMap, body)
+	httProxy := this.SafeString(proxies, 0)
+	httpsProxy := this.SafeString(proxies, 1)
+	socksProxy := this.SafeString(proxies, 2)
+
+	hasHttProxyDefined := (httProxy != nil) || (httpsProxy != nil) || (socksProxy != nil)
+
+	this.CheckConflictingProxies(hasHttProxyDefined, proxyUrl)
 	if this.Verbose {
 		fmt.Println("Headers:", headersMap)
 		fmt.Println("\n\n")
