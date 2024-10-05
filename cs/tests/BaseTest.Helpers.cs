@@ -114,7 +114,7 @@ public partial class testMainClass : BaseTest
             var value = vars[key];
             parsedObject[key] = value;
         }
-        envVars = parsedObject;
+        ENV_VARS = parsedObject;
     }
 
     async static Task close(object exchange)
