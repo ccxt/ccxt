@@ -195,13 +195,13 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/position/allPosition-v2': 4, // done
                         'api/mix/v1/account/accountBill': 2,
                         'api/mix/v1/account/accountBusinessBill': 4,
-                        'api/mix/v1/order/current': 1, // todo fetchOpenOrder
+                        'api/mix/v1/order/current': 1, // done
                         'api/mix/v1/order/marginCoinCurrent': 1, // done
                         'api/mix/v1/order/history': 2, // done
-                        'api/mix/v1/order/historyProductType': 4,
+                        'api/mix/v1/order/historyProductType': 4, // todo fetchCanceledAndClosedOrders
                         'api/mix/v1/order/detail': 2, // done
-                        'api/mix/v1/order/fills': 1,
-                        'api/mix/v1/order/allFills': 1,
+                        'api/mix/v1/order/fills': 2, // todo fetchMyTrades
+                        'api/mix/v1/order/allFills': 2, // todo fetchMyTrades
                         'api/mix/v1/plan/currentPlan': 1,
                         'api/mix/v1/plan/historyPlan': 1,
                     },
@@ -2618,8 +2618,9 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+         * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
-         * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
+         * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2707,8 +2708,9 @@ export default class coincatch extends Exchange {
          * @ignore
          * @name coincatch#fetchOpenOrders
          * @description fetch all unfilled currently open orders for swap markets
+         * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
-         * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
+         * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2719,22 +2721,27 @@ export default class coincatch extends Exchange {
         await this.loadMarkets ();
         let methodName = 'fetchOpenSwapOrders';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
-        let productType = 'umcbl';
-        productType = this.handleOption (methodName, 'productType', productType);
         let market: Market = undefined;
-        let marginCoin: Str = undefined;
+        let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            const marketId = market['id'];
-            const parts = marketId.split ('_');
-            productType = this.safeStringLower (parts, 1, productType);
-            marginCoin = market['settleId'];
+            const request: Dict = {
+                'symbol': market['id'],
+            };
+            response = await this.privateGetApiMixV1OrderCurrent (this.extend (request, params));
+        } else {
+            let productType = 'umcbl';
+            productType = this.handleOption (methodName, 'productType', productType);
+            const request: Dict = {
+                'productType': productType,
+            };
+            let marginCoin: Str = undefined;
+            marginCoin = this.handleOption (methodName, 'marginCoin', marginCoin);
+            if (marginCoin !== undefined) {
+                request['marginCoin'] = marginCoin;
+            }
+            response = await this.privateGetApiMixV1OrderMarginCoinCurrent (this.extend (request, params));
         }
-        const request: Dict = {
-            'productType': productType,
-            'marginCoin': marginCoin,
-        };
-        const response = await this.privateGetApiMixV1OrderMarginCoinCurrent (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -3380,6 +3387,7 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
+         * @see https://coincatch.github.io/github.io/en/mix/#get-order-fill-detail
          * @param {string} symbol *is mandatory* unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
