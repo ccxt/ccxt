@@ -312,3 +312,44 @@ func Close(exchange interface{}) <-chan bool {
 	close(ch)
 	return ch
 }
+
+func IsSync() bool {
+	return false
+}
+
+func GetLang() string {
+	return LANG
+}
+
+func GetExt() string {
+	return EXT
+}
+
+func GetRootDir() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	return dir + ROOD_DIR
+}
+
+func splitEnv(env string) [2]string {
+	var pair [2]string
+	for i := range env {
+		if env[i] == '=' {
+			pair[0] = env[:i]
+			pair[1] = env[i+1:]
+			break
+		}
+	}
+	return pair
+}
+
+func GetEnvVars() map[string]string {
+	envMap := make(map[string]string)
+	for _, env := range os.Environ() {
+		pair := splitEnv(env)
+		envMap[pair[0]] = pair[1]
+	}
+	return envMap
+}

@@ -831,7 +831,7 @@ class testMainClass {
         const proxyTestName = this.proxyTestFileName;
         // todo: temporary skip for sync py
         if (this.ext === 'py' && isSync ()) {
-            return;
+            return true;
         }
         // try proxy several times
         const maxRetries = 3;
@@ -852,6 +852,7 @@ class testMainClass {
             // throw new Exchange Error (errorMessage.toString ());
             dump ('[TEST_WARNING]' + errorMessage.toString ());
         }
+        return true;
     }
 
     async startTest (exchange, symbol) {
