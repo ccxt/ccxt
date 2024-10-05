@@ -3,7 +3,7 @@ package ccxt
 // Exchange interface based on the methods from binance.go
 type IExchange interface {
 	ExtendExchangeOptions(options interface{})
-	GetSymbols() []interface{}
+	GetSymbols() []string
 	SetWssProxy(wssProxy interface{})
 	SetWsProxy(wsProxy interface{})
 	GetAlias() interface{}
@@ -12,7 +12,6 @@ type IExchange interface {
 	SetHttpProxy(httpProxy interface{})
 	SetCurrencies(currencies interface{})
 	SetPrivateKey(privateKey interface{})
-	SetPublicKey(publicKey interface{})
 	SetWalletAddress(walletAddress interface{})
 	SetSecret(secret interface{})
 	SetUid(uid interface{})
@@ -30,38 +29,28 @@ type IExchange interface {
 	Sleep(milliseconds interface{}) <-chan bool
 	Json(object interface{}) interface{}
 	FilterBy(aa interface{}, key interface{}, value interface{}) []interface{}
-	IndexBy(array interface{}, key interface{}) interface{}
+	IndexBy(array interface{}, key interface{}) map[string]interface{}
 	CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
-	Sum(a interface{}, b interface{}) interface{}
-	NumberToString(num interface{}) interface{}
+	Sum(args ...interface{}) interface{}
+	NumberToString(num interface{}) string
 	ParseToNumeric(value interface{}) interface{}
 	LoadMarkets(params ...interface{}) <-chan interface{}
 	SafeDict(dictionary interface{}, key interface{}, defaultValue ...interface{}) interface{}
-	InArray(needle interface{}, haystack interface{}) interface{}
-	DeepExtend(destination interface{}, source interface{}, optionalArgs ...interface{}) interface{}
+	InArray(needle interface{}, haystack interface{}) bool
+	DeepExtend(objs ...interface{}) map[string]interface{}
 	ParseToInt(value interface{}) interface{}
 	SafeValue(value interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	SafeBool(value interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	SafeString(value interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	Describe() interface{}
-	IsInverse(typeVar interface{}, optionalArgs ...interface{}) interface{}
-	IsLinear(typeVar interface{}, optionalArgs ...interface{}) interface{}
 	SetSandboxMode(enable interface{})
-	CreateExpiredOptionMarket(symbol interface{}) interface{}
 	Market(symbol interface{}) interface{}
-	SafeMarket(optionalArgs ...interface{}) interface{}
-	CostToPrecision(symbol interface{}, cost interface{}) interface{}
-	CurrencyToPrecision(code interface{}, fee interface{}, optionalArgs ...interface{}) interface{}
 	Nonce() interface{}
 	FetchTime(optionalArgs ...interface{}) <-chan interface{}
 	FetchCurrencies(optionalArgs ...interface{}) <-chan interface{}
 	FetchMarkets(optionalArgs ...interface{}) <-chan interface{}
-	ParseMarket(market interface{}) interface{}
-	ParseBalanceHelper(entry interface{}) interface{}
-	ParseBalanceCustom(response interface{}, optionalArgs ...interface{}) interface{}
 	FetchBalance(optionalArgs ...interface{}) <-chan interface{}
 	FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}
 	FetchStatus(optionalArgs ...interface{}) <-chan interface{}
 	FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{}
@@ -74,15 +63,12 @@ type IExchange interface {
 	FetchTradingLimits(optionalArgs ...interface{}) <-chan interface{}
 	FetchPositionMode(optionalArgs ...interface{}) <-chan interface{}
 	FetchMarginModes(optionalArgs ...interface{}) <-chan interface{}
-	ParseMarginMode(marginMode interface{}, optionalArgs ...interface{}) interface{}
 	FetchOption(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	ParseOption(chain interface{}, optionalArgs ...interface{}) interface{}
 	FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <-chan interface{}
 	FetchConvertCurrencies(optionalArgs ...interface{}) <-chan interface{}
 	FetchConvertQuote(fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{}
 	CreateConvertTrade(id interface{}, fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchConvertTrade(id interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchConvertTradeHistory(optionalArgs ...interface{}) <-chan interface{}
-	ParseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}
 	Init(userConfig map[string]interface{})
 }

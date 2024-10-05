@@ -43,6 +43,7 @@ if (platform === 'win32') {
 
 // const GLOBAL_WRAPPER_FILE = './go/ccxt/base/Exchange.Wrappers.go';
 const EXCHANGE_WRAPPER_FOLDER = './go/ccxt/'
+const DYNAMIC_INSTANCE_FILE = './go/ccxt/exchange_dynamic.go';
 // const EXCHANGE_WS_WRAPPER_FOLDER = './go/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FILE = './go/ccxt/exchange_errors.go';
 const BASE_METHODS_FILE = './go/ccxt/exchange_generated.go';
@@ -808,6 +809,36 @@ class NewTranspiler {
         }
     }
 
+
+    createDynamicInstanceFile(){
+        const dynamicInstanceFile = DYNAMIC_INSTANCE_FILE;
+        const exchanges = exchangeIds;
+
+        const caseStatements = exchanges.map(exchange => {
+            return`    case "${exchange}":
+        return &${exchange}{}, true`;
+        })
+
+        const functionDecl = `
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs interface{}) (IExchange, bool) {
+    switch exchangeId {
+${caseStatements.join('\n')}
+        default:
+            return nil, false
+    }
+    return nil, false
+}
+`
+        const file = [
+            'package ccxt',
+            this.createGeneratedHeader().join('\n'),
+            '',
+            functionDecl,
+        ].join('\n');
+
+        fs.writeFileSync (dynamicInstanceFile, file);
+    }
+
     camelize(str) {
         var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
           if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
@@ -915,7 +946,8 @@ class NewTranspiler {
             return;
         }
 
-        // this.transpileBaseMethods (exchangeBase)
+        this.transpileBaseMethods (exchangeBase)
+        this.createDynamicInstanceFile();
 
         if (baseOnly) {
             return;

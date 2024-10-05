@@ -60,6 +60,10 @@ func (this *Exchange) SetHttpProxy(httpProxy interface{}) {
 	this.HttpProxy = httpProxy.(string)
 }
 
+func (this *Exchange) SetHttpsProxy(httpProxy interface{}) {
+	this.HttpsProxy = httpProxy.(string)
+}
+
 func (this *Exchange) SetUid(uid interface{}) {
 	this.Uid = uid.(string)
 }

@@ -5001,6 +5001,22 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        throw new NotSupported (this.id + ' createConvertTrade() is not supported yet');
+    }
+
+    async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
+        throw new NotSupported (this.id + ' fetchConvertTrade() is not supported yet');
+    }
+
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        throw new NotSupported (this.id + ' fetchConvertTradeHistory() is not supported yet');
+    }
+
+    async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchPositionMode() is not supported yet');
+    }
+
     async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
         /**
          * @method
