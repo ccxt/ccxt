@@ -6,6 +6,8 @@ package ccxt
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs interface{}) (IExchange, bool) {
     switch exchangeId {
+    case "Exchange":
+        return &Exchange{}, true
     case "ace":
         return &ace{}, true
     case "alpaca":

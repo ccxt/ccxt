@@ -266,15 +266,13 @@ func (this *Exchange) OmitZero(value interface{}) interface{} {
 }
 
 func (this *Exchange) Sum(args ...interface{}) interface{} {
-	res := 0.0
+	var res interface{} = 0.0
 	for _, arg := range args {
 		res = this.sumValues(res, arg)
 	}
 	return res
 }
 
-func (this *Exchange) sumValues(a, b interface{}) float64 {
-	af := reflect.ValueOf(a).Float()
-	bf := reflect.ValueOf(b).Float()
-	return af + bf
+func (this *Exchange) sumValues(a, b interface{}) interface{} {
+	return Add(a, b)
 }
