@@ -7,7 +7,9 @@ import (
 
 func main() {
 	fmt.Println("Will run base tests!")
-	base.BaseTestsInit()
+	// base.BaseTestsInit()
+	tests := base.NewTestMainClass()
+	<-tests.Init("binance", "BTC/USDT", nil)
 	// NewTestMainClass()
 	fmt.Println("Base tests passed!")
 }

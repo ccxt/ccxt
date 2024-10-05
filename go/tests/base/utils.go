@@ -10,6 +10,15 @@ import (
 	"reflect"
 )
 
+const (
+	LANG                 = "GO"
+	EXT                  = "go"
+	NEW_LINE             = "\n"
+	PROXY_TEST_FILE_NAME = ""
+	IS_SYNCHRONOUS       = false
+	ROOD_DIR             = "/../../../"
+)
+
 func AuthenticationError(v ...interface{}) interface{} {
 	return ccxt.AuthenticationError(v)
 }
