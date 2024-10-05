@@ -197,8 +197,8 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/account/accountBusinessBill': 4,
                         'api/mix/v1/order/current': 1, // todo fetchOpenOrder
                         'api/mix/v1/order/marginCoinCurrent': 1, // done
-                        'api/mix/v1/order/history': 1,
-                        'api/mix/v1/order/historyProductType': 1,
+                        'api/mix/v1/order/history': 2, // done
+                        'api/mix/v1/order/historyProductType': 4,
                         'api/mix/v1/order/detail': 2, // done
                         'api/mix/v1/order/fills': 1,
                         'api/mix/v1/order/allFills': 1,
@@ -2780,9 +2780,10 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchCanceledAndClosedOrders
          * @description fetches information on multiple canceled and closed orders made by the user
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+         * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
          * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve - default 100, maximum 500
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] *swap markets only* the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2797,8 +2798,9 @@ export default class coincatch extends Exchange {
         params['methodName'] = methodName;
         if (marketType === 'spot') {
             return await this.fetchCanceledAndClosedSpotOrders (symbol, since, limit, params);
+        } else if (marketType === 'swap') {
+            return await this.fetchCanceledAndClosedSwapOrders (symbol, since, limit, params);
         } else {
-            // return await this.fetchCanceledAndClosedSwapOrders (symbol, since, limit, params);
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
     }
@@ -2808,7 +2810,7 @@ export default class coincatch extends Exchange {
          * @method
          * @ignore
          * @name coincatch#fetchCanceledAndClosedSpotOrders
-         * @description fetches information on multiple canceled and closed orders made by the user
+         * @description fetches information on multiple canceled and closed orders made by the user on spot markets
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2879,6 +2881,88 @@ export default class coincatch extends Exchange {
         const parsedResponse = JSON.parse (response); // the response is not a standard JSON
         const data = this.safeList (parsedResponse, 'data', []);
         return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchCanceledAndClosedSwapOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @ignore
+         * @name coincatch#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled and closed orders made by the user on swap markets
+         * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+         * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
+         * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] *swap markets only* the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        let methodName = 'fetchCanceledAndClosedSwapOrders';
+        [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        } else {
+            request['startTime'] = 0; // todo check
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until', until);
+        if (until !== undefined) {
+            request['endTime'] = until;
+        } else {
+            request['endTime'] = this.milliseconds (); // todo check
+        }
+        const response = await this.privateGetApiMixV1OrderHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1728129807637,
+        //         "data": {
+        //             "nextFlag": false,
+        //             "endId": "1221413696648339457",
+        //             "orderList": [
+        //                 {
+        //                     "symbol": "ETHUSD_DMCBL",
+        //                     "size": 0.1,
+        //                     "orderId": "1225467075288719360",
+        //                     "clientOid": "1225467075288719361",
+        //                     "filledQty": 0.1,
+        //                     "fee": -0.00005996,
+        //                     "price": null,
+        //                     "priceAvg": 2362.03,
+        //                     "state": "filled",
+        //                     "side": "burst_close_long",
+        //                     "timeInForce": "normal",
+        //                     "totalProfits": -0.00833590,
+        //                     "posSide": "long",
+        //                     "marginCoin": "ETH",
+        //                     "filledAmount": 236.20300000,
+        //                     "orderType": "market",
+        //                     "leverage": "12",
+        //                     "marginMode": "fixed",
+        //                     "reduceOnly": true,
+        //                     "enterPointSource": "SYS",
+        //                     "tradeSide": "burst_close_long",
+        //                     "holdMode": "double_hold",
+        //                     "orderSource": "market",
+        //                     "cTime": "1727900039503",
+        //                     "uTime": "1727900039576"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const orders = this.safeList (data, 'orderList', []);
+        return this.parseOrders (orders, market);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
