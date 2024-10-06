@@ -11,11 +11,9 @@ import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 import Client from '../base/ws/Client.js';
-import { wrapExchange } from '../base/telemetry.js';
 
 // -----------------------------------------------------------------------------
 
-@wrapExchange()
 export default class binance extends binanceRest {
     describe () {
         return this.deepExtend (super.describe (), {

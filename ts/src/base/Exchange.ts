@@ -1,6 +1,5 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
-import { traceMethod } from '../telemetry';
 import * as functions from './functions.js'
 const {
     isNode
@@ -154,6 +153,7 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 // move this elsewhere
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import totp from './functions/totp.js';
+import { wrapExchangeMethods } from './telemetry.js'
 
 // ----------------------------------------------------------------------------
 /**
@@ -798,6 +798,9 @@ export default class Exchange {
             this.setMarkets (this.markets)
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
+
+        // initialize telemetry
+        wrapExchangeMethods(this);
 
         this.afterConstruct ();
     }
@@ -4338,7 +4341,6 @@ export default class Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    @traceMethod
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.has['fetchTickers']) {
             await this.loadMarkets ();
@@ -4356,7 +4358,6 @@ export default class Exchange {
         }
     }
 
-    @traceMethod
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         throw new NotSupported (this.id + ' watchTicker() is not supported yet');
     }

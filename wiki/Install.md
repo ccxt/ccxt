@@ -233,3 +233,57 @@ docker run -it ccxt
 
 ## Proxy
 If you are unable to obtain data from CCXT due to some location restrictions, you can make read [proxy](https://github.com/ccxt/ccxt/wiki/Manual#proxy) section.
+
+## Telemetry in CCXT
+
+### Overview
+
+CCXT incorporates telemetry to enhance the quality of the library, gather usage analytics, and improve the overall user experience. This feature helps us understand how the library is used, identify potential issues, and prioritize improvements.
+
+### Data Collection and Privacy
+
+We take your privacy seriously. Our telemetry system is designed to collect non-identifiable usage data only. All sensitive information such as API keys, secrets, passwords, and any other identifiable data are automatically filtered out before any data is transmitted. The collected data includes:
+
+- CCXT version
+- Exchange methods called
+- General error types (without specific error messages)
+- Performance metrics
+
+### Opting Out
+
+While the telemetry data helps us improve CCXT, we respect your choice if you prefer not to share this information. You can opt out of telemetry by setting the environment variable:
+
+```
+CCXT_TELEMETRY_ENABLED=false
+```
+
+### Using Your Own OpenTelemetry Collector
+
+For users who want more control over their telemetry data or wish to integrate CCXT's telemetry with their existing monitoring setup, you can configure CCXT to use your own OpenTelemetry collector.
+
+1. Set up your OpenTelemetry collector. You can find instructions in the [OpenTelemetry documentation](https://opentelemetry.io/docs/collector/).
+
+2. Configure CCXT to use your collector by setting the following environment variables:
+
+   ```
+   OTEL_EXPORTER_OTLP_ENDPOINT=http://your-collector-endpoint:4318
+   OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+   ```
+
+   Replace `http://your-collector-endpoint:4318` with the address of your collector.
+
+3. If your collector requires authentication, you can set headers:
+
+   ```
+   OTEL_EXPORTER_OTLP_HEADERS="header1=value1,header2=value2"
+   ```
+
+4. You can also configure the service name used in the telemetry data:
+
+   ```
+   OTEL_SERVICE_NAME=my-ccxt-app
+   ```
+
+By using your own collector, you can process, filter, and route the telemetry data according to your needs, integrate it with your existing monitoring tools, or store it for your own analysis.
+
+We're committed to transparency and giving you control over your data. If you have any questions or concerns about our telemetry practices, please don't hesitate to reach out or open an issue on our GitHub repository.
