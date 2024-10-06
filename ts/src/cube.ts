@@ -181,7 +181,7 @@ export default class cube extends Exchange {
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.irGetMarkets (params);
+        const response = await this.privateGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
         const markets = this.safeValue (result, 'markets', []);
         const assets = this.safeValue (result, 'assets', []);
