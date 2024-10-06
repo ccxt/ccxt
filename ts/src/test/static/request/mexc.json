@@ -400,6 +400,30 @@
                 "input": [
                     "USDT"
                 ]
+            },
+            {
+                "description": "fetch address with network",
+                "method": "fetchDepositAddress",
+                "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&network=Solana%28SOL%29&timestamp=1728223738994&recvWindow=5000&signature=ccfd37c930d89725783e5ee1f8c1cba2445fa303a641bd030b838f6edbf8250b",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "SOL"
+                  }
+                ]
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "create deposit address",
+                "method": "createDepositAddress",
+                "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&network=Solana%28SOL%29&timestamp=1728223818141&recvWindow=5000&signature=055ceaaac46131aced34182d2335082895757f0403af8d794faeac8692b95852",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "SOL"
+                  }
+                ]
             }
         ],
         "fetchTrades": [
