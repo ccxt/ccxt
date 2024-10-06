@@ -410,22 +410,22 @@ export default class cube extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {Int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {Int} [limit] the maximum amount of candles to fetch
+         * @param {Int | undefined} [since] timestamp in ms of the earliest candle to fetch
+         * @param {Int | undefined} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the cube api endpoint
          * @returns {OHLCV[]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_id': market['id'],
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['start_time'] = since; 
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; 
         }
         const response = await this.irPublicGetHistoryKlines (this.extend (request, params));
         const data = this.safeValue (response, 'result', []);
