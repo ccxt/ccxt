@@ -4479,7 +4479,18 @@ public partial class mexc : Exchange
         object networkId = null;
         if (isTrue(!isEqual(networkCode, null)))
         {
-            networkId = this.networkCodeToId(networkCode, code);
+            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            object networkUnified = this.networkIdToCode(networkCode, code);
+            object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+            if (isTrue(inOp(networks, networkUnified)))
+            {
+                object network = this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
+                object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
+                networkId = this.safeString(networkInfo, "network");
+            } else
+            {
+                networkId = this.networkCodeToId(networkCode, code);
+            }
         }
         if (isTrue(!isEqual(networkId, null)))
         {
@@ -4525,7 +4536,19 @@ public partial class mexc : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createDepositAddress requires a `network` parameter")) ;
         }
-        object networkId = this.networkCodeToId(networkCode, code);
+        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        object networkId = null;
+        object networkUnified = this.networkIdToCode(networkCode, code);
+        object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        if (isTrue(inOp(networks, networkUnified)))
+        {
+            object network = this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
+            object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
+            networkId = this.safeString(networkInfo, "network");
+        } else
+        {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["network"] = networkId;
@@ -4555,7 +4578,6 @@ public partial class mexc : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object network = this.safeString(parameters, "network");
-        parameters = this.omit(parameters, new List<object>() {"network"});
         object addressStructures = await this.fetchDepositAddressesByNetwork(code, parameters);
         object result = null;
         if (isTrue(!isEqual(network, null)))

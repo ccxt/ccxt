@@ -4258,7 +4258,15 @@ class mexc(Exchange, ImplicitAPI):
         networkCode = self.safe_string(params, 'network')
         networkId = None
         if networkCode is not None:
-            networkId = self.network_code_to_id(networkCode, code)
+            # createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            networkUnified = self.network_id_to_code(networkCode, code)
+            networks = self.safe_dict(currency, 'networks', {})
+            if networkUnified in networks:
+                network = self.safe_dict(networks, networkUnified, {})
+                networkInfo = self.safe_value(network, 'info', {})
+                networkId = self.safe_string(networkInfo, 'network')
+            else:
+                networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network'] = networkId
         params = self.omit(params, 'network')
@@ -4294,7 +4302,16 @@ class mexc(Exchange, ImplicitAPI):
         networkCode = self.safe_string(params, 'network')
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' createDepositAddress requires a `network` parameter')
-        networkId = self.network_code_to_id(networkCode, code)
+        # createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        networkId = None
+        networkUnified = self.network_id_to_code(networkCode, code)
+        networks = self.safe_dict(currency, 'networks', {})
+        if networkUnified in networks:
+            network = self.safe_dict(networks, networkUnified, {})
+            networkInfo = self.safe_value(network, 'info', {})
+            networkId = self.safe_string(networkInfo, 'network')
+        else:
+            networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network'] = networkId
         params = self.omit(params, 'network')
@@ -4317,7 +4334,6 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         network = self.safe_string(params, 'network')
-        params = self.omit(params, ['network'])
         addressStructures = await self.fetch_deposit_addresses_by_network(code, params)
         result = None
         if network is not None:
