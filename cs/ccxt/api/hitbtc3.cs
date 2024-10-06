@@ -91,6 +91,16 @@ public partial class hitbtc3 : hitbtc
         return await this.callAsync ("publicGetPublicCandlesSymbol",parameters);
     }
 
+    public async Task<object> publicGetPublicConvertedCandles (object parameters = null)
+    {
+        return await this.callAsync ("publicGetPublicConvertedCandles",parameters);
+    }
+
+    public async Task<object> publicGetPublicConvertedCandlesSymbol (object parameters = null)
+    {
+        return await this.callAsync ("publicGetPublicConvertedCandlesSymbol",parameters);
+    }
+
     public async Task<object> publicGetPublicFuturesInfo (object parameters = null)
     {
         return await this.callAsync ("publicGetPublicFuturesInfo",parameters);

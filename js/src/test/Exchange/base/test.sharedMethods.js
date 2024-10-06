@@ -6,9 +6,13 @@
 
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
-import { OperationFailed, OnMaintenance } from '../../../base/errors.js';
+import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 function logTemplate(exchange, method, entry) {
-    return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> ';
+    // there are cases when exchange is undefined (eg. base tests)
+    const id = (exchange !== undefined) ? exchange.id : 'undefined';
+    const methodString = (method !== undefined) ? method : 'undefined';
+    const entryString = (exchange !== undefined) ? exchange.json(entry) : '';
+    return ' <<< ' + id + ' ' + methodString + ' ::: ' + entryString + ' >>> ';
 }
 function isTemporaryFailure(e) {
     return (e instanceof OperationFailed) && (!(e instanceof OnMaintenance));
@@ -53,6 +57,9 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
         for (let i = 0; i < format.length; i++) {
             const emptyAllowedForThisKey = exchange.inArray(i, emptyAllowedFor);
             const value = entry[i];
+            if (i in skippedProperties) {
+                continue;
+            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
@@ -61,7 +68,8 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
             }
             assert(value !== undefined, i.toString() + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
-            assert(assertType(exchange, skippedProperties, entry, i, format), i.toString() + ' index does not have an expected type ' + logText);
+            const typeAssertion = assertType(exchange, skippedProperties, entry, i, format);
+            assert(typeAssertion, i.toString() + ' index does not have an expected type ' + logText);
         }
     }
     else {
@@ -73,6 +81,9 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
                 continue;
             }
             assert(key in entry, '"' + stringValue(key) + '" key is missing from structure' + logText);
+            if (key in skippedProperties) {
+                continue;
+            }
             const emptyAllowedForThisKey = exchange.inArray(key, emptyAllowedFor);
             const value = entry[key];
             // check when:
@@ -85,7 +96,8 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
             assert(value !== undefined, '"' + stringValue(key) + '" key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
-                assert(assertType(exchange, skippedProperties, entry, key, format), '"' + stringValue(key) + '" key is neither undefined, neither of expected type' + logText);
+                const typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
+                assert(typeAssertion, '"' + stringValue(key) + '" key is neither undefined, neither of expected type' + logText);
             }
         }
     }
@@ -109,7 +121,7 @@ function assertTimestamp(exchange, skippedProperties, method, entry, nowToCheck 
         assert(typeof ts === 'number', 'timestamp is not numeric' + logText);
         assert(Number.isInteger(ts), 'timestamp should be an integer' + logText);
         const minTs = 1230940800000; // 03 Jan 2009 - first block
-        const maxTs = 2147483648000; // 03 Jan 2009 - first block
+        const maxTs = 2147483648000; // 19 Jan 2038 - max int
         assert(ts > minTs, 'timestamp is impossible to be before ' + minTs.toString() + ' (03.01.2009)' + logText); // 03 Jan 2009 - first block
         assert(ts < maxTs, 'timestamp more than ' + maxTs.toString() + ' (19.01.2038)' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {
@@ -142,7 +154,7 @@ function assertTimestampAndDatetime(exchange, skippedProperties, method, entry, 
     }
 }
 function assertCurrencyCode(exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
-    if ('currency' in skippedProperties) {
+    if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
     const logText = logTemplate(exchange, method, entry);
@@ -156,7 +168,7 @@ function assertCurrencyCode(exchange, skippedProperties, method, entry, actualCo
 }
 function assertValidCurrencyIdAndCode(exchange, skippedProperties, method, entry, currencyId, currencyCode) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
-    if ('currencyIdAndCode' in skippedProperties) {
+    if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
     }
     const logText = logTemplate(exchange, method, entry);
@@ -267,6 +279,7 @@ function assertFeeStructure(exchange, skippedProperties, method, entry, key) {
     const logText = logTemplate(exchange, method, entry);
     const keyString = stringValue(key);
     if (Number.isInteger(key)) {
+        key = key;
         assert(Array.isArray(entry), 'fee container is expected to be an array' + logText);
         assert(key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     }
@@ -278,6 +291,10 @@ function assertFeeStructure(exchange, skippedProperties, method, entry, key) {
     // todo: remove undefined check to make stricter
     if (feeObject !== undefined) {
         assert('cost' in feeObject, keyString + ' fee object should contain "cost" key' + logText);
+        if (feeObject['cost'] === undefined) {
+            return; // todo: remove undefined check to make stricter
+        }
+        assert(typeof feeObject['cost'] === 'number', keyString + ' "cost" must be numeric type' + logText);
         // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
         assert('currency' in feeObject, '"' + keyString + '" fee object should contain "currency" key' + logText);
         assertCurrencyCode(exchange, skippedProperties, method, entry, feeObject['currency']);
@@ -286,10 +303,10 @@ function assertFeeStructure(exchange, skippedProperties, method, entry, key) {
 function assertTimestampOrder(exchange, method, codeOrSymbol, items, ascending = true) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
-            const ascendingOrDescending = ascending ? 'ascending' : 'descending';
             const currentTs = items[i - 1]['timestamp'];
             const nextTs = items[i]['timestamp'];
             if (currentTs !== undefined && nextTs !== undefined) {
+                const ascendingOrDescending = ascending ? 'ascending' : 'descending';
                 const comparison = ascending ? (currentTs <= nextTs) : (currentTs >= nextTs);
                 assert(comparison, exchange.id + ' ' + method + ' ' + stringValue(codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp, but ' + currentTs.toString() + ' is opposite with its next ' + nextTs.toString() + ' ' + exchange.json(items));
             }
@@ -325,7 +342,8 @@ function checkPrecisionAccuracy(exchange, skippedProperties, method, entry, key)
         }
     }
     else {
-        assertInteger(exchange, skippedProperties, method, entry, key); // should be integer
+        // todo: significant-digits return doubles from `this.parseNumber`, so for now can't assert against integer atm
+        // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
         assertLessOrEqual(exchange, skippedProperties, method, entry, key, '18'); // should be under 18 decimals
         assertGreaterOrEqual(exchange, skippedProperties, method, entry, key, '-8'); // in real-world cases, there would not be less than that
     }
@@ -350,7 +368,35 @@ function setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, https
     exchange.httpsProxy = httpsProxy;
     exchange.socksProxy = socksProxy;
 }
+function assertNonEmtpyArray(exchange, skippedProperties, method, entry, hint = undefined) {
+    let logText = logTemplate(exchange, method, entry);
+    if (hint !== undefined) {
+        logText = logText + ' ' + hint;
+    }
+    assert(Array.isArray(entry), 'response is expected to be an array' + logText);
+    if (!('emptyResponse' in skippedProperties)) {
+        return;
+    }
+    assert(entry.length > 0, 'response is expected to be a non-empty array' + logText + ' (add "emptyResponse" in skip-tests.json to skip this check)');
+}
+function assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, key) {
+    if (key in skippedProperties) {
+        return;
+    }
+    const logText = logTemplate(exchange, method, entry);
+    const ts = exchange.safeString(entry, key);
+    assert(Precise.stringMod(ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
+}
+function deepEqual(a, b) {
+    return JSON.stringify(a) === JSON.stringify(b);
+}
+function assertDeepEqual(exchange, skippedProperties, method, a, b) {
+    const logText = logTemplate(exchange, method, {});
+    assert(deepEqual(a, b), 'two dicts do not match: ' + JSON.stringify(a) + ' != ' + JSON.stringify(b) + logText);
+}
 export default {
+    deepEqual,
+    assertDeepEqual,
     logTemplate,
     isTemporaryFailure,
     assertTimestamp,
@@ -374,4 +420,6 @@ export default {
     assertType,
     removeProxyOptions,
     setProxyOptions,
+    assertNonEmtpyArray,
+    assertRoundMinuteTimestamp,
 };

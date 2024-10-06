@@ -4,8 +4,9 @@
 import onetradingRest from '../onetrading.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +19,7 @@ export default class onetrading extends onetradingRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': false,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -90,7 +92,7 @@ export default class onetrading extends onetradingRest {
         const messageHash = 'balance';
         const subscribeHash = 'ACCOUNT_HISTORY';
         const bpRemainingQuota = this.safeInteger (this.options, 'bp_remaining_quota', 200);
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'SUBSCRIBE',
             'bp_remaining_quota': bpRemainingQuota,
             'channels': [
@@ -152,7 +154,7 @@ export default class onetrading extends onetradingRest {
         symbol = market['symbol'];
         const subscriptionHash = 'MARKET_TICKER';
         const messageHash = 'ticker.' + symbol;
-        const request = {
+        const request: Dict = {
             'type': 'SUBSCRIBE',
             'channels': [
                 {
@@ -181,7 +183,7 @@ export default class onetrading extends onetradingRest {
         }
         const subscriptionHash = 'MARKET_TICKER';
         const messageHash = 'tickers';
-        const request = {
+        const request: Dict = {
             'type': 'SUBSCRIBE',
             'channels': [
                 {
@@ -286,7 +288,7 @@ export default class onetrading extends onetradingRest {
         const url = this.urls['api']['ws'];
         const subscribeHash = 'ACCOUNT_HISTORY';
         const bpRemainingQuota = this.safeInteger (this.options, 'bp_remaining_quota', 200);
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'SUBSCRIBE',
             'bp_remaining_quota': bpRemainingQuota,
             'channels': [
@@ -328,7 +330,7 @@ export default class onetrading extends onetradingRest {
         if (limit !== undefined) {
             depth = limit;
         }
-        const request = {
+        const request: Dict = {
             'type': 'SUBSCRIBE',
             'channels': [
                 {
@@ -449,7 +451,7 @@ export default class onetrading extends onetradingRest {
         const url = this.urls['api']['ws'];
         const subscribeHash = this.safeString (params, 'channel', 'ACCOUNT_HISTORY');
         const bpRemainingQuota = this.safeInteger (this.options, 'bp_remaining_quota', 200);
-        const subscribe = {
+        const subscribe: Dict = {
             'type': 'SUBSCRIBE',
             'bp_remaining_quota': bpRemainingQuota,
             'channels': [
@@ -641,7 +643,7 @@ export default class onetrading extends onetradingRest {
     }
 
     parseTradingOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'CANCELLED': 'canceled',
             'SELF_TRADE': 'rejected',
             'FILLED_FULLY': 'closed',
@@ -980,12 +982,12 @@ export default class onetrading extends onetradingRest {
             const previousOrderArray = this.filterByArray (this.orders, 'id', orderId, false);
             const previousOrder = this.safeValue (previousOrderArray, 0, {});
             symbol = previousOrder['symbol'];
-            const filled = this.safeNumber (update, 'filled_amount');
+            const filled = this.safeString (update, 'filled_amount');
             let status = this.parseWsOrderStatus (updateType);
-            if (updateType === 'ORDER_CLOSED' && filled === 0) {
+            if (updateType === 'ORDER_CLOSED' && Precise.stringEq (filled, '0')) {
                 status = 'canceled';
             }
-            const orderObject = {
+            const orderObject: Dict = {
                 'id': orderId,
                 'symbol': symbol,
                 'status': status,
@@ -1020,7 +1022,7 @@ export default class onetrading extends onetradingRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'ORDER_REJECTED': 'rejected',
             'ORDER_CLOSED': 'closed',
             'STOP_ORDER_TRIGGERED': 'triggered',
@@ -1098,14 +1100,14 @@ export default class onetrading extends onetradingRest {
             const marketIdtimeframes = Object.keys (subscription[marketIds[i]]);
             for (let ii = 0; ii < marketIdtimeframes.length; ii++) {
                 const marketTimeframeId = this.safeValue (timeframes, timeframe);
-                const property = {
+                const property: Dict = {
                     'instrument_code': marketIds[i],
                     'time_granularity': marketTimeframeId,
                 };
                 properties.push (property);
             }
         }
-        const request = {
+        const request: Dict = {
             'type': type,
             'channels': [
                 {
@@ -1240,7 +1242,7 @@ export default class onetrading extends onetradingRest {
             return;
         }
         const type = this.safeValue (message, 'type');
-        const handlers = {
+        const handlers: Dict = {
             'ORDER_BOOK_UPDATE': this.handleOrderBook,
             'ORDER_BOOK_SNAPSHOT': this.handleOrderBook,
             'ACTIVE_ORDERS_SNAPSHOT': this.handleOrders,
@@ -1353,12 +1355,12 @@ export default class onetrading extends onetradingRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();
-            const request = {
+            const request: Dict = {
                 'type': 'AUTHENTICATE',
                 'api_token': this.apiKey,
             };
             this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
-        return future;
+        return await future;
     }
 }

@@ -10,6 +10,7 @@ public partial class ndax
     /// retrieves data on all markets for ndax
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getinstruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class ndax
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getl2snapshot"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -55,6 +57,7 @@ public partial class ndax
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getlevel1"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -74,6 +77,7 @@ public partial class ndax
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#gettickerhistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -140,6 +144,7 @@ public partial class ndax
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getuseraccounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -150,15 +155,16 @@ public partial class ndax
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getaccountpositions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -175,10 +181,17 @@ public partial class ndax
         return new Balances(res);
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getaccounttransactions"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -188,7 +201,7 @@ public partial class ndax
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -200,22 +213,23 @@ public partial class ndax
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#sendorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -250,6 +264,7 @@ public partial class ndax
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#gettradeshistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -283,6 +298,7 @@ public partial class ndax
     /// cancel all open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#cancelallorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -293,15 +309,16 @@ public partial class ndax
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#cancelorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -321,6 +338,7 @@ public partial class ndax
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getopenorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -354,6 +372,7 @@ public partial class ndax
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getorderhistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -387,6 +406,7 @@ public partial class ndax
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getorderstatus"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -406,6 +426,7 @@ public partial class ndax
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getorderhistorybyorderid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -511,6 +532,7 @@ public partial class ndax
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#getwithdraws"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -554,7 +576,7 @@ public partial class ndax
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

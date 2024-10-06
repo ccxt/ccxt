@@ -58,8 +58,11 @@ public partial class yobit : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -227,6 +230,7 @@ public partial class yobit : Exchange
                 { "XIN", "XINCoin" },
                 { "XMT", "SummitCoin" },
                 { "XRA", "Ratecoin" },
+                { "BCHN", "BSV" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "maxUrlLength", 2048 },
@@ -276,15 +280,15 @@ public partial class yobit : Exchange
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(balances, "server_time");
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object free = this.safeValue(balances, "funds", new Dictionary<string, object>() {});
-        object total = this.safeValue(balances, "funds_incl_orders", new Dictionary<string, object>() {});
+        object free = this.safeDict(balances, "funds", new Dictionary<string, object>() {});
+        object total = this.safeDict(balances, "funds_incl_orders", new Dictionary<string, object>() {});
         object currencyIds = new List<object>(((IDictionary<string,object>)this.extend(free, total)).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
@@ -369,7 +373,7 @@ public partial class yobit : Exchange
         //         },
         //     }
         //
-        object markets = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
+        object markets = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -563,42 +567,9 @@ public partial class yobit : Exchange
         }, market);
     }
 
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async virtual Task<object> fetchTickersHelper(object idsString, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchTickers
-        * @see https://yobit.net/en/api
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbols, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires \"symbols\" argument")) ;
-        }
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        object ids = null;
-        if (isTrue(isEqual(symbols, null)))
-        {
-            ids = this.ids;
-        } else
-        {
-            ids = this.marketIds(symbols);
-        }
-        object idsLength = getArrayLength(ids);
-        object idsString = String.Join("-", ((IList<object>)ids).ToArray());
-        object maxLength = this.safeInteger(this.options, "maxUrlLength", 2048);
-        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-        object lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
-        object actualLength = add(getArrayLength(idsString), lenghtOfBaseUrl);
-        if (isTrue(isGreaterThan(actualLength, maxLength)))
-        {
-            throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " fetchTickers() is being requested for "), ((object)idsLength).ToString()), " markets (which has an URL length of "), ((object)actualLength).ToString()), " characters), but it exceedes max URL length ("), ((object)maxLength).ToString()), "), please pass limisted symbols array to fetchTickers to fit in one request")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "pair", idsString },
         };
@@ -613,7 +584,75 @@ public partial class yobit : Exchange
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return result;
+    }
+
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name yobit#fetchTickers
+        * @see https://yobit.net/en/api
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object allSymbols = null;
+        var allSymbolsparametersVariable = this.handleParamBool(parameters, "all", false);
+        allSymbols = ((IList<object>)allSymbolsparametersVariable)[0];
+        parameters = ((IList<object>)allSymbolsparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(symbols, null)) && !isTrue(allSymbols)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires \"symbols\" argument or use `params[\"all\"] = true` to send multiple requests for all markets")) ;
+        }
+        await this.loadMarkets();
+        object promises = new List<object>() {};
+        object maxLength = this.safeInteger(this.options, "maxUrlLength", 2048);
+        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        object lenghtOfBaseUrl = 40; // safe space for the url including api-base and endpoint dir is 30 chars
+        if (isTrue(allSymbols))
+        {
+            symbols = this.symbols;
+            object ids = "";
+            for (object i = 0; isLessThan(i, getArrayLength(this.ids)); postFixIncrement(ref i))
+            {
+                object id = getValue(this.ids, i);
+                object prefix = ((bool) isTrue((isEqual(ids, "")))) ? "" : "-";
+                ids = add(ids, add(prefix, id));
+                if (isTrue(isGreaterThan(((string)ids).Length, maxLength)))
+                {
+                    ((IList<object>)promises).Add(this.fetchTickersHelper(ids, parameters));
+                    ids = "";
+                }
+            }
+            if (isTrue(!isEqual(ids, "")))
+            {
+                ((IList<object>)promises).Add(this.fetchTickersHelper(ids, parameters));
+            }
+        } else
+        {
+            symbols = this.marketSymbols(symbols);
+            object ids = this.marketIds(symbols);
+            object idsLength = getArrayLength(ids);
+            object idsString = String.Join("-", ((IList<object>)ids).ToArray());
+            object actualLength = add(((string)idsString).Length, lenghtOfBaseUrl);
+            if (isTrue(isGreaterThan(actualLength, maxLength)))
+            {
+                throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " fetchTickers() is being requested for "), ((object)idsLength).ToString()), " markets (which has an URL length of "), ((object)actualLength).ToString()), " characters), but it exceedes max URL length ("), ((object)maxLength).ToString()), "), please pass limisted symbols array to fetchTickers to fit in one request")) ;
+            }
+            ((IList<object>)promises).Add(this.fetchTickersHelper(idsString, parameters));
+        }
+        object resultAll = await promiseAll(promises);
+        object finalResult = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(resultAll)); postFixIncrement(ref i))
+        {
+            object result = this.filterByArrayTickers(getValue(resultAll, i), "symbol", symbols);
+            finalResult = this.extend(finalResult, result);
+        }
+        return finalResult;
     }
 
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
@@ -687,7 +726,7 @@ public partial class yobit : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object isYourOrder = this.safeValue(trade, "is_your_order");
+        object isYourOrder = this.safeString(trade, "is_your_order");
         if (isTrue(!isEqual(isYourOrder, null)))
         {
             if (isTrue(isEqual(fee, null)))
@@ -762,7 +801,7 @@ public partial class yobit : Exchange
                 return new List<object>() {};
             }
         }
-        object result = this.safeValue(response, getValue(market, "id"), new List<object>() {});
+        object result = this.safeList(response, getValue(market, "id"), new List<object>() {});
         return this.parseTrades(result, market, since, limit);
     }
 
@@ -798,13 +837,13 @@ public partial class yobit : Exchange
         //         },
         //     }
         //
-        object pairs = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
+        object pairs = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
         object marketIds = new List<object>(((IDictionary<string,object>)pairs).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object pair = this.safeValue(pairs, marketId, new Dictionary<string, object>() {});
+            object pair = this.safeDict(pairs, marketId, new Dictionary<string, object>() {});
             object symbol = this.safeSymbol(marketId, null, "_");
             object takerString = this.safeString(pair, "fee_buyer");
             object makerString = this.safeString(pair, "fee_seller");
@@ -833,7 +872,7 @@ public partial class yobit : Exchange
         * @param {string} type must be 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -872,7 +911,7 @@ public partial class yobit : Exchange
         //           }
         //       }
         //
-        object result = this.safeValue(response, "return");
+        object result = this.safeDict(response, "return");
         return this.parseOrder(result, market);
     }
 
@@ -913,7 +952,7 @@ public partial class yobit : Exchange
         //          }
         //      }
         //
-        object result = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return this.parseOrder(result);
     }
 
@@ -1052,7 +1091,7 @@ public partial class yobit : Exchange
         };
         object response = await this.privatePostOrderInfo(this.extend(request, parameters));
         id = ((object)id).ToString();
-        object orders = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object orders = this.safeDict(response, "return", new Dictionary<string, object>() {});
         //
         //      {
         //          "success":1,
@@ -1124,7 +1163,7 @@ public partial class yobit : Exchange
         //          }
         //      }
         //
-        object result = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
@@ -1177,7 +1216,7 @@ public partial class yobit : Exchange
         //          }
         //      }
         //
-        object trades = this.safeValue(response, "return", new Dictionary<string, object>() {});
+        object trades = this.safeDict(response, "return", new Dictionary<string, object>() {});
         object ids = new List<object>(((IDictionary<string,object>)trades).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
@@ -1232,7 +1271,7 @@ public partial class yobit : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object currencyId = getValue(currency, "id");
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ERC20>ETH alias
         if (isTrue(!isEqual(network, null)))
@@ -1426,7 +1465,7 @@ public partial class yobit : Exchange
             //
             // To cover points 1, 2, 3 and 4 combined this handler should work like this:
             //
-            object success = this.safeBool(response, "success", false);
+            object success = this.safeValue(response, "success"); // don't replace with safeBool here
             if (isTrue((success is string)))
             {
                 if (isTrue(isTrue((isEqual(success, "true"))) || isTrue((isEqual(success, "1")))))

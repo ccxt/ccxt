@@ -10,6 +10,7 @@ public partial class coincheck
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#order-transactions-pagination"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class coincheck
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#order-opens"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -62,6 +64,7 @@ public partial class coincheck
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -88,6 +91,7 @@ public partial class coincheck
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -107,6 +111,7 @@ public partial class coincheck
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#order-transactions-pagination"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -140,6 +145,7 @@ public partial class coincheck
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#public-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -173,6 +179,7 @@ public partial class coincheck
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#account-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -183,20 +190,21 @@ public partial class coincheck
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#order-new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -218,6 +226,7 @@ public partial class coincheck
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#order-cancel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -228,15 +237,16 @@ public partial class coincheck
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#account-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -270,6 +280,7 @@ public partial class coincheck
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#withdraws"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

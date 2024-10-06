@@ -20,6 +20,7 @@ class binanceusdm extends binance {
                 'doc' => array(
                     'https://binance-docs.github.io/apidocs/futures/en/',
                     'https://binance-docs.github.io/apidocs/spot/en',
+                    'https://developers.binance.com/en',
                 ),
             ),
             'has' => array(
@@ -41,6 +42,7 @@ class binanceusdm extends binance {
                 'marginModes' => array(),
             ),
             // https://binance-docs.github.io/apidocs/futures/en/#error-codes
+            // https://developers.binance.com/docs/derivatives/usds-margined-futures/error-code
             'exceptions' => array(
                 'exact' => array(
                     '-5021' => '\\ccxt\\InvalidOrder', // array("code":-5021,"msg":"Due to the order could not be filled immediately, the FOK order has been rejected.")

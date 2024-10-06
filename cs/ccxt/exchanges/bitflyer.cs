@@ -70,6 +70,11 @@ public partial class bitflyer : Exchange
                 } },
             } },
             { "precisionMode", TICK_SIZE },
+            { "exceptions", new Dictionary<string, object>() {
+                { "exact", new Dictionary<string, object>() {
+                    { "-2", typeof(OnMaintenance) },
+                } },
+            } },
         });
     }
 
@@ -96,7 +101,7 @@ public partial class bitflyer : Exchange
         return this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z"));
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         // Bitflyer has a different type of conflict in markets, because
         // some of their ids (ETH/BTC and BTC/JPY) are duplicated in US, EU and JP.
@@ -533,6 +538,8 @@ public partial class bitflyer : Exchange
             { "symbol", getValue(market, "symbol") },
             { "maker", fee },
             { "taker", fee },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -547,7 +554,7 @@ public partial class bitflyer : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -591,7 +598,13 @@ public partial class bitflyer : Exchange
             { "product_code", this.marketId(symbol) },
             { "child_order_acceptance_id", id },
         };
-        return await this.privatePostCancelchildorder(this.extend(request, parameters));
+        object response = await this.privatePostCancelchildorder(this.extend(request, parameters));
+        //
+        //    200 OK.
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public virtual object parseOrderStatus(object status)
@@ -738,6 +751,7 @@ public partial class bitflyer : Exchange
         * @name bitflyer#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1117,5 +1131,23 @@ public partial class bitflyer : Exchange
             { "body", body },
             { "headers", headers },
         };
+    }
+
+    public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        if (isTrue(isEqual(response, null)))
+        {
+            return null;  // fallback to the default error handler
+        }
+        object feedback = add(add(this.id, " "), body);
+        // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
+        object errorMessage = this.safeString(response, "error_message");
+        object statusCode = this.safeInteger(response, "status");
+        if (isTrue(!isEqual(errorMessage, null)))
+        {
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), statusCode, feedback);
+            throw new ExchangeError ((string)feedback) ;
+        }
+        return null;
     }
 }

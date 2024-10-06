@@ -33,6 +33,7 @@ class bitmex extends Exchange {
                 'option' => false,
                 'addMargin' => null,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
@@ -51,14 +52,16 @@ class bitmex extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => 'emulated', // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
-                'fetchLeverage' => false,
+                'fetchLeverage' => 'emulated',
+                'fetchLeverages' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => true,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -70,7 +73,9 @@ class bitmex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -80,6 +85,7 @@ class bitmex extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => null,
+                'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => null,
                 'setMarginMode' => true,
@@ -232,6 +238,7 @@ class bitmex extends Exchange {
                     'orderQty is invalid' => '\\ccxt\\InvalidOrder',
                     'Invalid price' => '\\ccxt\\InvalidOrder',
                     'Invalid stopPx for ordType' => '\\ccxt\\InvalidOrder',
+                    'Account is restricted' => '\\ccxt\\PermissionDenied', // array("error":array("message":"Account is restricted","name":"HTTPError"))
                 ),
                 'broad' => array(
                     'Signature not valid' => '\\ccxt\\AuthenticationError',
@@ -275,7 +282,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
          * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
@@ -453,7 +460,7 @@ class bitmex extends Exchange {
         return $this->convert_from_raw_quantity($symbol, $rawQuantity, 'quote');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for bitmex
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive
@@ -575,7 +582,7 @@ class bitmex extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'underlying');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
@@ -769,7 +776,7 @@ class bitmex extends Exchange {
         $request = array(
             'currency' => 'all',
         );
-        $response = $this->privateGetUserMargin (array_merge($request, $params));
+        $response = $this->privateGetUserMargin ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -837,7 +844,7 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
-        $response = $this->publicGetOrderBookL2 (array_merge($request, $params));
+        $response = $this->publicGetOrderBookL2 ($this->extend($request, $params));
         $result = array(
             'symbol' => $symbol,
             'bids' => array(),
@@ -867,6 +874,7 @@ class bitmex extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1074,7 +1082,7 @@ class bitmex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "transactID" => "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1123,6 +1131,7 @@ class bitmex extends Exchange {
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'transactType'));
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amountString = $this->safe_string($item, 'amount');
         $amount = $this->convert_to_real_amount($code, $amountString);
         $timestamp = $this->parse8601($this->safe_string($item, 'transactTime'));
@@ -1137,14 +1146,14 @@ class bitmex extends Exchange {
             $feeCost = $this->convert_to_real_amount($code, $feeCost);
         }
         $fee = array(
-            'cost' => $this->parse_number($feeCost),
+            'cost' => $this->parse_to_numeric($feeCost),
             'currency' => $code,
         );
         $after = $this->safe_string($item, 'walletBalance');
         if ($after !== null) {
             $after = $this->convert_to_real_amount($code, $after);
         }
-        $before = $this->parse_number(Precise::string_sub($this->number_to_string($after), $this->number_to_string($amount)));
+        $before = $this->parse_to_numeric(Precise::string_sub($this->number_to_string($after), $this->number_to_string($amount)));
         $direction = null;
         if (Precise::string_lt($amountString, '0')) {
             $direction = 'out';
@@ -1153,9 +1162,9 @@ class bitmex extends Exchange {
             $direction = 'in';
         }
         $status = $this->parse_transaction_status($this->safe_string($item, 'transactStatus'));
-        return array(
-            'id' => $id,
+        return $this->safe_ledger_entry(array(
             'info' => $item,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'direction' => $direction,
@@ -1164,21 +1173,21 @@ class bitmex extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_to_numeric($amount),
             'before' => $before,
-            'after' => $this->parse_number($after),
+            'after' => $this->parse_to_numeric($after),
             'status' => $status,
             'fee' => $fee,
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-         * @param {string} $code unified $currency $code, default is null
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
@@ -1199,7 +1208,7 @@ class bitmex extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
-        $response = $this->privateGetUserWalletHistory (array_merge($request, $params));
+        $response = $this->privateGetUserWalletHistory ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1251,12 +1260,12 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->privateGetUserWalletHistory (array_merge($request, $params));
+        $response = $this->privateGetUserWalletHistory ($this->extend($request, $params));
         $transactions = $this->filter_by_array($response, 'transactType', array( 'Withdrawal', 'Deposit' ), false);
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'Confirmed' => 'pending',
             'Canceled' => 'canceled',
@@ -1266,7 +1275,7 @@ class bitmex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //        "transactID" => "ffe699c2-95ee-4c13-91f9-0faf41daec25",
@@ -1355,7 +1364,7 @@ class bitmex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetInstrument (array_merge($request, $params));
+        $response = $this->publicGetInstrument ($this->extend($request, $params));
         $ticker = $this->safe_value($response, 0);
         if ($ticker === null) {
             throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
@@ -1386,7 +1395,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1413,6 +1422,7 @@ class bitmex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'homeNotional24h'),
             'quoteVolume' => $this->safe_string($ticker, 'foreignNotional24h'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -1492,7 +1502,7 @@ class bitmex extends Exchange {
             $request['endTime'] = $this->iso8601($until);
         }
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $fetchOHLCVOpenTimestamp = $this->safe_value($this->options, 'fetchOHLCVOpenTimestamp', true);
+        $fetchOHLCVOpenTimestamp = $this->safe_bool($this->options, 'fetchOHLCVOpenTimestamp', true);
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $timestamp = $since;
@@ -1504,7 +1514,7 @@ class bitmex extends Exchange {
         } else {
             $request['reverse'] = true;
         }
-        $response = $this->publicGetTradeBucketed (array_merge($request, $params));
+        $response = $this->publicGetTradeBucketed ($this->extend($request, $params));
         //
         //     array(
         //         array("timestamp":"2015-09-25T13:38:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0),
@@ -1524,7 +1534,7 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1637,7 +1647,7 @@ class bitmex extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'New' => 'open',
             'PartiallyFilled' => 'open',
@@ -1655,7 +1665,7 @@ class bitmex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'Day' => 'Day',
             'GoodTillCancel' => 'GTC',
@@ -1665,7 +1675,7 @@ class bitmex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -1798,7 +1808,7 @@ class bitmex extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['endTime'] = $this->iso8601($until);
         }
-        $response = $this->publicGetTrade (array_merge($request, $params));
+        $response = $this->publicGetTrade ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1838,7 +1848,7 @@ class bitmex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @param {array} [$params->triggerDirection] the direction whenever the trigger happens with relation to $price - 'above' or 'below'
@@ -1913,7 +1923,7 @@ class bitmex extends Exchange {
             $request['clOrdID'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
-        $response = $this->privatePostOrder (array_merge($request, $params));
+        $response = $this->privatePostOrder ($this->extend($request, $params));
         return $this->parse_order($response, $market);
     }
 
@@ -1970,7 +1980,7 @@ class bitmex extends Exchange {
         }
         $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
         $request['text'] = $brokerId;
-        $response = $this->privatePutOrder (array_merge($request, $params));
+        $response = $this->privatePutOrder ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -1993,7 +2003,7 @@ class bitmex extends Exchange {
             $request['clOrdID'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
-        $response = $this->privateDeleteOrder (array_merge($request, $params));
+        $response = $this->privateDeleteOrder ($this->extend($request, $params));
         $order = $this->safe_value($response, 0, array());
         $error = $this->safe_string($order, 'error');
         if ($error !== null) {
@@ -2024,7 +2034,7 @@ class bitmex extends Exchange {
             $request['clOrdID'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
-        $response = $this->privateDeleteOrder (array_merge($request, $params));
+        $response = $this->privateDeleteOrder ($this->extend($request, $params));
         return $this->parse_orders($response);
     }
 
@@ -2043,7 +2053,7 @@ class bitmex extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateDeleteOrderAll (array_merge($request, $params));
+        $response = $this->privateDeleteOrderAll ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2084,6 +2094,52 @@ class bitmex extends Exchange {
         //     )
         //
         return $this->parse_orders($response, $market);
+    }
+
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
+         * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
+        $this->load_markets();
+        $request = array(
+            'timeout' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
+        );
+        $response = $this->privatePostOrderCancelAllAfter ($this->extend($request, $params));
+        //
+        //     {
+        //         now => '2024-04-09T09:01:56.560Z',
+        //         cancelTime => '2024-04-09T09:01:56.660Z'
+        //     }
+        //
+        return $response;
+    }
+
+    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetch the set leverage for all contract markets
+         * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+         */
+        $this->load_markets();
+        $leverages = $this->fetch_positions($symbols, $params);
+        return $this->parse_leverages($leverages, $symbols, 'symbol');
+    }
+
+    public function parse_leverage(array $leverage, ?array $market = null): array {
+        $marketId = $this->safe_string($leverage, 'symbol');
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverage, 'marginMode'),
+            'longLeverage' => $this->safe_integer($leverage, 'leverage'),
+            'shortLeverage' => $this->safe_integer($leverage, 'leverage'),
+        );
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
@@ -2197,7 +2253,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "account" => 9371654,
@@ -2344,7 +2400,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal
@@ -2370,7 +2426,10 @@ class bitmex extends Exchange {
             // 'otpToken' => '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee' => 0.001, // bitcoin network fee
         );
-        $response = $this->privatePostUserRequestWithdrawal (array_merge($request, $params));
+        if ($this->twofa !== null) {
+            $request['otpToken'] = $this->totp($this->twofa);
+        }
+        $response = $this->privatePostUserRequestWithdrawal ($this->extend($request, $params));
         //
         //     {
         //         "transactID" => "3aece414-bb29-76c8-6c6d-16a477a51a1e",
@@ -2391,13 +2450,13 @@ class bitmex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the funding rate for multiple markets
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by $market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
          */
         $this->load_markets();
         $response = $this->publicGetInstrumentActiveAndIndices ($params);
@@ -2417,7 +2476,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         $datetime = $this->safe_string($contract, 'timestamp');
         $marketId = $this->safe_string($contract, 'symbol');
@@ -2432,7 +2491,7 @@ class bitmex extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
-            'fundingTimestamp' => $this->iso8601($fundingDatetime),
+            'fundingTimestamp' => $this->parse_to_numeric($this->iso8601($fundingDatetime)),
             'fundingDatetime' => $fundingDatetime,
             'nextFundingRate' => $this->safe_number($contract, 'indicativeFundingRate'),
             'nextFundingTimestamp' => null,
@@ -2440,6 +2499,7 @@ class bitmex extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
@@ -2483,13 +2543,15 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['endTime'] = $this->iso8601($until);
         }
-        $request['reverse'] = true;
-        $response = $this->publicGetFunding (array_merge($request, $params));
+        if (($since === null) && ($until === null)) {
+            $request['reverse'] = true;
+        }
+        $response = $this->publicGetFunding ($this->extend($request, $params));
         //
         //    array(
         //        {
@@ -2549,7 +2611,7 @@ class bitmex extends Exchange {
             'symbol' => $market['id'],
             'leverage' => $leverage,
         );
-        return $this->privatePostPositionLeverage (array_merge($request, $params));
+        return $this->privatePostPositionLeverage ($this->extend($request, $params));
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
@@ -2578,7 +2640,7 @@ class bitmex extends Exchange {
             'symbol' => $market['id'],
             'enabled' => $enabled,
         );
-        return $this->privatePostPositionIsolate (array_merge($request, $params));
+        return $this->privatePostPositionIsolate ($this->extend($request, $params));
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {
@@ -2602,7 +2664,7 @@ class bitmex extends Exchange {
             'currency' => $currency['id'],
             'network' => $this->network_code_to_id($networkCode, $currency['code']),
         );
-        $response = $this->privateGetUserDepositAddress (array_merge($request, $params));
+        $response = $this->privateGetUserDepositAddress ($this->extend($request, $params));
         //
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
@@ -2763,7 +2825,7 @@ class bitmex extends Exchange {
             $request['count'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = $this->publicGetLiquidation (array_merge($request, $params));
+        $response = $this->publicGetLiquidation ($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2802,7 +2864,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

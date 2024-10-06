@@ -71,7 +71,11 @@ class ndax extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -82,6 +86,7 @@ class ndax extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -281,6 +286,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * sign in, must be called prior to using other authenticated methods
+             * @see https://apidoc.ndax.io/#authenticate2fa
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return $response from exchange
              */
@@ -291,7 +297,7 @@ class ndax extends Exchange {
             $request = array(
                 'grant_type' => 'client_credentials', // the only supported value
             );
-            $response = Async\await($this->publicGetAuthenticate (array_merge($request, $params)));
+            $response = Async\await($this->publicGetAuthenticate ($this->extend($request, $params)));
             //
             //     {
             //         "Authenticated":true,
@@ -315,7 +321,7 @@ class ndax extends Exchange {
                 $request = array(
                     'Code' => $this->totp($this->twofa),
                 );
-                $responseInner = Async\await($this->publicGetAuthenticate2FA (array_merge($request, $params)));
+                $responseInner = Async\await($this->publicGetAuthenticate2FA ($this->extend($request, $params)));
                 //
                 //     {
                 //         "Authenticated" => true,
@@ -331,10 +337,11 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             * @see https://apidoc.ndax.io/#getproduct
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -342,7 +349,7 @@ class ndax extends Exchange {
             $request = array(
                 'omsId' => $omsId,
             );
-            $response = Async\await($this->publicGetGetProducts (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetProducts ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -401,10 +408,11 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for ndax
+             * @see https://apidoc.ndax.io/#getinstruments
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -412,7 +420,7 @@ class ndax extends Exchange {
             $request = array(
                 'omsId' => $omsId,
             );
-            $response = Async\await($this->publicGetGetInstruments (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetInstruments ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -463,7 +471,7 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'InstrumentId');
         // $lowercaseId = $this->safe_string_lower($market, 'symbol');
         $baseId = $this->safe_string($market, 'Product1');
@@ -565,6 +573,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://apidoc.ndax.io/#getl2snapshot
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -579,7 +588,7 @@ class ndax extends Exchange {
                 'InstrumentId' => $market['id'],
                 'Depth' => $limit, // default 100
             );
-            $response = Async\await($this->publicGetGetL2Snapshot (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetL2Snapshot ($this->extend($request, $params)));
             //
             //     array(
             //         [
@@ -606,7 +615,7 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -677,6 +686,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://apidoc.ndax.io/#getlevel1
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -688,7 +698,7 @@ class ndax extends Exchange {
                 'omsId' => $omsId,
                 'InstrumentId' => $market['id'],
             );
-            $response = Async\await($this->publicGetGetLevel1 (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetLevel1 ($this->extend($request, $params)));
             //
             //     {
             //         "OMSId":1,
@@ -751,6 +761,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://apidoc.ndax.io/#gettickerhistory
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -781,7 +792,7 @@ class ndax extends Exchange {
                     $request['ToDate'] = $this->ymdhms($this->sum($since, $duration * $limit * 1000));
                 }
             }
-            $response = Async\await($this->publicGetGetTickerHistory (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetTickerHistory ($this->extend($request, $params)));
             //
             //     [
             //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
@@ -793,7 +804,7 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -981,7 +992,7 @@ class ndax extends Exchange {
             if ($limit !== null) {
                 $request['Count'] = $limit;
             }
-            $response = Async\await($this->publicGetGetLastTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetGetLastTrades ($this->extend($request, $params)));
             //
             //     [
             //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
@@ -993,10 +1004,11 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function fetch_accounts($params = array ()) {
+    public function fetch_accounts($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
+             * @see https://apidoc.ndax.io/#getuseraccounts
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
              */
@@ -1010,7 +1022,7 @@ class ndax extends Exchange {
                 'UserId' => $this->uid,
                 'UserName' => $this->login,
             );
-            $response = Async\await($this->privateGetGetUserAccounts (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetUserAccounts ($this->extend($request, $params)));
             //
             //     array( 449 ) // comma-separated list of account ids
             //
@@ -1052,6 +1064,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://apidoc.ndax.io/#getaccountpositions
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -1065,7 +1078,7 @@ class ndax extends Exchange {
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
             );
-            $response = Async\await($this->privateGetGetAccountPositions (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetAccountPositions ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1120,7 +1133,7 @@ class ndax extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "TransactionId" => 2663709493,
@@ -1138,6 +1151,7 @@ class ndax extends Exchange {
         //     }
         //
         $currencyId = $this->safe_string($item, 'ProductId');
+        $currency = $this->safe_currency($currencyId, $currency);
         $credit = $this->safe_string($item, 'CR');
         $debit = $this->safe_string($item, 'DR');
         $amount = null;
@@ -1157,7 +1171,7 @@ class ndax extends Exchange {
             $before = Precise::string_max('0', Precise::string_sub($after, $amount));
         }
         $timestamp = $this->safe_integer($item, 'TimeStamp');
-        return array(
+        return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => $this->safe_string($item, 'TransactionId'),
             'direction' => $direction,
@@ -1173,16 +1187,17 @@ class ndax extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fee' => null,
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             * @param {string} $code unified $currency $code, default is null
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             * @see https://apidoc.ndax.io/#getaccounttransactions
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
@@ -1199,7 +1214,7 @@ class ndax extends Exchange {
             if ($limit !== null) {
                 $request['Depth'] = $limit;
             }
-            $response = Async\await($this->privateGetGetAccountTransactions (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetAccountTransactions ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1226,7 +1241,7 @@ class ndax extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Accepted' => 'open',
             'Rejected' => 'rejected',
@@ -1238,7 +1253,7 @@ class ndax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1337,11 +1352,12 @@ class ndax extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://apidoc.ndax.io/#sendorder
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1392,7 +1408,7 @@ class ndax extends Exchange {
             if ($triggerPrice !== null) {
                 $request['StopPrice'] = $triggerPrice;
             }
-            $response = Async\await($this->privatePostSendOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostSendOrder ($this->extend($request, $params)));
             //
             //     {
             //         "status":"Accepted",
@@ -1441,7 +1457,7 @@ class ndax extends Exchange {
             if ($clientOrderId !== null) {
                 $request['ClientOrderId'] = $clientOrderId;
             }
-            $response = Async\await($this->privatePostCancelReplaceOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelReplaceOrder ($this->extend($request, $params)));
             //
             //     {
             //         "replacementOrderId" => 1234,
@@ -1458,6 +1474,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             * @see https://apidoc.ndax.io/#gettradeshistory
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1494,7 +1511,7 @@ class ndax extends Exchange {
             if ($limit !== null) {
                 $request['Depth'] = $limit;
             }
-            $response = Async\await($this->privateGetGetTradesHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetTradesHistory ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1546,6 +1563,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             * @see https://apidoc.ndax.io/#cancelallorders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1564,7 +1582,7 @@ class ndax extends Exchange {
                 $market = $this->market($symbol);
                 $request['IntrumentId'] = $market['id'];
             }
-            $response = Async\await($this->privatePostCancelAllOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelAllOrders ($this->extend($request, $params)));
             //
             //     {
             //         "result":true,
@@ -1573,7 +1591,11 @@ class ndax extends Exchange {
             //         "detail":null
             //     }
             //
-            return $response;
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 
@@ -1581,6 +1603,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
+             * @see https://apidoc.ndax.io/#cancelorder
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1607,9 +1630,9 @@ class ndax extends Exchange {
                 $request['OrderId'] = intval($id);
             }
             $params = $this->omit($params, array( 'clientOrderId', 'ClOrderId' ));
-            $response = Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
             $order = $this->parse_order($response, $market);
-            return array_merge($order, array(
+            return $this->extend($order, array(
                 'id' => $id,
                 'clientOrderId' => $clientOrderId,
             ));
@@ -1620,6 +1643,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://apidoc.ndax.io/#getopenorders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -1640,7 +1664,7 @@ class ndax extends Exchange {
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
             );
-            $response = Async\await($this->privateGetGetOpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetOpenOrders ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1699,6 +1723,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             * @see https://apidoc.ndax.io/#getorderhistory
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1735,7 +1760,7 @@ class ndax extends Exchange {
             if ($limit !== null) {
                 $request['Depth'] = $limit;
             }
-            $response = Async\await($this->privateGetGetOrdersHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetOrdersHistory ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1794,6 +1819,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://apidoc.ndax.io/#getorderstatus
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1813,7 +1839,7 @@ class ndax extends Exchange {
                 'AccountId' => $accountId,
                 'OrderId' => intval($id),
             );
-            $response = Async\await($this->privateGetGetOrderStatus (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetOrderStatus ($this->extend($request, $params)));
             //
             //     {
             //         "Side":"Sell",
@@ -1870,6 +1896,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
+             * @see https://apidoc.ndax.io/#getorderhistorybyorderid
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1892,7 +1919,7 @@ class ndax extends Exchange {
                 // 'AccountId' => $accountId,
                 'OrderId' => intval($id),
             );
-            $response = Async\await($this->privatePostGetOrderHistoryByOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privatePostGetOrderHistoryByOrderId ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1944,7 +1971,7 @@ class ndax extends Exchange {
             //     )
             //
             $grouped = $this->group_by($response, 'ChangeReason');
-            $trades = $this->safe_value($grouped, 'Trade', array());
+            $trades = $this->safe_list($grouped, 'Trade', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -1970,7 +1997,7 @@ class ndax extends Exchange {
                 'ProductId' => $currency['id'],
                 'GenerateNewKey' => false,
             );
-            $response = Async\await($this->privateGetGetDepositInfo (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetDepositInfo ($this->extend($request, $params)));
             //
             //     {
             //         "result":true,
@@ -2034,7 +2061,7 @@ class ndax extends Exchange {
             $request = array(
                 'GenerateNewKey' => true,
             );
-            return Async\await($this->fetch_deposit_address($code, array_merge($request, $params)));
+            return Async\await($this->fetch_deposit_address($code, $this->extend($request, $params)));
         }) ();
     }
 
@@ -2063,7 +2090,7 @@ class ndax extends Exchange {
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
             );
-            $response = Async\await($this->privateGetGetDeposits (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetDeposits ($this->extend($request, $params)));
             //
             //    "array(
             //        array(
@@ -2103,6 +2130,7 @@ class ndax extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             * @see https://apidoc.ndax.io/#getwithdraws
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -2123,7 +2151,7 @@ class ndax extends Exchange {
                 'omsId' => $omsId,
                 'AccountId' => $accountId,
             );
-            $response = Async\await($this->privateGetGetWithdraws (array_merge($request, $params)));
+            $response = Async\await($this->privateGetGetWithdraws ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -2201,7 +2229,7 @@ class ndax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2300,7 +2328,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2454,7 +2482,7 @@ class ndax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($code === 404) {
             throw new AuthenticationError($this->id . ' ' . $body);
         }

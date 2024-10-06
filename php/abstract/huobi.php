@@ -580,6 +580,9 @@ abstract class huobi extends \ccxt\htx {
     public function spot_private_post_v1_subuser_transfer($params = array()) {
         return $this->request('v1/subuser/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
+    public function spot_private_post_v1_trust_user_active_credit($params = array()) {
+        return $this->request('v1/trust/user/active/credit', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
     public function spot_private_post_v1_order_orders_place($params = array()) {
         return $this->request('v1/order/orders/place', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -2208,6 +2211,9 @@ abstract class huobi extends \ccxt\htx {
     }
     public function spotPrivatePostV1SubuserTransfer($params = array()) {
         return $this->request('v1/subuser/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function spotPrivatePostV1TrustUserActiveCredit($params = array()) {
+        return $this->request('v1/trust/user/active/credit', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 10));
     }
     public function spotPrivatePostV1OrderOrdersPlace($params = array()) {
         return $this->request('v1/order/orders/place', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 0.2));

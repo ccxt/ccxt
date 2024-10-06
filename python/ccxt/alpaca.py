@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Trade
+from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -80,7 +80,13 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchStatus': False,
                 'fetchTicker': False,
                 'fetchTickers': False,
@@ -92,6 +98,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': False,
+                'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'transfer': False,
@@ -296,14 +303,14 @@ class alpaca(Exchange, ImplicitAPI):
         iso = self.parse8601(localTime) - self.parse_to_numeric(jetlag) * 3600 * 1000
         return iso
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for alpaca
         :see: https://docs.alpaca.markets/reference/get-v2-assets
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request = {
+        request: dict = {
             'asset_class': 'crypto',
             'status': 'active',
         }
@@ -438,54 +445,56 @@ class alpaca(Exchange, ImplicitAPI):
         marketId = market['id']
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocTrades')
-        request = {
+        request: dict = {
             'symbols': marketId,
             'loc': loc,
         }
         params = self.omit(params, ['loc', 'method'])
-        response = None
+        symbolTrades = None
         if method == 'marketPublicGetV1beta3CryptoLocTrades':
             if since is not None:
                 request['start'] = self.iso8601(since)
             if limit is not None:
                 request['limit'] = limit
             response = self.marketPublicGetV1beta3CryptoLocTrades(self.extend(request, params))
+            #
+            #    {
+            #        "next_page_token": null,
+            #        "trades": {
+            #            "BTC/USD": [
+            #                {
+            #                    "i": 36440704,
+            #                    "p": 22625,
+            #                    "s": 0.0001,
+            #                    "t": "2022-07-21T11:47:31.073391Z",
+            #                    "tks": "B"
+            #                }
+            #            ]
+            #        }
+            #    }
+            #
+            trades = self.safe_dict(response, 'trades', {})
+            symbolTrades = self.safe_list(trades, marketId, [])
         elif method == 'marketPublicGetV1beta3CryptoLocLatestTrades':
             response = self.marketPublicGetV1beta3CryptoLocLatestTrades(self.extend(request, params))
+            #
+            #    {
+            #       "trades": {
+            #            "BTC/USD": {
+            #                "i": 36440704,
+            #                "p": 22625,
+            #                "s": 0.0001,
+            #                "t": "2022-07-21T11:47:31.073391Z",
+            #                "tks": "B"
+            #            }
+            #        }
+            #    }
+            #
+            trades = self.safe_dict(response, 'trades', {})
+            symbolTrades = self.safe_dict(trades, marketId, {})
+            symbolTrades = [symbolTrades]
         else:
             raise NotSupported(self.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported')
-        #
-        # {
-        #     "next_page_token":null,
-        #     "trades":{
-        #        "BTC/USD":[
-        #           {
-        #              "i":36440704,
-        #              "p":22625,
-        #              "s":0.0001,
-        #              "t":"2022-07-21T11:47:31.073391Z",
-        #              "tks":"B"
-        #           }
-        #        ]
-        #     }
-        # }
-        #
-        # {
-        #     "trades":{
-        #        "BTC/USD":{
-        #           "i":36440704,
-        #           "p":22625,
-        #           "s":0.0001,
-        #           "t":"2022-07-21T11:47:31.073391Z",
-        #           "tks":"B"
-        #        }
-        #     }
-        # }
-        #
-        trades = self.safe_value(response, 'trades', {})
-        symbolTrades = self.safe_value(trades, marketId, {})
-        if not isinstance(symbolTrades, list):
-            symbolTrades = [symbolTrades]
         return self.parse_trades(symbolTrades, market, since, limit)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -502,7 +511,7 @@ class alpaca(Exchange, ImplicitAPI):
         market = self.market(symbol)
         id = market['id']
         loc = self.safe_string(params, 'loc', 'us')
-        request = {
+        request: dict = {
             'symbols': id,
             'loc': loc,
         }
@@ -544,8 +553,8 @@ class alpaca(Exchange, ImplicitAPI):
         #       }
         #   }
         #
-        orderbooks = self.safe_value(response, 'orderbooks', {})
-        rawOrderbook = self.safe_value(orderbooks, id, {})
+        orderbooks = self.safe_dict(response, 'orderbooks', {})
+        rawOrderbook = self.safe_dict(orderbooks, id, {})
         timestamp = self.parse8601(self.safe_string(rawOrderbook, 't'))
         return self.parse_order_book(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's')
 
@@ -568,12 +577,12 @@ class alpaca(Exchange, ImplicitAPI):
         marketId = market['id']
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocBars')
-        request = {
+        request: dict = {
             'symbols': marketId,
             'loc': loc,
         }
         params = self.omit(params, ['loc', 'method'])
-        response = None
+        ohlcvs = None
         if method == 'marketPublicGetV1beta3CryptoLocBars':
             if limit is not None:
                 request['limit'] = limit
@@ -581,58 +590,60 @@ class alpaca(Exchange, ImplicitAPI):
                 request['start'] = self.yyyymmdd(since)
             request['timeframe'] = self.safe_string(self.timeframes, timeframe, timeframe)
             response = self.marketPublicGetV1beta3CryptoLocBars(self.extend(request, params))
+            #
+            #    {
+            #        "bars": {
+            #           "BTC/USD": [
+            #              {
+            #                 "c": 22887,
+            #                 "h": 22888,
+            #                 "l": 22873,
+            #                 "n": 11,
+            #                 "o": 22883,
+            #                 "t": "2022-07-21T05:00:00Z",
+            #                 "v": 1.1138,
+            #                 "vw": 22883.0155324116
+            #              },
+            #              {
+            #                 "c": 22895,
+            #                 "h": 22895,
+            #                 "l": 22884,
+            #                 "n": 6,
+            #                 "o": 22884,
+            #                 "t": "2022-07-21T05:01:00Z",
+            #                 "v": 0.001,
+            #                 "vw": 22889.5
+            #              }
+            #           ]
+            #        },
+            #        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+            #     }
+            #
+            bars = self.safe_dict(response, 'bars', {})
+            ohlcvs = self.safe_list(bars, marketId, [])
         elif method == 'marketPublicGetV1beta3CryptoLocLatestBars':
             response = self.marketPublicGetV1beta3CryptoLocLatestBars(self.extend(request, params))
+            #
+            #    {
+            #        "bars": {
+            #           "BTC/USD": {
+            #              "c": 22887,
+            #              "h": 22888,
+            #              "l": 22873,
+            #              "n": 11,
+            #              "o": 22883,
+            #              "t": "2022-07-21T05:00:00Z",
+            #              "v": 1.1138,
+            #              "vw": 22883.0155324116
+            #           }
+            #        }
+            #     }
+            #
+            bars = self.safe_dict(response, 'bars', {})
+            ohlcvs = self.safe_dict(bars, marketId, {})
+            ohlcvs = [ohlcvs]
         else:
             raise NotSupported(self.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported')
-        #
-        #    {
-        #        "bars":{
-        #           "BTC/USD":[
-        #              {
-        #                 "c":22887,
-        #                 "h":22888,
-        #                 "l":22873,
-        #                 "n":11,
-        #                 "o":22883,
-        #                 "t":"2022-07-21T05:00:00Z",
-        #                 "v":1.1138,
-        #                 "vw":22883.0155324116
-        #              },
-        #              {
-        #                 "c":22895,
-        #                 "h":22895,
-        #                 "l":22884,
-        #                 "n":6,
-        #                 "o":22884,
-        #                 "t":"2022-07-21T05:01:00Z",
-        #                 "v":0.001,
-        #                 "vw":22889.5
-        #              }
-        #           ]
-        #        },
-        #        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-        #     }
-        #
-        #    {
-        #        "bars":{
-        #           "BTC/USD":{
-        #              "c":22887,
-        #              "h":22888,
-        #              "l":22873,
-        #              "n":11,
-        #              "o":22883,
-        #              "t":"2022-07-21T05:00:00Z",
-        #              "v":1.1138,
-        #              "vw":22883.0155324116
-        #           }
-        #        }
-        #     }
-        #
-        bars = self.safe_value(response, 'bars', {})
-        ohlcvs = self.safe_value(bars, marketId, {})
-        if not isinstance(ohlcvs, list):
-            ohlcvs = [ohlcvs]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -659,7 +670,7 @@ class alpaca(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),  # volume
         ]
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://docs.alpaca.markets/reference/postorder
@@ -667,7 +678,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param str type: 'market', 'limit' or 'stop_limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -675,7 +686,7 @@ class alpaca(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        request = {
+        request: dict = {
             'symbol': id,
             'qty': self.amount_to_precision(symbol, amount),
             'side': side,
@@ -751,7 +762,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'order_id': id,
         }
         response = self.traderPrivateDeleteV2OrdersOrderId(self.extend(request, params))
@@ -761,7 +772,7 @@ class alpaca(Exchange, ImplicitAPI):
         #       "message": "order is not found."
         #   }
         #
-        return self.safe_value(response, 'message', {})
+        return self.parse_order(response)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -776,18 +787,23 @@ class alpaca(Exchange, ImplicitAPI):
         if isinstance(response, list):
             return self.parse_orders(response, None)
         else:
-            return response
+            return [
+                self.safe_order({
+                    'info': response,
+                }),
+            ]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.alpaca.markets/reference/getorderbyorderid
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'order_id': id,
         }
         order = self.traderPrivateGetV2OrdersOrderId(self.extend(request, params))
@@ -807,7 +823,7 @@ class alpaca(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'status': 'all',
         }
         market = None
@@ -876,7 +892,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': 'open',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -892,12 +908,12 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'status': 'closed',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -980,8 +996,8 @@ class alpaca(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'pending_new': 'open',
             'accepted': 'open',
             'new': 'open',
@@ -991,13 +1007,13 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce):
-        timeInForces = {
+    def parse_time_in_force(self, timeInForce: Str):
+        timeInForces: dict = {
             'day': 'Day',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #   {
         #       "t":"2022-06-14T05:00:00.027869Z",
@@ -1041,6 +1057,7 @@ class alpaca(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][api[0]])
         headers = headers if (headers is not None) else {}
         if api[1] == 'private':
+            self.check_required_credentials()
             headers['APCA-API-KEY-ID'] = self.apiKey
             headers['APCA-API-SECRET-KEY'] = self.secret
         query = self.omit(params, self.extract_params(path))
@@ -1053,7 +1070,7 @@ class alpaca(Exchange, ImplicitAPI):
         url = url + endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # default error handler
         # {

@@ -327,6 +327,7 @@ export default class bitrue extends Exchange {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',
                 'hasAlreadyAuthenticatedSuccessfully': false,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'recvWindow': 5 * 1000,
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
@@ -338,6 +339,67 @@ export default class bitrue extends Exchange {
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
+                    'AETERNITY': 'Aeternity',
+                    'AION': 'AION',
+                    'ALGO': 'Algorand',
+                    'ASK': 'ASK',
+                    'ATOM': 'ATOM',
+                    'AVAXC': 'AVAX C-Chain',
+                    'BCH': 'BCH',
+                    'BEP2': 'BEP2',
+                    'BEP20': 'BEP20',
+                    'Bitcoin': 'Bitcoin',
+                    'BRP20': 'BRP20',
+                    'ADA': 'Cardano',
+                    'CASINOCOIN': 'CasinoCoin',
+                    'CASINOCOIN-XRPL': 'CasinoCoin XRPL',
+                    'CONTENTOS': 'Contentos',
+                    'DASH': 'Dash',
+                    'DECOIN': 'Decoin',
+                    'DFI': 'DeFiChain',
+                    'DGB': 'DGB',
+                    'DIVI': 'Divi',
+                    'DOGE': 'dogecoin',
+                    'EOS': 'EOS',
+                    'ETC': 'ETC',
+                    'FILECOIN': 'Filecoin',
+                    'FREETON': 'FREETON',
+                    'HBAR': 'HBAR',
+                    'HEDERA': 'Hedera Hashgraph',
+                    'HRC20': 'HRC20',
+                    'ICON': 'ICON',
+                    'ICP': 'ICP',
+                    'IGNIS': 'Ignis',
+                    'INTERNETCOMPUTER': 'Internet Computer',
+                    'IOTA': 'IOTA',
+                    'KAVA': 'KAVA',
+                    'KSM': 'KSM',
+                    'LTC': 'LiteCoin',
+                    'LUNA': 'Luna',
+                    'MATIC': 'MATIC',
+                    'MOBILECOIN': 'Mobile Coin',
+                    'MONACOIN': 'MonaCoin',
+                    'XMR': 'Monero',
+                    'NEM': 'NEM',
+                    'NEP5': 'NEP5',
+                    'OMNI': 'OMNI',
+                    'PAC': 'PAC',
+                    'DOT': 'Polkadot',
+                    'RAVEN': 'Ravencoin',
+                    'SAFEX': 'Safex',
+                    'SOL': 'SOLANA',
+                    'SGB': 'Songbird',
+                    'XML': 'Stellar Lumens',
+                    'XYM': 'Symbol',
+                    'XTZ': 'Tezos',
+                    'theta': 'theta',
+                    'THETA': 'THETA',
+                    'VECHAIN': 'VeChain',
+                    'WANCHAIN': 'Wanchain',
+                    'XINFIN': 'XinFin Network',
+                    'XRP': 'XRP',
+                    'XRPL': 'XRPL',
+                    'ZIL': 'ZIL',
                 },
                 'defaultType': 'spot',
                 'timeframes': {
@@ -455,15 +517,6 @@ export default class bitrue extends Exchange {
             },
         });
     }
-    currencyToPrecision(code, fee, networkCode = undefined) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue(this.currencies[code], 'precision') !== undefined) {
-            return this.decimalToPrecision(fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
-        }
-        else {
-            return this.numberToString(fee);
-        }
-    }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }
@@ -509,77 +562,6 @@ export default class bitrue extends Exchange {
         //     }
         //
         return this.safeInteger(response, 'serverTime');
-    }
-    safeNetwork(networkId) {
-        const uppercaseNetworkId = networkId.toUpperCase();
-        const networksById = {
-            'Aeternity': 'Aeternity',
-            'AION': 'AION',
-            'Algorand': 'Algorand',
-            'ASK': 'ASK',
-            'ATOM': 'ATOM',
-            'AVAX C-Chain': 'AVAX C-Chain',
-            'bch': 'bch',
-            'BCH': 'BCH',
-            'BEP2': 'BEP2',
-            'BEP20': 'BEP20',
-            'Bitcoin': 'Bitcoin',
-            'BRP20': 'BRP20',
-            'Cardano': 'ADA',
-            'CasinoCoin': 'CasinoCoin',
-            'CasinoCoin XRPL': 'CasinoCoin XRPL',
-            'Contentos': 'Contentos',
-            'Dash': 'Dash',
-            'Decoin': 'Decoin',
-            'DeFiChain': 'DeFiChain',
-            'DGB': 'DGB',
-            'Divi': 'Divi',
-            'dogecoin': 'DOGE',
-            'EOS': 'EOS',
-            'ERC20': 'ERC20',
-            'ETC': 'ETC',
-            'Filecoin': 'Filecoin',
-            'FREETON': 'FREETON',
-            'HBAR': 'HBAR',
-            'Hedera Hashgraph': 'Hedera Hashgraph',
-            'HRC20': 'HRC20',
-            'ICON': 'ICON',
-            'ICP': 'ICP',
-            'Ignis': 'Ignis',
-            'Internet Computer': 'Internet Computer',
-            'IOTA': 'IOTA',
-            'KAVA': 'KAVA',
-            'KSM': 'KSM',
-            'LiteCoin': 'LiteCoin',
-            'Luna': 'Luna',
-            'MATIC': 'MATIC',
-            'Mobile Coin': 'Mobile Coin',
-            'MonaCoin': 'MonaCoin',
-            'Monero': 'Monero',
-            'NEM': 'NEM',
-            'NEP5': 'NEP5',
-            'OMNI': 'OMNI',
-            'PAC': 'PAC',
-            'Polkadot': 'Polkadot',
-            'Ravencoin': 'Ravencoin',
-            'Safex': 'Safex',
-            'SOLANA': 'SOL',
-            'Songbird': 'Songbird',
-            'Stellar Lumens': 'Stellar Lumens',
-            'Symbol': 'Symbol',
-            'Tezos': 'XTZ',
-            'theta': 'theta',
-            'THETA': 'THETA',
-            'TRC20': 'TRC20',
-            'VeChain': 'VeChain',
-            'VECHAIN': 'VECHAIN',
-            'Wanchain': 'Wanchain',
-            'XinFin Network': 'XinFin Network',
-            'XRP': 'XRP',
-            'XRPL': 'XRPL',
-            'ZIL': 'ZIL',
-        };
-        return this.safeString2(networksById, networkId, uppercaseNetworkId, networkId);
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -1351,9 +1333,6 @@ export default class bitrue extends Exchange {
                 'interval': this.safeString(timeframesFuture, timeframe, '1min'),
             };
             if (limit !== undefined) {
-                if (limit > 300) {
-                    limit = 300;
-                }
                 request['limit'] = limit;
             }
             if (market['linear']) {
@@ -1372,9 +1351,6 @@ export default class bitrue extends Exchange {
                 'scale': this.safeString(timeframesSpot, timeframe, '1m'),
             };
             if (limit !== undefined) {
-                if (limit > 1440) {
-                    limit = 1440;
-                }
                 request['limit'] = limit;
             }
             if (since !== undefined) {
@@ -1916,7 +1892,7 @@ export default class bitrue extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
@@ -2053,6 +2029,7 @@ export default class bitrue extends Exchange {
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
          * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2569,7 +2546,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2606,20 +2583,29 @@ export default class bitrue extends Exchange {
         }
         const response = await this.spotV1PrivateGetWithdrawHistory(this.extend(request, params));
         //
-        //     {
-        //         "code": 200,
-        //         "msg": "succ",
-        //         "data": {
-        //             "msg": null,
-        //             "amount": 1000,
-        //             "fee": 1,
-        //             "ctime": null,
-        //             "coin": "usdt_erc20",
-        //             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-        //         }
-        //     }
+        //    {
+        //        "code": 200,
+        //        "msg": "succ",
+        //        "data": [
+        //            {
+        //                "id": 183745,
+        //                "symbol": "usdt_erc20",
+        //                "amount": "8.4000000000000000",
+        //                "fee": "1.6000000000000000",
+        //                "payAmount": "0.0000000000000000",
+        //                "createdAt": 1595336441000,
+        //                "updatedAt": 1595336576000,
+        //                "addressFrom": "",
+        //                "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        //                "txid": "",
+        //                "confirmations": 0,
+        //                "status": 6,
+        //                "tagType": null
+        //            }
+        //        ]
+        //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency);
     }
     parseTransactionStatusByType(status, type = undefined) {
@@ -2813,7 +2799,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -2869,7 +2855,7 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets();
         const response = await this.spotV1PublicGetExchangeInfo(params);
-        const coins = this.safeValue(response, 'coins');
+        const coins = this.safeList(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
     }
     parseTransfer(transfer, currency = undefined) {
@@ -2962,7 +2948,7 @@ export default class bitrue extends Exchange {
         //         }]
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeList(response, 'data', []);
         return this.parseTransfers(data, currency, since, limit);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -2997,7 +2983,7 @@ export default class bitrue extends Exchange {
         //         'data': null
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransfer(data, currency);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -3037,13 +3023,26 @@ export default class bitrue extends Exchange {
         return response;
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': undefined,
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': undefined,
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async setMargin(symbol, amount, params = {}) {
@@ -3129,6 +3128,11 @@ export default class bitrue extends Exchange {
                 signPath = signPath + '/' + version + '/' + path;
                 let signMessage = timestamp + method + signPath;
                 if (method === 'GET') {
+                    const keys = Object.keys(params);
+                    const keysLength = keys.length;
+                    if (keysLength > 0) {
+                        signMessage += '?' + this.urlencode(params);
+                    }
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = {
                         'X-CH-APIKEY': this.apiKey,
@@ -3142,7 +3146,7 @@ export default class bitrue extends Exchange {
                         'recvWindow': recvWindow,
                     }, params);
                     body = this.json(query);
-                    signMessage = signMessage + JSON.stringify(body);
+                    signMessage += body;
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = {
                         'Content-Type': 'application/json',

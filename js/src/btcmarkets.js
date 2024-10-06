@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/btcmarkets.js';
-import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
@@ -35,6 +35,7 @@ export default class btcmarkets extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
@@ -43,6 +44,9 @@ export default class btcmarkets extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -64,8 +68,11 @@ export default class btcmarkets extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -149,16 +156,17 @@ export default class btcmarkets extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '3': InvalidOrder,
-                '6': DDoSProtection,
-                'InsufficientFund': InsufficientFunds,
-                'InvalidPrice': InvalidOrder,
-                'InvalidAmount': InvalidOrder,
-                'MissingArgument': InvalidOrder,
-                'OrderAlreadyCancelled': InvalidOrder,
-                'OrderNotFound': OrderNotFound,
-                'OrderStatusIsFinal': InvalidOrder,
-                'InvalidPaginationParameter': BadRequest,
+                'exact': {
+                    'InsufficientFund': InsufficientFunds,
+                    'InvalidPrice': InvalidOrder,
+                    'InvalidAmount': InvalidOrder,
+                    'MissingArgument': BadRequest,
+                    'OrderAlreadyCancelled': InvalidOrder,
+                    'OrderNotFound': OrderNotFound,
+                    'OrderStatusIsFinal': InvalidOrder,
+                    'InvalidPaginationParameter': BadRequest,
+                },
+                'broad': {},
             },
             'fees': {
                 'percentage': true,
@@ -373,7 +381,8 @@ export default class btcmarkets extends Exchange {
         //             "minOrderAmount":"0.00007",
         //             "maxOrderAmount":"1000000",
         //             "amountDecimals":"8",
-        //             "priceDecimals":"2"
+        //             "priceDecimals":"2",
+        //             "status": "Online"
         //         }
         //     ]
         //
@@ -390,6 +399,7 @@ export default class btcmarkets extends Exchange {
         const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
         const minAmount = this.safeNumber(market, 'minOrderAmount');
         const maxAmount = this.safeNumber(market, 'maxOrderAmount');
+        const status = this.safeString(market, 'status');
         let minPrice = undefined;
         if (quote === 'AUD') {
             minPrice = pricePrecision;
@@ -409,7 +419,7 @@ export default class btcmarkets extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': (status === 'Online'),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -537,7 +547,7 @@ export default class btcmarkets extends Exchange {
             request['from'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default is 10, max 200
+            request['limit'] = Math.min(limit, 200); // default is 10, max 200
         }
         const response = await this.publicGetMarketsMarketIdCandles(this.extend(request, params));
         //
@@ -784,7 +794,7 @@ export default class btcmarkets extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -893,7 +903,29 @@ export default class btcmarkets extends Exchange {
         const request = {
             'ids': ids,
         };
-        return await this.privateDeleteBatchordersIds(this.extend(request, params));
+        const response = await this.privateDeleteBatchordersIds(this.extend(request, params));
+        //
+        //    {
+        //       "cancelOrders": [
+        //            {
+        //               "orderId": "414186",
+        //               "clientOrderId": "6"
+        //            },
+        //            ...
+        //        ],
+        //        "unprocessedRequests": [
+        //            {
+        //               "code": "OrderAlreadyCancelled",
+        //               "message": "order is already cancelled.",
+        //               "requestId": "1"
+        //            }
+        //        ]
+        //    }
+        //
+        const cancelOrders = this.safeList(response, 'cancelOrders', []);
+        const unprocessedRequests = this.safeList(response, 'unprocessedRequests', []);
+        const orders = this.arrayConcat(cancelOrders, unprocessedRequests);
+        return this.parseOrders(orders);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -910,9 +942,28 @@ export default class btcmarkets extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privateDeleteOrdersId(this.extend(request, params));
+        const response = await this.privateDeleteOrdersId(this.extend(request, params));
+        //
+        //    {
+        //        "orderId": "7524",
+        //        "clientOrderId": "123-456"
+        //    }
+        //
+        return this.parseOrder(response);
     }
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        /**
+         * @method
+         * @description calculates the presumptive fee that would be charged for an order
+         * @param {string} symbol unified market symbol
+         * @param {string} type not used by btcmarkets.calculateFee
+         * @param {string} side not used by btcmarkets.calculateFee
+         * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} price the price for the order to be filled at, in units of the quote currency
+         * @param {string} takerOrMaker 'taker' or 'maker'
+         * @param {object} params
+         * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+         */
         const market = this.markets[symbol];
         let currency = undefined;
         let cost = undefined;
@@ -1021,6 +1072,7 @@ export default class btcmarkets extends Exchange {
          * @name btcmarkets#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.btcmarkets.net/v3/#operation/getOrderById
+         * @param {string} id the order id
          * @param {string} symbol not used by btcmarkets fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1235,22 +1287,18 @@ export default class btcmarkets extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('success' in response) {
-            if (!response['success']) {
-                const error = this.safeString(response, 'errorCode');
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException(this.exceptions, error, feedback);
-                throw new ExchangeError(feedback);
-            }
-        }
-        // v3 api errors
-        if (code >= 400) {
-            const errorCode = this.safeString(response, 'code');
-            const message = this.safeString(response, 'message');
+        //
+        //     {"code":"UnAuthorized","message":"invalid access token"}
+        //     {"code":"MarketNotFound","message":"invalid marketId"}
+        //
+        const errorCode = this.safeString(response, 'code');
+        const message = this.safeString(response, 'message');
+        if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions, message, feedback);
-            throw new ExchangeError(feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            throw new ExchangeError(feedback); // unknown message
         }
         return undefined;
     }

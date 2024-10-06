@@ -525,5 +525,992 @@
             "basis_factor_max_limit": "10.95",
             "settlement_price": null
         }
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0005,
+        "maker": 0.0005,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 10000000
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1624888978000,
+        "info": {
+            "barrier_price": null,
+            "contract_unit_currency": "ETH",
+            "symbol": "ETH_USDT",
+            "default_leverage": "1.000000000000000000",
+            "price_band": "100",
+            "description": "Ethereum Tether spot market",
+            "max_leverage_notional": "10000000",
+            "auction_finish_time": null,
+            "maker_commission_rate": "0.0005",
+            "initial_margin": "1",
+            "settlement_time": null,
+            "basis_factor_max_limit": "10000",
+            "funding_method": "mark_price",
+            "launch_time": "2021-06-28T14:02:58Z",
+            "settling_asset": null,
+            "id": "8411",
+            "insurance_fund_margin_contribution": "1",
+            "taker_commission_rate": "0.0005",
+            "underlying_asset": {
+                "base_withdrawal_fee": "0.005000000000000000",
+                "id": "1",
+                "interest_credit": false,
+                "interest_slabs": null,
+                "kyc_deposit_limit": "0.000000000000000000",
+                "kyc_withdrawal_limit": "0.000000000000000000",
+                "min_withdrawal_amount": "0.010000000000000000",
+                "minimum_precision": "4",
+                "name": "Ethereum",
+                "networks": [
+                    {
+                        "base_withdrawal_fee": "0.0025",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.000050000000000000",
+                        "min_withdrawal_amount": "0.010000000000000000",
+                        "minimum_deposit_confirmations": "12",
+                        "network": "ERC20",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "0.0001",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.000050000000000000",
+                        "min_withdrawal_amount": "0.000300000000000000",
+                        "minimum_deposit_confirmations": "15",
+                        "network": "BEP20(BSC)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    }
+                ],
+                "precision": "18",
+                "sort_priority": "3",
+                "symbol": "ETH",
+                "variable_withdrawal_fee": "0.000000000000000000"
+            },
+            "position_size_limit": "10000000",
+            "disruption_reason": null,
+            "impact_size": "2",
+            "product_specs": {
+                "kyc_required": false,
+                "max_order_size": "10",
+                "min_order_size": "0.001",
+                "only_reduce_only_orders_allowed": false,
+                "quoting_precision": "5",
+                "underlying_precision": "5"
+            },
+            "spot_index": {
+                "config": {
+                    "impact_size": {
+                        "max_impact_size": "150000",
+                        "min_impact_size": "5000",
+                        "step_value": "5000"
+                    },
+                    "quoting_asset": "USDT",
+                    "service_id": "1",
+                    "underlying_asset": "ETH"
+                },
+                "constituent_exchanges": [
+                    {
+                        "exchange": "binance",
+                        "health_interval": "60",
+                        "health_priority": "1",
+                        "weight": "1"
+                    },
+                    {
+                        "exchange": "okex",
+                        "health_interval": "60",
+                        "health_priority": "2",
+                        "weight": "1"
+                    },
+                    {
+                        "exchange": "bybit",
+                        "health_interval": "60",
+                        "health_priority": "3",
+                        "weight": "1"
+                    }
+                ],
+                "constituent_indices": null,
+                "description": "ETH/USDT price on Binance, Okex and Bybit",
+                "health_interval": "300",
+                "id": "49",
+                "impact_size": "10.000000000000000000",
+                "index_type": "spot_pair",
+                "is_composite": false,
+                "price_method": "orderbook",
+                "quoting_asset_id": "5",
+                "symbol": ".DEETHUSDT",
+                "tick_size": "0.050000000000000000",
+                "underlying_asset_id": "1"
+            },
+            "trading_status": "operational",
+            "ui_config": {
+                "default_trading_view_candle": "1d",
+                "leverage_slider_values": [],
+                "price_clubbing_values": [
+                    0.01,
+                    0.05,
+                    0.1,
+                    0.5,
+                    1,
+                    5,
+                    25,
+                    100
+                ],
+                "show_bracket_orders": false,
+                "sort_priority": "2",
+                "tags": []
+            },
+            "strike_price": null,
+            "notional_type": "vanilla",
+            "annualized_funding": "0",
+            "short_description": "ETH-USDT spot market",
+            "auction_start_time": null,
+            "state": "live",
+            "quoting_asset": {
+                "base_withdrawal_fee": "10.000000000000000000",
+                "id": "5",
+                "interest_credit": false,
+                "interest_slabs": null,
+                "kyc_deposit_limit": "100000.000000000000000000",
+                "kyc_withdrawal_limit": "10000.000000000000000000",
+                "min_withdrawal_amount": "30.000000000000000000",
+                "minimum_precision": "2",
+                "name": "Tether",
+                "networks": [
+                    {
+                        "base_withdrawal_fee": "10",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": "12",
+                        "network": "ERC20",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "1",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": "15",
+                        "network": "BEP20(BSC)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "3",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "1.000000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": "1",
+                        "network": "TRC20(TRON)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "0.5",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "10.000000000000000000",
+                        "minimum_deposit_confirmations": "1",
+                        "network": "POLYGON",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    }
+                ],
+                "precision": "8",
+                "sort_priority": "1",
+                "symbol": "USDT",
+                "variable_withdrawal_fee": "0.000000000000000000"
+            },
+            "settlement_price": null,
+            "is_quanto": false,
+            "contract_type": "spot",
+            "maintenance_margin_scaling_factor": "0",
+            "maintenance_margin": "0",
+            "tick_size": "0.01",
+            "initial_margin_scaling_factor": "0",
+            "liquidation_penalty_factor": "1",
+            "contract_value": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0015
+                ],
+                [
+                    100,
+                    0.0013
+                ],
+                [
+                    250,
+                    0.0013
+                ],
+                [
+                    1000,
+                    0.001
+                ],
+                [
+                    5000,
+                    0.0009
+                ],
+                [
+                    10000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    100,
+                    0.001
+                ],
+                [
+                    250,
+                    0.0009
+                ],
+                [
+                    1000,
+                    0.00075
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0005
+                ]
+            ]
+        },
+        "numericId": 8411
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 0.01,
+        "precision": {
+            "amount": 1,
+            "price": 0.05
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 162683
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1587564812000,
+        "info": {
+            "barrier_price": null,
+            "contract_unit_currency": "ETH",
+            "symbol": "ETHUSDT",
+            "default_leverage": "10.000000000000000000",
+            "price_band": "5",
+            "description": "Ethereum Perpetual futures, quoted,settled & margined in Tether",
+            "max_leverage_notional": "100000",
+            "auction_finish_time": null,
+            "maker_commission_rate": "0.0002",
+            "initial_margin": "1",
+            "settlement_time": null,
+            "basis_factor_max_limit": "10.95",
+            "funding_method": "mark_price",
+            "launch_time": "2020-04-22T14:13:32Z",
+            "settling_asset": {
+                "base_withdrawal_fee": "10.000000000000000000",
+                "id": "5",
+                "interest_credit": false,
+                "interest_slabs": null,
+                "kyc_deposit_limit": "100000.000000000000000000",
+                "kyc_withdrawal_limit": "10000.000000000000000000",
+                "min_withdrawal_amount": "30.000000000000000000",
+                "minimum_precision": "2",
+                "name": "Tether",
+                "networks": [
+                    {
+                        "base_withdrawal_fee": "10",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": "12",
+                        "network": "ERC20",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "1",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": "15",
+                        "network": "BEP20(BSC)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "3",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "1.000000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": "1",
+                        "network": "TRC20(TRON)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "0.5",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "10.000000000000000000",
+                        "minimum_deposit_confirmations": "1",
+                        "network": "POLYGON",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    }
+                ],
+                "precision": "8",
+                "sort_priority": "1",
+                "symbol": "USDT",
+                "variable_withdrawal_fee": "0.000000000000000000"
+            },
+            "id": "176",
+            "insurance_fund_margin_contribution": "5",
+            "taker_commission_rate": "0.0005",
+            "underlying_asset": {
+                "base_withdrawal_fee": "0.005000000000000000",
+                "id": "1",
+                "interest_credit": false,
+                "interest_slabs": null,
+                "kyc_deposit_limit": "0.000000000000000000",
+                "kyc_withdrawal_limit": "0.000000000000000000",
+                "min_withdrawal_amount": "0.010000000000000000",
+                "minimum_precision": "4",
+                "name": "Ethereum",
+                "networks": [
+                    {
+                        "base_withdrawal_fee": "0.0025",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.000050000000000000",
+                        "min_withdrawal_amount": "0.010000000000000000",
+                        "minimum_deposit_confirmations": "12",
+                        "network": "ERC20",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "0.0001",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.000050000000000000",
+                        "min_withdrawal_amount": "0.000300000000000000",
+                        "minimum_deposit_confirmations": "15",
+                        "network": "BEP20(BSC)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    }
+                ],
+                "precision": "18",
+                "sort_priority": "3",
+                "symbol": "ETH",
+                "variable_withdrawal_fee": "0.000000000000000000"
+            },
+            "position_size_limit": "162683",
+            "disruption_reason": null,
+            "impact_size": "3000",
+            "product_specs": {
+                "funding_clamp_value": "0.02",
+                "only_reduce_only_orders_allowed": false,
+                "tags": [
+                    "smart_contract",
+                    "layer1and2"
+                ]
+            },
+            "spot_index": {
+                "config": {
+                    "impact_size": {
+                        "max_impact_size": "150000",
+                        "min_impact_size": "5000",
+                        "step_value": "5000"
+                    },
+                    "quoting_asset": "USDT",
+                    "service_id": "1",
+                    "underlying_asset": "ETH"
+                },
+                "constituent_exchanges": [
+                    {
+                        "exchange": "binance",
+                        "health_interval": "60",
+                        "health_priority": "1",
+                        "weight": "1"
+                    },
+                    {
+                        "exchange": "okex",
+                        "health_interval": "60",
+                        "health_priority": "2",
+                        "weight": "1"
+                    },
+                    {
+                        "exchange": "bybit",
+                        "health_interval": "60",
+                        "health_priority": "3",
+                        "weight": "1"
+                    }
+                ],
+                "constituent_indices": null,
+                "description": "ETH/USDT price on Binance, Okex and Bybit",
+                "health_interval": "300",
+                "id": "49",
+                "impact_size": "10.000000000000000000",
+                "index_type": "spot_pair",
+                "is_composite": false,
+                "price_method": "orderbook",
+                "quoting_asset_id": "5",
+                "symbol": ".DEETHUSDT",
+                "tick_size": "0.050000000000000000",
+                "underlying_asset_id": "1"
+            },
+            "trading_status": "operational",
+            "ui_config": {
+                "default_trading_view_candle": "15",
+                "leverage_slider_values": [
+                    1,
+                    2,
+                    5,
+                    10,
+                    20,
+                    50,
+                    100
+                ],
+                "price_clubbing_values": [
+                    0.05,
+                    0.1,
+                    0.5,
+                    1,
+                    2.5,
+                    5,
+                    10
+                ],
+                "show_bracket_orders": false,
+                "sort_priority": "3",
+                "tags": []
+            },
+            "strike_price": null,
+            "notional_type": "vanilla",
+            "annualized_funding": "10.95",
+            "short_description": "Ether Perpetual",
+            "auction_start_time": null,
+            "state": "live",
+            "quoting_asset": {
+                "base_withdrawal_fee": "10.000000000000000000",
+                "id": "5",
+                "interest_credit": false,
+                "interest_slabs": null,
+                "kyc_deposit_limit": "100000.000000000000000000",
+                "kyc_withdrawal_limit": "10000.000000000000000000",
+                "min_withdrawal_amount": "30.000000000000000000",
+                "minimum_precision": "2",
+                "name": "Tether",
+                "networks": [
+                    {
+                        "base_withdrawal_fee": "10",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": "12",
+                        "network": "ERC20",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "1",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": "15",
+                        "network": "BEP20(BSC)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "3",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "1.000000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": "1",
+                        "network": "TRC20(TRON)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "0.5",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "10.000000000000000000",
+                        "minimum_deposit_confirmations": "1",
+                        "network": "POLYGON",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    }
+                ],
+                "precision": "8",
+                "sort_priority": "1",
+                "symbol": "USDT",
+                "variable_withdrawal_fee": "0.000000000000000000"
+            },
+            "settlement_price": null,
+            "is_quanto": false,
+            "contract_type": "perpetual_futures",
+            "maintenance_margin_scaling_factor": "0.000002",
+            "maintenance_margin": "0.5",
+            "tick_size": "0.05",
+            "initial_margin_scaling_factor": "0.000004",
+            "liquidation_penalty_factor": "0.2",
+            "contract_value": "0.01"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0015
+                ],
+                [
+                    100,
+                    0.0013
+                ],
+                [
+                    250,
+                    0.0013
+                ],
+                [
+                    1000,
+                    0.001
+                ],
+                [
+                    5000,
+                    0.0009
+                ],
+                [
+                    10000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    100,
+                    0.001
+                ],
+                [
+                    250,
+                    0.0009
+                ],
+                [
+                    1000,
+                    0.00075
+                ],
+                [
+                    5000,
+                    0.0006
+                ],
+                [
+                    10000,
+                    0.0005
+                ],
+                [
+                    20000,
+                    0.0005
+                ]
+            ]
+        },
+        "numericId": 176
+    },
+    "BTC/USDT:USDT-240329-65000-P": {
+        "id": "P-BTC-65000-290324",
+        "numericId": 161274,
+        "symbol": "BTC/USDT:USDT-240329-65000-P",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "option",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": true,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "taker": 0.000375,
+        "maker": 0.000375,
+        "contractSize": 0.001,
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1,
+                "max": 255633
+            },
+            "price": {},
+            "cost": {}
+        },
+        "expiry": 1711713600000,
+        "expiryDatetime": "2024-03-29T12:00:00Z",
+        "strike": 65000,
+        "optionType": "put",
+        "created": 1707499801000,
+        "info": {
+            "contract_unit_currency": "BTC",
+            "trading_status": "operational",
+            "description": "BTC put option expiring on 29-3-2024",
+            "max_leverage_notional": "200000",
+            "is_quanto": false,
+            "position_size_limit": 255633,
+            "taker_commission_rate": "0.000375",
+            "maker_commission_rate": "0.000375",
+            "tick_size": "0.1",
+            "auction_finish_time": null,
+            "id": 161274,
+            "notional_type": "vanilla",
+            "auction_start_time": null,
+            "spot_index": {
+                "config": {
+                    "impact_size": {
+                        "max_impact_size": 150000,
+                        "min_impact_size": 5000,
+                        "step_value": 5000
+                    },
+                    "quoting_asset": "USDT",
+                    "service_id": 1,
+                    "underlying_asset": "BTC"
+                },
+                "constituent_exchanges": [
+                    {
+                        "exchange": "binance",
+                        "health_interval": 60,
+                        "health_priority": 1,
+                        "weight": 1
+                    },
+                    {
+                        "exchange": "okex",
+                        "health_interval": 60,
+                        "health_priority": 2,
+                        "weight": 1
+                    },
+                    {
+                        "exchange": "bybit",
+                        "health_interval": 60,
+                        "health_priority": 3,
+                        "weight": 1
+                    }
+                ],
+                "constituent_indices": null,
+                "description": "Bitcoin spot price index quoted in USDT",
+                "health_interval":300,
+                "id": 2,
+                "impact_size": "1.000000000000000000",
+                "index_type": "spot_pair",
+                "is_composite": false,
+                "price_method": "orderbook",
+                "quoting_asset_id": 5,
+                "symbol": ".DEXBTUSDT",
+                "tick_size": "0.500000000000000000",
+                "underlying_asset_id": 2
+            },
+            "price_band": "2",
+            "contract_type": "put_options",
+            "insurance_fund_margin_contribution": "1",
+            "settlement_time": "2024-03-29T12:00:00Z",
+            "initial_margin_scaling_factor": "0.000002",
+            "maintenance_margin_scaling_factor": "0.000001",
+            "settling_asset": {
+                "base_withdrawal_fee": "10.000000000000000000",
+                "id": 5,
+                "interest_credit": false,
+                "interest_slabs": null,
+                "kyc_deposit_limit": "100000.000000000000000000",
+                "kyc_withdrawal_limit": "10000.000000000000000000",
+                "min_withdrawal_amount": "30.000000000000000000",
+                "minimum_precision": 2,
+                "name": "Tether",
+                "networks": [
+                    {
+                        "base_withdrawal_fee": "10",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": 12,
+                        "network": "ERC20",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "1",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": 15,
+                        "network": "BEP20(BSC)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "3",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "1.000000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": 1,
+                        "network": "TRC20(TRON)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "0.5",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "10.000000000000000000",
+                        "minimum_deposit_confirmations": 1,
+                        "network": "POLYGON",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                        }
+                    ],
+                    "precision": 8,
+                    "sort_priority": 1,
+                    "symbol": "USDT",
+                    "variable_withdrawal_fee": "0.000000000000000000"
+            },
+            "impact_size": 200,
+            "symbol": "P-BTC-65000-290324",
+            "strike_price": "65000",
+            "maintenance_margin": "0.5",
+            "short_description": "BTC  Put",
+            "liquidation_penalty_factor": "0.5",
+            "default_leverage": "100.000000000000000000",
+            "contract_value": "0.001",
+            "annualized_funding": "10.95",
+            "state": "live",
+            "quoting_asset": {
+                "base_withdrawal_fee": "10.000000000000000000",
+                "id": 5,
+                "interest_credit": false,
+                "interest_slabs": null,
+                "kyc_deposit_limit": "100000.000000000000000000",
+                "kyc_withdrawal_limit": "10000.000000000000000000",
+                "min_withdrawal_amount": "30.000000000000000000",
+                "minimum_precision": 2,
+                "name": "Tether",
+                "networks": [
+                    {
+                        "base_withdrawal_fee": "10",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": 12,
+                        "network": "ERC20",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "1",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": 15,
+                        "network": "BEP20(BSC)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "3",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "1.000000000000000000",
+                        "min_withdrawal_amount": "30.000000000000000000",
+                        "minimum_deposit_confirmations": 1,
+                        "network": "TRC20(TRON)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "0.5",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "10.000000000000000000",
+                        "minimum_deposit_confirmations": 1,
+                        "network": "POLYGON",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    }
+                ],
+                "precision": 8,
+                "sort_priority": 1,
+                "symbol": "USDT",
+                "variable_withdrawal_fee": "0.000000000000000000"
+            },
+            "barrier_price": null,
+            "basis_factor_max_limit": "10.95",
+            "settlement_price": null,
+            "product_specs": {
+                "backup_vol_expiry_time": 31536000,
+                "max_deviation_from_external_vol": 0.75,
+                "max_lower_deviation_from_external_vol": 0.75,
+                "max_upper_deviation_from_external_vol": 0.5,
+                "max_volatility": 3,
+                "min_volatility": 0.1,
+                "premium_commission_rate": 0.125,
+                "vol_calculation_method": "orderbook",
+                "vol_expiry_time": 31536000
+            },
+            "initial_margin": "1",
+            "ui_config": {
+                "default_trading_view_candle": "15",
+                "leverage_slider_values": [1,2,5,10,25,50,100],
+                "price_clubbing_values": [0.01,0.05,0.1,0.5,1,5,10],
+                "show_bracket_orders": false,
+                "sort_priority": 30,
+                "tags": []
+            },
+            "launch_time": "2024-02-09T17:30:01Z",
+            "disruption_reason": null,
+            "underlying_asset": {
+                "base_withdrawal_fee": "0.000500000000000000",
+                "id": 2,
+                "interest_credit": false,
+                "interest_slabs": null,
+                "kyc_deposit_limit": "10.000000000000000000",
+                "kyc_withdrawal_limit": "0.500000000000000000",
+                "min_withdrawal_amount": "0.001000000000000000",
+                "minimum_precision": 4,
+                "name": "Bitcoin",
+                "networks": [
+                    {
+                        "base_withdrawal_fee": "0.001",
+                        "deposit_status": "enabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.000000000000000000",
+                        "min_withdrawal_amount": "0.002000000000000000",
+                        "minimum_deposit_confirmations": 2,
+                        "network": "BTC",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    },
+                    {
+                        "base_withdrawal_fee": "0.00002",
+                        "deposit_status": "disabled",
+                        "memo_required": false,
+                        "min_deposit_amount": "0.500000000000000000",
+                        "min_withdrawal_amount": "0.000100000000000000",
+                        "minimum_deposit_confirmations": 1,
+                        "network": "BEP20(BSC)",
+                        "variable_withdrawal_fee": "0",
+                        "withdrawal_status": "enabled"
+                    }
+                ],
+                "precision": 8,
+                "sort_priority": 2,
+                "symbol": "BTC",
+                "variable_withdrawal_fee": "0.000000000000000000"
+            },
+            "funding_method": "mark_price"
+        }
     }
 }

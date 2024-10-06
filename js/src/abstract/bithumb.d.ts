@@ -6,6 +6,11 @@ interface Exchange {
     publicGetOrderbookALLQuoteId(params?: {}): Promise<implicitReturnType>;
     publicGetOrderbookBaseIdQuoteId(params?: {}): Promise<implicitReturnType>;
     publicGetTransactionHistoryBaseIdQuoteId(params?: {}): Promise<implicitReturnType>;
+    publicGetNetworkInfo(params?: {}): Promise<implicitReturnType>;
+    publicGetAssetsstatusMultichainALL(params?: {}): Promise<implicitReturnType>;
+    publicGetAssetsstatusMultichainCurrency(params?: {}): Promise<implicitReturnType>;
+    publicGetWithdrawMinimumALL(params?: {}): Promise<implicitReturnType>;
+    publicGetWithdrawMinimumCurrency(params?: {}): Promise<implicitReturnType>;
     publicGetAssetsstatusALL(params?: {}): Promise<implicitReturnType>;
     publicGetAssetsstatusBaseId(params?: {}): Promise<implicitReturnType>;
     publicGetCandlestickBaseIdQuoteIdInterval(params?: {}): Promise<implicitReturnType>;

@@ -1,5 +1,5 @@
 import hitbtcRest from '../hitbtc.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
 export default class hitbtc extends hitbtcRest {
@@ -14,8 +14,11 @@ export default class hitbtc extends hitbtcRest {
     handleDeltas(bookside: any, deltas: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): any;
+    handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: any, market?: any): Ticker;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): any;
     parseWsTrades(trades: any, market?: object, since?: Int, limit?: Int, params?: {}): Trade[];
@@ -29,7 +32,7 @@ export default class hitbtc extends hitbtcRest {
     parseWsOrderTrade(trade: any, market?: any): Trade;
     parseWsOrder(order: any, market?: any): Order;
     watchBalance(params?: {}): Promise<Balances>;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
     fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -38,5 +41,5 @@ export default class hitbtc extends hitbtcRest {
     handleOrderRequest(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): any;
-    handleError(client: Client, message: any): any;
+    handleError(client: Client, message: any): boolean;
 }

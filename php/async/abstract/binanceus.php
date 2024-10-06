@@ -7,11 +7,20 @@ namespace ccxt\async\abstract;
 
 
 abstract class binanceus extends \ccxt\async\binance {
+    public function sapi_get_copytrading_futures_userstatus($params = array()) {
+        return $this->request('copyTrading/futures/userStatus', 'sapi', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function sapi_get_copytrading_futures_leadsymbol($params = array()) {
+        return $this->request('copyTrading/futures/leadSymbol', 'sapi', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function sapi_get_system_status($params = array()) {
         return $this->request('system/status', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapi_get_accountsnapshot($params = array()) {
         return $this->request('accountSnapshot', 'sapi', 'GET', $params, null, null, array("cost" => 240));
+    }
+    public function sapi_get_account_info($params = array()) {
+        return $this->request('account/info', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_get_margin_asset($params = array()) {
         return $this->request('margin/asset', 'sapi', 'GET', $params, null, null, array("cost" => 1));
@@ -217,12 +226,6 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapi_get_loan_flexible_ltv_adjustment_history($params = array()) {
         return $this->request('loan/flexible/ltv/adjustment/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
-    public function sapi_get_loan_flexible_loanable_data($params = array()) {
-        return $this->request('loan/flexible/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
-    }
-    public function sapi_get_loan_flexible_collateral_data($params = array()) {
-        return $this->request('loan/flexible/collateral/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
-    }
     public function sapi_get_loan_vip_ongoing_orders($params = array()) {
         return $this->request('loan/vip/ongoing/orders', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -267,6 +270,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapi_get_capital_withdraw_history($params = array()) {
         return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function sapi_get_capital_withdraw_address_list($params = array()) {
+        return $this->request('capital/withdraw/address/list', 'sapi', 'GET', $params, null, null, array("cost" => 10));
     }
     public function sapi_get_capital_contract_convertible_coins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));
@@ -733,6 +739,15 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapi_get_simple_earn_flexible_history_collateralrecord($params = array()) {
         return $this->request('simple-earn/flexible/history/collateralRecord', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_get_dci_product_list($params = array()) {
+        return $this->request('dci/product/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_dci_product_positions($params = array()) {
+        return $this->request('dci/product/positions', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_dci_product_accounts($params = array()) {
+        return $this->request('dci/product/accounts', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_get_asset_assetdistributionhistory($params = array()) {
         return $this->request('asset/assetDistributionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1096,9 +1111,6 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapi_post_loan_customize_margin_call($params = array()) {
         return $this->request('loan/customize/margin_call', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
-    public function sapi_post_loan_flexible_borrow($params = array()) {
-        return $this->request('loan/flexible/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
-    }
     public function sapi_post_loan_flexible_repay($params = array()) {
         return $this->request('loan/flexible/repay', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
@@ -1167,6 +1179,12 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapi_post_simple_earn_locked_setautosubscribe($params = array()) {
         return $this->request('simple-earn/locked/setAutoSubscribe', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_post_dci_product_subscribe($params = array()) {
+        return $this->request('dci/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_dci_product_auto_compound_edit($params = array()) {
+        return $this->request('dci/product/auto_compound/edit', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_post_otc_quotes($params = array()) {
         return $this->request('otc/quotes', 'sapi', 'POST', $params, null, null, array("cost" => 1));
@@ -1261,6 +1279,24 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiv2_get_sub_account_futures_positionrisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiv2_get_loan_flexible_ongoing_orders($params = array()) {
+        return $this->request('loan/flexible/ongoing/orders', 'sapiV2', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function sapiv2_get_loan_flexible_borrow_history($params = array()) {
+        return $this->request('loan/flexible/borrow/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiv2_get_loan_flexible_repay_history($params = array()) {
+        return $this->request('loan/flexible/repay/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiv2_get_loan_flexible_ltv_adjustment_history($params = array()) {
+        return $this->request('loan/flexible/ltv/adjustment/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiv2_get_loan_flexible_loanable_data($params = array()) {
+        return $this->request('loan/flexible/loanable/data', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiv2_get_loan_flexible_collateral_data($params = array()) {
+        return $this->request('loan/flexible/collateral/data', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
     public function sapiv2_get_cl_account($params = array()) {
         return $this->request('cl/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1272,6 +1308,15 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapiv2_post_sub_account_subaccountapi_iprestriction($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction', 'sapiV2', 'POST', $params, null, null, array("cost" => 20.001));
+    }
+    public function sapiv2_post_loan_flexible_borrow($params = array()) {
+        return $this->request('loan/flexible/borrow', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiv2_post_loan_flexible_repay($params = array()) {
+        return $this->request('loan/flexible/repay', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiv2_post_loan_flexible_adjust_ltv($params = array()) {
+        return $this->request('loan/flexible/adjust/ltv', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
     }
     public function sapiv3_get_sub_account_assets($params = array()) {
         return $this->request('sub-account/assets', 'sapiV3', 'GET', $params, null, null, array("cost" => 1));
@@ -1353,6 +1398,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function dapipublic_get_openinterest($params = array()) {
         return $this->request('openInterest', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function dapipublic_get_fundinginfo($params = array()) {
+        return $this->request('fundingInfo', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function dapidata_get_delivery_price($params = array()) {
         return $this->request('delivery-price', 'dapiData', 'GET', $params, null, null, array("cost" => 1));
@@ -1516,6 +1564,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function fapipublic_get_indexpriceklines($params = array()) {
         return $this->request('indexPriceKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
+    public function fapipublic_get_premiumindexklines($params = array()) {
+        return $this->request('premiumIndexKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
+    }
     public function fapipublic_get_fundingrate($params = array()) {
         return $this->request('fundingRate', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1583,7 +1634,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('openOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiprivate_get_openorders($params = array()) {
-        return $this->request('openOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function fapiprivate_get_order($params = array()) {
         return $this->request('order', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -1614,6 +1665,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function fapiprivate_get_commissionrate($params = array()) {
         return $this->request('commissionRate', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function fapiprivate_get_ratelimit_order($params = array()) {
+        return $this->request('rateLimit/order', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiprivate_get_apitradingstatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -1672,6 +1726,15 @@ abstract class binanceus extends \ccxt\async\binance {
     public function fapiprivate_get_trade_asyn_id($params = array()) {
         return $this->request('trade/asyn/id', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function fapiprivate_get_feeburn($params = array()) {
+        return $this->request('feeBurn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_get_symbolconfig($params = array()) {
+        return $this->request('symbolConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiprivate_get_accountconfig($params = array()) {
+        return $this->request('accountConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function fapiprivate_post_batchorders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -1705,6 +1768,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function fapiprivate_post_apireferral_usercustomization($params = array()) {
         return $this->request('apiReferral/userCustomization', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function fapiprivate_post_feeburn($params = array()) {
+        return $this->request('feeBurn', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function fapiprivate_put_listenkey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -1737,6 +1803,15 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function fapiprivatev2_get_positionrisk($params = array()) {
         return $this->request('positionRisk', 'fapiPrivateV2', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivatev3_get_account($params = array()) {
+        return $this->request('account', 'fapiPrivateV3', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivatev3_get_balance($params = array()) {
+        return $this->request('balance', 'fapiPrivateV3', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivatev3_get_positionrisk($params = array()) {
+        return $this->request('positionRisk', 'fapiPrivateV3', 'GET', $params, null, null, array("cost" => 1));
     }
     public function eapipublic_get_ping($params = array()) {
         return $this->request('ping', 'eapiPublic', 'GET', $params, null, null, array("cost" => 1));
@@ -1945,6 +2020,15 @@ abstract class binanceus extends \ccxt\async\binance {
     public function private_post_order_oco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_orderlist_oco($params = array()) {
+        return $this->request('orderList/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_oto($params = array()) {
+        return $this->request('orderList/oto', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_otoco($params = array()) {
+        return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
     public function private_post_sor_order($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -1979,7 +2063,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('um/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papi_get_um_openorders($params = array()) {
-        return $this->request('um/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('um/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papi_get_um_allorders($params = array()) {
         return $this->request('um/allOrders', 'papi', 'GET', $params, null, null, array("cost" => 5));
@@ -1991,7 +2075,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('cm/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papi_get_cm_openorders($params = array()) {
-        return $this->request('cm/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('cm/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papi_get_cm_allorders($params = array()) {
         return $this->request('cm/allOrders', 'papi', 'GET', $params, null, null, array("cost" => 20));
@@ -2000,7 +2084,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('um/conditional/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papi_get_um_conditional_openorders($params = array()) {
-        return $this->request('um/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 40));
+        return $this->request('um/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papi_get_um_conditional_orderhistory($params = array()) {
         return $this->request('um/conditional/orderHistory', 'papi', 'GET', $params, null, null, array("cost" => 1));
@@ -2012,7 +2096,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('cm/conditional/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papi_get_cm_conditional_openorders($params = array()) {
-        return $this->request('cm/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 40));
+        return $this->request('cm/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papi_get_cm_conditional_orderhistory($params = array()) {
         return $this->request('cm/conditional/orderHistory', 'papi', 'GET', $params, null, null, array("cost" => 1));
@@ -2182,6 +2266,12 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papi_post_asset_collection($params = array()) {
         return $this->request('asset-collection', 'papi', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function papi_post_margin_repay_debt($params = array()) {
+        return $this->request('margin/repay-debt', 'papi', 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    public function papi_post_um_feeburn($params = array()) {
+        return $this->request('um/feeBurn', 'papi', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function papi_put_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -2221,11 +2311,20 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papi_delete_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function sapiGetCopyTradingFuturesUserStatus($params = array()) {
+        return $this->request('copyTrading/futures/userStatus', 'sapi', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function sapiGetCopyTradingFuturesLeadSymbol($params = array()) {
+        return $this->request('copyTrading/futures/leadSymbol', 'sapi', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function sapiGetSystemStatus($params = array()) {
         return $this->request('system/status', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapiGetAccountSnapshot($params = array()) {
         return $this->request('accountSnapshot', 'sapi', 'GET', $params, null, null, array("cost" => 240));
+    }
+    public function sapiGetAccountInfo($params = array()) {
+        return $this->request('account/info', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapiGetMarginAsset($params = array()) {
         return $this->request('margin/asset', 'sapi', 'GET', $params, null, null, array("cost" => 1));
@@ -2431,12 +2530,6 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiGetLoanFlexibleLtvAdjustmentHistory($params = array()) {
         return $this->request('loan/flexible/ltv/adjustment/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
-    public function sapiGetLoanFlexibleLoanableData($params = array()) {
-        return $this->request('loan/flexible/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
-    }
-    public function sapiGetLoanFlexibleCollateralData($params = array()) {
-        return $this->request('loan/flexible/collateral/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
-    }
     public function sapiGetLoanVipOngoingOrders($params = array()) {
         return $this->request('loan/vip/ongoing/orders', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -2481,6 +2574,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapiGetCapitalWithdrawHistory($params = array()) {
         return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function sapiGetCapitalWithdrawAddressList($params = array()) {
+        return $this->request('capital/withdraw/address/list', 'sapi', 'GET', $params, null, null, array("cost" => 10));
     }
     public function sapiGetCapitalContractConvertibleCoins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));
@@ -2947,6 +3043,15 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiGetSimpleEarnFlexibleHistoryCollateralRecord($params = array()) {
         return $this->request('simple-earn/flexible/history/collateralRecord', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiGetDciProductList($params = array()) {
+        return $this->request('dci/product/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetDciProductPositions($params = array()) {
+        return $this->request('dci/product/positions', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetDciProductAccounts($params = array()) {
+        return $this->request('dci/product/accounts', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapiGetAssetAssetDistributionHistory($params = array()) {
         return $this->request('asset/assetDistributionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3310,9 +3415,6 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiPostLoanCustomizeMarginCall($params = array()) {
         return $this->request('loan/customize/margin_call', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
-    public function sapiPostLoanFlexibleBorrow($params = array()) {
-        return $this->request('loan/flexible/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
-    }
     public function sapiPostLoanFlexibleRepay($params = array()) {
         return $this->request('loan/flexible/repay', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
@@ -3381,6 +3483,12 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapiPostSimpleEarnLockedSetAutoSubscribe($params = array()) {
         return $this->request('simple-earn/locked/setAutoSubscribe', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapiPostDciProductSubscribe($params = array()) {
+        return $this->request('dci/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostDciProductAutoCompoundEdit($params = array()) {
+        return $this->request('dci/product/auto_compound/edit', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapiPostOtcQuotes($params = array()) {
         return $this->request('otc/quotes', 'sapi', 'POST', $params, null, null, array("cost" => 1));
@@ -3475,6 +3583,24 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapiV2GetSubAccountFuturesPositionRisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiV2GetLoanFlexibleOngoingOrders($params = array()) {
+        return $this->request('loan/flexible/ongoing/orders', 'sapiV2', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function sapiV2GetLoanFlexibleBorrowHistory($params = array()) {
+        return $this->request('loan/flexible/borrow/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiV2GetLoanFlexibleRepayHistory($params = array()) {
+        return $this->request('loan/flexible/repay/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiV2GetLoanFlexibleLtvAdjustmentHistory($params = array()) {
+        return $this->request('loan/flexible/ltv/adjustment/history', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiV2GetLoanFlexibleLoanableData($params = array()) {
+        return $this->request('loan/flexible/loanable/data', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiV2GetLoanFlexibleCollateralData($params = array()) {
+        return $this->request('loan/flexible/collateral/data', 'sapiV2', 'GET', $params, null, null, array("cost" => 40));
+    }
     public function sapiV2GetClAccount($params = array()) {
         return $this->request('cl/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -3486,6 +3612,15 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapiV2PostSubAccountSubAccountApiIpRestriction($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction', 'sapiV2', 'POST', $params, null, null, array("cost" => 20.001));
+    }
+    public function sapiV2PostLoanFlexibleBorrow($params = array()) {
+        return $this->request('loan/flexible/borrow', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiV2PostLoanFlexibleRepay($params = array()) {
+        return $this->request('loan/flexible/repay', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiV2PostLoanFlexibleAdjustLtv($params = array()) {
+        return $this->request('loan/flexible/adjust/ltv', 'sapiV2', 'POST', $params, null, null, array("cost" => 40.002));
     }
     public function sapiV3GetSubAccountAssets($params = array()) {
         return $this->request('sub-account/assets', 'sapiV3', 'GET', $params, null, null, array("cost" => 1));
@@ -3567,6 +3702,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function dapiPublicGetOpenInterest($params = array()) {
         return $this->request('openInterest', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function dapiPublicGetFundingInfo($params = array()) {
+        return $this->request('fundingInfo', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function dapiDataGetDeliveryPrice($params = array()) {
         return $this->request('delivery-price', 'dapiData', 'GET', $params, null, null, array("cost" => 1));
@@ -3730,6 +3868,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function fapiPublicGetIndexPriceKlines($params = array()) {
         return $this->request('indexPriceKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
+    public function fapiPublicGetPremiumIndexKlines($params = array()) {
+        return $this->request('premiumIndexKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
+    }
     public function fapiPublicGetFundingRate($params = array()) {
         return $this->request('fundingRate', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3797,7 +3938,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('openOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivateGetOpenOrders($params = array()) {
-        return $this->request('openOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function fapiPrivateGetOrder($params = array()) {
         return $this->request('order', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -3828,6 +3969,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function fapiPrivateGetCommissionRate($params = array()) {
         return $this->request('commissionRate', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function fapiPrivateGetRateLimitOrder($params = array()) {
+        return $this->request('rateLimit/order', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivateGetApiTradingStatus($params = array()) {
         return $this->request('apiTradingStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -3886,6 +4030,15 @@ abstract class binanceus extends \ccxt\async\binance {
     public function fapiPrivateGetTradeAsynId($params = array()) {
         return $this->request('trade/asyn/id', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function fapiPrivateGetFeeBurn($params = array()) {
+        return $this->request('feeBurn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateGetSymbolConfig($params = array()) {
+        return $this->request('symbolConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiPrivateGetAccountConfig($params = array()) {
+        return $this->request('accountConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function fapiPrivatePostBatchOrders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -3919,6 +4072,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function fapiPrivatePostApiReferralUserCustomization($params = array()) {
         return $this->request('apiReferral/userCustomization', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function fapiPrivatePostFeeBurn($params = array()) {
+        return $this->request('feeBurn', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function fapiPrivatePutListenKey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -3951,6 +4107,15 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function fapiPrivateV2GetPositionRisk($params = array()) {
         return $this->request('positionRisk', 'fapiPrivateV2', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateV3GetAccount($params = array()) {
+        return $this->request('account', 'fapiPrivateV3', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateV3GetBalance($params = array()) {
+        return $this->request('balance', 'fapiPrivateV3', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateV3GetPositionRisk($params = array()) {
+        return $this->request('positionRisk', 'fapiPrivateV3', 'GET', $params, null, null, array("cost" => 1));
     }
     public function eapiPublicGetPing($params = array()) {
         return $this->request('ping', 'eapiPublic', 'GET', $params, null, null, array("cost" => 1));
@@ -4159,6 +4324,15 @@ abstract class binanceus extends \ccxt\async\binance {
     public function privatePostOrderOco($params = array()) {
         return $this->request('order/oco', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostOrderListOco($params = array()) {
+        return $this->request('orderList/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOto($params = array()) {
+        return $this->request('orderList/oto', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOtoco($params = array()) {
+        return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
     public function privatePostSorOrder($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -4193,7 +4367,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('um/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetUmOpenOrders($params = array()) {
-        return $this->request('um/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('um/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papiGetUmAllOrders($params = array()) {
         return $this->request('um/allOrders', 'papi', 'GET', $params, null, null, array("cost" => 5));
@@ -4205,7 +4379,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('cm/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetCmOpenOrders($params = array()) {
-        return $this->request('cm/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('cm/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papiGetCmAllOrders($params = array()) {
         return $this->request('cm/allOrders', 'papi', 'GET', $params, null, null, array("cost" => 20));
@@ -4214,7 +4388,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('um/conditional/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetUmConditionalOpenOrders($params = array()) {
-        return $this->request('um/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 40));
+        return $this->request('um/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papiGetUmConditionalOrderHistory($params = array()) {
         return $this->request('um/conditional/orderHistory', 'papi', 'GET', $params, null, null, array("cost" => 1));
@@ -4226,7 +4400,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('cm/conditional/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetCmConditionalOpenOrders($params = array()) {
-        return $this->request('cm/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 40));
+        return $this->request('cm/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papiGetCmConditionalOrderHistory($params = array()) {
         return $this->request('cm/conditional/orderHistory', 'papi', 'GET', $params, null, null, array("cost" => 1));
@@ -4395,6 +4569,12 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function papiPostAssetCollection($params = array()) {
         return $this->request('asset-collection', 'papi', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function papiPostMarginRepayDebt($params = array()) {
+        return $this->request('margin/repay-debt', 'papi', 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    public function papiPostUmFeeBurn($params = array()) {
+        return $this->request('um/feeBurn', 'papi', 'POST', $params, null, null, array("cost" => 1));
     }
     public function papiPutListenKey($params = array()) {
         return $this->request('listenKey', 'papi', 'PUT', $params, null, null, array("cost" => 1));

@@ -121,6 +121,21 @@ public partial class woo : Exchange
         return await this.callAsync ("v1PrivateGetClientTrades",parameters);
     }
 
+    public async Task<object> v1PrivateGetClientHistTrades (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivateGetClientHistTrades",parameters);
+    }
+
+    public async Task<object> v1PrivateGetStakingYieldHistory (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivateGetStakingYieldHistory",parameters);
+    }
+
+    public async Task<object> v1PrivateGetClientHolding (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivateGetClientHolding",parameters);
+    }
+
     public async Task<object> v1PrivateGetAssetDeposit (object parameters = null)
     {
         return await this.callAsync ("v1PrivateGetAssetDeposit",parameters);
@@ -139,6 +154,21 @@ public partial class woo : Exchange
     public async Task<object> v1PrivateGetSubAccountAssets (object parameters = null)
     {
         return await this.callAsync ("v1PrivateGetSubAccountAssets",parameters);
+    }
+
+    public async Task<object> v1PrivateGetSubAccountAssetDetail (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivateGetSubAccountAssetDetail",parameters);
+    }
+
+    public async Task<object> v1PrivateGetSubAccountIpRestriction (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivateGetSubAccountIpRestriction",parameters);
+    }
+
+    public async Task<object> v1PrivateGetAssetMainSubTransferHistory (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivateGetAssetMainSubTransferHistory",parameters);
     }
 
     public async Task<object> v1PrivateGetTokenInterest (object parameters = null)
@@ -181,9 +211,19 @@ public partial class woo : Exchange
         return await this.callAsync ("v1PrivateGetClientTransactionHistory",parameters);
     }
 
+    public async Task<object> v1PrivateGetClientFuturesLeverage (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivateGetClientFuturesLeverage",parameters);
+    }
+
     public async Task<object> v1PrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostOrder",parameters);
+    }
+
+    public async Task<object> v1PrivatePostOrderCancelAllAfter (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostOrderCancelAllAfter",parameters);
     }
 
     public async Task<object> v1PrivatePostAssetMainSubTransfer (object parameters = null)
@@ -191,9 +231,19 @@ public partial class woo : Exchange
         return await this.callAsync ("v1PrivatePostAssetMainSubTransfer",parameters);
     }
 
+    public async Task<object> v1PrivatePostAssetLtv (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostAssetLtv",parameters);
+    }
+
     public async Task<object> v1PrivatePostAssetWithdraw (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostAssetWithdraw",parameters);
+    }
+
+    public async Task<object> v1PrivatePostAssetInternalWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostAssetInternalWithdraw",parameters);
     }
 
     public async Task<object> v1PrivatePostInterestRepay (object parameters = null)
@@ -206,9 +256,24 @@ public partial class woo : Exchange
         return await this.callAsync ("v1PrivatePostClientAccountMode",parameters);
     }
 
+    public async Task<object> v1PrivatePostClientPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostClientPositionMode",parameters);
+    }
+
     public async Task<object> v1PrivatePostClientLeverage (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostClientLeverage",parameters);
+    }
+
+    public async Task<object> v1PrivatePostClientFuturesLeverage (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostClientFuturesLeverage",parameters);
+    }
+
+    public async Task<object> v1PrivatePostClientIsolatedMargin (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostClientIsolatedMargin",parameters);
     }
 
     public async Task<object> v1PrivateDeleteOrder (object parameters = null)

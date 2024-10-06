@@ -41,10 +41,10 @@ public partial class bitfinex2
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -261,9 +261,57 @@ public partial class bitfinex2
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stopPrice</term>
+    /// <description>
+    /// float : The price at which a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : "GTC", "IOC", "FOK", or "PO"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool :          * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.flags</term>
+    /// <description>
+    /// int : additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.lev</term>
+    /// <description>
+    /// int : leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.price_traling</term>
+    /// <description>
+    /// string : The trailing price for a trailing stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.price_aux_limit</term>
+    /// <description>
+    /// string : Order price for stop limit orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.price_oco_stop</term>
+    /// <description>
+    /// string : OCO stop price
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> request to be sent to the exchange.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}.</returns>
     public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -679,10 +727,10 @@ public partial class bitfinex2
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// fetch history of deposits and withdrawals
@@ -740,7 +788,7 @@ public partial class bitfinex2
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Dictionary<string, object>> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return ((Dictionary<string, object>)res);
@@ -766,11 +814,17 @@ public partial class bitfinex2
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.bitfinex.com/reference/rest-auth-ledgers"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -780,7 +834,7 @@ public partial class bitfinex2
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined max is 2500
+    /// int : max number of ledger entries to return, default is undefined, max is 2500
     /// </description>
     /// </item>
     /// <item>
@@ -804,15 +858,15 @@ public partial class bitfinex2
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
-    /// fetch the current funding rate
+    /// fetch the current funding rate for multiple symbols
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.bitfinex.com/reference/rest-public-derivatives-status"/>  <br/>
@@ -825,16 +879,11 @@ public partial class bitfinex2
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
@@ -1009,10 +1058,10 @@ public partial class bitfinex2
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}.</returns>
-    public async Task<Dictionary<string, object>> SetMargin(string symbol, object amount, Dictionary<string, object> parameters = null)
+    public async Task<MarginModification> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMargin(symbol, amount, parameters);
-        return ((Dictionary<string, object>)res);
+        return new MarginModification(res);
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -1050,7 +1099,7 @@ public partial class bitfinex2
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>

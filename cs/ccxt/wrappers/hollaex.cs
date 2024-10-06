@@ -10,6 +10,7 @@ public partial class hollaex
     /// retrieves data on all markets for hollaex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#constants"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -20,15 +21,16 @@ public partial class hollaex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#orderbooks"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -55,6 +57,7 @@ public partial class hollaex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -81,6 +84,7 @@ public partial class hollaex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -100,6 +104,7 @@ public partial class hollaex
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -119,6 +124,7 @@ public partial class hollaex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -152,6 +158,7 @@ public partial class hollaex
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#tiers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -162,15 +169,16 @@ public partial class hollaex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#chart"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -204,6 +212,7 @@ public partial class hollaex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -223,6 +232,7 @@ public partial class hollaex
     /// fetch an open order by it's id
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -242,6 +252,7 @@ public partial class hollaex
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -275,6 +286,7 @@ public partial class hollaex
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -308,6 +320,7 @@ public partial class hollaex
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -327,6 +340,7 @@ public partial class hollaex
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -360,11 +374,12 @@ public partial class hollaex
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -398,6 +413,7 @@ public partial class hollaex
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -417,6 +433,7 @@ public partial class hollaex
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -436,6 +453,7 @@ public partial class hollaex
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -469,6 +487,7 @@ public partial class hollaex
     /// fetch deposit addresses for multiple currencies and chain types
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-user"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -479,7 +498,7 @@ public partial class hollaex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddresses(List<string> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddresses(codes, parameters);
         return ((Dictionary<string, object>)res);
@@ -488,6 +507,7 @@ public partial class hollaex
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -521,6 +541,7 @@ public partial class hollaex
     /// fetch data on a currency withdrawal via the withdrawal id
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-withdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -540,6 +561,7 @@ public partial class hollaex
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#get-withdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -573,6 +595,7 @@ public partial class hollaex
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#withdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -583,7 +606,7 @@ public partial class hollaex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

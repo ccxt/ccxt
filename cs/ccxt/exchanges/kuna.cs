@@ -629,7 +629,7 @@ public partial class kuna : Exchange
         //          }
         //      }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrderBook(data, getValue(market, "symbol"), null, "bids", "asks", 0, 1);
     }
 
@@ -716,7 +716,7 @@ public partial class kuna : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols, parameters);
     }
 
@@ -759,7 +759,7 @@ public partial class kuna : Exchange
         //    }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object ticker = this.safeValue(data, 0);
+        object ticker = this.safeDict(data, 0);
         return this.parseTicker(ticker, market);
     }
 
@@ -796,7 +796,7 @@ public partial class kuna : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pairs", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -805,18 +805,21 @@ public partial class kuna : Exchange
         object response = await this.v4PublicGetTradePublicBookPairs(this.extend(request, parameters));
         //
         //    {
-        //        "data": {
-        //            "id": "3e5591ba-2778-4d85-8851-54284045ea44",       // Unique identifier of a trade
-        //            "pair": "BTC_USDT",                                 // Market pair that is being traded
-        //            "quoteQuantity": "11528.8118",                      // Qty of the quote asset, USDT in this example
-        //            "matchPrice": "18649",                              // Exchange price at the moment of execution
-        //            "matchQuantity": "0.6182",                          // Qty of the base asset, BTC in this example
-        //            "createdAt": "2022-09-23T14:30:41.486Z",            // Date-time of trade execution, UTC
-        //            "side": "Ask"                                       // Trade type: `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
-        //        }
+        //        'data': [
+        //            {
+        //                'createdAt': '2024-03-02T00:10:49.385Z',
+        //                'id': '3b42878a-3688-4bc1-891e-5cc2fc902142',
+        //                'matchPrice': '62181.31',
+        //                'matchQuantity': '0.00568',
+        //                'pair': 'BTC_USDT',
+        //                'quoteQuantity': '353.1898408',
+        //                'side': 'Bid'
+        //            },
+        //            ...
+        //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -876,7 +879,6 @@ public partial class kuna : Exchange
             { "fee", new Dictionary<string, object>() {
                 { "cost", this.safeString(trade, "fee") },
                 { "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency")) },
-                { "rate", null },
             } },
         }, market);
     }
@@ -945,7 +947,7 @@ public partial class kuna : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
         *
@@ -998,7 +1000,7 @@ public partial class kuna : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -1065,7 +1067,7 @@ public partial class kuna : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
     }
 
@@ -1219,7 +1221,7 @@ public partial class kuna : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data);
     }
 
@@ -1285,7 +1287,7 @@ public partial class kuna : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -1380,7 +1382,7 @@ public partial class kuna : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -1430,7 +1432,7 @@ public partial class kuna : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1489,7 +1491,7 @@ public partial class kuna : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 
@@ -1565,7 +1567,7 @@ public partial class kuna : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency);
     }
 
@@ -1608,7 +1610,7 @@ public partial class kuna : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data);
     }
 
@@ -1639,7 +1641,7 @@ public partial class kuna : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseDepositAddress(data, currency);
     }
 
@@ -1670,7 +1672,7 @@ public partial class kuna : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseDepositAddress(data, currency);
     }
 
@@ -1780,7 +1782,7 @@ public partial class kuna : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency);
     }
 
@@ -1828,7 +1830,7 @@ public partial class kuna : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 

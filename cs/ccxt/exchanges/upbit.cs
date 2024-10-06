@@ -31,6 +31,7 @@ public partial class upbit : Exchange
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
+                { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },
                 { "fetchDeposits", true },
@@ -58,6 +59,7 @@ public partial class upbit : Exchange
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", false },
                 { "fetchTransactions", false },
+                { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
                 { "transfer", false },
                 { "withdraw", true },
@@ -66,6 +68,7 @@ public partial class upbit : Exchange
                 { "1m", "minutes" },
                 { "3m", "minutes" },
                 { "5m", "minutes" },
+                { "10m", "minutes" },
                 { "15m", "minutes" },
                 { "30m", "minutes" },
                 { "1h", "minutes" },
@@ -87,10 +90,10 @@ public partial class upbit : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "trades/ticks", "ticker", "orderbook"} },
+                    { "get", new List<object>() {"market/all", "candles/{timeframe}", "candles/{timeframe}/{unit}", "candles/minutes/{unit}", "candles/minutes/1", "candles/minutes/3", "candles/minutes/5", "candles/minutes/10", "candles/minutes/15", "candles/minutes/30", "candles/minutes/60", "candles/minutes/240", "candles/days", "candles/weeks", "candles/months", "trades/ticks", "ticker", "orderbook"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"accounts", "orders/chance", "order", "orders", "withdraws", "withdraw", "withdraws/chance", "deposits", "deposit", "deposits/coin_addresses", "deposits/coin_address"} },
+                    { "get", new List<object>() {"accounts", "orders/chance", "order", "orders", "orders/closed", "orders/open", "orders/uuids", "withdraws", "withdraw", "withdraws/chance", "deposits", "deposit", "deposits/coin_addresses", "deposits/coin_address"} },
                     { "post", new List<object>() {"orders", "withdraws/coin", "withdraws/krw", "deposits/generate_coin_address"} },
                     { "delete", new List<object>() {"order"} },
                 } },
@@ -605,7 +608,7 @@ public partial class upbit : Exchange
         //                    "trade_time": "104543",
         //                "trade_date_kst": "20181122",
         //                "trade_time_kst": "194543",
-        //               "trade_timestamp":  1542883543097,
+        //               "trade_timestamp":  1542883543096,
         //                 "opening_price":  0.02976455,
         //                    "high_price":  0.02992577,
         //                     "low_price":  0.02934283,
@@ -1041,13 +1044,15 @@ public partial class upbit : Exchange
         * @name upbit#createOrder
         * @description create a trade order
         * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+        * @see https://global-docs.upbit.com/reference/order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
+        * @param {string} [params.timeInForce] 'IOC' or 'FOK'
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1112,6 +1117,15 @@ public partial class upbit : Exchange
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["identifier"] = clientOrderId;
+        }
+        if (isTrue(!isEqual(type, "market")))
+        {
+            object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+            parameters = this.omit(parameters, "timeInForce");
+            if (isTrue(!isEqual(timeInForce, null)))
+            {
+                ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
+            }
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "identifier"});
         object response = await this.privatePostOrders(this.extend(request, parameters));
@@ -1224,6 +1238,49 @@ public partial class upbit : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name upbit#fetchDeposit
+        * @description fetch information on a deposit
+        * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+        * @param {string} id the unique id for the deposit
+        * @param {string} [code] unified currency code of the currency deposited
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "uuid", id },
+        };
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        object response = await this.privateGetDeposit(this.extend(request, parameters));
+        //
+        //     {
+        //         "type": "deposit",
+        //         "uuid": "7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "99795bbfeca91eaa071068bb659b33eeb65d8aaff2551fdf7c78f345d188952b",
+        //         "state": "ACCEPTED",
+        //         "created_at": "2023-12-12T04:58:41Z",
+        //         "done_at": "2023-12-12T05:31:50Z",
+        //         "amount": "35.72344",
+        //         "fee": "0.0",
+        //         "transaction_type": "default"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
+
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -1271,6 +1328,49 @@ public partial class upbit : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name upbit#fetchWithdrawal
+        * @description fetch data on a currency withdrawal via the withdrawal id
+        * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+        * @param {string} id the unique id for the withdrawal
+        * @param {string} [code] unified currency code of the currency withdrawn
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "uuid", id },
+        };
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        object response = await this.privateGetWithdraw(this.extend(request, parameters));
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "95ef274b-23a6-4de4-95b0-5cbef4ca658f",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "b1528f149297a71671b86636f731f8fdb0ff53da0f1d8c19093d59df96f34583",
+        //         "state": "DONE",
+        //         "created_at": "2023-12-14T02:46:52Z",
+        //         "done_at": "2023-12-14T03:10:11Z",
+        //         "amount": "35.22344",
+        //         "fee": "0.5",
+        //         "transaction_type": "default"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
+
     public virtual object parseTransactionStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
@@ -1278,7 +1378,7 @@ public partial class upbit : Exchange
             { "submitted", "pending" },
             { "almost_accepted", "pending" },
             { "rejected", "failed" },
-            { "accepted", "pending" },
+            { "accepted", "ok" },
             { "processing", "pending" },
             { "done", "ok" },
             { "canceled", "canceled" },
@@ -1289,7 +1389,7 @@ public partial class upbit : Exchange
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
-        // fetchDeposits
+        // fetchDeposits, fetchDeposit
         //
         //     {
         //         "type": "deposit",
@@ -1303,7 +1403,7 @@ public partial class upbit : Exchange
         //         "fee": "0.0"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "type": "withdraw",
@@ -1318,13 +1418,9 @@ public partial class upbit : Exchange
         //         "krw_amount": "80420.0"
         //     }
         //
-        object id = this.safeString(transaction, "uuid");
-        object amount = this.safeNumber(transaction, "amount");
         object address = null; // not present in the data structure received from the exchange
         object tag = null; // not present in the data structure received from the exchange
-        object txid = this.safeString(transaction, "txid");
         object updatedRaw = this.safeString(transaction, "done_at");
-        object updated = this.parse8601(updatedRaw);
         object timestamp = this.parse8601(this.safeString(transaction, "created_at", updatedRaw));
         object type = this.safeString(transaction, "type");
         if (isTrue(isEqual(type, "withdraw")))
@@ -1332,14 +1428,12 @@ public partial class upbit : Exchange
             type = "withdrawal";
         }
         object currencyId = this.safeString(transaction, "currency");
-        object code = this.safeCurrencyCode(currencyId);
-        object status = this.parseTransactionStatus(this.safeStringLower(transaction, "state"));
-        object feeCost = this.safeNumber(transaction, "fee");
+        object code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
-            { "id", id },
+            { "id", this.safeString(transaction, "uuid") },
             { "currency", code },
-            { "amount", amount },
+            { "amount", this.safeNumber(transaction, "amount") },
             { "network", null },
             { "address", address },
             { "addressTo", null },
@@ -1347,17 +1441,17 @@ public partial class upbit : Exchange
             { "tag", tag },
             { "tagTo", null },
             { "tagFrom", null },
-            { "status", status },
+            { "status", this.parseTransactionStatus(this.safeStringLower(transaction, "state")) },
             { "type", type },
-            { "updated", updated },
-            { "txid", txid },
+            { "updated", this.parse8601(updatedRaw) },
+            { "txid", this.safeString(transaction, "txid") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "internal", null },
             { "comment", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", code },
-                { "cost", feeCost },
+                { "cost", this.safeNumber(transaction, "fee") },
             } },
         };
     }
@@ -1415,6 +1509,28 @@ public partial class upbit : Exchange
         //                 "side": "bid",
         //             },
         //         ],
+        //     }
+        //
+        // fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //         "side": "ask",
+        //         "ord_type": "limit",
+        //         "price": "1.5",
+        //         "state": "wait",
+        //         "market": "SGD-XRP",
+        //         "created_at": "2024-06-05T09:37:10Z",
+        //         "volume": "10",
+        //         "remaining_volume": "10",
+        //         "reserved_fee": "0",
+        //         "remaining_fee": "0",
+        //         "paid_fee": "0",
+        //         "locked": "10",
+        //         "executed_volume": "0",
+        //         "executed_funds": "0",
+        //         "trades_count": 0,
+        //         "time_in_force": "ioc"
         //     }
         //
         object id = this.safeString(order, "uuid");
@@ -1495,7 +1611,7 @@ public partial class upbit : Exchange
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "symbol", getValue(market, "symbol") },
             { "type", type },
-            { "timeInForce", null },
+            { "timeInForce", this.safeStringUpper(order, "time_in_force") },
             { "postOnly", null },
             { "side", side },
             { "price", price },
@@ -1512,59 +1628,57 @@ public partial class upbit : Exchange
         });
     }
 
-    public async virtual Task<object> fetchOrdersByState(object state, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name upbit#fetchOpenOrders
+        * @description fetch all unfilled currently open orders
+        * @see https://global-docs.upbit.com/reference/open-order
+        * @param {string} symbol unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch open orders for
+        * @param {int} [limit] the maximum number of open order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.state] default is 'wait', set to 'watch' for stop limit orders
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {
-            { "state", state },
-        };
+        object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
-        object response = await this.privateGetOrders(this.extend(request, parameters));
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.privateGetOrdersOpen(this.extend(request, parameters));
         //
         //     [
         //         {
-        //             "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //             "side": "bid",
+        //             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //             "side": "ask",
         //             "ord_type": "limit",
-        //             "price": "17417000.0",
-        //             "state": "done",
-        //             "market": "KRW-BTC",
-        //             "created_at": "2018-04-05T14:09:14+09:00",
-        //             "volume": "1.0",
-        //             "remaining_volume": "0.0",
-        //             "reserved_fee": "26125.5",
-        //             "remaining_fee": "25974.0",
-        //             "paid_fee": "151.5",
-        //             "locked": "17341974.0",
-        //             "executed_volume": "1.0",
-        //             "trades_count":2
-        //         },
+        //             "price": "1.5",
+        //             "state": "wait",
+        //             "market": "SGD-XRP",
+        //             "created_at": "2024-06-05T09:37:10Z",
+        //             "volume": "10",
+        //             "remaining_volume": "10",
+        //             "reserved_fee": "0",
+        //             "remaining_fee": "0",
+        //             "paid_fee": "0",
+        //             "locked": "10",
+        //             "executed_volume": "0",
+        //             "executed_funds": "0",
+        //             "trades_count": 0
+        //         }
         //     ]
         //
         return this.parseOrders(response, market, since, limit);
-    }
-
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name upbit#fetchOpenOrders
-        * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByState("wait", symbol, since, limit, parameters);
     }
 
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1572,16 +1686,62 @@ public partial class upbit : Exchange
         /**
         * @method
         * @name upbit#fetchClosedOrders
-        * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         * @description fetches information on multiple closed orders made by the user
+        * @see https://global-docs.upbit.com/reference/closed-order
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest order
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByState("done", symbol, since, limit, parameters);
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "state", "done" },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.privateGetOrdersClosed(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //             "side": "ask",
+        //             "ord_type": "limit",
+        //             "price": "1.5",
+        //             "state": "done",
+        //             "market": "SGD-XRP",
+        //             "created_at": "2024-06-05T09:37:10Z",
+        //             "volume": "10",
+        //             "remaining_volume": "10",
+        //             "reserved_fee": "0",
+        //             "remaining_fee": "0",
+        //             "paid_fee": "0",
+        //             "locked": "10",
+        //             "executed_volume": "0",
+        //             "executed_funds": "0",
+        //             "trades_count": 0,
+        //             "time_in_force": "ioc"
+        //         }
+        //     ]
+        //
+        return this.parseOrders(response, market, since, limit);
     }
 
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1589,16 +1749,62 @@ public partial class upbit : Exchange
         /**
         * @method
         * @name upbit#fetchCanceledOrders
-        * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         * @description fetches information on multiple canceled orders made by the user
+        * @see https://global-docs.upbit.com/reference/closed-order
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] max number of orders to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest order
         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByState("cancel", symbol, since, limit, parameters);
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "state", "cancel" },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_time"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.privateGetOrdersClosed(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //             "side": "ask",
+        //             "ord_type": "limit",
+        //             "price": "1.5",
+        //             "state": "cancel",
+        //             "market": "SGD-XRP",
+        //             "created_at": "2024-06-05T09:37:10Z",
+        //             "volume": "10",
+        //             "remaining_volume": "10",
+        //             "reserved_fee": "0",
+        //             "remaining_fee": "0",
+        //             "paid_fee": "0",
+        //             "locked": "10",
+        //             "executed_volume": "0",
+        //             "executed_funds": "0",
+        //             "trades_count": 0,
+        //             "time_in_force": "ioc"
+        //         }
+        //     ]
+        //
+        return this.parseOrders(response, market, since, limit);
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1895,27 +2101,31 @@ public partial class upbit : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = this.nonce();
+            headers = new Dictionary<string, object>() {};
+            object nonce = this.uuid();
             object request = new Dictionary<string, object>() {
                 { "access_key", this.apiKey },
                 { "nonce", nonce },
             };
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
-            {
-                object auth = this.urlencode(query);
-                object hash = this.hash(this.encode(auth), sha512);
-                ((IDictionary<string,object>)request)["query_hash"] = hash;
-                ((IDictionary<string,object>)request)["query_hash_alg"] = "SHA512";
-            }
-            object token = jwt(request, this.encode(this.secret), sha256);
-            headers = new Dictionary<string, object>() {
-                { "Authorization", add("Bearer ", token) },
-            };
+            object hasQuery = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
+            object auth = null;
             if (isTrue(isTrue((!isEqual(method, "GET"))) && isTrue((!isEqual(method, "DELETE")))))
             {
                 body = this.json(parameters);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
+            if (isTrue(hasQuery))
+            {
+                auth = this.rawencode(query);
+            }
+            if (isTrue(!isEqual(auth, null)))
+            {
+                object hash = this.hash(this.encode(auth), sha512);
+                ((IDictionary<string,object>)request)["query_hash"] = hash;
+                ((IDictionary<string,object>)request)["query_hash_alg"] = "SHA512";
+            }
+            object token = jwt(request, this.encode(this.secret), sha256);
+            ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
         }
         return new Dictionary<string, object>() {
             { "url", url },

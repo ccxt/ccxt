@@ -54,6 +54,10 @@ public partial class testMainClass : BaseTest
                     { "max", exchange.parseNumber("1000") },
                 } },
             } },
+            { "marginModes", new Dictionary<string, object>() {
+                { "cross", true },
+                { "isolated", false },
+            } },
             { "info", new Dictionary<string, object>() {} },
         };
         object emptyAllowedFor = new List<object>() {"linear", "inverse", "settle", "settleId", "expiry", "expiryDatetime", "optionType", "strike", "margin", "contractSize"};
@@ -61,7 +65,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, "symbol");
         object logText = testSharedMethods.logTemplate(exchange, method, market);
         //
-        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option"};
+        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index"};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         object hasIndex = (inOp(market, "index")); // todo: add in all
         // check if string is consistent with 'type'
@@ -94,6 +98,11 @@ public partial class testMainClass : BaseTest
         }
         if (!isTrue((inOp(skippedProperties, "contractSize"))))
         {
+            if (!isTrue(getValue(market, "spot")))
+            {
+                // if not spot, then contractSize should be defined
+                assert(!isEqual(getValue(market, "contractSize"), null), add("\"contractSize\" must be defined when \"spot\" is false", logText));
+            }
             testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "contractSize", "0");
         }
         // typical values
@@ -139,14 +148,14 @@ public partial class testMainClass : BaseTest
         } else
         {
             // linear & inverse needs to be undefined
-            assert(isTrue((isEqual(getValue(market, "linear"), null))) && isTrue((isEqual(getValue(market, "inverse"), null))), add("market linear and inverse must be undefined when \"contract\" is true", logText));
+            assert(isTrue((isEqual(getValue(market, "linear"), null))) && isTrue((isEqual(getValue(market, "inverse"), null))), add("market linear and inverse must be undefined when \"contract\" is false", logText));
             // contract size should be undefined
             if (!isTrue((inOp(skippedProperties, "contractSize"))))
             {
                 assert(isEqual(contractSize, null), add("\"contractSize\" must be undefined when \"contract\" is false", logText));
             }
             // settle should be undefined
-            assert(isTrue((isEqual(getValue(market, "settle"), null))) && isTrue((isEqual(getValue(market, "settleId"), null))), add("\"settle\" must be undefined when \"contract\" is true", logText));
+            assert(isTrue((isEqual(getValue(market, "settle"), null))) && isTrue((isEqual(getValue(market, "settleId"), null))), add("\"settle\" must be undefined when \"contract\" is false", logText));
             // spot should be true
             assert(getValue(market, "spot"), add("\"spot\" must be true when \"contract\" is false", logText));
         }
@@ -221,13 +230,22 @@ public partial class testMainClass : BaseTest
             }
         }
         // check whether valid currency ID and CODE is used
-        if (!isTrue((inOp(skippedProperties, "currencyIdAndCode"))))
+        if (isTrue(!isTrue((inOp(skippedProperties, "currency"))) && !isTrue((inOp(skippedProperties, "currencyIdAndCode")))))
         {
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "baseId"), getValue(market, "base"));
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "quoteId"), getValue(market, "quote"));
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "settleId"), getValue(market, "settle"));
         }
         testSharedMethods.assertTimestamp(exchange, skippedProperties, method, market, null, "created");
+        // margin modes
+        if (!isTrue((inOp(skippedProperties, "marginModes"))))
+        {
+            object marginModes = exchange.safeDict(market, "marginModes"); // in future, remove safeDict
+            assert(inOp(marginModes, "cross"), add("marginModes should have \"cross\" key", logText));
+            assert(inOp(marginModes, "isolated"), add("marginModes should have \"isolated\" key", logText));
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "cross", new List<object>() {true, false, null});
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "isolated", new List<object>() {true, false, null});
+        }
     }
 
 }

@@ -96,6 +96,16 @@ public partial class blofin : Exchange
         return await this.callAsync ("privateGetAccountLeverageInfo",parameters);
     }
 
+    public async Task<object> privateGetAccountMarginMode (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountMarginMode",parameters);
+    }
+
+    public async Task<object> privateGetAccountBatchLeverageInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountBatchLeverageInfo",parameters);
+    }
+
     public async Task<object> privateGetTradeOrdersTpslPending (object parameters = null)
     {
         return await this.callAsync ("privateGetTradeOrdersTpslPending",parameters);
@@ -109,6 +119,16 @@ public partial class blofin : Exchange
     public async Task<object> privateGetTradeOrdersTpslHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetTradeOrdersTpslHistory",parameters);
+    }
+
+    public async Task<object> privateGetUserQueryApikey (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUserQueryApikey",parameters);
+    }
+
+    public async Task<object> privateGetAffiliateBasic (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAffiliateBasic",parameters);
     }
 
     public async Task<object> privatePostTradeOrder (object parameters = null)

@@ -1662,5 +1662,121 @@
                 }
             }
         }
+    },
+    "ALT": {
+        "id": "KALT",
+        "name": "Altlayer",
+        "code": "ALT",
+        "type": "crypto",
+        "precision": 1e-8,
+        "info": {
+            "currency": "KALT",
+            "name": "kALT",
+            "fullName": "Altlayer",
+            "precision": 8,
+            "confirms": null,
+            "contractAddress": null,
+            "isMarginEnabled": false,
+            "isDebitEnabled": true,
+            "chains": [
+                {
+                    "chainName": "BEP20",
+                    "withdrawalMinSize": "3.5",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "2.5",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 32,
+                    "preConfirms": 32,
+                    "contractAddress": "0x8457ca5040ad67fdebbcc8edce889a335bc0fbfb",
+                    "chainId": "bsc"
+                },
+                {
+                    "chainName": "ERC20",
+                    "withdrawalMinSize": "60",
+                    "depositMinSize": "20",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "35",
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": true,
+                    "confirms": 64,
+                    "preConfirms": 12,
+                    "contractAddress": "0x8457ca5040ad67fdebbcc8edce889a335bc0fbfb",
+                    "chainId": "eth"
+                }
+            ]
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "chainName": "BEP20",
+                    "withdrawalMinSize": "3.5",
+                    "depositMinSize": null,
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "2.5",
+                    "isWithdrawEnabled": true,
+                    "isDepositEnabled": true,
+                    "confirms": 32,
+                    "preConfirms": 32,
+                    "contractAddress": "0x8457ca5040ad67fdebbcc8edce889a335bc0fbfb",
+                    "chainId": "bsc"
+                },
+                "id": "bsc",
+                "name": "BEP20",
+                "code": "BEP20",
+                "active": true,
+                "fee": 2.5,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": 3.5
+                    },
+                    "deposit": {}
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "chainName": "ERC20",
+                    "withdrawalMinSize": "60",
+                    "depositMinSize": "20",
+                    "withdrawFeeRate": "0",
+                    "withdrawalMinFee": "35",
+                    "isWithdrawEnabled": false,
+                    "isDepositEnabled": true,
+                    "confirms": 64,
+                    "preConfirms": 12,
+                    "contractAddress": "0x8457ca5040ad67fdebbcc8edce889a335bc0fbfb",
+                    "chainId": "eth"
+                },
+                "id": "eth",
+                "name": "ERC20",
+                "code": "ERC20",
+                "active": false,
+                "fee": 35,
+                "deposit": true,
+                "withdraw": false,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": 60
+                    },
+                    "deposit": {
+                        "min": 20
+                    }
+                }
+            }
+        }
     }
 }

@@ -6,21 +6,22 @@ import {
     sleep,
     isNode,
     milliseconds,
+    selfIsDefined,
 } from '../../base/functions.js';
 import { Future } from './Future.js';
 
 // eslint-disable-next-line no-restricted-globals
-const WebSocketPlatform = isNode ? WebSocket : self.WebSocket;
+const WebSocketPlatform = isNode || !selfIsDefined() ? WebSocket : self.WebSocket;
 
 export default class WsClient extends Client {
 
-    connectionStarted: number;
+    connectionStarted: number | undefined;
 
     protocols: any;
 
     options: any;
 
-    startedConnecting: boolean;
+    startedConnecting: boolean = false;
 
     createConnection () {
         if (this.verbose) {

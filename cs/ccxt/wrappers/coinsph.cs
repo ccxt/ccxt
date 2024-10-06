@@ -10,6 +10,7 @@ public partial class coinsph
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#test-connectivity"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class coinsph
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#check-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +50,7 @@ public partial class coinsph
     /// retrieves data on all markets for coinsph
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#exchange-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -58,15 +61,18 @@ public partial class coinsph
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-order-book-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -86,6 +92,9 @@ public partial class coinsph
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-order-book-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -105,6 +114,7 @@ public partial class coinsph
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -131,6 +141,7 @@ public partial class coinsph
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#klinecandlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -164,6 +175,7 @@ public partial class coinsph
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#recent-trades-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -197,6 +209,7 @@ public partial class coinsph
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#account-trade-list-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -230,6 +243,7 @@ public partial class coinsph
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#account-trade-list-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -263,6 +277,7 @@ public partial class coinsph
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#accept-the-quote"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -287,7 +302,7 @@ public partial class coinsph
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -300,6 +315,12 @@ public partial class coinsph
     /// <term>params.cost</term>
     /// <description>
     /// float : the quote quantity that can be used as an alternative for the amount for market buy orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.test</term>
+    /// <description>
+    /// bool : set to true to test an order, no order will be created but the request will be validated
     /// </description>
     /// </item>
     /// </list>
@@ -315,6 +336,7 @@ public partial class coinsph
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#query-order-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -334,6 +356,7 @@ public partial class coinsph
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#query-order-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -367,6 +390,7 @@ public partial class coinsph
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#history-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -400,6 +424,7 @@ public partial class coinsph
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#cancel-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -419,6 +444,7 @@ public partial class coinsph
     /// cancel open orders of market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -438,6 +464,7 @@ public partial class coinsph
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#trade-fee-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -448,15 +475,16 @@ public partial class coinsph
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://coins-docs.github.io/rest-api/#trade-fee-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -467,10 +495,10 @@ public partial class coinsph
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// make a withdrawal to coins_ph account
@@ -487,7 +515,7 @@ public partial class coinsph
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

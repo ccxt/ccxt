@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadReq
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -71,8 +71,11 @@ export default class bitso extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -96,7 +99,10 @@ export default class bitso extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api': {
-                    'rest': 'https://api.bitso.com',
+                    'rest': 'https://bitso.com/api',
+                },
+                'test': {
+                    'rest': 'https://stage.bitso.com/api',
                 },
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
@@ -184,18 +190,18 @@ export default class bitso extends Exchange {
         });
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name bitso#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -229,7 +235,7 @@ export default class bitso extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'funding': 'transaction',
             'withdrawal': 'transaction',
             'trade': 'trade',
@@ -238,7 +244,7 @@ export default class bitso extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "eid": "2510b3e2bc1c87f584500a18084f35ed",
@@ -302,6 +308,7 @@ export default class bitso extends Exchange {
         const amount = this.safeString (firstBalance, 'amount');
         const currencyId = this.safeString (firstBalance, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const details = this.safeValue (item, 'details', {});
         let referenceId = this.safeString2 (details, 'fid', 'wid');
         if (referenceId === undefined) {
@@ -323,6 +330,7 @@ export default class bitso extends Exchange {
         }
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
         return this.safeLedgerEntry ({
+            'info': item,
             'id': this.safeString (item, 'eid'),
             'direction': direction,
             'account': undefined,
@@ -337,11 +345,10 @@ export default class bitso extends Exchange {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-            'info': item,
-        }, currency);
+        }, currency) as LedgerEntry;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitso#fetchMarkets
@@ -420,7 +427,7 @@ export default class bitso extends Exchange {
                     fee['maker'] = makerFee;
                 }
             }
-            const tiers = {
+            const tiers: Dict = {
                 'taker': takerFees,
                 'maker': makerFees,
             };
@@ -485,7 +492,7 @@ export default class bitso extends Exchange {
     parseBalance (response): Balances {
         const payload = this.safeValue (response, 'payload', {});
         const balances = this.safeValue (payload, 'balances', []);
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -555,7 +562,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
@@ -564,7 +571,7 @@ export default class bitso extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "high":"37446.85",
@@ -621,7 +628,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -660,7 +667,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
             'time_bucket': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -695,7 +702,7 @@ export default class bitso extends Exchange {
         //         ]
         //     }
         //
-        const payload = this.safeValue (response, 'payload', []);
+        const payload = this.safeList (response, 'payload', []);
         return this.parseOHLCVs (payload, market, timeframe, since, limit);
     }
 
@@ -724,7 +731,7 @@ export default class bitso extends Exchange {
         ];
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -844,14 +851,14 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitso#fetchTradingFees
@@ -907,7 +914,7 @@ export default class bitso extends Exchange {
         //
         const payload = this.safeValue (response, 'payload', {});
         const fees = this.safeValue (payload, 'fees', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const marketId = this.safeString (fee, 'book');
@@ -953,7 +960,7 @@ export default class bitso extends Exchange {
                 'marker': parseInt (params['marker']),
             });
         }
-        const request = {
+        const request: Dict = {
             'book': market['id'],
             'limit': limit, // default = 25, max = 100
             // 'sort': 'desc', // default = desc
@@ -963,7 +970,7 @@ export default class bitso extends Exchange {
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitso#createOrder
@@ -973,13 +980,13 @@ export default class bitso extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'book': market['id'],
             'side': side,
             'type': type,
@@ -1008,10 +1015,22 @@ export default class bitso extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'oid': id,
         };
-        return await this.privateDeleteOrdersOid (this.extend (request, params));
+        const response = await this.privateDeleteOrdersOid (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "payload": ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        const payload = this.safeList (response, 'payload', []);
+        const orderId = this.safeString (payload, 0);
+        return this.safeOrder ({
+            'info': response,
+            'id': orderId,
+        });
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
@@ -1033,7 +1052,7 @@ export default class bitso extends Exchange {
             market = this.market (symbol);
         }
         const oids = ids.join (',');
-        const request = {
+        const request: Dict = {
             'oids': oids,
         };
         const response = await this.privateDeleteOrders (this.extend (request, params));
@@ -1081,8 +1100,8 @@ export default class bitso extends Exchange {
         return canceledOrders;
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'partial-fill': 'open', // this is a common substitution in ccxt
             'partially filled': 'open',
             'queued': 'open',
@@ -1091,7 +1110,7 @@ export default class bitso extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //
         // canceledOrder
@@ -1168,7 +1187,7 @@ export default class bitso extends Exchange {
                 'marker': parseInt (params['marker']),
             });
         }
-        const request = {
+        const request: Dict = {
             'book': market['id'],
             'limit': limit, // default = 25, max = 100
             // 'sort': 'desc', // default = desc
@@ -1185,6 +1204,7 @@ export default class bitso extends Exchange {
          * @name bitso#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
+         * @param {string} id the order id
          * @param {string} symbol not used by bitso fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1218,7 +1238,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'oid': id,
         };
         const response = await this.privateGetOrderTradesOid (this.extend (request, params));
@@ -1237,7 +1257,7 @@ export default class bitso extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'fid': id,
         };
         const response = await this.privateGetFundingsFid (this.extend (request, params));
@@ -1265,7 +1285,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'payload', []);
-        const first = this.safeValue (transactions, 0, {});
+        const first = this.safeDict (transactions, 0, {});
         return this.parseTransaction (first);
     }
 
@@ -1310,7 +1330,7 @@ export default class bitso extends Exchange {
         //         }]
         //     }
         //
-        const transactions = this.safeValue (response, 'payload', []);
+        const transactions = this.safeList (response, 'payload', []);
         return this.parseTransactions (transactions, currency, since, limit, params);
     }
 
@@ -1325,7 +1345,7 @@ export default class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'fund_currency': currency['id'],
         };
         const response = await this.privateGetFundingDestination (this.extend (request, params));
@@ -1346,7 +1366,7 @@ export default class bitso extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes: string[] = undefined, params = {}) {
+    async fetchTransactionFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitso#fetchTransactionFees
@@ -1402,7 +1422,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const result = {};
+        const result: Dict = {};
         const payload = this.safeValue (response, 'payload', {});
         const depositFees = this.safeValue (payload, 'deposit_fees', []);
         for (let i = 0; i < depositFees.length; i++) {
@@ -1496,7 +1516,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const payload = this.safeValue (response, 'payload', {});
+        const payload = this.safeList (response, 'payload', []);
         return this.parseDepositWithdrawFees (payload, codes);
     }
 
@@ -1541,7 +1561,7 @@ export default class bitso extends Exchange {
         //        }
         //    }
         //
-        const result = {};
+        const result: Dict = {};
         const depositResponse = this.safeValue (response, 'deposit_fees', []);
         const withdrawalResponse = this.safeValue (response, 'withdrawal_fees', []);
         for (let i = 0; i < depositResponse.length; i++) {
@@ -1580,7 +1600,7 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bitso#withdraw
@@ -1595,7 +1615,7 @@ export default class bitso extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
-        const methods = {
+        const methods: Dict = {
             'BTC': 'Bitcoin',
             'ETH': 'Ether',
             'XRP': 'Ripple',
@@ -1607,7 +1627,7 @@ export default class bitso extends Exchange {
         if (method === undefined) {
             throw new ExchangeError (this.id + ' not valid withdraw coin: ' + code);
         }
-        const request = {
+        const request: Dict = {
             'amount': amount,
             'address': address,
             'destination_tag': tag,
@@ -1634,7 +1654,7 @@ export default class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue (response, 'payload', []);
-        const first = this.safeValue (payload, 0);
+        const first = this.safeDict (payload, 0);
         return this.parseTransaction (first, currency);
     }
 
@@ -1643,7 +1663,7 @@ export default class bitso extends Exchange {
             return undefined;
         }
         networkId = networkId.toUpperCase ();
-        const networksById = {
+        const networksById: Dict = {
             'trx': 'TRC20',
             'erc20': 'ERC20',
             'bsc': 'BEP20',
@@ -1652,7 +1672,7 @@ export default class bitso extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // deposit
         //     {
@@ -1722,8 +1742,8 @@ export default class bitso extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
             'pending': 'pending',
             'in_progress': 'pending',
             'complete': 'ok',
@@ -1765,7 +1785,7 @@ export default class bitso extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

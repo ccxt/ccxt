@@ -63,7 +63,13 @@ public partial class alpaca : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchStatus", false },
                 { "fetchTicker", false },
                 { "fetchTickers", false },
@@ -75,6 +81,7 @@ public partial class alpaca : Exchange
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawals", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "transfer", false },
@@ -348,7 +355,7 @@ public partial class alpaca : Exchange
             { "loc", loc },
         };
         parameters = this.omit(parameters, new List<object>() {"loc", "method"});
-        object response = null;
+        object symbolTrades = null;
         if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocTrades")))
         {
             if (isTrue(!isEqual(since, null)))
@@ -359,47 +366,47 @@ public partial class alpaca : Exchange
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters));
+            object response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters));
+            //
+            //    {
+            //        "next_page_token": null,
+            //        "trades": {
+            //            "BTC/USD": [
+            //                {
+            //                    "i": 36440704,
+            //                    "p": 22625,
+            //                    "s": 0.0001,
+            //                    "t": "2022-07-21T11:47:31.073391Z",
+            //                    "tks": "B"
+            //                }
+            //            ]
+            //        }
+            //    }
+            //
+            object trades = this.safeDict(response, "trades", new Dictionary<string, object>() {});
+            symbolTrades = this.safeList(trades, marketId, new List<object>() {});
         } else if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")))
         {
-            response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters));
+            object response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters));
+            //
+            //    {
+            //       "trades": {
+            //            "BTC/USD": {
+            //                "i": 36440704,
+            //                "p": 22625,
+            //                "s": 0.0001,
+            //                "t": "2022-07-21T11:47:31.073391Z",
+            //                "tks": "B"
+            //            }
+            //        }
+            //    }
+            //
+            object trades = this.safeDict(response, "trades", new Dictionary<string, object>() {});
+            symbolTrades = this.safeDict(trades, marketId, new Dictionary<string, object>() {});
+            symbolTrades = new List<object>() {symbolTrades};
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
-        }
-        //
-        // {
-        //     "next_page_token":null,
-        //     "trades":{
-        //        "BTC/USD":[
-        //           {
-        //              "i":36440704,
-        //              "p":22625,
-        //              "s":0.0001,
-        //              "t":"2022-07-21T11:47:31.073391Z",
-        //              "tks":"B"
-        //           }
-        //        ]
-        //     }
-        // }
-        //
-        // {
-        //     "trades":{
-        //        "BTC/USD":{
-        //           "i":36440704,
-        //           "p":22625,
-        //           "s":0.0001,
-        //           "t":"2022-07-21T11:47:31.073391Z",
-        //           "tks":"B"
-        //        }
-        //     }
-        // }
-        //
-        object trades = this.safeValue(response, "trades", new Dictionary<string, object>() {});
-        object symbolTrades = this.safeValue(trades, marketId, new Dictionary<string, object>() {});
-        if (!isTrue(((symbolTrades is IList<object>) || (symbolTrades.GetType().IsGenericType && symbolTrades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-        {
-            symbolTrades = new List<object>() {symbolTrades};
         }
         return this.parseTrades(symbolTrades, market, since, limit);
     }
@@ -464,8 +471,8 @@ public partial class alpaca : Exchange
         //       }
         //   }
         //
-        object orderbooks = this.safeValue(response, "orderbooks", new Dictionary<string, object>() {});
-        object rawOrderbook = this.safeValue(orderbooks, id, new Dictionary<string, object>() {});
+        object orderbooks = this.safeDict(response, "orderbooks", new Dictionary<string, object>() {});
+        object rawOrderbook = this.safeDict(orderbooks, id, new Dictionary<string, object>() {});
         object timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
         return this.parseOrderBook(rawOrderbook, getValue(market, "symbol"), timestamp, "b", "a", "p", "s");
     }
@@ -499,7 +506,7 @@ public partial class alpaca : Exchange
             { "loc", loc },
         };
         parameters = this.omit(parameters, new List<object>() {"loc", "method"});
-        object response = null;
+        object ohlcvs = null;
         if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocBars")))
         {
             if (isTrue(!isEqual(limit, null)))
@@ -511,63 +518,63 @@ public partial class alpaca : Exchange
                 ((IDictionary<string,object>)request)["start"] = this.yyyymmdd(since);
             }
             ((IDictionary<string,object>)request)["timeframe"] = this.safeString(this.timeframes, timeframe, timeframe);
-            response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+            object response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+            //
+            //    {
+            //        "bars": {
+            //           "BTC/USD": [
+            //              {
+            //                 "c": 22887,
+            //                 "h": 22888,
+            //                 "l": 22873,
+            //                 "n": 11,
+            //                 "o": 22883,
+            //                 "t": "2022-07-21T05:00:00Z",
+            //                 "v": 1.1138,
+            //                 "vw": 22883.0155324116
+            //              },
+            //              {
+            //                 "c": 22895,
+            //                 "h": 22895,
+            //                 "l": 22884,
+            //                 "n": 6,
+            //                 "o": 22884,
+            //                 "t": "2022-07-21T05:01:00Z",
+            //                 "v": 0.001,
+            //                 "vw": 22889.5
+            //              }
+            //           ]
+            //        },
+            //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+            //     }
+            //
+            object bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
+            ohlcvs = this.safeList(bars, marketId, new List<object>() {});
         } else if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
         {
-            response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));
+            object response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));
+            //
+            //    {
+            //        "bars": {
+            //           "BTC/USD": {
+            //              "c": 22887,
+            //              "h": 22888,
+            //              "l": 22873,
+            //              "n": 11,
+            //              "o": 22883,
+            //              "t": "2022-07-21T05:00:00Z",
+            //              "v": 1.1138,
+            //              "vw": 22883.0155324116
+            //           }
+            //        }
+            //     }
+            //
+            object bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
+            ohlcvs = this.safeDict(bars, marketId, new Dictionary<string, object>() {});
+            ohlcvs = new List<object>() {ohlcvs};
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
-        }
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":[
-        //              {
-        //                 "c":22887,
-        //                 "h":22888,
-        //                 "l":22873,
-        //                 "n":11,
-        //                 "o":22883,
-        //                 "t":"2022-07-21T05:00:00Z",
-        //                 "v":1.1138,
-        //                 "vw":22883.0155324116
-        //              },
-        //              {
-        //                 "c":22895,
-        //                 "h":22895,
-        //                 "l":22884,
-        //                 "n":6,
-        //                 "o":22884,
-        //                 "t":"2022-07-21T05:01:00Z",
-        //                 "v":0.001,
-        //                 "vw":22889.5
-        //              }
-        //           ]
-        //        },
-        //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-        //     }
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":{
-        //              "c":22887,
-        //              "h":22888,
-        //              "l":22873,
-        //              "n":11,
-        //              "o":22883,
-        //              "t":"2022-07-21T05:00:00Z",
-        //              "v":1.1138,
-        //              "vw":22883.0155324116
-        //           }
-        //        }
-        //     }
-        //
-        object bars = this.safeValue(response, "bars", new Dictionary<string, object>() {});
-        object ohlcvs = this.safeValue(bars, marketId, new Dictionary<string, object>() {});
-        if (!isTrue(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-        {
-            ohlcvs = new List<object>() {ohlcvs};
         }
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
@@ -602,7 +609,7 @@ public partial class alpaca : Exchange
         * @param {string} type 'market', 'limit' or 'stop_limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -711,7 +718,7 @@ public partial class alpaca : Exchange
         //       "message": "order is not found."
         //   }
         //
-        return this.safeValue(response, "message", new Dictionary<string, object>() {});
+        return this.parseOrder(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -733,7 +740,9 @@ public partial class alpaca : Exchange
             return this.parseOrders(response, null);
         } else
         {
-            return response;
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
         }
     }
 
@@ -744,6 +753,7 @@ public partial class alpaca : Exchange
         * @name alpaca#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.alpaca.markets/reference/getorderbyorderid
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1050,6 +1060,7 @@ public partial class alpaca : Exchange
         headers = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
         if (isTrue(isEqual(getValue(api, 1), "private")))
         {
+            this.checkRequiredCredentials();
             ((IDictionary<string,object>)headers)["APCA-API-KEY-ID"] = this.apiKey;
             ((IDictionary<string,object>)headers)["APCA-API-SECRET-KEY"] = this.secret;
         }

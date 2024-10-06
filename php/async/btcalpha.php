@@ -9,8 +9,6 @@ use Exception; // a common import
 use ccxt\async\abstract\btcalpha as Exchange;
 use ccxt\ExchangeError;
 use ccxt\InvalidOrder;
-use ccxt\DDoSProtection;
-use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -34,6 +32,7 @@ class btcalpha extends Exchange {
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -46,6 +45,9 @@ class btcalpha extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDeposit' => false,
+                'fetchDepositAddress' => false,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -67,8 +69,11 @@ class btcalpha extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -153,7 +158,7 @@ class btcalpha extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for btcalpha
@@ -181,7 +186,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'currency1');
         $quoteId = $this->safe_string($market, 'currency2');
@@ -286,7 +291,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             //    {
             //        "timestamp" => "1674658.445272",
@@ -304,7 +309,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
         //        "timestamp" => "1674658.445272",
@@ -366,7 +371,7 @@ class btcalpha extends Exchange {
                 $request['limit_sell'] = $limit;
                 $request['limit_buy'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderbookPairName (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbookPairName ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol'], null, 'buy', 'sell', 'price', 'amount');
         }) ();
     }
@@ -382,7 +387,7 @@ class btcalpha extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -453,7 +458,7 @@ class btcalpha extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $trades = Async\await($this->publicGetExchanges (array_merge($request, $params)));
+            $trades = Async\await($this->publicGetExchanges ($this->extend($request, $params)));
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
@@ -507,7 +512,7 @@ class btcalpha extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency_id'] = $currency['id'];
             }
-            $response = Async\await($this->privateGetWithdraws (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWithdraws ($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -523,7 +528,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //  deposit
         //      {
@@ -569,7 +574,7 @@ class btcalpha extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '10' => 'pending',  // New
             '20' => 'pending',  // Verified, waiting for approving
@@ -625,7 +630,7 @@ class btcalpha extends Exchange {
             if ($since !== null) {
                 $request['since'] = $this->parse_to_int($since / 1000);
             }
-            $response = Async\await($this->publicGetChartsPairTypeChart (array_merge($request, $params)));
+            $response = Async\await($this->publicGetChartsPairTypeChart ($this->extend($request, $params)));
             //
             //     array(
             //         array("time":1591296000,"open":0.024746,"close":0.024728,"low":0.024728,"high":0.024753,"volume":16.624),
@@ -665,7 +670,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '1' => 'open',
             '2' => 'canceled',
@@ -674,7 +679,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchClosedOrders / fetchOrder
         //     {
@@ -718,7 +723,7 @@ class btcalpha extends Exchange {
         $filled = $this->safe_string($order, 'amount_filled');
         $amount = $this->safe_string($order, 'amount_original');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string_2($order, 'oid', 'id');
+        $id = $this->safe_string_n($order, array( 'oid', 'id', 'order' ));
         $trades = $this->safe_value($order, 'trades');
         $side = $this->safe_string_2($order, 'my_side', 'type');
         return $this->safe_order(array(
@@ -756,7 +761,7 @@ class btcalpha extends Exchange {
              * @param {string} $type 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
@@ -771,7 +776,7 @@ class btcalpha extends Exchange {
                 'amount' => $amount,
                 'price' => $this->price_to_precision($symbol, $price),
             );
-            $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrder ($this->extend($request, $params)));
             if (!$response['success']) {
                 throw new InvalidOrder($this->id . ' ' . $this->json($response));
             }
@@ -796,8 +801,13 @@ class btcalpha extends Exchange {
             $request = array(
                 'order' => $id,
             );
-            $response = Async\await($this->privatePostOrderCancel (array_merge($request, $params)));
-            return $response;
+            $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
+            //
+            //    {
+            //        "order" => 63568
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -806,6 +816,7 @@ class btcalpha extends Exchange {
             /**
              * @see https://btc-alpha.github.io/api-docs/#retrieve-single-$order
              * fetches information on an $order made by the user
+             * @param {string} $id the $order $id
              * @param {string} $symbol not used by btcalpha fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -814,7 +825,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $order = Async\await($this->privateGetOrderId (array_merge($request, $params)));
+            $order = Async\await($this->privateGetOrderId ($this->extend($request, $params)));
             return $this->parse_order($order);
         }) ();
     }
@@ -840,7 +851,7 @@ class btcalpha extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $orders = Async\await($this->privateGetOrdersOwn (array_merge($request, $params)));
+            $orders = Async\await($this->privateGetOrdersOwn ($this->extend($request, $params)));
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -859,7 +870,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'status' => '1',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -877,7 +888,7 @@ class btcalpha extends Exchange {
             $request = array(
                 'status' => '3',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -901,7 +912,7 @@ class btcalpha extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $trades = Async\await($this->privateGetExchangesOwn (array_merge($request, $params)));
+            $trades = Async\await($this->privateGetExchangesOwn ($this->extend($request, $params)));
             return $this->parse_trades($trades, null, $since, $limit);
         }) ();
     }
@@ -939,7 +950,7 @@ class btcalpha extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
@@ -947,19 +958,12 @@ class btcalpha extends Exchange {
         //     array("date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC")
         //
         $error = $this->safe_string($response, 'error');
-        $feedback = $this->id . ' ' . $body;
         if ($error !== null) {
+            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+            throw new ExchangeError($feedback); // unknown $error
         }
-        if ($code === 401 || $code === 403) {
-            throw new AuthenticationError($feedback);
-        } elseif ($code === 429) {
-            throw new DDoSProtection($feedback);
-        }
-        if ($code < 400) {
-            return null;
-        }
-        throw new ExchangeError($feedback);
+        return null;
     }
 }

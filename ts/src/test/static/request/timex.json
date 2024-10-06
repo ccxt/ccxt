@@ -1,6 +1,6 @@
 {
     "exchange": "timex",
-    "skipKeys": [],
+    "skipKeys": ["from", "till"],
     "outputType": "json",
     "methods": {
         "fetchMyTrades": [
@@ -54,6 +54,77 @@
                     {
                         "type": "swap"
                     }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Basic call",
+                "method": "fetchDepositAddress",
+                "url": "https://plasma-relay-backend.timex.io/currencies/s/BTC",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://plasma-relay-backend.timex.io/tradingview/time",
+                "input": []
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://plasma-relay-backend.timex.io/public/trades?market=BTCUSDT&sort=timestamp%2Casc",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://plasma-relay-backend.timex.io/public/orderbook/v2?market=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://plasma-relay-backend.timex.io/public/tickers?market=BTCUSDT&period=D1",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://plasma-relay-backend.timex.io/public/tickers?period=D1",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://plasma-relay-backend.timex.io/public/candles?market=BTCUSDT&period=I1&till=2024-03-09T14%3A03%3A04.958Z&from=2024-03-08T21%3A23%3A04.957Z",
+                "input": [
+                    "BTC/USDT"
                 ]
             }
         ]

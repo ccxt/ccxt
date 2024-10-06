@@ -307,6 +307,7 @@ class huobijp extends huobijp$1 {
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'currencyToPrecisionRoundingMode': number.TRUNCATE,
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
@@ -952,7 +953,7 @@ class huobijp extends huobijp$1 {
             'period': this.safeString(this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, 2000);
         }
         const response = await this.marketGetHistoryKline(this.extend(request, params));
         //
@@ -967,7 +968,7 @@ class huobijp extends huobijp$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchAccounts(params = {}) {
@@ -1166,7 +1167,7 @@ class huobijp extends huobijp$1 {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId(this.extend(request, params));
-        const order = this.safeValue(response, 'data');
+        const order = this.safeDict(response, 'data');
         return this.parseOrder(order);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1264,7 +1265,7 @@ class huobijp extends huobijp$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -1388,7 +1389,7 @@ class huobijp extends huobijp$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1545,7 +1546,65 @@ class huobijp extends huobijp$1 {
         //         }
         //     }
         //
-        return response;
+        return this.parseCancelOrders(response);
+    }
+    parseCancelOrders(orders) {
+        //
+        //    {
+        //        "success": [
+        //            "5983466"
+        //        ],
+        //        "failed": [
+        //            {
+        //                "err-msg": "Incorrect order state",
+        //                "order-state": 7,
+        //                "order-id": "",
+        //                "err-code": "order-orderstate-error",
+        //                "client-order-id": "first"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        //    {
+        //        "errors": [
+        //            {
+        //                "order_id": "769206471845261312",
+        //                "err_code": 1061,
+        //                "err_msg": "This order doesnt exist."
+        //            }
+        //        ],
+        //        "successes": "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        const successes = this.safeString(orders, 'successes');
+        let success = undefined;
+        if (successes !== undefined) {
+            success = successes.split(',');
+        }
+        else {
+            success = this.safeList(orders, 'success', []);
+        }
+        const failed = this.safeList2(orders, 'errors', 'failed', []);
+        const result = [];
+        for (let i = 0; i < success.length; i++) {
+            const order = success[i];
+            result.push(this.safeOrder({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < failed.length; i++) {
+            const order = failed[i];
+            result.push(this.safeOrder({
+                'info': order,
+                'id': this.safeString2(order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': this.safeString(order, 'client-order-id'),
+            }));
+        }
+        return result;
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1580,19 +1639,12 @@ class huobijp extends huobijp$1 {
         //         }
         //     }
         //
-        return response;
-    }
-    currencyToPrecision(code, fee, networkCode = undefined) {
-        return this.decimalToPrecision(fee, 0, this.currencies[code]['precision'], this.precisionMode);
-    }
-    safeNetwork(networkId) {
-        const lastCharacterIndex = networkId.length - 1;
-        const lastCharacter = networkId[lastCharacterIndex];
-        if (lastCharacter === '1') {
-            networkId = networkId.slice(0, lastCharacterIndex);
-        }
-        const networksById = {};
-        return this.safeString(networksById, networkId, networkId);
+        const data = this.safeDict(response, 'data', {});
+        return [
+            this.safeOrder({
+                'info': data,
+            }),
+        ];
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //

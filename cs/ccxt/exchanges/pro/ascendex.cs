@@ -18,6 +18,7 @@ public partial class ascendex : ccxt.ascendex
                 { "watchOrders", true },
                 { "watchTicker", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -59,6 +60,19 @@ public partial class ascendex : ccxt.ascendex
         return await this.watch(url, messageHash, message, messageHash);
     }
 
+    public async virtual Task<object> watchPublicMultiple(object messageHashes, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object id = this.nonce();
+        object request = new Dictionary<string, object>() {
+            { "id", ((object)id).ToString() },
+            { "op", "sub" },
+        };
+        object message = this.extend(request, parameters);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+    }
+
     public async virtual Task<object> watchPrivate(object channel, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -85,6 +99,7 @@ public partial class ascendex : ccxt.ascendex
         * @method
         * @name ascendex#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-bar-data
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -159,6 +174,7 @@ public partial class ascendex : ccxt.ascendex
         * @method
         * @name ascendex#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -166,17 +182,47 @@ public partial class ascendex : ccxt.ascendex
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name ascendex#watchTradesForSymbols
+        * @description get the list of most recent trades for a list of symbols
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object channel = add(add("trades", ":"), getValue(market, "id"));
+        symbols = this.marketSymbols(symbols, null, false, true, true);
+        object marketIds = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object market = this.market(getValue(symbols, i));
+                ((IList<object>)marketIds).Add(getValue(market, "id"));
+                ((IList<object>)messageHashes).Add(add("trades:", getValue(market, "id")));
+            }
+        }
+        object channel = add("trades:", String.Join(",", ((IList<object>)marketIds).ToArray()));
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "ch", channel },
         });
-        object trades = await this.watchPublic(channel, parameters);
+        object trades = await this.watchPublicMultiple(messageHashes, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            object first = this.safeValue(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
@@ -229,6 +275,7 @@ public partial class ascendex : ccxt.ascendex
         * @method
         * @name ascendex#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-level-2-order-book-updates
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -237,7 +284,7 @@ public partial class ascendex : ccxt.ascendex
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object channel = add(add("depth-realtime", ":"), getValue(market, "id"));
+        object channel = add(add("depth", ":"), getValue(market, "id"));
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "ch", channel },
         });
@@ -250,7 +297,7 @@ public partial class ascendex : ccxt.ascendex
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object action = "depth-snapshot-realtime";
+        object action = "depth-snapshot";
         object channel = add(add(action, ":"), getValue(market, "id"));
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "action", action },
@@ -261,6 +308,19 @@ public partial class ascendex : ccxt.ascendex
         });
         object orderbook = await this.watchPublic(channel, parameters);
         return (orderbook as IOrderBook).limit();
+    }
+
+    public async virtual Task<object> fetchOrderBookSnapshot(object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object restOrderBook = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+        }
+        object orderbook = getValue(this.orderbooks, symbol);
+        (orderbook as IOrderBook).reset(restOrderBook);
+        return orderbook;
     }
 
     public virtual void handleOrderBookSnapshot(WebSocketClient client, object message)
@@ -321,11 +381,11 @@ public partial class ascendex : ccxt.ascendex
         object marketId = this.safeString(message, "symbol");
         object symbol = this.safeSymbol(marketId);
         object messageHash = add(add(channel, ":"), marketId);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         if (isTrue(isEqual(getValue(orderbook, "nonce"), null)))
         {
             ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(message);
@@ -397,6 +457,7 @@ public partial class ascendex : ccxt.ascendex
         * @method
         * @name ascendex#watchBalance
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -778,7 +839,7 @@ public partial class ascendex : ccxt.ascendex
                 ((WebSocketClient)client).reject(e, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             } else
             {
@@ -952,8 +1013,8 @@ public partial class ascendex : ccxt.ascendex
             { "ping", this.handlePing },
             { "auth", this.handleAuthenticate },
             { "sub", this.handleSubscriptionStatus },
-            { "depth-realtime", this.handleOrderBook },
-            { "depth-snapshot-realtime", this.handleOrderBookSnapshot },
+            { "depth", this.handleOrderBook },
+            { "depth-snapshot", this.handleOrderBookSnapshot },
             { "trades", this.handleTrades },
             { "bar", this.handleOHLCV },
             { "balance", this.handleBalance },
@@ -985,7 +1046,7 @@ public partial class ascendex : ccxt.ascendex
         //     { m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0 }
         //
         object channel = this.safeString(message, "ch", "");
-        if (isTrue(isGreaterThan(getIndexOf(channel, "depth-realtime"), -1)))
+        if (isTrue(isTrue(isGreaterThan(getIndexOf(channel, "depth"), -1)) && !isTrue((isGreaterThan(getIndexOf(channel, "depth-snapshot"), -1)))))
         {
             this.handleOrderBookSubscription(client as WebSocketClient, message);
         }
@@ -997,13 +1058,20 @@ public partial class ascendex : ccxt.ascendex
         object channel = this.safeString(message, "ch");
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
-        object symbol = this.safeSymbol(marketId);
+        object market = this.safeMarket(marketId);
+        object symbol = getValue(market, "symbol");
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
-        this.spawn(this.watchOrderBookSnapshot, new object[] { symbol});
+        if (isTrue(isTrue(isEqual(getValue(this.options, "defaultType"), "swap")) || isTrue(getValue(market, "contract"))))
+        {
+            this.spawn(this.fetchOrderBookSnapshot, new object[] { symbol});
+        } else
+        {
+            this.spawn(this.watchOrderBookSnapshot, new object[] { symbol});
+        }
     }
 
     public async virtual Task pong(WebSocketClient client, object message)
@@ -1050,7 +1118,7 @@ public partial class ascendex : ccxt.ascendex
                 { "key", this.apiKey },
                 { "sig", signature },
             };
-            future = this.watch(url, messageHash, this.extend(request, parameters));
+            future = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

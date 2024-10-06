@@ -101,6 +101,7 @@ class AiohttpClient(Client):
                 else:
                     future.reject(ExchangeClosedByUser('Connection closed by the user'))
 
+
     async def ping_loop(self):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'ping loop')

@@ -1,8 +1,9 @@
-
 import assert from 'assert';
+import { Exchange } from "../../../ccxt";
 import testOHLCV from './base/test.ohlcv.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchOHLCV (exchange, skippedProperties, symbol) {
+async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchOHLCV';
     const timeframeKeys = Object.keys (exchange.timeframes);
     assert (timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found');
@@ -15,7 +16,7 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
     const duration = exchange.parseTimeframe (chosenTimeframeKey);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     const ohlcvs = await exchange.fetchOHLCV (symbol, chosenTimeframeKey, since, limit);
-    assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (ohlcvs));
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
     const now = exchange.milliseconds ();
     for (let i = 0; i < ohlcvs.length; i++) {
         testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);

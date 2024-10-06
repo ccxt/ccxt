@@ -54,8 +54,11 @@ public partial class luno : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -126,12 +129,14 @@ public partial class luno : Exchange
                         { "withdrawals", 1 },
                         { "send", 1 },
                         { "oauth2/grant", 1 },
+                        { "beneficiaries", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "accounts/{id}/name", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "withdrawals/{id}", 1 },
+                        { "beneficiaries/{id}", 1 },
                     } },
                 } },
             } },
@@ -165,6 +170,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchMarkets
         * @description retrieves data on all markets for luno
+        * @see https://www.luno.com/en/developers/api#tag/Market/operation/Markets
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -259,6 +265,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchAccounts
         * @description fetch all the accounts associated with a profile
+        * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
         */
@@ -321,6 +328,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -346,6 +354,8 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBookFull
+        * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetOrderBook
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -463,6 +473,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchOrder
         * @description fetches information on an order made by the user
+        * @see https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
         * @param {string} symbol not used by luno fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -492,7 +503,7 @@ public partial class luno : Exchange
             ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
         }
         object response = await this.privateGetListorders(this.extend(request, parameters));
-        object orders = this.safeValue(response, "orders", new List<object>() {});
+        object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -502,6 +513,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchOrders
         * @description fetches information on multiple orders made by the user
+        * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -518,6 +530,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchOpenOrders
         * @description fetch all unfilled currently open orders
+        * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -534,6 +547,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
+        * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListOrders
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -589,6 +603,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -617,6 +632,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -748,6 +764,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://www.luno.com/en/developers/api#tag/Market/operation/ListTrades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -778,7 +795,7 @@ public partial class luno : Exchange
         //          ]
         //      }
         //
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -829,7 +846,7 @@ public partial class luno : Exchange
         //          "pair": "XBTEUR"
         //     }
         //
-        object ohlcvs = this.safeValue(response, "candles", new List<object>() {});
+        object ohlcvs = this.safeList(response, "candles", new List<object>() {});
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
@@ -852,6 +869,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchMyTrades
         * @description fetch all trades made by the user
+        * @see https://www.luno.com/en/developers/api#tag/Orders/operation/ListUserTrades
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -898,7 +916,7 @@ public partial class luno : Exchange
         //          ]
         //      }
         //
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -908,6 +926,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#fetchTradingFee
         * @description fetch the trading fees for a market
+        * @see https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -931,6 +950,8 @@ public partial class luno : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(response, "maker_fee") },
             { "taker", this.safeNumber(response, "taker_fee") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -940,11 +961,13 @@ public partial class luno : Exchange
         * @method
         * @name luno#createOrder
         * @description create a trade order
+        * @see https://www.luno.com/en/developers/api#tag/Orders/operation/PostMarketOrder
+        * @see https://www.luno.com/en/developers/api#tag/Orders/operation/PostLimitOrder
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -986,6 +1009,7 @@ public partial class luno : Exchange
         * @method
         * @name luno#cancelOrder
         * @description cancels an open order
+        * @see https://www.luno.com/en/developers/api#tag/Orders/operation/StopOrder
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -996,7 +1020,15 @@ public partial class luno : Exchange
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        return await this.privatePostStoporder(this.extend(request, parameters));
+        object response = await this.privatePostStoporder(this.extend(request, parameters));
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async virtual Task<object> fetchLedgerByEntries(object code = null, object entry = null, object limit = null, object parameters = null)
@@ -1024,10 +1056,11 @@ public partial class luno : Exchange
         /**
         * @method
         * @name luno#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -1059,7 +1092,7 @@ public partial class luno : Exchange
             min_row = -1000; // Maximum number of records supported
         } else if (isTrue(isTrue(isEqual(min_row, null)) || isTrue(isEqual(max_row, null))))
         {
-            throw new ExchangeError ((string)add(this.id, " fetchLedger() require both params \'max_row\' and \'min_row\' or neither to be defined")) ;
+            throw new ExchangeError ((string)add(this.id, " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")) ;
         }
         if (isTrue(isTrue(!isEqual(limit, null)) && isTrue(isGreaterThan(subtract(max_row, min_row), limit))))
         {
@@ -1073,7 +1106,7 @@ public partial class luno : Exchange
         }
         if (isTrue(isGreaterThan(subtract(max_row, min_row), 1000)))
         {
-            throw new ExchangeError ((string)add(this.id, " fetchLedger() requires the params \'max_row\' - \'min_row\' <= 1000")) ;
+            throw new ExchangeError ((string)add(this.id, " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
         }
         object request = new Dictionary<string, object>() {
             { "id", id },
@@ -1128,6 +1161,7 @@ public partial class luno : Exchange
         object timestamp = this.safeInteger(entry, "timestamp");
         object currencyId = this.safeString(entry, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object available_delta = this.safeString(entry, "available_delta");
         object balance_delta = this.safeString(entry, "balance_delta");
         object after = this.safeString(entry, "balance");
@@ -1160,7 +1194,8 @@ public partial class luno : Exchange
         {
             direction = "out";
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", entry },
             { "id", id },
             { "direction", direction },
             { "account", account_id },
@@ -1168,15 +1203,14 @@ public partial class luno : Exchange
             { "referenceAccount", null },
             { "type", type },
             { "currency", code },
-            { "amount", this.parseNumber(amount) },
+            { "amount", this.parseToNumeric(amount) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "before", this.parseNumber(before) },
-            { "after", this.parseNumber(after) },
+            { "before", this.parseToNumeric(before) },
+            { "after", this.parseToNumeric(after) },
             { "status", status },
             { "fee", null },
-            { "info", entry },
-        };
+        }, currency);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

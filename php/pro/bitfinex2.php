@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\InvalidNonce;
 use ccxt\AuthenticationError;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -23,6 +23,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'watchTickers' => false,
                 'watchOrderBook' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
@@ -40,9 +41,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'watchOrderBook' => array(
                     'prec' => 'P0',
                     'freq' => 'F0',
+                    'checksum' => true,
                 ),
                 'ordersLimit' => 1000,
-                'checksum' => true,
             ),
         ));
     }
@@ -61,7 +62,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'symbol' => $marketId,
             );
             $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
-            $checksum = $this->safe_value($this->options, 'checksum', true);
+            $checksum = $this->safe_bool($this->options, 'checksum', true);
             if ($checksum && !$client->subscriptions[$messageHash]['checksum'] && ($channel === 'book')) {
                 $client->subscriptions[$messageHash]['checksum'] = true;
                 Async\await($client->send (array(
@@ -224,7 +225,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrade';
@@ -338,9 +339,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $messageLength = count($message);
         if ($messageLength === 2) {
             // initial snapshot
-            $trades = $this->safe_value($message, 1, array());
-            for ($i = 0; $i < count($trades); $i++) {
-                $parsed = $this->parse_ws_trade($trades[$i], $market);
+            $trades = $this->safe_list($message, 1, array());
+            // needs to be reversed to make chronological order
+            $length = count($trades);
+            for ($i = 0; $i < $length; $i++) {
+                $index = $length - $i - 1;
+                $parsed = $this->parse_ws_trade($trades[$index], $market);
                 $stored->append ($parsed);
             }
         } else {
@@ -595,8 +599,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $prec = $this->safe_string($subscription, 'prec', 'P0');
         $isRaw = ($prec === 'R0');
         // if it is an initial snapshot
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $limit = $this->safe_integer($subscription, 'len');
             if ($isRaw) {
                 // raw order books
@@ -616,7 +619,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     $bookside = $orderbook[$side];
                     $idString = $this->safe_string($delta, 0);
                     $price = $this->safe_float($delta, 1);
-                    $bookside->store ($price, $size, $idString);
+                    $bookside->storeArray (array( $price, $size, $idString ));
                 }
             } else {
                 $deltas = $message[1];
@@ -628,12 +631,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     $size = ($amount < 0) ? -$amount : $amount;
                     $side = ($amount < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
-                    $bookside->store ($price, $size, $counter);
+                    $bookside->storeArray (array( $price, $size, $counter ));
                 }
             }
             $orderbook['symbol'] = $symbol;
             $client->resolve ($orderbook, $messageHash);
         } else {
+            $orderbook = $this->orderbooks[$symbol];
             $deltas = $message[1];
             $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {
@@ -645,7 +649,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 // $price = 0 means that you have to remove the order from your book
                 $amount = Precise::string_gt($price, '0') ? $size : '0';
                 $idString = $this->safe_string($deltas, 0);
-                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $idString);
+                $bookside->storeArray (array( $this->parse_number($price), $this->parse_number($amount), $idString ));
             } else {
                 $amount = $this->safe_string($deltas, 2);
                 $counter = $this->safe_string($deltas, 1);
@@ -653,7 +657,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 $size = Precise::string_lt($amount, '0') ? Precise::string_neg($amount) : $amount;
                 $side = Precise::string_lt($amount, '0') ? 'asks' : 'bids';
                 $bookside = $orderbookItem[$side];
-                $bookside->store ($this->parse_number($price), $this->parse_number($size), $this->parse_number($counter));
+                $bookside->storeArray (array( $this->parse_number($price), $this->parse_number($size), $this->parse_number($counter) ));
             }
             $client->resolve ($orderbook, $messageHash);
         }
@@ -696,8 +700,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $localChecksum = $this->crc32($payload, true);
         $responseChecksum = $this->safe_integer($message, 2);
         if ($responseChecksum !== $localChecksum) {
-            $error = new InvalidNonce ($this->id . ' invalid checksum');
-            $client->reject ($error, $messageHash);
+            unset($client->subscriptions[$messageHash]);
+            unset($this->orderbooks[$symbol]);
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+                $client->reject ($error, $messageHash);
+            }
         }
     }
 
@@ -861,27 +870,29 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws']['private'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $nonce = $this->milliseconds();
-            $payload = 'AUTH' . (string) $nonce;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
-            $event = 'auth';
-            $request = array(
-                'apiKey' => $this->apiKey,
-                'authSig' => $signature,
-                'authNonce' => $nonce,
-                'authPayload' => $payload,
-                'event' => $event,
-            );
-            $message = array_merge($request, $params);
-            $this->watch($url, $messageHash, $message, $messageHash);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws']['private'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $nonce = $this->milliseconds();
+                $payload = 'AUTH' . (string) $nonce;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
+                $event = 'auth';
+                $request = array(
+                    'apiKey' => $this->apiKey,
+                    'authSig' => $signature,
+                    'authNonce' => $nonce,
+                    'authPayload' => $payload,
+                    'event' => $event,
+                );
+                $message = $this->extend($request, $params);
+                $this->watch($url, $messageHash, $message, $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function handle_authentication_message(Client $client, $message) {
@@ -909,7 +920,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';

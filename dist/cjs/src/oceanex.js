@@ -47,6 +47,9 @@ class oceanex extends oceanex$1 {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarkets': true,
@@ -107,6 +110,11 @@ class oceanex extends oceanex$1 {
                         'order/delete',
                         'order/delete/multi',
                         'orders/clear',
+                        '/withdraws/special/new',
+                        '/deposit_address',
+                        '/deposit_addresses',
+                        '/deposit_history',
+                        '/withdraw_history',
                     ],
                 },
             },
@@ -265,7 +273,7 @@ class oceanex extends oceanex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -493,7 +501,7 @@ class oceanex extends oceanex$1 {
         //          ]
         //      }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseTrades(data, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -627,7 +635,7 @@ class oceanex extends oceanex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -643,7 +651,7 @@ class oceanex extends oceanex$1 {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const response = await this.privatePostOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -791,10 +799,10 @@ class oceanex extends oceanex$1 {
             request['timestamp'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 10000);
         }
         const response = await this.publicPostK(this.extend(request, params));
-        const ohlcvs = this.safeValue(response, 'data', []);
+        const ohlcvs = this.safeList(response, 'data', []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOrder(order, market = undefined) {
@@ -873,7 +881,7 @@ class oceanex extends oceanex$1 {
          */
         await this.loadMarkets();
         const response = await this.privatePostOrderDelete(this.extend({ 'id': id }, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data);
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
@@ -889,7 +897,7 @@ class oceanex extends oceanex$1 {
          */
         await this.loadMarkets();
         const response = await this.privatePostOrderDeleteMulti(this.extend({ 'ids': ids }, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseOrders(data);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -904,8 +912,83 @@ class oceanex extends oceanex$1 {
          */
         await this.loadMarkets();
         const response = await this.privatePostOrdersClear(params);
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseOrders(data);
+    }
+    async fetchDepositAddressesByNetwork(code, params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchDepositAddressesByNetwork
+         * @description fetch the deposit addresses for a currency associated with this account
+         * @see https://api.oceanex.pro/doc/v1/#deposit-addresses-post
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostDepositAddresses(this.extend(request, params));
+        //
+        //    {
+        //        code: '0',
+        //        message: 'Operation successful',
+        //        data: {
+        //          data: {
+        //            currency_id: 'usdt',
+        //            display_name: 'USDT',
+        //            num_of_resources: '3',
+        //            resources: [
+        //              {
+        //                chain_name: 'TRC20',
+        //                currency_id: 'usdt',
+        //                address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        //                memo: '',
+        //                deposit_status: 'enabled'
+        //              },
+        //              ...
+        //            ]
+        //          }
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const data2 = this.safeDict(data, 'data', {});
+        const resources = this.safeList(data2, 'resources', []);
+        const result = {};
+        for (let i = 0; i < resources.length; i++) {
+            const resource = resources[i];
+            const enabled = this.safeString(resource, 'deposit_status');
+            if (enabled === 'enabled') {
+                const parsedAddress = this.parseDepositAddress(resource, currency);
+                result[parsedAddress['currency']] = parsedAddress;
+            }
+        }
+        return result;
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //    {
+        //        chain_name: 'TRC20',
+        //        currency_id: 'usdt',
+        //        address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        //        memo: '',
+        //        deposit_status: 'enabled'
+        //    }
+        //
+        const address = this.safeString(depositAddress, 'address');
+        this.checkAddress(address);
+        const currencyId = this.safeString(depositAddress, 'currency_id');
+        const networkId = this.safeString(depositAddress, 'chain_name');
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'address': address,
+            'tag': this.safeString(depositAddress, 'memo'),
+            'network': this.networkIdToCode(networkId),
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams(path, params);

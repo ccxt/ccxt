@@ -54,8 +54,11 @@ class bitbank extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -136,26 +139,28 @@ class bitbank extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                '20001' => '\\ccxt\\AuthenticationError',
-                '20002' => '\\ccxt\\AuthenticationError',
-                '20003' => '\\ccxt\\AuthenticationError',
-                '20005' => '\\ccxt\\AuthenticationError',
-                '20004' => '\\ccxt\\InvalidNonce',
-                '40020' => '\\ccxt\\InvalidOrder',
-                '40021' => '\\ccxt\\InvalidOrder',
-                '40025' => '\\ccxt\\ExchangeError',
-                '40013' => '\\ccxt\\OrderNotFound',
-                '40014' => '\\ccxt\\OrderNotFound',
-                '50008' => '\\ccxt\\PermissionDenied',
-                '50009' => '\\ccxt\\OrderNotFound',
-                '50010' => '\\ccxt\\OrderNotFound',
-                '60001' => '\\ccxt\\InsufficientFunds',
-                '60005' => '\\ccxt\\InvalidOrder',
+                'exact' => array(
+                    '20001' => '\\ccxt\\AuthenticationError',
+                    '20002' => '\\ccxt\\AuthenticationError',
+                    '20003' => '\\ccxt\\AuthenticationError',
+                    '20005' => '\\ccxt\\AuthenticationError',
+                    '20004' => '\\ccxt\\InvalidNonce',
+                    '40020' => '\\ccxt\\InvalidOrder',
+                    '40021' => '\\ccxt\\InvalidOrder',
+                    '40025' => '\\ccxt\\ExchangeError',
+                    '40013' => '\\ccxt\\OrderNotFound',
+                    '40014' => '\\ccxt\\OrderNotFound',
+                    '50008' => '\\ccxt\\PermissionDenied',
+                    '50009' => '\\ccxt\\OrderNotFound',
+                    '50010' => '\\ccxt\\OrderNotFound',
+                    '60001' => '\\ccxt\\InsufficientFunds',
+                    '60005' => '\\ccxt\\InvalidOrder',
+                ),
             ),
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for bitbank
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-$pairs-info
@@ -254,7 +259,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
@@ -295,8 +300,8 @@ class bitbank extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetPairTicker (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data', array());
+        $response = $this->publicGetPairTicker ($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
@@ -314,13 +319,13 @@ class bitbank extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetPairDepth (array_merge($request, $params));
+        $response = $this->publicGetPairDepth ($this->extend($request, $params));
         $orderbook = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -381,13 +386,13 @@ class bitbank extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetPairTransactions (array_merge($request, $params));
+        $response = $this->publicGetPairTransactions ($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'transactions', array());
+        $trades = $this->safe_list($data, 'transactions', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-$pairs-info
@@ -490,7 +495,7 @@ class bitbank extends Exchange {
             'candletype' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'yyyymmdd' => $this->yyyymmdd($since, ''),
         );
-        $response = $this->publicGetPairCandlestickCandletypeYyyymmdd (array_merge($request, $params));
+        $response = $this->publicGetPairCandlestickCandletypeYyyymmdd ($this->extend($request, $params));
         //
         //     {
         //         "success":1,
@@ -512,7 +517,7 @@ class bitbank extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $candlestick = $this->safe_value($data, 'candlestick', array());
         $first = $this->safe_value($candlestick, 0, array());
-        $ohlcv = $this->safe_value($first, 'ohlcv', array());
+        $ohlcv = $this->safe_list($first, 'ohlcv', array());
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
@@ -582,7 +587,7 @@ class bitbank extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'UNFILLED' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -593,7 +598,7 @@ class bitbank extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         $id = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_market($marketId, $market);
@@ -640,7 +645,7 @@ class bitbank extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -655,8 +660,8 @@ class bitbank extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostUserSpotOrder (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $response = $this->privatePostUserSpotOrder ($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 
@@ -675,15 +680,39 @@ class bitbank extends Exchange {
             'order_id' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privatePostUserSpotCancelOrder (array_merge($request, $params));
+        $response = $this->privatePostUserSpotCancelOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "success" => 1,
+        //        "data" => {
+        //            "order_id" => 0,
+        //            "pair" => "string",
+        //            "side" => "string",
+        //            "type" => "string",
+        //            "start_amount" => "string",
+        //            "remaining_amount" => "string",
+        //            "executed_amount" => "string",
+        //            "price" => "string",
+        //            "post_only" => false,
+        //            "average_price" => "string",
+        //            "ordered_at" => 0,
+        //            "expire_at" => 0,
+        //            "canceled_at" => 0,
+        //            "triggered_at" => 0,
+        //            "trigger_price" => "string",
+        //            "status" => "string"
+        //        }
+        //    }
+        //
         $data = $this->safe_value($response, 'data');
-        return $data;
+        return $this->parse_order($data);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -694,8 +723,30 @@ class bitbank extends Exchange {
             'order_id' => $id,
             'pair' => $market['id'],
         );
-        $response = $this->privateGetUserSpotOrder (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $response = $this->privateGetUserSpotOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "success" => 1,
+        //        "data" => {
+        //          "order_id" => 0,
+        //          "pair" => "string",
+        //          "side" => "string",
+        //          "type" => "string",
+        //          "start_amount" => "string",
+        //          "remaining_amount" => "string",
+        //          "executed_amount" => "string",
+        //          "price" => "string",
+        //          "post_only" => false,
+        //          "average_price" => "string",
+        //          "ordered_at" => 0,
+        //          "expire_at" => 0,
+        //          "triggered_at" => 0,
+        //          "triger_price" => "string",
+        //          "status" => "string"
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_order($data, $market);
     }
 
@@ -720,9 +771,9 @@ class bitbank extends Exchange {
         if ($since !== null) {
             $request['since'] = $this->parse_to_int($since / 1000);
         }
-        $response = $this->privateGetUserSpotActiveOrders (array_merge($request, $params));
+        $response = $this->privateGetUserSpotActiveOrders ($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($data, 'orders', array());
+        $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -749,9 +800,9 @@ class bitbank extends Exchange {
         if ($since !== null) {
             $request['since'] = $this->parse_to_int($since / 1000);
         }
-        $response = $this->privateGetUserSpotTradeHistory (array_merge($request, $params));
+        $response = $this->privateGetUserSpotTradeHistory ($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'trades', array());
+        $trades = $this->safe_list($data, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -768,7 +819,7 @@ class bitbank extends Exchange {
         $request = array(
             'asset' => $currency['id'],
         );
-        $response = $this->privateGetUserWithdrawalAccount (array_merge($request, $params));
+        $response = $this->privateGetUserWithdrawalAccount ($this->extend($request, $params));
         $data = $this->safe_value($response, 'data', array());
         // Not sure about this if there could be more than one account...
         $accounts = $this->safe_value($data, 'accounts', array());
@@ -783,7 +834,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#new-withdrawal-$request
@@ -804,7 +855,7 @@ class bitbank extends Exchange {
             'asset' => $currency['id'],
             'amount' => $amount,
         );
-        $response = $this->privatePostUserRequestWithdrawal (array_merge($request, $params));
+        $response = $this->privatePostUserRequestWithdrawal ($this->extend($request, $params));
         //
         //     {
         //         "success" => 1,
@@ -822,11 +873,11 @@ class bitbank extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -907,7 +958,7 @@ class bitbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -976,15 +1027,10 @@ class bitbank extends Exchange {
                 '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010' => 'We are temporarily raising the minimum order quantity system load is now rising.',
             );
-            $errorClasses = $this->exceptions;
             $code = $this->safe_string($data, 'code');
             $message = $this->safe_string($errorMessages, $code, 'Error');
-            $ErrorClass = $this->safe_value($errorClasses, $code);
-            if ($ErrorClass !== null) {
-                throw new $errorClasses[$code]($message);
-            } else {
-                throw new ExchangeError($this->id . ' ' . $this->json($response));
-            }
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $message);
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return null;
     }

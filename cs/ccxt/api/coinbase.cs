@@ -16,6 +16,11 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v2PublicGetCurrencies",parameters);
     }
 
+    public async Task<object> v2PublicGetCurrenciesCrypto (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetCurrenciesCrypto",parameters);
+    }
+
     public async Task<object> v2PublicGetTime (object parameters = null)
     {
         return await this.callAsync ("v2PublicGetTime",parameters);
@@ -231,6 +236,36 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v2PrivateDeleteAccountsAccountIdTransactionsTransactionId",parameters);
     }
 
+    public async Task<object> v3PublicGetBrokerageTime (object parameters = null)
+    {
+        return await this.callAsync ("v3PublicGetBrokerageTime",parameters);
+    }
+
+    public async Task<object> v3PublicGetBrokerageMarketProductBook (object parameters = null)
+    {
+        return await this.callAsync ("v3PublicGetBrokerageMarketProductBook",parameters);
+    }
+
+    public async Task<object> v3PublicGetBrokerageMarketProducts (object parameters = null)
+    {
+        return await this.callAsync ("v3PublicGetBrokerageMarketProducts",parameters);
+    }
+
+    public async Task<object> v3PublicGetBrokerageMarketProductsProductId (object parameters = null)
+    {
+        return await this.callAsync ("v3PublicGetBrokerageMarketProductsProductId",parameters);
+    }
+
+    public async Task<object> v3PublicGetBrokerageMarketProductsProductIdCandles (object parameters = null)
+    {
+        return await this.callAsync ("v3PublicGetBrokerageMarketProductsProductIdCandles",parameters);
+    }
+
+    public async Task<object> v3PublicGetBrokerageMarketProductsProductIdTicker (object parameters = null)
+    {
+        return await this.callAsync ("v3PublicGetBrokerageMarketProductsProductIdTicker",parameters);
+    }
+
     public async Task<object> v3PrivateGetBrokerageAccounts (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetBrokerageAccounts",parameters);
@@ -276,6 +311,21 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v3PrivateGetBrokerageProductsProductIdTicker",parameters);
     }
 
+    public async Task<object> v3PrivateGetBrokerageBestBidAsk (object parameters = null)
+    {
+        return await this.callAsync ("v3PrivateGetBrokerageBestBidAsk",parameters);
+    }
+
+    public async Task<object> v3PrivateGetBrokerageProductBook (object parameters = null)
+    {
+        return await this.callAsync ("v3PrivateGetBrokerageProductBook",parameters);
+    }
+
+    public async Task<object> v3PrivateGetBrokerageTransactionSummary (object parameters = null)
+    {
+        return await this.callAsync ("v3PrivateGetBrokerageTransactionSummary",parameters);
+    }
+
     public async Task<object> v3PrivateGetBrokeragePortfolios (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetBrokeragePortfolios",parameters);
@@ -286,29 +336,9 @@ public partial class coinbase : Exchange
         return await this.callAsync ("v3PrivateGetBrokeragePortfoliosPortfolioUuid",parameters);
     }
 
-    public async Task<object> v3PrivateGetBrokerageTransactionSummary (object parameters = null)
-    {
-        return await this.callAsync ("v3PrivateGetBrokerageTransactionSummary",parameters);
-    }
-
-    public async Task<object> v3PrivateGetBrokerageProductBook (object parameters = null)
-    {
-        return await this.callAsync ("v3PrivateGetBrokerageProductBook",parameters);
-    }
-
-    public async Task<object> v3PrivateGetBrokerageBestBidAsk (object parameters = null)
-    {
-        return await this.callAsync ("v3PrivateGetBrokerageBestBidAsk",parameters);
-    }
-
     public async Task<object> v3PrivateGetBrokerageConvertTradeTradeId (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetBrokerageConvertTradeTradeId",parameters);
-    }
-
-    public async Task<object> v3PrivateGetBrokerageTime (object parameters = null)
-    {
-        return await this.callAsync ("v3PrivateGetBrokerageTime",parameters);
     }
 
     public async Task<object> v3PrivateGetBrokerageCfmBalanceSummary (object parameters = null)
@@ -344,6 +374,16 @@ public partial class coinbase : Exchange
     public async Task<object> v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (object parameters = null)
     {
         return await this.callAsync ("v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol",parameters);
+    }
+
+    public async Task<object> v3PrivateGetBrokeragePaymentMethods (object parameters = null)
+    {
+        return await this.callAsync ("v3PrivateGetBrokeragePaymentMethods",parameters);
+    }
+
+    public async Task<object> v3PrivateGetBrokeragePaymentMethodsPaymentMethodId (object parameters = null)
+    {
+        return await this.callAsync ("v3PrivateGetBrokeragePaymentMethodsPaymentMethodId",parameters);
     }
 
     public async Task<object> v3PrivatePostBrokerageOrders (object parameters = null)
@@ -399,6 +439,11 @@ public partial class coinbase : Exchange
     public async Task<object> v3PrivatePostBrokerageIntxAllocate (object parameters = null)
     {
         return await this.callAsync ("v3PrivatePostBrokerageIntxAllocate",parameters);
+    }
+
+    public async Task<object> v3PrivatePostBrokerageOrdersClosePosition (object parameters = null)
+    {
+        return await this.callAsync ("v3PrivatePostBrokerageOrdersClosePosition",parameters);
     }
 
     public async Task<object> v3PrivatePutBrokeragePortfoliosPortfolioUuid (object parameters = null)

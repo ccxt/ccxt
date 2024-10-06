@@ -49,7 +49,7 @@ class idex(ccxt.async_support.idex):
 
     async def subscribe(self, subscribeObject, messageHash, subscription=True):
         url = self.urls['test']['ws']
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'subscriptions': [
                 subscribeObject,
@@ -60,7 +60,7 @@ class idex(ccxt.async_support.idex):
     async def subscribe_private(self, subscribeObject, messageHash):
         token = await self.authenticate()
         url = self.urls['test']['ws']
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'token': token,
             'subscriptions': [
@@ -79,7 +79,7 @@ class idex(ccxt.async_support.idex):
         await self.load_markets()
         market = self.market(symbol)
         name = 'tickers'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
             'markets': [market['id']],
         }
@@ -151,7 +151,7 @@ class idex(ccxt.async_support.idex):
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'trades'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
             'markets': [market['id']],
         }
@@ -243,7 +243,7 @@ class idex(ccxt.async_support.idex):
         symbol = market['symbol']
         name = 'candles'
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
             'markets': [market['id']],
             'interval': interval,
@@ -391,12 +391,12 @@ class idex(ccxt.async_support.idex):
         await self.load_markets()
         market = self.market(symbol)
         name = 'l2orderbook'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
             'markets': [market['id']],
         }
         messageHash = name + ':' + market['id']
-        subscription = {
+        subscription: dict = {
             'fetchingOrderBookSnapshot': False,
             'numAttempts': 0,
             'startTime': None,
@@ -456,7 +456,7 @@ class idex(ccxt.async_support.idex):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
         count = self.safe_integer(delta, 2)
-        bookside.store(price, amount, count)
+        bookside.storeArray([price, amount, count])
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):
@@ -466,7 +466,7 @@ class idex(ccxt.async_support.idex):
         time = self.seconds()
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         if time - lastAuthenticatedTime > 900:
-            request = {
+            request: dict = {
                 'wallet': self.walletAddress,
                 'nonce': self.uuidv1(),
             }
@@ -486,7 +486,7 @@ class idex(ccxt.async_support.idex):
         """
         await self.load_markets()
         name = 'orders'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
         }
         messageHash = name
@@ -602,7 +602,7 @@ class idex(ccxt.async_support.idex):
     async def watch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         name = 'balances'
-        subscribeObject = {
+        subscribeObject: dict = {
             'name': name,
         }
         messageHash = name
@@ -629,7 +629,7 @@ class idex(ccxt.async_support.idex):
         messageHash = type + ':' + currencyId
         code = self.safe_currency_code(currencyId)
         address = self.safe_string(data, 'w')
-        transaction = {
+        transaction: dict = {
             'info': message,
             'id': None,
             'currency': code,
@@ -658,7 +658,7 @@ class idex(ccxt.async_support.idex):
 
     def handle_message(self, client: Client, message):
         type = self.safe_string(message, 'type')
-        methods = {
+        methods: dict = {
             'tickers': self.handle_ticker,
             'trades': self.handle_trade,
             'subscriptions': self.handle_subscribe_message,

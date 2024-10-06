@@ -13,6 +13,7 @@ public partial class wavesexchange : Exchange
             { "countries", new List<object>() {"CH"} },
             { "certified", false },
             { "pro", false },
+            { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -59,8 +60,11 @@ public partial class wavesexchange : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -69,6 +73,7 @@ public partial class wavesexchange : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "reduceMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -145,10 +150,10 @@ public partial class wavesexchange : Exchange
                     { "id", "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc" },
                     { "numericId", null },
                     { "code", "WX" },
-                    { "precision", this.parseToInt("8") },
+                    { "precision", this.parseNumber("1e-8") },
                 }) },
             } },
-            { "precisionMode", DECIMAL_PLACES },
+            { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "allowedCandles", 1440 },
                 { "accessToken", null },
@@ -159,7 +164,7 @@ public partial class wavesexchange : Exchange
                 { "wavesAddress", null },
                 { "withdrawFeeUSDN", 7420 },
                 { "withdrawFeeWAVES", 100000 },
-                { "wavesPrecision", 8 },
+                { "wavesPrecision", 1e-8 },
                 { "messagePrefix", "W" },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
@@ -212,8 +217,8 @@ public partial class wavesexchange : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        amount = this.customAmountToPrecision(symbol, amount);
-        price = this.customPriceToPrecision(symbol, price);
+        amount = this.toRealSymbolAmount(symbol, amount);
+        price = this.toRealSymbolPrice(symbol, price);
         object request = this.extend(new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
             { "quoteId", getValue(market, "quoteId") },
@@ -251,7 +256,7 @@ public partial class wavesexchange : Exchange
         object matcherFee = this.safeString(mode, "matcherFee");
         object feeAssetId = this.safeString(mode, "feeAssetId");
         object feeAsset = this.safeCurrencyCode(feeAssetId);
-        object adjustedMatcherFee = this.currencyFromPrecision(feeAsset, matcherFee);
+        object adjustedMatcherFee = this.fromRealCurrencyAmount(feeAsset, matcherFee);
         object amountAsString = this.numberToString(amount);
         object priceAsString = this.numberToString(price);
         object feeCost = this.feeToPrecision(symbol, this.parseNumber(adjustedMatcherFee));
@@ -414,8 +419,8 @@ public partial class wavesexchange : Exchange
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.safeInteger(entry, "amountAssetDecimals") },
-                    { "price", this.safeInteger(entry, "priceAssetDecimals") },
+                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(entry, "amountAssetDecimals"))) },
+                    { "price", this.parseNumber(this.parsePrecision(this.safeString(entry, "priceAssetDecimals"))) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -477,12 +482,11 @@ public partial class wavesexchange : Exchange
     public virtual object parseOrderBookSide(object bookSide, object market = null, object limit = null)
     {
         object precision = getValue(market, "precision");
-        object wavesPrecision = this.safeString(this.options, "wavesPrecision", "8");
-        object amountPrecision = add("1e", this.numberToString(getValue(precision, "amount")));
-        object amountPrecisionString = this.numberToString(getValue(precision, "amount"));
-        object pricePrecisionString = this.numberToString(getValue(precision, "price"));
-        object difference = Precise.stringSub(amountPrecisionString, pricePrecisionString);
-        object pricePrecision = add("1e", Precise.stringSub(wavesPrecision, difference));
+        object wavesPrecision = this.safeString(this.options, "wavesPrecision", "1e-8");
+        object amountPrecisionString = this.safeString(precision, "amount");
+        object pricePrecisionString = this.safeString(precision, "price");
+        object difference = Precise.stringDiv(amountPrecisionString, pricePrecisionString);
+        object pricePrecision = Precise.stringDiv(wavesPrecision, difference);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(bookSide)); postFixIncrement(ref i))
         {
@@ -493,11 +497,11 @@ public partial class wavesexchange : Exchange
             object amount = null;
             if (isTrue(isTrue((!isEqual(pricePrecision, null))) && isTrue((!isEqual(entryPrice, null)))))
             {
-                price = Precise.stringDiv(entryPrice, pricePrecision);
+                price = Precise.stringMul(entryPrice, pricePrecision);
             }
-            if (isTrue(isTrue((!isEqual(amountPrecision, null))) && isTrue((!isEqual(entryAmount, null)))))
+            if (isTrue(isTrue((!isEqual(amountPrecisionString, null))) && isTrue((!isEqual(entryAmount, null)))))
             {
-                amount = Precise.stringDiv(entryAmount, amountPrecision);
+                amount = Precise.stringMul(entryAmount, amountPrecisionString);
             }
             if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThan(i, limit)))))
             {
@@ -783,7 +787,7 @@ public partial class wavesexchange : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
-        object dataTicker = this.safeValue(ticker, "data", new Dictionary<string, object>() {});
+        object dataTicker = this.safeDict(ticker, "data", new Dictionary<string, object>() {});
         return this.parseTicker(dataTicker, market);
     }
 
@@ -1146,65 +1150,48 @@ public partial class wavesexchange : Exchange
         return currencyId;
     }
 
-    public virtual object customPriceToPrecision(object symbol, object price)
+    public virtual object toRealCurrencyAmount(object code, object amount, object networkCode = null)
     {
-        object market = getValue(this.markets, symbol);
-        object wavesPrecision = this.safeString(this.options, "wavesPrecision", "8");
-        object amount = this.numberToString(getValue(getValue(market, "precision"), "amount"));
-        object precisionPrice = this.numberToString(getValue(getValue(market, "precision"), "price"));
-        object difference = Precise.stringSub(amount, precisionPrice);
-        object precision = Precise.stringSub(wavesPrecision, difference);
-        object pricePrecision = ((object)this.toPrecision(price, precision)).ToString();
-        return this.parseToInt(parseFloat(pricePrecision));
+        object currency = this.currency(code);
+        object stringValue = Precise.stringDiv(this.numberToString(amount), this.safeString(currency, "precision"));
+        return parseInt(stringValue);
     }
 
-    public virtual object customAmountToPrecision(object symbol, object amount)
+    public virtual object fromRealCurrencyAmount(object code, object amountString)
     {
-        object amountPrecision = this.numberToString(this.toPrecision(amount, this.numberToString(getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"))));
-        return this.parseToInt(parseFloat(amountPrecision));
-    }
-
-    public override object currencyToPrecision(object code, object amount, object networkCode = null)
-    {
-        object amountPrecision = this.numberToString(this.toPrecision(amount, getValue(getValue(this.currencies, code), "precision")));
-        return this.parseToInt(parseFloat(amountPrecision));
-    }
-
-    public virtual object fromPrecision(object amount, object scale)
-    {
-        if (isTrue(isEqual(amount, null)))
+        if (!isTrue((inOp(this.currencies, code))))
         {
-            return null;
+            return amountString;
         }
-        var precise = new Precise(amount);
-        precise.decimals = this.sum(precise.decimals, scale);
-        precise.reduce();
-        return ((object)precise).ToString();
+        object currency = this.currency(code);
+        object precisionAmount = this.safeString(currency, "precision");
+        return Precise.stringMul(amountString, precisionAmount);
     }
 
-    public virtual object toPrecision(object amount, object scale)
+    public virtual object toRealSymbolPrice(object symbol, object price)
     {
-        object amountString = this.numberToString(amount);
-        var precise = new Precise(amountString);
-        // precise.decimals should be integer
-        precise.decimals = this.parseToInt(Precise.stringSub(this.numberToString(precise.decimals), this.numberToString(scale)));
-        precise.reduce();
-        object stringValue = ((object)precise).ToString();
-        return stringValue;
+        object market = this.market(symbol);
+        object stringValue = Precise.stringDiv(this.numberToString(price), this.safeString(getValue(market, "precision"), "price"));
+        return parseInt(stringValue);
     }
 
-    public virtual object currencyFromPrecision(object currency, object amount)
-    {
-        object scale = getValue(getValue(this.currencies, currency), "precision");
-        return this.fromPrecision(amount, scale);
-    }
-
-    public virtual object priceFromPrecision(object symbol, object price)
+    public virtual object fromRealSymbolPrice(object symbol, object priceString)
     {
         object market = getValue(this.markets, symbol);
-        object wavesPrecision = this.safeInteger(this.options, "wavesPrecision", 8);
-        object scale = subtract(this.sum(wavesPrecision, getValue(getValue(market, "precision"), "price")), getValue(getValue(market, "precision"), "amount"));
-        return this.fromPrecision(price, scale);
+        return Precise.stringMul(priceString, this.safeString(getValue(market, "precision"), "price"));
+    }
+
+    public virtual object toRealSymbolAmount(object symbol, object amount)
+    {
+        object market = this.market(symbol);
+        object stringValue = Precise.stringDiv(this.numberToString(amount), this.safeString(getValue(market, "precision"), "amount"));
+        return parseInt(stringValue);
+    }
+
+    public virtual object fromRealSymbolAmount(object symbol, object amountString)
+    {
+        object market = getValue(this.markets, symbol);
+        return Precise.stringMul(amountString, getValue(getValue(market, "precision"), "amount"));
     }
 
     public virtual object safeGetDynamic(object settings)
@@ -1241,7 +1228,7 @@ public partial class wavesexchange : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.stopPrice] The price at which a stop order is triggered at
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1262,7 +1249,10 @@ public partial class wavesexchange : Exchange
             throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for "), type), " orders to determine the max price for buy and the min price for sell")) ;
         }
         object timestamp = this.milliseconds();
-        object defaultExpiryDelta = this.safeInteger(this.options, "createOrderDefaultExpiry", 2419200000);
+        object defaultExpiryDelta = null;
+        var defaultExpiryDeltaparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "defaultExpiry", this.safeInteger(this.options, "createOrderDefaultExpiry", 2419200000));
+        defaultExpiryDelta = ((IList<object>)defaultExpiryDeltaparametersVariable)[0];
+        parameters = ((IList<object>)defaultExpiryDeltaparametersVariable)[1];
         object expiration = this.sum(timestamp, defaultExpiryDelta);
         object matcherFees = await this.getFeesForAsset(symbol, side, amount, price);
         // {
@@ -1301,7 +1291,7 @@ public partial class wavesexchange : Exchange
             }
             object matcherFeeAsset = this.safeCurrencyCode(matcherFeeAssetId);
             object rawMatcherFee = ((bool) isTrue((isEqual(matcherFeeAssetId, baseFeeAssetId)))) ? baseMatcherFee : discountMatcherFee;
-            object floatMatcherFee = parseFloat(this.currencyFromPrecision(matcherFeeAsset, rawMatcherFee));
+            object floatMatcherFee = parseFloat(this.fromRealCurrencyAmount(matcherFeeAsset, rawMatcherFee));
             if (isTrue(isTrue((inOp(balances, matcherFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, matcherFeeAsset), "free")), floatMatcherFee)))))
             {
                 matcherFee = parseInt(rawMatcherFee);
@@ -1310,18 +1300,18 @@ public partial class wavesexchange : Exchange
                 throw new InsufficientFunds ((string)add(this.id, " not enough funds of the selected asset fee")) ;
             }
         }
+        object floatBaseMatcherFee = this.fromRealCurrencyAmount(baseFeeAsset, baseMatcherFee);
+        object floatDiscountMatcherFee = this.fromRealCurrencyAmount(discountFeeAsset, discountMatcherFee);
         if (isTrue(isEqual(matcherFeeAssetId, null)))
         {
             // try to the pay the fee using the base first then discount asset
-            object floatBaseMatcherFee = parseFloat(this.currencyFromPrecision(baseFeeAsset, baseMatcherFee));
-            if (isTrue(isTrue((inOp(balances, baseFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, baseFeeAsset), "free")), floatBaseMatcherFee)))))
+            if (isTrue(isTrue((inOp(balances, baseFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, baseFeeAsset), "free")), parseFloat(floatBaseMatcherFee))))))
             {
                 matcherFeeAssetId = baseFeeAssetId;
                 matcherFee = parseInt(baseMatcherFee);
             } else
             {
-                object floatDiscountMatcherFee = parseFloat(this.currencyFromPrecision(discountFeeAsset, discountMatcherFee));
-                if (isTrue(isTrue((inOp(balances, discountFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, discountFeeAsset), "free")), floatDiscountMatcherFee)))))
+                if (isTrue(isTrue((inOp(balances, discountFeeAsset))) && isTrue((isGreaterThanOrEqual(((object)getValue(getValue(balances, discountFeeAsset), "free")), parseFloat(floatDiscountMatcherFee))))))
                 {
                     matcherFeeAssetId = discountFeeAssetId;
                     matcherFee = parseInt(discountMatcherFee);
@@ -1330,15 +1320,15 @@ public partial class wavesexchange : Exchange
         }
         if (isTrue(isEqual(matcherFeeAssetId, null)))
         {
-            throw new InsufficientFunds ((string)add(this.id, " not enough funds on none of the eligible asset fees")) ;
+            throw new InsufficientFunds ((string)add(add(add(add(add(add(add(add(this.id, " not enough funds on none of the eligible asset fees: "), baseFeeAsset), " "), floatBaseMatcherFee), " or "), discountFeeAsset), " "), floatDiscountMatcherFee)) ;
         }
-        amount = this.customAmountToPrecision(symbol, amount);
-        price = this.customPriceToPrecision(symbol, price);
+        amount = this.toRealSymbolAmount(symbol, amount);
+        price = this.toRealSymbolPrice(symbol, price);
         object assetPair = new Dictionary<string, object>() {
             { "amountAsset", amountAsset },
             { "priceAsset", priceAsset },
         };
-        object sandboxMode = this.safeValue(this.options, "sandboxMode", false);
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object chainId = ((bool) isTrue((sandboxMode))) ? 84 : 87;
         object body = new Dictionary<string, object>() {
             { "senderPublicKey", this.apiKey },
@@ -1372,7 +1362,7 @@ public partial class wavesexchange : Exchange
                 { "c", new Dictionary<string, object>() {
                     { "t", "sp" },
                     { "v", new Dictionary<string, object>() {
-                        { "p", this.customPriceToPrecision(symbol, stopPrice) },
+                        { "p", this.toRealSymbolPrice(symbol, stopPrice) },
                     } },
                 } },
             };
@@ -1422,13 +1412,13 @@ public partial class wavesexchange : Exchange
         //
         if (isTrue(isMarketOrder))
         {
-            object response = await this.matcherPostMatcherOrderbookMarket(body);
-            object value = this.safeValue(response, "message");
+            object response = await this.matcherPostMatcherOrderbookMarket(this.extend(body, parameters));
+            object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         } else
         {
-            object response = await this.matcherPostMatcherOrderbook(body);
-            object value = this.safeValue(response, "message");
+            object response = await this.matcherPostMatcherOrderbook(this.extend(body, parameters));
+            object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         }
     }
@@ -1462,7 +1452,7 @@ public partial class wavesexchange : Exchange
         object firstMessage = this.safeValue(message, 0);
         object firstOrder = this.safeValue(firstMessage, 0);
         object returnedId = this.safeString(firstOrder, "orderId");
-        return new Dictionary<string, object>() {
+        return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
             { "id", returnedId },
             { "clientOrderId", null },
@@ -1481,7 +1471,7 @@ public partial class wavesexchange : Exchange
             { "status", null },
             { "fee", null },
             { "trades", null },
-        };
+        });
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1744,25 +1734,25 @@ public partial class wavesexchange : Exchange
             symbol = getValue(market, "symbol");
         }
         object amountCurrency = this.safeCurrencyCode(this.safeString(assetPair, "amountAsset", "WAVES"));
-        object price = this.priceFromPrecision(symbol, priceString);
-        object amount = this.currencyFromPrecision(amountCurrency, amountString);
-        object filled = this.currencyFromPrecision(amountCurrency, filledString);
-        object average = this.priceFromPrecision(symbol, this.safeString(order, "avgWeighedPrice"));
+        object price = this.fromRealSymbolPrice(symbol, priceString);
+        object amount = this.fromRealCurrencyAmount(amountCurrency, amountString);
+        object filled = this.fromRealCurrencyAmount(amountCurrency, filledString);
+        object average = this.fromRealSymbolPrice(symbol, this.safeString(order, "avgWeighedPrice"));
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object fee = null;
         if (isTrue(inOp(order, "type")))
         {
-            object currency = this.safeCurrencyCode(this.safeString(order, "feeAsset"));
+            object code = this.safeCurrencyCode(this.safeString(order, "feeAsset"));
             fee = new Dictionary<string, object>() {
-                { "currency", currency },
-                { "fee", this.parseNumber(this.currencyFromPrecision(currency, this.safeString(order, "filledFee"))) },
+                { "currency", code },
+                { "fee", this.parseNumber(this.fromRealCurrencyAmount(code, this.safeString(order, "filledFee"))) },
             };
         } else
         {
-            object currency = this.safeCurrencyCode(this.safeString(order, "matcherFeeAssetId", "WAVES"));
+            object code = this.safeCurrencyCode(this.safeString(order, "matcherFeeAssetId", "WAVES"));
             fee = new Dictionary<string, object>() {
-                { "currency", currency },
-                { "fee", this.parseNumber(this.currencyFromPrecision(currency, this.safeString(order, "matcherFee"))) },
+                { "currency", code },
+                { "fee", this.parseNumber(this.fromRealCurrencyAmount(code, this.safeString(order, "matcherFee"))) },
             };
         }
         object triggerPrice = null;
@@ -1897,19 +1887,16 @@ public partial class wavesexchange : Exchange
             object issueTransaction = this.safeValue(entry, "issueTransaction");
             object currencyId = this.safeString(entry, "assetId");
             object balance = this.safeString(entry, "balance");
-            if (isTrue(isEqual(issueTransaction, null)))
+            object currencyExists = (inOp(this.currencies_by_id, currencyId));
+            if (isTrue(currencyExists))
+            {
+                object code = this.safeCurrencyCode(currencyId);
+                ((IDictionary<string,object>)result)[(string)code] = this.account();
+                ((IDictionary<string,object>)getValue(result, code))["total"] = this.fromRealCurrencyAmount(code, balance);
+            } else if (isTrue(isEqual(issueTransaction, null)))
             {
                 ((IList<object>)assetIds).Add(currencyId);
                 ((IList<object>)nonStandardBalances).Add(balance);
-                continue;
-            }
-            object decimals = this.safeInteger(issueTransaction, "decimals");
-            object code = null;
-            if (isTrue(inOp(this.currencies_by_id, currencyId)))
-            {
-                code = this.safeCurrencyCode(currencyId);
-                ((IDictionary<string,object>)result)[(string)code] = this.account();
-                ((IDictionary<string,object>)getValue(result, code))["total"] = this.fromPrecision(balance, decimals);
             }
         }
         object nonStandardAssets = getArrayLength(assetIds);
@@ -1925,11 +1912,11 @@ public partial class wavesexchange : Exchange
                 object entry = getValue(data, i);
                 object balance = getValue(nonStandardBalances, i);
                 object inner = this.safeValue(entry, "data");
-                object decimals = this.safeInteger(inner, "precision");
+                object precision = this.parsePrecision(this.safeString(inner, "precision"));
                 object ticker = this.safeString(inner, "ticker");
                 object code = this.safeCurrencyCode(ticker);
                 ((IDictionary<string,object>)result)[(string)code] = this.account();
-                ((IDictionary<string,object>)getValue(result, code))["total"] = this.fromPrecision(balance, decimals);
+                ((IDictionary<string,object>)getValue(result, code))["total"] = Precise.stringMul(balance, precision);
             }
         }
         object currentTimestamp = this.milliseconds();
@@ -1954,13 +1941,7 @@ public partial class wavesexchange : Exchange
                 ((IDictionary<string,object>)result)[(string)code] = this.account();
             }
             object amount = this.safeString(reservedBalance, currencyId);
-            if (isTrue(inOp(this.currencies, code)))
-            {
-                ((IDictionary<string,object>)getValue(result, code))["used"] = this.currencyFromPrecision(code, amount);
-            } else
-            {
-                ((IDictionary<string,object>)getValue(result, code))["used"] = amount;
-            }
+            ((IDictionary<string,object>)getValue(result, code))["used"] = this.fromRealCurrencyAmount(code, amount);
         }
         object wavesRequest = new Dictionary<string, object>() {
             { "address", wavesAddress },
@@ -1971,20 +1952,27 @@ public partial class wavesexchange : Exchange
         //   "confirmations": 0,
         //   "balance": 909085978
         // }
-        ((IDictionary<string,object>)result)["WAVES"] = this.safeValue(result, "WAVES", new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)getValue(result, "WAVES"))["total"] = this.currencyFromPrecision("WAVES", this.safeString(wavesTotal, "balance"));
-        object codes = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
-        {
-            object code = getValue(codes, i);
-            if (isTrue(isEqual(this.safeValue(getValue(result, code), "used"), null)))
-            {
-                ((IDictionary<string,object>)getValue(result, code))["used"] = "0";
-            }
-        }
+        ((IDictionary<string,object>)result)["WAVES"] = this.safeValue(result, "WAVES", this.account());
+        ((IDictionary<string,object>)getValue(result, "WAVES"))["total"] = this.fromRealCurrencyAmount("WAVES", this.safeString(wavesTotal, "balance"));
+        result = this.setUndefinedBalancesToZero(result);
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
         ((IDictionary<string,object>)result)["datetime"] = this.iso8601(timestamp);
         return this.safeBalance(result);
+    }
+
+    public virtual object setUndefinedBalancesToZero(object balances, object key = null)
+    {
+        key ??= "used";
+        object codes = new List<object>(((IDictionary<string,object>)balances).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        {
+            object code = getValue(codes, i);
+            if (isTrue(isEqual(this.safeValue(getValue(balances, code), "used"), null)))
+            {
+                ((IDictionary<string,object>)getValue(balances, code))[(string)key] = "0";
+            }
+        }
+        return balances;
     }
 
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2569,7 +2557,7 @@ public partial class wavesexchange : Exchange
         object feeAssetId = "WAVES";
         object type = 4; // transfer
         object version = 2;
-        object amountInteger = this.currencyToPrecision(code, amount);
+        object amountInteger = this.toRealCurrencyAmount(code, amount);
         object currency = this.currency(code);
         object timestamp = this.milliseconds();
         object byteArray = new List<object> {this.numberToBE(4, 1), this.numberToBE(2, 1), this.base58ToBinary(this.apiKey), this.getAssetBytes(getValue(currency, "id")), this.getAssetBytes(feeAssetId), this.numberToBE(timestamp, 8), this.numberToBE(amountInteger, 8), this.numberToBE(fee, 8), this.base58ToBinary(proxyAddress), this.numberToBE(0, 2)};
@@ -2618,18 +2606,45 @@ public partial class wavesexchange : Exchange
         //         "amount": 0
         //     }
         //
+        // withdraw new:
+        //     {
+        //         type: "4",
+        //         id: "2xnWTqG9ar7jEDrLxfbVyyspPZ6XZNrrw9ai9sQ81Eya",
+        //         fee: "100000",
+        //         feeAssetId: null,
+        //         timestamp: "1715786263807",
+        //         version: "2",
+        //         sender: "3P81LLX1kk2CSJC9L8C2enxdHB7XvnSGAEE",
+        //         senderPublicKey: "DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoTFAJoXz",
+        //         proofs: [ "RyoKwdSYv3EqotJCYftfFM9JE2j1ZpDRxKwYfiRhLAFeyNp6VfJUXNDS884XfeCeHeNypNmTCZt5NYR1ekyjCX3", ],
+        //         recipient: "3P9tXxu38a8tgewNEKFzourVxeqHd11ppOc",
+        //         assetId: null,
+        //         feeAsset: null,
+        //         amount: "2000000",
+        //         attachment: "",
+        //     }
+        //
         currency = this.safeCurrency(null, currency);
+        object code = getValue(currency, "code");
+        object typeRaw = this.safeString(transaction, "type");
+        object type = ((bool) isTrue((isEqual(typeRaw, "4")))) ? "withdraw" : "deposit";
+        object amount = this.parseNumber(this.fromRealCurrencyAmount(code, this.safeString(transaction, "amount")));
+        object feeString = this.safeString(transaction, "fee");
+        object feeAssetId = this.safeString(transaction, "feeAssetId", "WAVES");
+        object feeCode = this.safeCurrencyCode(feeAssetId);
+        object feeAmount = this.parseNumber(this.fromRealCurrencyAmount(feeCode, feeString));
+        object timestamp = this.safeInteger(transaction, "timestamp");
         return new Dictionary<string, object>() {
-            { "id", null },
+            { "id", this.safeString(transaction, "id") },
             { "txid", null },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "network", null },
-            { "addressFrom", null },
+            { "addressFrom", this.safeString(transaction, "sender") },
             { "address", null },
-            { "addressTo", null },
-            { "amount", null },
-            { "type", null },
+            { "addressTo", this.safeString(transaction, "recipient") },
+            { "amount", amount },
+            { "type", type },
             { "currency", getValue(currency, "code") },
             { "status", null },
             { "updated", null },
@@ -2638,7 +2653,10 @@ public partial class wavesexchange : Exchange
             { "tagTo", null },
             { "comment", null },
             { "internal", null },
-            { "fee", null },
+            { "fee", new Dictionary<string, object>() {
+                { "currency", feeCode },
+                { "cost", feeAmount },
+            } },
             { "info", transaction },
         };
     }

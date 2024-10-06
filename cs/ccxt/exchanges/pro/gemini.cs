@@ -15,6 +15,7 @@ public partial class gemini : ccxt.gemini
                 { "watchBalance", false },
                 { "watchTicker", false },
                 { "watchTickers", false },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "watchMyTrades", false },
@@ -215,7 +216,7 @@ public partial class gemini : ccxt.gemini
         //                 "time_ms": 1655323185000,
         //                 "result": "failure",
         //                 "highest_bid_price": "21661.90",
-        //                 "lowest_ask_price": "21663.79",
+        //                 "lowest_ask_price": "21663.78",
         //                 "collar_price": "21662.845"
         //             },
         //         ]
@@ -412,11 +413,12 @@ public partial class gemini : ccxt.gemini
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(changes)); postFixIncrement(ref i))
         {
             object delta = getValue(changes, i);
@@ -449,6 +451,89 @@ public partial class gemini : ccxt.gemini
         return (orderbook as IOrderBook).limit();
     }
 
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gemini#watchBidsAsks
+        * @description watches best bid & ask for symbols
+        * @see https://docs.gemini.com/websocket-api/#multi-market-data
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters);
+    }
+
+    public virtual void handleBidsAsksForMultidata(WebSocketClient client, object rawBidAskChanges, object timestamp, object nonce)
+    {
+        //
+        // {
+        //     eventId: '1683002916916153',
+        //     events: [
+        //       {
+        //         price: '50945.37',
+        //         reason: 'top-of-book',
+        //         remaining: '0.0',
+        //         side: 'bid',
+        //         symbol: 'BTCUSDT',
+        //         type: 'change'
+        //       },
+        //       {
+        //         price: '50947.75',
+        //         reason: 'top-of-book',
+        //         remaining: '0.11725',
+        //         side: 'bid',
+        //         symbol: 'BTCUSDT',
+        //         type: 'change'
+        //       }
+        //     ],
+        //     socket_sequence: 322,
+        //     timestamp: 1708674495,
+        //     timestampms: 1708674495174,
+        //     type: 'update'
+        // }
+        //
+        object marketId = getValue(getValue(rawBidAskChanges, 0), "symbol");
+        object market = this.safeMarket(((string)marketId).ToLower());
+        object symbol = getValue(market, "symbol");
+        if (!isTrue((inOp(this.bidsasks, symbol))))
+        {
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)getValue(this.bidsasks, symbol))["symbol"] = symbol;
+        }
+        object currentBidAsk = getValue(this.bidsasks, symbol);
+        object messageHash = add("bidsasks:", symbol);
+        // last update always overwrites the previous state and is the latest state
+        for (object i = 0; isLessThan(i, getArrayLength(rawBidAskChanges)); postFixIncrement(ref i))
+        {
+            object entry = getValue(rawBidAskChanges, i);
+            object rawSide = this.safeString(entry, "side");
+            object price = this.safeNumber(entry, "price");
+            object sizeString = this.safeString(entry, "remaining");
+            if (isTrue(Precise.stringEq(sizeString, "0")))
+            {
+                continue;
+            }
+            object size = this.parseNumber(sizeString);
+            if (isTrue(isEqual(rawSide, "bid")))
+            {
+                ((IDictionary<string,object>)currentBidAsk)["bid"] = price;
+                ((IDictionary<string,object>)currentBidAsk)["bidVolume"] = size;
+            } else
+            {
+                ((IDictionary<string,object>)currentBidAsk)["ask"] = price;
+                ((IDictionary<string,object>)currentBidAsk)["askVolume"] = size;
+            }
+        }
+        ((IDictionary<string,object>)currentBidAsk)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)currentBidAsk)["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)currentBidAsk)["info"] = rawBidAskChanges;
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = currentBidAsk;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {currentBidAsk, messageHash});
+    }
+
     public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -474,6 +559,9 @@ public partial class gemini : ccxt.gemini
         if (isTrue(isEqual(itemHashName, "orderbook")))
         {
             url = add(url, "trades=false&bids=true&offers=true");
+        } else if (isTrue(isEqual(itemHashName, "bidsasks")))
+        {
+            url = add(url, "trades=false&bids=true&offers=true&top_of_book=true");
         } else if (isTrue(isEqual(itemHashName, "trades")))
         {
             url = add(url, "trades=true&bids=false&offers=false");
@@ -502,11 +590,12 @@ public partial class gemini : ccxt.gemini
         object market = this.safeMarket(((string)marketId).ToLower());
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object orderbook = this.safeDict(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook();
+            object ob = this.orderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
         for (object i = 0; isLessThan(i, getArrayLength(rawOrderBookChanges)); postFixIncrement(ref i))
@@ -846,19 +935,31 @@ public partial class gemini : ccxt.gemini
             object eventId = this.safeInteger(message, "eventId");
             object events = this.safeList(message, "events");
             object orderBookItems = new List<object>() {};
+            object bidaskItems = new List<object>() {};
             object collectedEventsOfTrades = new List<object>() {};
+            object eventsLength = getArrayLength(events);
             for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
             {
                 object eventVar = getValue(events, i);
                 object eventType = this.safeString(eventVar, "type");
                 object isOrderBook = isTrue(isTrue((isEqual(eventType, "change"))) && isTrue((inOp(eventVar, "side")))) && isTrue(this.inArray(getValue(eventVar, "side"), new List<object>() {"ask", "bid"}));
-                if (isTrue(isOrderBook))
+                object eventReason = this.safeString(eventVar, "reason");
+                object isBidAsk = isTrue((isEqual(eventReason, "top-of-book"))) || isTrue((isTrue(isTrue(isOrderBook) && isTrue((isEqual(eventReason, "initial")))) && isTrue(isEqual(eventsLength, 2))));
+                if (isTrue(isBidAsk))
+                {
+                    ((IList<object>)bidaskItems).Add(eventVar);
+                } else if (isTrue(isOrderBook))
                 {
                     ((IList<object>)orderBookItems).Add(eventVar);
                 } else if (isTrue(isEqual(eventType, "trade")))
                 {
                     ((IList<object>)collectedEventsOfTrades).Add(getValue(events, i));
                 }
+            }
+            object lengthBa = getArrayLength(bidaskItems);
+            if (isTrue(isGreaterThan(lengthBa, 0)))
+            {
+                this.handleBidsAsksForMultidata(client as WebSocketClient, bidaskItems, ts, eventId);
             }
             object lengthOb = getArrayLength(orderBookItems);
             if (isTrue(isGreaterThan(lengthOb, 0)))
@@ -900,7 +1001,8 @@ public partial class gemini : ccxt.gemini
                 } },
             } },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         object originalHeaders = getValue(getValue(getValue(this.options, "ws"), "options"), "headers");
         object headers = new Dictionary<string, object>() {
             { "X-GEMINI-APIKEY", this.apiKey },

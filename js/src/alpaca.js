@@ -74,7 +74,13 @@ export default class alpaca extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
@@ -86,6 +92,7 @@ export default class alpaca extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
@@ -443,7 +450,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit(params, ['loc', 'method']);
-        let response = undefined;
+        let symbolTrades = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
                 request['start'] = this.iso8601(since);
@@ -451,46 +458,47 @@ export default class alpaca extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, params));
+            //
+            //    {
+            //        "next_page_token": null,
+            //        "trades": {
+            //            "BTC/USD": [
+            //                {
+            //                    "i": 36440704,
+            //                    "p": 22625,
+            //                    "s": 0.0001,
+            //                    "t": "2022-07-21T11:47:31.073391Z",
+            //                    "tks": "B"
+            //                }
+            //            ]
+            //        }
+            //    }
+            //
+            const trades = this.safeDict(response, 'trades', {});
+            symbolTrades = this.safeList(trades, marketId, []);
         }
         else if (method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
-            response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, params));
+            //
+            //    {
+            //       "trades": {
+            //            "BTC/USD": {
+            //                "i": 36440704,
+            //                "p": 22625,
+            //                "s": 0.0001,
+            //                "t": "2022-07-21T11:47:31.073391Z",
+            //                "tks": "B"
+            //            }
+            //        }
+            //    }
+            //
+            const trades = this.safeDict(response, 'trades', {});
+            symbolTrades = this.safeDict(trades, marketId, {});
+            symbolTrades = [symbolTrades];
         }
         else {
             throw new NotSupported(this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
-        }
-        //
-        // {
-        //     "next_page_token":null,
-        //     "trades":{
-        //        "BTC/USD":[
-        //           {
-        //              "i":36440704,
-        //              "p":22625,
-        //              "s":0.0001,
-        //              "t":"2022-07-21T11:47:31.073391Z",
-        //              "tks":"B"
-        //           }
-        //        ]
-        //     }
-        // }
-        //
-        // {
-        //     "trades":{
-        //        "BTC/USD":{
-        //           "i":36440704,
-        //           "p":22625,
-        //           "s":0.0001,
-        //           "t":"2022-07-21T11:47:31.073391Z",
-        //           "tks":"B"
-        //        }
-        //     }
-        // }
-        //
-        const trades = this.safeValue(response, 'trades', {});
-        let symbolTrades = this.safeValue(trades, marketId, {});
-        if (!Array.isArray(symbolTrades)) {
-            symbolTrades = [symbolTrades];
         }
         return this.parseTrades(symbolTrades, market, since, limit);
     }
@@ -552,8 +560,8 @@ export default class alpaca extends Exchange {
         //       }
         //   }
         //
-        const orderbooks = this.safeValue(response, 'orderbooks', {});
-        const rawOrderbook = this.safeValue(orderbooks, id, {});
+        const orderbooks = this.safeDict(response, 'orderbooks', {});
+        const rawOrderbook = this.safeDict(orderbooks, id, {});
         const timestamp = this.parse8601(this.safeString(rawOrderbook, 't'));
         return this.parseOrderBook(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
@@ -583,7 +591,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit(params, ['loc', 'method']);
-        let response = undefined;
+        let ohlcvs = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -592,62 +600,63 @@ export default class alpaca extends Exchange {
                 request['start'] = this.yyyymmdd(since);
             }
             request['timeframe'] = this.safeString(this.timeframes, timeframe, timeframe);
-            response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
+            //
+            //    {
+            //        "bars": {
+            //           "BTC/USD": [
+            //              {
+            //                 "c": 22887,
+            //                 "h": 22888,
+            //                 "l": 22873,
+            //                 "n": 11,
+            //                 "o": 22883,
+            //                 "t": "2022-07-21T05:00:00Z",
+            //                 "v": 1.1138,
+            //                 "vw": 22883.0155324116
+            //              },
+            //              {
+            //                 "c": 22895,
+            //                 "h": 22895,
+            //                 "l": 22884,
+            //                 "n": 6,
+            //                 "o": 22884,
+            //                 "t": "2022-07-21T05:01:00Z",
+            //                 "v": 0.001,
+            //                 "vw": 22889.5
+            //              }
+            //           ]
+            //        },
+            //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+            //     }
+            //
+            const bars = this.safeDict(response, 'bars', {});
+            ohlcvs = this.safeList(bars, marketId, []);
         }
         else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
-            response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, params));
+            const response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, params));
+            //
+            //    {
+            //        "bars": {
+            //           "BTC/USD": {
+            //              "c": 22887,
+            //              "h": 22888,
+            //              "l": 22873,
+            //              "n": 11,
+            //              "o": 22883,
+            //              "t": "2022-07-21T05:00:00Z",
+            //              "v": 1.1138,
+            //              "vw": 22883.0155324116
+            //           }
+            //        }
+            //     }
+            //
+            const bars = this.safeDict(response, 'bars', {});
+            ohlcvs = this.safeDict(bars, marketId, {});
+            ohlcvs = [ohlcvs];
         }
         else {
             throw new NotSupported(this.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
-        }
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":[
-        //              {
-        //                 "c":22887,
-        //                 "h":22888,
-        //                 "l":22873,
-        //                 "n":11,
-        //                 "o":22883,
-        //                 "t":"2022-07-21T05:00:00Z",
-        //                 "v":1.1138,
-        //                 "vw":22883.0155324116
-        //              },
-        //              {
-        //                 "c":22895,
-        //                 "h":22895,
-        //                 "l":22884,
-        //                 "n":6,
-        //                 "o":22884,
-        //                 "t":"2022-07-21T05:01:00Z",
-        //                 "v":0.001,
-        //                 "vw":22889.5
-        //              }
-        //           ]
-        //        },
-        //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-        //     }
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":{
-        //              "c":22887,
-        //              "h":22888,
-        //              "l":22873,
-        //              "n":11,
-        //              "o":22883,
-        //              "t":"2022-07-21T05:00:00Z",
-        //              "v":1.1138,
-        //              "vw":22883.0155324116
-        //           }
-        //        }
-        //     }
-        //
-        const bars = this.safeValue(response, 'bars', {});
-        let ohlcvs = this.safeValue(bars, marketId, {});
-        if (!Array.isArray(ohlcvs)) {
-            ohlcvs = [ohlcvs];
         }
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
@@ -685,7 +694,7 @@ export default class alpaca extends Exchange {
          * @param {string} type 'market', 'limit' or 'stop_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -785,7 +794,7 @@ export default class alpaca extends Exchange {
         //       "message": "order is not found."
         //   }
         //
-        return this.safeValue(response, 'message', {});
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -803,7 +812,11 @@ export default class alpaca extends Exchange {
             return this.parseOrders(response, undefined);
         }
         else {
-            return response;
+            return [
+                this.safeOrder({
+                    'info': response,
+                }),
+            ];
         }
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -812,6 +825,7 @@ export default class alpaca extends Exchange {
          * @name alpaca#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.alpaca.markets/reference/getorderbyorderid
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1086,6 +1100,7 @@ export default class alpaca extends Exchange {
         let url = this.implodeHostname(this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
         if (api[1] === 'private') {
+            this.checkRequiredCredentials();
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }

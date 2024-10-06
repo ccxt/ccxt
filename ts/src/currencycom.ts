@@ -6,7 +6,7 @@ import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, Insu
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -103,6 +103,7 @@ export default class currencycom extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': undefined,
+                'sandbox': true,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
@@ -307,6 +308,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/timeUsingGET
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -319,11 +321,12 @@ export default class currencycom extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name currencycom#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -356,7 +359,7 @@ export default class currencycom extends Exchange {
         //         },
         //     ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'displaySymbol');
@@ -392,11 +395,12 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name currencycom#fetchMarkets
          * @description retrieves data on all markets for currencycom
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -499,7 +503,7 @@ export default class currencycom extends Exchange {
                 }
             }
             let precisionAmount = this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision')));
-            let limitAmount = {
+            let limitAmount: Dict = {
                 'min': undefined,
                 'max': undefined,
             };
@@ -511,7 +515,7 @@ export default class currencycom extends Exchange {
                     'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
-            let limitMarket = {
+            let limitMarket: Dict = {
                 'min': undefined,
                 'max': undefined,
             };
@@ -581,11 +585,12 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    async fetchAccounts (params = {}) {
+    async fetchAccounts (params = {}): Promise<Account[]> {
         /**
          * @method
          * @name currencycom#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
@@ -638,11 +643,12 @@ export default class currencycom extends Exchange {
         return result;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name currencycom#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -664,7 +670,7 @@ export default class currencycom extends Exchange {
         //
         const makerFee = this.safeNumber (response, 'makerCommission');
         const takerFee = this.safeNumber (response, 'takerCommission');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -702,7 +708,7 @@ export default class currencycom extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -721,6 +727,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -765,6 +772,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/depthUsingGET
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -772,7 +780,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -799,7 +807,7 @@ export default class currencycom extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -883,13 +891,14 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.publicGetV2Ticker24hr (this.extend (request, params));
@@ -921,6 +930,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -974,6 +984,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/klinesUsingGET
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -983,7 +994,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -991,7 +1002,7 @@ export default class currencycom extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
+            request['limit'] = Math.min (limit, 1000); // default 500, max 1000
         }
         const response = await this.publicGetV2Klines (this.extend (request, params));
         //
@@ -1004,7 +1015,7 @@ export default class currencycom extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1087,6 +1098,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/aggTradesUsingGET
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1095,7 +1107,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'limit': 500, // default 500, max 1000
         };
@@ -1120,7 +1132,7 @@ export default class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1225,8 +1237,8 @@ export default class currencycom extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'NEW': 'open',
             'CREATED': 'open',
             'MODIFIED': 'open',
@@ -1241,7 +1253,7 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'stop',
@@ -1256,7 +1268,7 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderTimeInForce (status) {
-        const statuses = {
+        const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
@@ -1265,23 +1277,24 @@ export default class currencycom extends Exchange {
     }
 
     parseOrderSide (status) {
-        const statuses = {
+        const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
         };
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#createOrder
          * @description create a trade order
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/orderUsingPOST
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1296,7 +1309,7 @@ export default class currencycom extends Exchange {
             }
         }
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'type': type.toUpperCase (),
@@ -1382,7 +1395,7 @@ export default class currencycom extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'symbol': market['id'],
         };
@@ -1417,6 +1430,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/openOrdersUsingGET
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1425,7 +1439,7 @@ export default class currencycom extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1463,6 +1477,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#cancelOrder
          * @description cancels an open order
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/cancelOrderUsingDELETE
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1474,7 +1489,7 @@ export default class currencycom extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue (params, 'origClientOrderId');
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'orderId': parseInt (id),
             // 'origClientOrderId': id,
@@ -1506,6 +1521,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/myTradesUsingGET
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1517,7 +1533,7 @@ export default class currencycom extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -1550,6 +1566,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositsUsingGET
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1564,6 +1581,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getWithdrawalsUsingGET
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1578,6 +1596,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getTransactionsUsingGET
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -1589,7 +1608,7 @@ export default class currencycom extends Exchange {
 
     async fetchTransactionsByMethod (method, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1629,7 +1648,7 @@ export default class currencycom extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "id": "616769213",
@@ -1681,8 +1700,8 @@ export default class currencycom extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
         };
@@ -1690,26 +1709,27 @@ export default class currencycom extends Exchange {
     }
 
     parseTransactionType (type) {
-        const types = {
+        const types: Dict = {
             'deposit': 'deposit',
             'withdrawal': 'withdrawal',
         };
         return this.safeString (types, type, type);
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name currencycom#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getLedgerUsingGET
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1751,20 +1771,21 @@ export default class currencycom extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         const id = this.safeString (item, 'id');
         const amountString = this.safeString (item, 'amount');
         const amount = Precise.stringAbs (amountString);
         const timestamp = this.safeInteger (item, 'timestamp');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const feeCost = this.safeString (item, 'commission');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
-        const result = {
+        return this.safeLedgerEntry ({
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1780,12 +1801,11 @@ export default class currencycom extends Exchange {
             'status': this.parseLedgerEntryStatus (this.safeString (item, 'status')),
             'fee': fee,
             'info': item,
-        };
-        return result;
+        }, currency) as LedgerEntry;
     }
 
     parseLedgerEntryStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
             'CANCELLED': 'canceled',
@@ -1794,7 +1814,7 @@ export default class currencycom extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const types = {
+        const types: Dict = {
             'deposit': 'transaction',
             'withdrawal': 'transaction',
             'exchange_commission': 'fee',
@@ -1802,28 +1822,40 @@ export default class currencycom extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchLeverage (symbol: string, params = {}) {
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         /**
          * @method
          * @name currencycom#fetchLeverage
          * @description fetch the set leverage for a market
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/leverageSettingsUsingGET
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const response = await this.privateGetV2LeverageSettings (this.extend (request, params));
         //
-        // {
-        //     "values": [ 1, 2, 5, 10, ],
-        //     "value": "10",
-        // }
+        //     {
+        //         "values": [ 1, 2, 5, 10, ],
+        //         "value": "10",
+        //     }
         //
-        return this.safeNumber (response, 'value');
+        return this.parseLeverage (response, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const leverageValue = this.safeInteger (leverage, 'value');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     async fetchDepositAddress (code: string, params = {}) {
@@ -1831,13 +1863,14 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositAddressUsingGET
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
         };
         const response = await this.privateGetV2DepositAddress (this.extend (request, params));
@@ -1898,6 +1931,7 @@ export default class currencycom extends Exchange {
          * @method
          * @name currencycom#fetchPositions
          * @description fetch all open positions
+         * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/tradingPositionsUsingGET
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -1936,11 +1970,11 @@ export default class currencycom extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'positions', []);
+        const data = this.safeList (response, 'positions', []);
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //    {
         //        "accountId": "109698017416453793",
@@ -1991,7 +2025,7 @@ export default class currencycom extends Exchange {
             'collateral': undefined,
             'side': side,
             // 'realizedProfit': this.safeNumber (position, 'rpl'),
-            'unrealizedProfit': unrealizedProfit,
+            'unrealizedPnl': unrealizedProfit,
             'leverage': leverage,
             'percentage': undefined,
             'marginMode': undefined,
@@ -2005,14 +2039,13 @@ export default class currencycom extends Exchange {
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
             'id': undefined,
-            'unrealizedPnl': undefined,
             'hedged': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if ((httpCode === 418) || (httpCode === 429)) {
             throw new DDoSProtection (this.id + ' ' + httpCode.toString () + ' ' + reason + ' ' + body);
         }

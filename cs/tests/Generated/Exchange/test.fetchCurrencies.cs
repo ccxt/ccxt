@@ -16,6 +16,7 @@ public partial class testMainClass : BaseTest
         if (isTrue(!isEqual(currencies, null)))
         {
             object values = new List<object>(((IDictionary<string,object>)currencies).Values);
+            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
             for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
             {
                 testCurrency(exchange, skippedProperties, method, getValue(values, i));

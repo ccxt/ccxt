@@ -82,7 +82,11 @@ public partial class coinlist : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", false },
@@ -686,10 +690,10 @@ public partial class coinlist : Exchange
                 ((IDictionary<string,object>)request)["end_time"] = this.iso8601(this.milliseconds());
             }
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.publicGetV1SymbolsSymbolCandles(this.extend(request, parameters));
@@ -717,7 +721,7 @@ public partial class coinlist : Exchange
         //         ]
         //     }
         //
-        object candles = this.safeValue(response, "candles", new List<object>() {});
+        object candles = this.safeList(response, "candles", new List<object>() {});
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
@@ -765,10 +769,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 500);
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.publicGetV1SymbolsSymbolAuctions(this.extend(request, parameters));
@@ -796,7 +800,7 @@ public partial class coinlist : Exchange
         //         ]
         //     }
         //
-        object auctions = this.safeValue(response, "auctions", new List<object>() {});
+        object auctions = this.safeList(response, "auctions", new List<object>() {});
         return this.parseTrades(auctions, market, since, limit);
     }
 
@@ -1202,10 +1206,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.privateGetV1Fills(this.extend(request, parameters));
@@ -1237,7 +1241,7 @@ public partial class coinlist : Exchange
         //         ]
         //     }
         //
-        object fills = this.safeValue(response, "fills", new List<object>() {});
+        object fills = this.safeList(response, "fills", new List<object>() {});
         return this.parseTrades(fills, market, since, limit);
     }
 
@@ -1301,10 +1305,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.privateGetV1Orders(this.extend(request, parameters));
@@ -1334,7 +1338,7 @@ public partial class coinlist : Exchange
         //         ]
         //     }
         //
-        object orders = this.safeValue(response, "orders", new List<object>() {});
+        object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1524,7 +1528,27 @@ public partial class coinlist : Exchange
         await this.loadMarkets();
         parameters = ids;
         object response = await this.privateDeleteV1OrdersBulk(parameters);
-        return response;
+        //
+        //    {
+        //        "message": "Cancel order requests received.",
+        //        "order_ids": [
+        //            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        //        ],
+        //        "timestamp": "2024-06-01T02:32:30.305Z"
+        //    }
+        //
+        object orderIds = this.safeList(response, "order_ids", new List<object>() {});
+        object orders = new List<object>() {};
+        object datetime = this.safeString(response, "timestamp");
+        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        {
+            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", getValue(orderIds, i) },
+                { "id", getValue(orderIds, i) },
+                { "lastUpdateTimestamp", this.parse8601(datetime) },
+            }));
+        }
+        return orders;
     }
 
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1538,7 +1562,7 @@ public partial class coinlist : Exchange
         * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default false)
         * @param {float} [params.triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the price at which an order is triggered)
@@ -1611,7 +1635,7 @@ public partial class coinlist : Exchange
         //         "timestamp": "2023-10-26T11:30:55.376Z"
         //     }
         //
-        object order = this.safeValue(response, "order", new Dictionary<string, object>() {});
+        object order = this.safeDict(response, "order", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -1626,7 +1650,7 @@ public partial class coinlist : Exchange
         * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1825,10 +1849,9 @@ public partial class coinlist : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromAcc = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -1864,7 +1887,7 @@ public partial class coinlist : Exchange
         return transfer;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -1894,10 +1917,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         object response = await this.privateGetV1Transfers(this.extend(request, parameters));
@@ -1923,7 +1946,7 @@ public partial class coinlist : Exchange
         //         ]
         //     }
         //
-        object transfers = this.safeValue(response, "transfers", new List<object>() {});
+        object transfers = this.safeList(response, "transfers", new List<object>() {});
         return this.parseTransfers(transfers, currency, since, limit);
     }
 
@@ -2108,7 +2131,7 @@ public partial class coinlist : Exchange
         //         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 
@@ -2193,11 +2216,11 @@ public partial class coinlist : Exchange
         /**
         * @method
         * @name coinlist#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return (default 200, max 500)
+        * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] the latest time in ms to fetch entries for
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -2225,10 +2248,10 @@ public partial class coinlist : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "till", "until");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"till", "until"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_time"] = this.iso8601(until);
         }
         parameters = this.omit(parameters, new List<object>() {"trader_id", "traderId"});
@@ -2390,8 +2413,9 @@ public partial class coinlist : Exchange
         }
         object currencyId = this.safeString(item, "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
             { "timestamp", timestamp },
@@ -2407,7 +2431,7 @@ public partial class coinlist : Exchange
             { "after", null },
             { "status", "ok" },
             { "fee", null },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -2429,18 +2453,22 @@ public partial class coinlist : Exchange
         object request = this.omit(parameters, this.extractParams(path));
         object endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
-        object query = this.urlencode(request);
+        object isBulk = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        object query = null;
+        if (!isTrue(isBulk))
+        {
+            query = this.urlencode(request);
+        }
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
             object timestamp = ((object)this.seconds()).ToString();
             object auth = add(add(timestamp, method), endpoint);
-            object isBulk = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             if (isTrue(isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PATCH")))) || isTrue(isBulk)))
             {
                 body = this.json(request);
                 auth = add(auth, body);
-            } else if (isTrue(!isEqual(getArrayLength(query), 0)))
+            } else if (isTrue(isTrue(!isEqual(query, null)) && isTrue(!isEqual(((string)query).Length, 0))))
             {
                 auth = add(auth, add("?", query));
                 url = add(url, add("?", query));
@@ -2452,7 +2480,7 @@ public partial class coinlist : Exchange
                 { "CL-ACCESS-TIMESTAMP", timestamp },
                 { "Content-Type", "application/json" },
             };
-        } else if (isTrue(!isEqual(getArrayLength(query), 0)))
+        } else if (isTrue(isTrue(!isEqual(query, null)) && isTrue(!isEqual(((string)query).Length, 0))))
         {
             url = add(url, add("?", query));
         }

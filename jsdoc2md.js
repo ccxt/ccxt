@@ -108,10 +108,11 @@ const sidebar =
 - [Supported Exchanges](Exchange-Markets.md)
 - [Exchanges By Country](Exchange-Markets-By-Country.md)
 - [API Spec By Method](baseSpec.md)
-- API Spec by Exchange
-${exchangeLinks.join('\n')}
+- [FAQ](FAQ.md)
 - [Changelog](CHANGELOG.md)
 - [Awesome](Awesome.md)
+- API Spec by Exchange
+${exchangeLinks.join('\n')}
 `
 fs.writeFileSync('./wiki/_sidebar.md', sidebar);
 

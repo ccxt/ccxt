@@ -77,8 +77,11 @@ export default class onetrading extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1152,7 +1155,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "eyJhY2NvdW50X2lkIjp7InMiOiJlMzY5YWM4MC00NTc3LTExZTktYWUwOC05YmVkYzQ3OTBiODQiLCJzcyI6W10sIm5zIjpbXSwiYnMiOltdLCJtIjp7fSwibCI6W119LCJpdGVtX2tleSI6eyJzIjoiV0lUSERSQVdBTDo6MmFlMjYwY2ItOTk3MC00YmNiLTgxNmEtZGY4MDVmY2VhZTY1Iiwic3MiOltdLCJucyI6W10sImJzIjpbXSwibSI6e30sImwiOltdfSwiZ2xvYmFsX3dpdGhkcmF3YWxfaW5kZXhfaGFzaF9rZXkiOnsicyI6ImUzNjlhYzgwLTQ1NzctMTFlOS1hZTA4LTliZWRjNDc5MGI4NCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX0sInRpbWVzdGFtcCI6eyJuIjoiMTU4ODA1ODc2Nzk0OCIsInNzIjpbXSwibnMiOltdLCJicyI6W10sIm0iOnt9LCJsIjpbXX19"
         //     }
         //
-        const depositHistory = this.safeValue(response, 'deposit_history', []);
+        const depositHistory = this.safeList(response, 'deposit_history', []);
         return this.parseTransactions(depositHistory, currency, since, limit, { 'type': 'deposit' });
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1217,7 +1220,7 @@ export default class onetrading extends Exchange {
         //         "max_page_size": 2
         //     }
         //
-        const withdrawalHistory = this.safeValue(response, 'withdrawal_history', []);
+        const withdrawalHistory = this.safeList(response, 'withdrawal_history', []);
         return this.parseTransactions(withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -1501,7 +1504,7 @@ export default class onetrading extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1641,6 +1644,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchOrder
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol not used by onetrading fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1810,7 +1814,7 @@ export default class onetrading extends Exchange {
         //         "max_page_size": 100
         //     }
         //
-        const orderHistory = this.safeValue(response, 'order_history', []);
+        const orderHistory = this.safeList(response, 'order_history', []);
         return this.parseOrders(orderHistory, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1953,7 +1957,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeValue(response, 'trade_history', []);
+        const tradeHistory = this.safeList(response, 'trade_history', []);
         return this.parseTrades(tradeHistory, market, since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

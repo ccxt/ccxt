@@ -3,19 +3,20 @@ import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { ArgumentsRequired } from '../../../base/errors.js';
+import { Exchange, Tickers } from '../../../../ccxt.js';
 
-async function testWatchTickers (exchange, skippedProperties, symbol) {
+async function testWatchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testWatchTickersHelper (exchange, skippedProperties, undefined);
     const withSymbol = testWatchTickersHelper (exchange, skippedProperties, [ symbol ]);
     await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
-async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, argParams = {}) {
+async function testWatchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols: string[], argParams = {}) {
     const method = 'watchTickers';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response: Tickers = undefined;
         try {
             response = await exchange.watchTickers (argSymbols, argParams);
         } catch (e) {
@@ -39,6 +40,7 @@ async function testWatchTickersHelper (exchange, skippedProperties, argSymbols, 
         if (argSymbols !== undefined && argSymbols.length === 1) {
             checkedSymbol = argSymbols[0];
         }
+        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
         for (let i = 0; i < values.length; i++) {
             const ticker = values[i];
             testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);

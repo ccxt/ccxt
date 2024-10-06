@@ -223,6 +223,16 @@ public partial class okcoin : Exchange
                     { "50026", typeof(ExchangeNotAvailable) },
                     { "50027", typeof(PermissionDenied) },
                     { "50028", typeof(ExchangeError) },
+                    { "50029", typeof(ExchangeError) },
+                    { "50030", typeof(PermissionDenied) },
+                    { "50032", typeof(AccountSuspended) },
+                    { "50033", typeof(AccountSuspended) },
+                    { "50035", typeof(BadRequest) },
+                    { "50036", typeof(BadRequest) },
+                    { "50037", typeof(BadRequest) },
+                    { "50038", typeof(ExchangeError) },
+                    { "50039", typeof(ExchangeError) },
+                    { "50041", typeof(ExchangeError) },
                     { "50044", typeof(BadRequest) },
                     { "50100", typeof(ExchangeError) },
                     { "50101", typeof(AuthenticationError) },
@@ -264,9 +274,25 @@ public partial class okcoin : Exchange
                     { "51024", typeof(AccountSuspended) },
                     { "51025", typeof(ExchangeError) },
                     { "51026", typeof(BadSymbol) },
+                    { "51030", typeof(InvalidOrder) },
+                    { "51031", typeof(InvalidOrder) },
+                    { "51032", typeof(InvalidOrder) },
+                    { "51033", typeof(InvalidOrder) },
+                    { "51037", typeof(InvalidOrder) },
+                    { "51038", typeof(InvalidOrder) },
+                    { "51044", typeof(InvalidOrder) },
                     { "51046", typeof(InvalidOrder) },
                     { "51047", typeof(InvalidOrder) },
-                    { "51031", typeof(InvalidOrder) },
+                    { "51048", typeof(InvalidOrder) },
+                    { "51049", typeof(InvalidOrder) },
+                    { "51050", typeof(InvalidOrder) },
+                    { "51051", typeof(InvalidOrder) },
+                    { "51052", typeof(InvalidOrder) },
+                    { "51053", typeof(InvalidOrder) },
+                    { "51054", typeof(BadRequest) },
+                    { "51056", typeof(InvalidOrder) },
+                    { "51058", typeof(InvalidOrder) },
+                    { "51059", typeof(InvalidOrder) },
                     { "51100", typeof(InvalidOrder) },
                     { "51102", typeof(InvalidOrder) },
                     { "51103", typeof(InvalidOrder) },
@@ -522,6 +548,9 @@ public partial class okcoin : Exchange
                 { "defaultNetwork", "ERC20" },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "Ethereum" },
+                    { "BTC", "Bitcoin" },
+                    { "OMNI", "Omni" },
+                    { "TRC20", "TRON" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -663,16 +692,6 @@ public partial class okcoin : Exchange
         });
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "Bitcoin", "BTC" },
-            { "Omni", "OMNI" },
-            { "TRON", "TRC20" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         /**
@@ -723,7 +742,7 @@ public partial class okcoin : Exchange
                     {
                         object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                         object chainPart = this.safeString(parts, 1, networkId);
-                        object networkCode = this.safeNetwork(chainPart);
+                        object networkCode = this.networkIdToCode(chainPart);
                         object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                         if (isTrue(isEqual(maxPrecision, null)))
                         {
@@ -948,7 +967,7 @@ public partial class okcoin : Exchange
             { "instType", "SPOT" },
         };
         object response = await this.publicGetMarketTickers(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols, parameters);
     }
 
@@ -1068,7 +1087,7 @@ public partial class okcoin : Exchange
         {
             response = await this.publicGetMarketHistoryTrades(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -1120,8 +1139,11 @@ public partial class okcoin : Exchange
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
             { "bar", bar },
-            { "limit", limit },
         };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
+        }
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "method", "publicGetMarketCandles");
         method = ((IList<object>)methodparametersVariable)[0];
@@ -1134,7 +1156,7 @@ public partial class okcoin : Exchange
         {
             response = await this.publicGetMarketHistoryCandles(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1343,7 +1365,7 @@ public partial class okcoin : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
         * @param {bool} [params.postOnly] true to place a post only order
@@ -1703,7 +1725,7 @@ public partial class okcoin : Exchange
         object response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
 
@@ -1818,7 +1840,7 @@ public partial class okcoin : Exchange
         //     }
         //
         //
-        object ordersData = this.safeValue(response, "data", new List<object>() {});
+        object ordersData = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(ordersData, market, null, null, parameters);
     }
 
@@ -2093,7 +2115,7 @@ public partial class okcoin : Exchange
             response = await this.privateGetTradeOrder(this.extend(request, query));
         }
         object data = this.safeValue(response, "data", new List<object>() {});
-        object order = this.safeValue(data, 0);
+        object order = this.safeDict(data, 0);
         return this.parseOrder(order);
     }
 
@@ -2141,7 +2163,7 @@ public partial class okcoin : Exchange
         {
             response = await this.privateGetTradeOrdersPending(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2239,7 +2261,7 @@ public partial class okcoin : Exchange
         //         "msg":""
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -2465,7 +2487,7 @@ public partial class okcoin : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object rawTransfer = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object rawTransfer = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTransfer(rawTransfer, currency);
     }
 
@@ -2622,7 +2644,7 @@ public partial class okcoin : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object transaction = this.safeValue(data, 0);
+        object transaction = this.safeDict(data, 0);
         return this.parseTransaction(transaction, currency);
     }
 
@@ -2698,7 +2720,7 @@ public partial class okcoin : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2766,7 +2788,7 @@ public partial class okcoin : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, parameters);
     }
 
@@ -2951,7 +2973,7 @@ public partial class okcoin : Exchange
         {
             response = await this.privateGetTradeFills(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -2980,13 +3002,13 @@ public partial class okcoin : Exchange
         /**
         * @method
         * @name okcoin#fetchLedger
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
         * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
         * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -3129,47 +3151,38 @@ public partial class okcoin : Exchange
         //         "ts": "1597026383085"
         //     }
         //
-        object id = this.safeString(item, "billId");
-        object account = null;
-        object referenceId = this.safeString(item, "ordId");
-        object referenceAccount = null;
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "ccy"), currency);
-        object amountString = this.safeString(item, "balChg");
-        object amount = this.parseNumber(amountString);
+        object currencyId = this.safeString(item, "ccy");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "ts");
         object feeCostString = this.safeString(item, "fee");
         object fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringNeg(feeCostString)) },
+                { "cost", this.parseToNumeric(Precise.stringNeg(feeCostString)) },
                 { "currency", code },
             };
         }
-        object before = null;
-        object afterString = this.safeString(item, "bal");
-        object after = this.parseNumber(afterString);
-        object status = "ok";
         object marketId = this.safeString(item, "instId");
         object symbol = this.safeSymbol(marketId, null, "-");
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", this.safeString(item, "billId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "account", account },
-            { "referenceId", referenceId },
-            { "referenceAccount", referenceAccount },
-            { "type", type },
+            { "account", null },
+            { "referenceId", this.safeString(item, "ordId") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
             { "currency", code },
             { "symbol", symbol },
-            { "amount", amount },
-            { "before", before },
-            { "after", after },
-            { "status", status },
+            { "amount", this.safeNumber(item, "balChg") },
+            { "before", null },
+            { "after", this.safeNumber(item, "bal") },
+            { "status", "ok" },
             { "fee", fee },
-        };
+        }, currency);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

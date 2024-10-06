@@ -16,6 +16,7 @@ public partial class independentreserve : ccxt.independentreserve
                 { "watchTicker", false },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", false },
                 { "watchOrders", false },
                 { "watchOrderBook", true },
@@ -27,7 +28,9 @@ public partial class independentreserve : ccxt.independentreserve
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "checksum", false },
+                { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {} },
@@ -145,9 +148,9 @@ public partial class independentreserve : ccxt.independentreserve
         {
             limit = 100;
         }
-        limit = this.numberToString(limit);
-        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limit), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
-        object messageHash = add(add(add("orderbook:", symbol), ":"), limit);
+        object limitString = this.numberToString(limit);
+        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
+        object messageHash = add(add(add("orderbook:", symbol), ":"), limitString);
         object subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
@@ -188,17 +191,17 @@ public partial class independentreserve : ccxt.independentreserve
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        object orderBook = this.safeValue(message, "Data", new Dictionary<string, object>() {});
+        object orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
         object messageHash = add(add(add("orderbook:", symbol), ":"), depth);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         object receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         object timestamp = this.safeInteger(message, "Time");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         if (isTrue(isEqual(eventVar, "OrderBookSnapshot")))
         {
             object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
@@ -206,14 +209,14 @@ public partial class independentreserve : ccxt.independentreserve
             ((IDictionary<string,object>)subscription)["receivedSnapshot"] = true;
         } else
         {
-            object asks = this.safeValue(orderBook, "Offers", new List<object>() {});
-            object bids = this.safeValue(orderBook, "Bids", new List<object>() {});
+            object asks = this.safeList(orderBook, "Offers", new List<object>() {});
+            object bids = this.safeList(orderBook, "Bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         }
-        object checksum = this.safeValue(this.options, "checksum", true);
+        object checksum = this.handleOption("watchOrderBook", "checksum", true);
         if (isTrue(isTrue(checksum) && isTrue(receivedSnapshot)))
         {
             object storedAsks = getValue(orderbook, "asks");
@@ -239,7 +242,9 @@ public partial class independentreserve : ccxt.independentreserve
             object responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
             {
-                var error = new InvalidNonce(add(this.id, " invalid checksum"));
+                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }

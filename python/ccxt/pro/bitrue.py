@@ -66,7 +66,7 @@ class bitrue(ccxt.async_support.bitrue):
         """
         url = await self.authenticate()
         messageHash = 'balance'
-        message = {
+        message: dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_balance_update',
@@ -179,7 +179,7 @@ class bitrue(ccxt.async_support.bitrue):
             symbol = market['symbol']
         url = await self.authenticate()
         messageHash = 'orders'
-        message = {
+        message: dict = {
             'event': 'sub',
             'params': {
                 'channel': 'user_order_update',
@@ -291,7 +291,7 @@ class bitrue(ccxt.async_support.bitrue):
         marketIdLowercase = market['id'].lower()
         channel = 'market_' + marketIdLowercase + '_simple_depth_step0'
         url = self.urls['api']['ws']['public']
-        message = {
+        message: dict = {
             'event': 'sub',
             'params': {
                 'cb_id': marketIdLowercase,
@@ -341,17 +341,16 @@ class bitrue(ccxt.async_support.bitrue):
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
         tick = self.safe_value(message, 'tick', {})
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
         snapshot = self.parse_order_book(tick, symbol, timestamp, 'buys', 'asks')
         orderbook.reset(snapshot)
-        self.orderbooks[symbol] = orderbook
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
     def parse_ws_order_type(self, typeId):
-        types = {
+        types: dict = {
             '1': 'limit',
             '2': 'market',
             '3': 'limit',
@@ -359,7 +358,7 @@ class bitrue(ccxt.async_support.bitrue):
         return self.safe_string(types, typeId, typeId)
 
     def parse_ws_order_status(self, status):
-        statuses = {
+        statuses: dict = {
             '0': 'open',  # The order has not been accepted by the engine.
             '1': 'open',  # The order has been accepted by the engine.
             '2': 'closed',  # The order has been completed.
@@ -379,7 +378,7 @@ class bitrue(ccxt.async_support.bitrue):
         #     }
         #
         time = self.safe_integer(message, 'ping')
-        pong = {
+        pong: dict = {
             'pong': time,
         }
         await client.send(pong)
@@ -391,7 +390,7 @@ class bitrue(ccxt.async_support.bitrue):
             self.handle_ping(client, message)
         else:
             event = self.safe_string(message, 'e')
-            handlers = {
+            handlers: dict = {
                 'BALANCE': self.handle_balance,
                 'ORDER': self.handle_order,
             }
@@ -402,13 +401,7 @@ class bitrue(ccxt.async_support.bitrue):
     async def authenticate(self, params={}):
         listenKey = self.safe_value(self.options, 'listenKey')
         if listenKey is None:
-            response = None
-            try:
-                response = await self.openPrivatePostPoseidonApiV1ListenKey(params)
-            except Exception as error:
-                self.options['listenKey'] = None
-                self.options['listenKeyUrl'] = None
-                return None
+            response = await self.openPrivatePostPoseidonApiV1ListenKey(params)
             #
             #     {
             #         "msg": "succ",
@@ -428,7 +421,7 @@ class bitrue(ccxt.async_support.bitrue):
 
     async def keep_alive_listen_key(self, params={}):
         listenKey = self.safe_string(self.options, 'listenKey')
-        request = {
+        request: dict = {
             'listenKey': listenKey,
         }
         try:

@@ -33,7 +33,7 @@ async function testWatchOHLCV(exchange, skippedProperties, symbol) {
             now = exchange.milliseconds();
             continue;
         }
-        assert(Array.isArray(response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json(response));
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
         now = exchange.milliseconds();
         for (let i = 0; i < response.length; i++) {
             testOHLCV(exchange, skippedProperties, method, response[i], symbol, now);

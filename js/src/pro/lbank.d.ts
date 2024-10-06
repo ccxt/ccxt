@@ -7,7 +7,7 @@ export default class lbank extends lbankRest {
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: any, message: any): void;
-    fetchTickerWs(symbol: any, params?: {}): Promise<Ticker>;
+    fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: any, message: any): void;
     parseWsTicker(ticker: any, market?: any): Ticker;

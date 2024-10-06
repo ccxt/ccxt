@@ -23,6 +23,9 @@ public partial class mexc : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", true },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", null },
@@ -30,17 +33,27 @@ public partial class mexc : Exchange
                 { "closePosition", false },
                 { "createDepositAddress", true },
                 { "createMarketBuyOrderWithCost", true },
-                { "createMarketOrderWithCost", false },
-                { "createMarketSellOrderWithCost", false },
+                { "createMarketOrderWithCost", true },
+                { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
+                { "createStopLimitOrder", true },
+                { "createStopMarketOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "deposit", null },
                 { "editOrder", null },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", true },
-                { "fetchBorrowRateHistory", null },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrder", null },
                 { "fetchClosedOrders", true },
@@ -55,22 +68,30 @@ public partial class mexc : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", null },
                 { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchL2OrderBook", true },
                 { "fetchLedger", null },
                 { "fetchLedgerEntry", null },
+                { "fetchLeverage", true },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", true },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
-                { "fetchMarketLeverageTiers", null },
+                { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
+                { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
@@ -78,9 +99,11 @@ public partial class mexc : Exchange
                 { "fetchOrderBooks", null },
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
-                { "fetchPosition", true },
+                { "fetchPosition", "emulated" },
+                { "fetchPositionHistory", "emulated" },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPositionsRisk", null },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
@@ -102,7 +125,7 @@ public partial class mexc : Exchange
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
                 { "setLeverage", true },
-                { "setMarginMode", null },
+                { "setMarginMode", true },
                 { "setPositionMode", true },
                 { "signIn", null },
                 { "transfer", null },
@@ -130,7 +153,7 @@ public partial class mexc : Exchange
                 { "www", "https://www.mexc.com/" },
                 { "doc", new List<object>() {"https://mexcdevelop.github.io/apidocs/"} },
                 { "fees", new List<object>() {"https://www.mexc.com/fee"} },
-                { "referral", "https://m.mexc.com/auth/signup?inviteCode=1FQ1G" },
+                { "referral", "https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1" },
             } },
             { "api", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -204,6 +227,7 @@ public partial class mexc : Exchange
                             { "sub-account/margin", 1 },
                             { "batchOrders", 10 },
                             { "capital/withdraw/apply", 1 },
+                            { "capital/withdraw", 1 },
                             { "capital/transfer", 1 },
                             { "capital/transfer/internal", 1 },
                             { "capital/deposit/address", 1 },
@@ -222,6 +246,7 @@ public partial class mexc : Exchange
                             { "margin/order", 1 },
                             { "margin/openOrders", 1 },
                             { "userDataStream", 1 },
+                            { "capital/withdraw", 1 },
                         } },
                     } },
                 } },
@@ -380,7 +405,8 @@ public partial class mexc : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "createMarketBuyOrderRequiresPrice", true },
+                { "adjustForTimeDifference", false },
+                { "timeDifference", 0 },
                 { "unavailableContracts", new Dictionary<string, object>() {
                     { "BTC/USDT:USDT", true },
                     { "LTC/USDT:USDT", true },
@@ -423,141 +449,33 @@ public partial class mexc : Exchange
                 { "defaultNetwork", "ETH" },
                 { "defaultNetworks", new Dictionary<string, object>() {
                     { "ETH", "ETH" },
-                    { "USDT", "TRC20" },
+                    { "USDT", "ERC20" },
+                    { "USDC", "ERC20" },
+                    { "BTC", "BTC" },
+                    { "LTC", "LTC" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "BTC", "BTC" },
-                    { "BCH", "BCH" },
-                    { "TRC20", "Tron(TRC20)" },
-                    { "ERC20", "Ethereum(ERC20)" },
-                    { "BEP20", "BNB Smart Chain(BEP20)" },
-                    { "OPTIMISM", "Optimism(OP)" },
-                    { "SOL", "Solana(SOL)" },
-                    { "CRC20", "CRONOS" },
-                    { "ALGO", "Algorand(ALGO)" },
-                    { "XRP", "XRP" },
-                    { "MATIC", "Polygon(MATIC)" },
-                    { "AVAXX", "AVAX_XCHAIN" },
-                    { "AVAXC", "AvalancheCChain(AVAXCCHAIN)" },
-                    { "ARBONE", "ArbitrumOne(ARB)" },
-                    { "ARBNOVA", "ARBNOVA" },
-                    { "FTM", "FTM" },
-                    { "WAVES", "WAVES" },
-                    { "CHZ", "Chiliz Chain(CHZ)" },
-                    { "HRC20", "HECO" },
-                    { "TRC10", "TRC10" },
-                    { "DASH", "DASH" },
-                    { "LTC", "LTC" },
-                    { "XTZ", "XTZ" },
-                    { "OMNI", "OMNI" },
-                    { "APT", "APTOS" },
-                    { "ONT", "ONT" },
-                    { "BSV", "BSV" },
-                    { "OKC", "OKT" },
-                    { "CELO", "CELO" },
-                    { "KLAY", "KLAY" },
-                    { "BEP2", "BEP2" },
-                    { "EGLD", "EGLD" },
-                    { "EOS", "EOS" },
-                    { "ZIL", "ZIL" },
-                    { "ETHW", "ETHW" },
-                    { "IOTX", "IOTX" },
-                    { "IOTA", "IOTA" },
-                    { "SYS", "SYS" },
-                    { "XCH", "CHIA" },
-                    { "KMA", "KMA" },
-                    { "ONE", "ONE" },
-                    { "METIS", "METIS" },
-                    { "KAVA", "KAVA" },
-                    { "KDA", "KDA" },
-                    { "IOST", "IOST" },
-                    { "XEC", "XEC" },
-                    { "VET", "VET" },
-                    { "XLM", "XLM" },
-                    { "KSM", "KSM" },
-                    { "MOVR", "MOVR" },
-                    { "XMR", "XMR" },
-                    { "LAT", "LAT" },
-                    { "ETC", "ETC" },
-                    { "GLMR", "GLMR" },
-                    { "DOT", "DOT" },
-                    { "SC", "SC" },
-                    { "ICP", "ICP" },
-                    { "AOK", "AOK" },
-                    { "ZEC", "ZEC" },
-                    { "ACA", "ACALA" },
-                    { "ASTR", "ASTAR" },
-                    { "FIL", "FIL" },
-                    { "NEAR", "NEAR" },
-                    { "OSMO", "OSMO" },
-                    { "SDN", "SDN" },
-                    { "BITCI", "BITCI" },
-                    { "NEO", "NEO" },
-                    { "ADA", "ADA" },
-                    { "RVN", "RVN" },
-                    { "BNC", "BNC" },
-                    { "BNCDOT", "BNCPOLKA" },
-                    { "ETHF", "ETF" },
-                    { "STEEM", "STEEM" },
-                    { "OASYS", "OASYS" },
-                    { "BEAM", "BEAM" },
-                    { "VSYS", "VSYS" },
-                    { "OASIS", "ROSE" },
-                    { "AR", "AR" },
-                    { "AE", "AE" },
-                    { "QTUM", "QTUM" },
-                    { "ATOM", "ATOM" },
-                    { "HBAR", "HBAR" },
-                    { "CSPR", "CSPR" },
-                    { "WEMIX", "WEMIX" },
-                    { "SGB", "SGB" },
-                    { "XPR", "PROTON" },
-                    { "HYDRA", "HYDRA" },
-                    { "SCRT", "SCRT" },
-                    { "TOMO", "TOMO" },
-                    { "WAX", "WAX" },
-                    { "KAR", "KAR" },
-                    { "KILT", "KILT" },
-                    { "XDC", "XDC" },
-                    { "GRIN", "GRIN" },
-                    { "PLCU", "PLCU" },
-                    { "MINA", "MINA" },
-                    { "ABBC", "ABBC" },
-                    { "ZEN", "ZEN" },
-                    { "FLOW", "FLOW" },
-                    { "RSK", "RBTC" },
-                    { "DCR", "DCR" },
-                    { "HIVE", "HIVE" },
-                    { "XYM", "XYM" },
-                    { "CKB", "CKB" },
-                    { "XRD", "XRD" },
-                    { "XVG", "XVG" },
-                    { "BOBA", "BOBA" },
-                    { "AZERO", "AZERO" },
-                    { "ARK", "ARK" },
-                    { "NULS", "NULS" },
-                    { "POKT", "POKT" },
-                    { "NEO3", "NEO3" },
-                    { "FIO", "FIO" },
-                    { "MASS", "MASS" },
-                    { "AME", "AME" },
-                    { "REI", "REI" },
-                    { "IRIS", "IRIS" },
-                    { "ZTG", "ZTG" },
-                    { "EDG", "EDG" },
-                    { "FUSE", "FUSE" },
-                    { "EVER", "EVER" },
-                    { "FET", "FET" },
-                    { "CFX", "CFX" },
-                    { "NEBL", "NEBL" },
-                    { "STAR", "STAR" },
-                    { "NEM", "NEM" },
-                    { "BDX", "BDX" },
+                    { "ZKSYNC", "ZKSYNCERA" },
+                    { "TRC20", "TRX" },
                     { "TON", "TONCOIN" },
-                    { "NAS", "NAS" },
-                    { "QKC", "QKC" },
+                    { "AVAXC", "AVAX_CCHAIN" },
+                    { "ERC20", "ETH" },
+                    { "ACA", "ACALA" },
+                    { "BEP20", "BSC" },
+                    { "OPTIMISM", "OP" },
+                    { "ASTR", "ASTAR" },
                     { "BTM", "BTM2" },
-                    { "FSN", "FSN" },
+                    { "CRC20", "CRONOS" },
+                    { "ETHF", "ETF" },
+                    { "HRC20", "HECO" },
+                    { "OASIS", "ROSE" },
+                    { "OKC", "OKT" },
+                    { "RSK", "RBTC" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "BNB Smart Chain(BEP20-RACAV1)", "BSC" },
+                    { "BNB Smart Chain(BEP20-RACAV2)", "BSC" },
+                    { "BNB Smart Chain(BEP20)", "BSC" },
                 } },
                 { "recvWindow", multiply(5, 1000) },
                 { "maxTimeTillEnd", subtract(multiply(multiply(90, 86400), 1000), 1) },
@@ -566,24 +484,24 @@ public partial class mexc : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "BEYONDPROTOCOL", "BEYOND" },
                 { "BIFI", "BIFIF" },
-                { "BYN", "BeyondFi" },
+                { "BYN", "BEYONDFI" },
                 { "COFI", "COFIX" },
-                { "DFI", "DfiStarter" },
-                { "DFT", "dFuture" },
+                { "DFI", "DFISTARTER" },
+                { "DFT", "DFUTURE" },
                 { "DRK", "DRK" },
-                { "EGC", "Egoras Credit" },
+                { "EGC", "EGORASCREDIT" },
                 { "FLUX1", "FLUX" },
                 { "FLUX", "FLUX1" },
-                { "FREE", "FreeRossDAO" },
+                { "FREE", "FREEROSSDAO" },
                 { "GAS", "GASDAO" },
                 { "GASNEO", "GAS" },
-                { "GMT", "GMT Token" },
+                { "GMT", "GMTTOKEN" },
                 { "STEPN", "GMT" },
-                { "HERO", "Step Hero" },
-                { "MIMO", "Mimosa" },
-                { "PROS", "Pros.Finance" },
-                { "SIN", "Sin City Token" },
-                { "SOUL", "Soul Swap" },
+                { "HERO", "STEPHERO" },
+                { "MIMO", "MIMOSA" },
+                { "PROS", "PROSFINANCE" },
+                { "SIN", "SINCITYTOKEN" },
+                { "SOUL", "SOULSWAP" },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -665,6 +583,7 @@ public partial class mexc : Exchange
                     { "700006", typeof(BadRequest) },
                     { "700007", typeof(AuthenticationError) },
                     { "700008", typeof(BadRequest) },
+                    { "700013", typeof(AuthenticationError) },
                     { "730001", typeof(BadRequest) },
                     { "730002", typeof(BadRequest) },
                     { "730000", typeof(ExchangeError) },
@@ -690,7 +609,7 @@ public partial class mexc : Exchange
                     { "Combination of optional parameters invalid", typeof(BadRequest) },
                     { "api market order is disabled", typeof(BadRequest) },
                     { "Contract not allow place order!", typeof(InvalidOrder) },
-                    { "Oversold", typeof(InvalidOrder) },
+                    { "Oversold", typeof(InsufficientFunds) },
                     { "Insufficient position", typeof(InsufficientFunds) },
                     { "Insufficient balance!", typeof(InsufficientFunds) },
                     { "Bid price is great than max allow price", typeof(InvalidOrder) },
@@ -708,6 +627,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchStatus
         * @description the latest known information on the availability of the exchange API
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
         */
@@ -751,6 +672,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the exchange server
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
@@ -853,8 +776,8 @@ public partial class mexc : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "network");
-                object network = this.safeNetwork(networkId);
+                object networkId = this.safeString2(chain, "netWork", "network");
+                object network = this.networkIdToCode(networkId);
                 object isDepositEnabled = this.safeBool(chain, "depositEnable", false);
                 object isWithdrawEnabled = this.safeBool(chain, "withdrawEnable", false);
                 object active = (isTrue(isDepositEnabled) && isTrue(isWithdrawEnabled));
@@ -934,46 +857,41 @@ public partial class mexc : Exchange
         return result;
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(networkId, "BSC"), 0)))
-        {
-            return "BEP20";
-        }
-        object parts = ((string)networkId).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-        networkId = String.Join("", ((IList<object>)parts).ToArray());
-        networkId = ((string)networkId).Replace((string)"-20", (string)"20");
-        object networksById = new Dictionary<string, object>() {
-            { "Ethereum(ERC20)", "ERC20" },
-            { "Algorand(ALGO)", "ALGO" },
-            { "ArbitrumOne(ARB)", "ARBONE" },
-            { "AvalancheCChain(AVAXCCHAIN)", "AVAXC" },
-            { "BNB Smart Chain(BEP20)", "BEP20" },
-            { "Polygon(MATIC)", "MATIC" },
-            { "Optimism(OP)", "OPTIMISM" },
-            { "Solana(SOL)", "SOL" },
-            { "Tron(TRC20)", "TRC20" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         /**
         * @method
         * @name mexc#fetchMarkets
         * @description retrieves data on all markets for mexc
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object spotMarket = await this.fetchSpotMarkets(parameters);
-        object swapMarket = await this.fetchSwapMarkets(parameters);
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
+        object spotMarketPromise = this.fetchSpotMarkets(parameters);
+        object swapMarketPromise = this.fetchSwapMarkets(parameters);
+        var spotMarketswapMarketVariable = await promiseAll(new List<object>() {spotMarketPromise, swapMarketPromise});
+        var spotMarket = ((IList<object>) spotMarketswapMarketVariable)[0];
+        var swapMarket = ((IList<object>) spotMarketswapMarketVariable)[1];
         return this.arrayConcat(spotMarket, swapMarket);
     }
 
     public async virtual Task<object> fetchSpotMarkets(object parameters = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name mexc#fetchMarkets
+        * @description retrieves data on all spot markets for mexc
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} an array of objects representing market data
+        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.spotPublicGetExchangeInfo(parameters);
         //
@@ -985,7 +903,7 @@ public partial class mexc : Exchange
         //         "symbols": [
         //           {
         //                "symbol": "OGNUSDT",
-        //                "status": "ENABLED",
+        //                "status": "1",
         //                "baseAsset": "OGN",
         //                "baseAssetPrecision": "2",
         //                "quoteAsset": "USDT",
@@ -1031,7 +949,7 @@ public partial class mexc : Exchange
             object status = this.safeString(market, "status");
             object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
             object active = false;
-            if (isTrue(isTrue((isEqual(status, "ENABLED"))) && isTrue((isSpotTradingAllowed))))
+            if (isTrue(isTrue((isEqual(status, "1"))) && isTrue((isSpotTradingAllowed))))
             {
                 active = true;
             }
@@ -1096,8 +1014,20 @@ public partial class mexc : Exchange
 
     public async virtual Task<object> fetchSwapMarkets(object parameters = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name mexc#fetchMarkets
+        * @description retrieves data on all swap markets for mexc
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} an array of objects representing market data
+        */
         parameters ??= new Dictionary<string, object>();
+        object currentRl = this.rateLimit;
+        this.setProperty(this, "rateLimit", 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         object response = await this.contractPublicGetDetail(parameters);
+        this.setProperty(this, "rateLimit", currentRl);
         //
         //     {
         //         "success":true,
@@ -1327,7 +1257,7 @@ public partial class mexc : Exchange
         object trades = null;
         if (isTrue(getValue(market, "spot")))
         {
-            object until = this.safeIntegerN(parameters, new List<object>() {"endTime", "until", "till"});
+            object until = this.safeIntegerN(parameters, new List<object>() {"endTime", "until"});
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
@@ -1612,7 +1542,7 @@ public partial class mexc : Exchange
         object candles = null;
         if (isTrue(getValue(market, "spot")))
         {
-            object until = this.safeIntegerN(parameters, new List<object>() {"until", "endTime", "till"});
+            object until = this.safeIntegerN(parameters, new List<object>() {"until", "endTime"});
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
@@ -1630,7 +1560,7 @@ public partial class mexc : Exchange
             }
             if (isTrue(!isEqual(until, null)))
             {
-                parameters = this.omit(parameters, new List<object>() {"until", "till"});
+                parameters = this.omit(parameters, new List<object>() {"until"});
                 ((IDictionary<string,object>)request)["endTime"] = until;
             }
             object response = await this.spotPublicGetKlines(this.extend(request, parameters));
@@ -1651,14 +1581,14 @@ public partial class mexc : Exchange
             candles = response;
         } else if (isTrue(getValue(market, "swap")))
         {
-            object until = this.safeIntegerProductN(parameters, new List<object>() {"until", "endTime", "till"}, 0.001);
+            object until = this.safeIntegerProductN(parameters, new List<object>() {"until", "endTime"}, 0.001);
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
             }
             if (isTrue(!isEqual(until, null)))
             {
-                parameters = this.omit(parameters, new List<object>() {"until", "till"});
+                parameters = this.omit(parameters, new List<object>() {"until"});
                 ((IDictionary<string,object>)request)["end"] = until;
             }
             object priceType = this.safeString(parameters, "price", "default");
@@ -1709,6 +1639,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1782,6 +1714,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1961,6 +1895,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchBidsAsks
         * @description fetches the bid and ask price and volume for multiple markets
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2013,8 +1948,31 @@ public partial class mexc : Exchange
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
-        ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        return await this.createOrder(symbol, "market", "buy", 0, null, parameters);
+    }
+
+    public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#createMarketSellOrderWithCost
+        * @description create a market sell order by providing the symbol and cost
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {float} cost how much you want to trade in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+        }
+        ((IDictionary<string,object>)parameters)["cost"] = cost;
+        return await this.createOrder(symbol, "market", "sell", 0, null, parameters);
     }
 
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2030,10 +1988,20 @@ public partial class mexc : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+        * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+        * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
+        * @param {long} [params.positionId] *contract only* it is recommended to fill in this parameter when closing a position
+        * @param {string} [params.externalOid] *contract only* external order ID
+        * @param {int} [params.positionMode] *contract only*  1:hedge, 2:one-way, default: the user's current config
+        * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2061,31 +2029,28 @@ public partial class mexc : Exchange
             { "side", orderSide },
             { "type", ((string)type).ToUpper() },
         };
-        if (isTrue(isTrue(isEqual(orderSide, "BUY")) && isTrue(isEqual(type, "market"))))
+        if (isTrue(isEqual(type, "market")))
         {
-            object createMarketBuyOrderRequiresPrice = true;
-            var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
-            parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
             object cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
             parameters = this.omit(parameters, "cost");
             if (isTrue(!isEqual(cost, null)))
             {
                 amount = cost;
-            } else if (isTrue(createMarketBuyOrderRequiresPrice))
+                ((IDictionary<string,object>)request)["quoteOrderQty"] = this.costToPrecision(symbol, amount);
+            } else
             {
                 if (isTrue(isEqual(price, null)))
                 {
-                    throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                    ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
                 } else
                 {
                     object amountString = this.numberToString(amount);
                     object priceString = this.numberToString(price);
                     object quoteAmount = Precise.stringMul(amountString, priceString);
                     amount = quoteAmount;
+                    ((IDictionary<string,object>)request)["quoteOrderQty"] = this.costToPrecision(symbol, amount);
                 }
             }
-            ((IDictionary<string,object>)request)["quoteOrderQty"] = this.costToPrecision(symbol, amount);
         } else
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
@@ -2120,10 +2085,36 @@ public partial class mexc : Exchange
 
     public async virtual Task<object> createSpotOrder(object market, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name mexc#createSpotOrder
+        * @description create a trade order
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object test = this.safeBool(parameters, "test", false);
+        parameters = this.omit(parameters, "test");
         object request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
-        object response = await this.spotPrivatePostOrder(this.extend(request, parameters));
+        object response = null;
+        if (isTrue(test))
+        {
+            response = await this.spotPrivatePostOrderTest(request);
+        } else
+        {
+            response = await this.spotPrivatePostOrder(request);
+        }
         //
         // spot
         //
@@ -2153,6 +2144,33 @@ public partial class mexc : Exchange
 
     public async virtual Task<object> createSwapOrder(object market, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name mexc#createOrder
+        * @description create a trade order
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+        * @param {bool} [params.reduceOnly] indicates if this order is to reduce the size of a position
+        * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} [params.leverage] leverage is necessary on isolated margin
+        * @param {long} [params.positionId] it is recommended to fill in this parameter when closing a position
+        * @param {string} [params.externalOid] external order ID
+        * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object symbol = getValue(market, "symbol");
@@ -2216,20 +2234,35 @@ public partial class mexc : Exchange
             }
         }
         object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        if (isTrue(reduceOnly))
+        object hedged = this.safeBool(parameters, "hedged", false);
+        object sideInteger = null;
+        if (isTrue(hedged))
         {
-            ((IDictionary<string,object>)request)["side"] = ((bool) isTrue((isEqual(side, "buy")))) ? 2 : 4;
+            if (isTrue(reduceOnly))
+            {
+                parameters = this.omit(parameters, "reduceOnly"); // hedged mode does not accept this parameter
+                side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+            }
+            sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 3;
+            ((IDictionary<string,object>)request)["positionMode"] = 1;
         } else
         {
-            ((IDictionary<string,object>)request)["side"] = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 3;
+            if (isTrue(reduceOnly))
+            {
+                sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 2 : 4;
+            } else
+            {
+                sideInteger = ((bool) isTrue((isEqual(side, "buy")))) ? 1 : 3;
+            }
         }
+        ((IDictionary<string,object>)request)["side"] = sideInteger;
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "externalOid");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["externalOid"] = clientOrderId;
         }
         object stopPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice"});
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"});
         object response = null;
         if (isTrue(stopPrice))
         {
@@ -2251,7 +2284,9 @@ public partial class mexc : Exchange
         //     {"success":true,"code":0,"data":259208506303929856}
         //
         object data = this.safeString(response, "data");
-        return this.parseOrder(data, market);
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "id", data },
+        }, market);
     }
 
     public async override Task<object> createOrders(object orders, object parameters = null)
@@ -2333,6 +2368,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchOrder
         * @description fetches information on an order made by the user
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
@@ -2421,10 +2458,14 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchOrders
         * @description fetches information on multiple orders made by the user
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch orders for
         * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -2437,6 +2478,8 @@ public partial class mexc : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
@@ -2452,6 +2495,10 @@ public partial class mexc : Exchange
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
+            }
+            if (isTrue(!isEqual(until, null)))
+            {
+                ((IDictionary<string,object>)request)["endTime"] = until;
             }
             if (isTrue(!isEqual(limit, null)))
             {
@@ -2523,11 +2570,24 @@ public partial class mexc : Exchange
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["start_time"] = since;
-                object end = this.safeInteger(parameters, "end_time");
+                object end = this.safeInteger(parameters, "end_time", until);
                 if (isTrue(isEqual(end, null)))
                 {
                     ((IDictionary<string,object>)request)["end_time"] = this.sum(since, getValue(this.options, "maxTimeTillEnd"));
+                } else
+                {
+                    if (isTrue(isGreaterThan((subtract(end, since)), getValue(this.options, "maxTimeTillEnd"))))
+                    {
+                        throw new BadRequest ((string)add(this.id, " end is invalid, i.e. exceeds allowed 90 days.")) ;
+                    } else
+                    {
+                        ((IDictionary<string,object>)request)["end_time"] = until;
+                    }
                 }
+            } else if (isTrue(!isEqual(until, null)))
+            {
+                ((IDictionary<string,object>)request)["start_time"] = this.sum(until, multiply(getValue(this.options, "maxTimeTillEnd"), -1));
+                ((IDictionary<string,object>)request)["end_time"] = until;
             }
             if (isTrue(!isEqual(limit, null)))
             {
@@ -2667,7 +2727,7 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            object data = this.safeValue(response, "data");
+            object data = this.safeList(response, "data");
             return this.parseOrders(data, market);
         }
     }
@@ -2678,6 +2738,9 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchOpenOrders
         * @description fetch all unfilled currently open orders
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2781,6 +2844,9 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2797,6 +2863,9 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchCanceledOrders
         * @description fetches information on multiple canceled orders made by the user
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] max number of orders to return, default is undefined
@@ -2835,6 +2904,9 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#cancelOrder
         * @description cancels an open order
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-order
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-order-under-maintenance
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2933,6 +3005,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#cancelOrders
         * @description cancel multiple orders
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
         * @param {string[]} ids order ids
         * @param {string} symbol unified market symbol, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2962,7 +3035,7 @@ public partial class mexc : Exchange
             //         ]
             //     }
             //
-            object data = this.safeValue(response, "data");
+            object data = this.safeList(response, "data");
             return this.parseOrders(data, market);
         }
     }
@@ -2973,6 +3046,9 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#cancelAllOrders
         * @description cancel all open orders
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-symbol
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
@@ -3069,7 +3145,7 @@ public partial class mexc : Exchange
             //         "code": "0"
             //     }
             //
-            object data = this.safeValue(response, "data", new List<object>() {});
+            object data = this.safeList(response, "data", new List<object>() {});
             return this.parseOrders(data, market);
         }
     }
@@ -3373,6 +3449,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchAccounts
         * @description fetch all the accounts associated with a profile
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
         */
@@ -3406,6 +3484,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchTradingFees
         * @description fetch the trading fees for multiple markets
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
@@ -3714,10 +3794,13 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchMyTrades
         * @description fetch all trades made by the user
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch trades for
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3727,9 +3810,10 @@ public partial class mexc : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -3738,13 +3822,19 @@ public partial class mexc : Exchange
         {
             if (isTrue(!isEqual(since, null)))
             {
-                ((IDictionary<string,object>)request)["start_time"] = since;
+                ((IDictionary<string,object>)request)["startTime"] = since;
             }
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            trades = await this.spotPrivateGetMyTrades(this.extend(request, query));
+            object until = this.safeInteger(parameters, "until");
+            if (isTrue(!isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                ((IDictionary<string,object>)request)["endTime"] = until;
+            }
+            trades = await this.spotPrivateGetMyTrades(this.extend(request, parameters));
         } else
         {
             if (isTrue(!isEqual(since, null)))
@@ -3760,7 +3850,7 @@ public partial class mexc : Exchange
             {
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
-            object response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, query));
+            object response = await this.contractPrivateGetOrderListOrderDeals(this.extend(request, parameters));
             //
             //     {
             //         "success": true,
@@ -3795,6 +3885,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchOrderTrades
         * @description fetch all the trades made from a single order
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
         * @param {string} id order id
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3878,12 +3970,13 @@ public partial class mexc : Exchange
         return response;
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
         * @name mexc#reduceMargin
         * @description remove margin from a position
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
         * @param {string} symbol unified market symbol
         * @param {float} amount the amount of margin to remove
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3893,12 +3986,13 @@ public partial class mexc : Exchange
         return await this.modifyMarginHelper(symbol, amount, "SUB", parameters);
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
         * @name mexc#addMargin
         * @description add margin
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
         * @param {string} symbol unified market symbol
         * @param {float} amount amount of margin to add
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3914,6 +4008,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#setLeverage
         * @description set the level of leverage for a market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
         * @param {float} leverage the rate of leverage
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3952,6 +4047,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchFundingHistory
         * @description fetch the history of funding payments paid and received on this account
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch funding history for
         * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -4040,9 +4136,14 @@ public partial class mexc : Exchange
         object nextFundingRate = this.safeNumber(contract, "fundingRate");
         object nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         object marketId = this.safeString(contract, "symbol");
-        object symbol = this.safeSymbol(marketId, market);
+        object symbol = this.safeSymbol(marketId, market, null, "contract");
         object timestamp = this.safeInteger(contract, "timestamp");
-        object datetime = this.iso8601(timestamp);
+        object interval = this.safeString(contract, "collectCycle");
+        object intervalString = null;
+        if (isTrue(!isEqual(interval, null)))
+        {
+            intervalString = add(interval, "h");
+        }
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -4051,7 +4152,7 @@ public partial class mexc : Exchange
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", timestamp },
-            { "datetime", datetime },
+            { "datetime", this.iso8601(timestamp) },
             { "fundingRate", nextFundingRate },
             { "fundingTimestamp", nextFundingTimestamp },
             { "fundingDatetime", this.iso8601(nextFundingTimestamp) },
@@ -4061,7 +4162,23 @@ public partial class mexc : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", intervalString },
         };
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -4070,6 +4187,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchFundingRate
         * @description fetch the current funding rate
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -4106,6 +4224,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchFundingRateHistory
         * @description fetches historical funding rate prices
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
         * @param {int} [since] not used by mexc, but filtered internally by ccxt
         * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
@@ -4177,8 +4296,9 @@ public partial class mexc : Exchange
         /**
         * @method
         * @name mexc#fetchLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        * @param {string[]|undefined} symbols list of unified market symbols
+        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+        * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
         */
@@ -4231,16 +4351,50 @@ public partial class mexc : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseLeverageTiers(data, symbols, "symbol");
     }
 
     public override object parseMarketLeverageTiers(object info, object market = null)
     {
-        /**
-        @param info {object} Exchange response for 1 market
-        @param market {object} CCXT market
-         */
+        //
+        //    {
+        //        "symbol": "BTC_USDT",
+        //        "displayName": "BTC_USDT永续",
+        //        "displayNameEn": "BTC_USDT SWAP",
+        //        "positionOpenType": 3,
+        //        "baseCoin": "BTC",
+        //        "quoteCoin": "USDT",
+        //        "settleCoin": "USDT",
+        //        "contractSize": 0.0001,
+        //        "minLeverage": 1,
+        //        "maxLeverage": 125,
+        //        "priceScale": 2,
+        //        "volScale": 0,
+        //        "amountScale": 4,
+        //        "priceUnit": 0.5,
+        //        "volUnit": 1,
+        //        "minVol": 1,
+        //        "maxVol": 1000000,
+        //        "bidLimitPriceRate": 0.1,
+        //        "askLimitPriceRate": 0.1,
+        //        "takerFeeRate": 0.0006,
+        //        "makerFeeRate": 0.0002,
+        //        "maintenanceMarginRate": 0.004,
+        //        "initialMarginRate": 0.008,
+        //        "riskBaseVol": 10000,
+        //        "riskIncrVol": 200000,
+        //        "riskIncrMmr": 0.004,
+        //        "riskIncrImr": 0.004,
+        //        "riskLevelLimit": 5,
+        //        "priceCoefficientVariation": 0.1,
+        //        "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        //        "state": 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //        "isNew": false,
+        //        "isHot": true,
+        //        "isHidden": false
+        //    }
+        //
         object maintenanceMarginRate = this.safeString(info, "maintenanceMarginRate");
         object initialMarginRate = this.safeString(info, "initialMarginRate");
         object maxVol = this.safeString(info, "maxVol");
@@ -4250,14 +4404,26 @@ public partial class mexc : Exchange
         object floor = "0";
         object tiers = new List<object>() {};
         object quoteId = this.safeString(info, "quoteCoin");
+        if (isTrue(isEqual(riskIncrVol, "0")))
+        {
+            return new List<object>() {new Dictionary<string, object>() {
+    { "tier", 0 },
+    { "currency", this.safeCurrencyCode(quoteId) },
+    { "minNotional", null },
+    { "maxNotional", null },
+    { "maintenanceMarginRate", null },
+    { "maxLeverage", this.safeNumber(info, "maxLeverage") },
+    { "info", info },
+}};
+        }
         while (Precise.stringLt(floor, maxVol))
         {
             object cap = Precise.stringAdd(floor, riskIncrVol);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.parseNumber(Precise.stringDiv(cap, riskIncrVol)) },
                 { "currency", this.safeCurrencyCode(quoteId) },
-                { "notionalFloor", this.parseNumber(floor) },
-                { "notionalCap", this.parseNumber(cap) },
+                { "minNotional", this.parseNumber(floor) },
+                { "maxNotional", this.parseNumber(cap) },
                 { "maintenanceMarginRate", this.parseNumber(maintenanceMarginRate) },
                 { "maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)) },
                 { "info", info },
@@ -4272,23 +4438,22 @@ public partial class mexc : Exchange
     public override object parseDepositAddress(object depositAddress, object currency = null)
     {
         //
-        //     {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
-        //     {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
-        //     {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
-        //     {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
-        //     {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
-        //
+        //    {
+        //        coin: "USDT",
+        //        network: "BNB Smart Chain(BEP20)",
+        //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //        memo:  null
+        //    }
         //
         object address = this.safeString(depositAddress, "address");
-        object code = this.safeCurrencyCode(null, currency);
-        object networkId = this.safeString(depositAddress, "chain");
-        object network = this.safeNetwork(networkId);
+        object currencyId = this.safeString(depositAddress, "coin");
+        object networkId = this.safeString(depositAddress, "netWork");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "currency", code },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "address", address },
-            { "tag", null },
-            { "network", network },
+            { "tag", this.safeString(depositAddress, "memo") },
+            { "network", this.networkIdToCode(networkId) },
             { "info", depositAddress },
         };
     }
@@ -4314,7 +4479,18 @@ public partial class mexc : Exchange
         object networkId = null;
         if (isTrue(!isEqual(networkCode, null)))
         {
-            networkId = this.networkCodeToId(networkCode, code);
+            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            object networkUnified = this.networkIdToCode(networkCode, code);
+            object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+            if (isTrue(inOp(networks, networkUnified)))
+            {
+                object network = this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
+                object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
+                networkId = this.safeString(networkInfo, "network");
+            } else
+            {
+                networkId = this.networkCodeToId(networkCode, code);
+            }
         }
         if (isTrue(!isEqual(networkId, null)))
         {
@@ -4322,24 +4498,19 @@ public partial class mexc : Exchange
         }
         parameters = this.omit(parameters, "network");
         object response = await this.spotPrivateGetCapitalDepositAddress(this.extend(request, parameters));
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object depositAddress = getValue(response, i);
-            object coin = this.safeString(depositAddress, "coin");
-            object currencyInner = this.currency(coin);
-            object networkIdInner = this.safeString(depositAddress, "network");
-            object network = this.safeNetwork(networkIdInner);
-            object address = this.safeString(depositAddress, "address", null);
-            object tag = this.safeString2(depositAddress, "tag", "memo", null);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
-                { "currency", getValue(currencyInner, "id") },
-                { "network", network },
-                { "address", address },
-                { "tag", tag },
-            });
-        }
-        return result;
+        //
+        //    [
+        //        {
+        //            coin: "USDT",
+        //            network: "BNB Smart Chain(BEP20)",
+        //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //            memo:  null
+        //        }
+        //        ...
+        //    ]
+        //
+        object addressStructures = this.parseDepositAddresses(response, null, false);
+        return this.indexBy(addressStructures, "network");
     }
 
     public async override Task<object> createDepositAddress(object code, object parameters = null)
@@ -4365,7 +4536,19 @@ public partial class mexc : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createDepositAddress requires a `network` parameter")) ;
         }
-        object networkId = this.networkCodeToId(networkCode, code);
+        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        object networkId = null;
+        object networkUnified = this.networkIdToCode(networkCode, code);
+        object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        if (isTrue(inOp(networks, networkUnified)))
+        {
+            object network = this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
+            object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
+            networkId = this.safeString(networkInfo, "network");
+        } else
+        {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["network"] = networkId;
@@ -4378,13 +4561,7 @@ public partial class mexc : Exchange
         //        "address": "zzqqqqqqqqqq",
         //        "memo": "MX10068"
         //     }
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "currency", this.safeString(response, "coin") },
-            { "network", this.safeString(response, "network") },
-            { "address", this.safeString(response, "address") },
-            { "tag", this.safeString(response, "memo") },
-        };
+        return this.parseDepositAddress(response, currency);
     }
 
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
@@ -4396,28 +4573,33 @@ public partial class mexc : Exchange
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object rawNetwork = this.safeStringUpper(parameters, "network");
-        parameters = this.omit(parameters, "network");
-        object response = await this.fetchDepositAddressesByNetwork(code, parameters);
-        if (isTrue(!isEqual(rawNetwork, null)))
+        object network = this.safeString(parameters, "network");
+        object addressStructures = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object result = null;
+        if (isTrue(!isEqual(network, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            result = this.safeDict(addressStructures, this.networkIdToCode(network, code));
+        } else
+        {
+            object options = this.safeDict(this.options, "defaultNetworks");
+            object defaultNetworkForCurrency = this.safeString(options, code);
+            if (isTrue(!isEqual(defaultNetworkForCurrency, null)))
             {
-                object depositAddress = getValue(response, i);
-                object network = this.safeStringUpper(depositAddress, "network");
-                if (isTrue(isEqual(rawNetwork, network)))
-                {
-                    return depositAddress;
-                }
+                result = this.safeDict(addressStructures, defaultNetworkForCurrency);
+            } else
+            {
+                object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                object key = this.safeString(keys, 0);
+                result = this.safeDict(addressStructures, key);
             }
         }
-        object result = this.safeValue(response, 0);
         if (isTrue(isEqual(result, null)))
         {
-            throw new InvalidAddress ((string)add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", consider creating one using the MEXC platform")) ;
+            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using .createDepositAddress() method or in MEXC website")) ;
         }
         return result;
     }
@@ -4596,7 +4778,7 @@ public partial class mexc : Exchange
         object rawNetwork = this.safeString(transaction, "network");
         if (isTrue(!isEqual(rawNetwork, null)))
         {
-            network = this.safeNetwork(rawNetwork);
+            network = this.networkIdToCode(rawNetwork);
         }
         object code = this.safeCurrencyCode(currencyId, currency);
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
@@ -4676,6 +4858,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchPosition
         * @description fetch data on a single open contract trade position
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -4696,6 +4879,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchPositions
         * @description fetch all open positions
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -4733,12 +4917,14 @@ public partial class mexc : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parsePositions(data, symbols);
     }
 
     public override object parsePosition(object position, object market = null)
     {
+        //
+        // fetchPositions
         //
         //     {
         //         "positionId": 1394650,
@@ -4763,6 +4949,40 @@ public partial class mexc : Exchange
         //         "autoAddIm": false
         //     }
         //
+        // fetchPositionsHistory
+        //
+        //    {
+        //        positionId: '390281084',
+        //        symbol: 'RVN_USDT',
+        //        positionType: '1',
+        //        openType: '2',
+        //        state: '3',
+        //        holdVol: '0',
+        //        frozenVol: '0',
+        //        closeVol: '1141',
+        //        holdAvgPrice: '0.03491',
+        //        holdAvgPriceFullyScale: '0.03491',
+        //        openAvgPrice: '0.03491',
+        //        openAvgPriceFullyScale: '0.03491',
+        //        closeAvgPrice: '0.03494',
+        //        liquidatePrice: '0.03433',
+        //        oim: '0',
+        //        im: '0',
+        //        holdFee: '0',
+        //        realised: '0.1829',
+        //        leverage: '50',
+        //        createTime: '1711512408000',
+        //        updateTime: '1711512553000',
+        //        autoAddIm: false,
+        //        version: '4',
+        //        profitRatio: '0.0227',
+        //        newOpenAvgPrice: '0.03491',
+        //        newCloseAvgPrice: '0.03494',
+        //        closeProfitLoss: '0.3423',
+        //        fee: '0.1593977',
+        //        positionShowStatus: 'CLOSED'
+        //    }
+        //
         market = this.safeMarket(this.safeString(position, "symbol"), market);
         object symbol = getValue(market, "symbol");
         object contracts = this.safeString(position, "holdVol");
@@ -4784,7 +5004,7 @@ public partial class mexc : Exchange
             { "entryPrice", entryPrice },
             { "collateral", null },
             { "side", side },
-            { "unrealizedProfit", null },
+            { "unrealizedPnl", null },
             { "leverage", this.parseNumber(leverage) },
             { "percentage", null },
             { "marginMode", marginType },
@@ -4806,8 +5026,18 @@ public partial class mexc : Exchange
         });
     }
 
-    public async virtual Task<object> fetchTransfer(object id, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name mexc#fetchTransfer
+        * @description fetches a transfer
+        * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
+        * @param {string} id transfer id
+        * @param {string} [code] not used by mexc fetchTransfer
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTransfer", null, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
@@ -4832,7 +5062,7 @@ public partial class mexc : Exchange
             //         }
             //     }
             //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseTransfer(data);
         } else if (isTrue(isEqual(marketType, "swap")))
         {
@@ -4841,12 +5071,14 @@ public partial class mexc : Exchange
         return null;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
         * @name mexc#fetchTransfers
         * @description fetch a history of internal transfers made on an account
+        * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
         * @param {string} code unified currency code of the currency transferred
         * @param {int} [since] the earliest time in ms to fetch transfers for
         * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -5068,7 +5300,7 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#withdraw
         * @description make a withdrawal
-        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
         * @param {string} address the address to withdraw to
@@ -5077,15 +5309,16 @@ public partial class mexc : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeString2(parameters, "network", "chain"); // this line allows the user to specify either ERC20 or ETH
+        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
+        object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
+        network = this.networkCodeToId(network, getValue(currency, "code"));
         this.checkAddress(address);
-        await this.loadMarkets();
-        object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
@@ -5097,10 +5330,10 @@ public partial class mexc : Exchange
         }
         if (isTrue(!isEqual(network, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = network;
-            parameters = this.omit(parameters, new List<object>() {"network", "chain"});
+            ((IDictionary<string,object>)request)["netWork"] = network;
+            parameters = this.omit(parameters, new List<object>() {"network", "netWork"});
         }
-        object response = await this.spotPrivatePostCapitalWithdrawApply(this.extend(request, parameters));
+        object response = await this.spotPrivatePostCapitalWithdraw(this.extend(request, parameters));
         //
         //     {
         //       "id":"7213fea8e94b4a5593d507237e5a555b"
@@ -5111,6 +5344,16 @@ public partial class mexc : Exchange
 
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name mexc#setPositionMode
+        * @description set hedged to true or false for a market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+        * @param {bool} hedged set to true to use dualSidePosition
+        * @param {string} symbol not used by mexc setPositionMode ()
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} response from the exchange
+        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "positionMode", ((bool) isTrue(hedged)) ? 1 : 2 },
@@ -5127,6 +5370,15 @@ public partial class mexc : Exchange
 
     public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name mexc#fetchPositionMode
+        * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+        * @param {string} symbol not used by mexc fetchPositionMode
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an object detailing whether the market is in hedged or one-way mode
+        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.contractPrivateGetPositionPositionMode(parameters);
         //
@@ -5346,6 +5598,86 @@ public partial class mexc : Exchange
         return this.assignDefaultDepositWithdrawFees(result);
     }
 
+    public async override Task<object> fetchLeverage(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#fetchLeverage
+        * @description fetch the set leverage for a market
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.contractPrivateGetPositionLeverage(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseLeverage(data, market);
+    }
+
+    public override object parseLeverage(object leverage, object market = null)
+    {
+        object marginMode = null;
+        object longLeverage = null;
+        object shortLeverage = null;
+        for (object i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))
+        {
+            object entry = getValue(leverage, i);
+            object openType = this.safeInteger(entry, "openType");
+            object positionType = this.safeInteger(entry, "positionType");
+            if (isTrue(isEqual(positionType, 1)))
+            {
+                longLeverage = this.safeInteger(entry, "leverage");
+            } else if (isTrue(isEqual(positionType, 2)))
+            {
+                shortLeverage = this.safeInteger(entry, "leverage");
+            }
+            marginMode = ((bool) isTrue((isEqual(openType, 1)))) ? "isolated" : "cross";
+        }
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", getValue(market, "symbol") },
+            { "marginMode", marginMode },
+            { "longLeverage", longLeverage },
+            { "shortLeverage", shortLeverage },
+        };
+    }
+
     public override object handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
     {
         /**
@@ -5368,6 +5700,142 @@ public partial class mexc : Exchange
             marginMode = "isolated";
         }
         return new List<object>() {marginMode, parameters};
+    }
+
+    public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#fetchPositionsHistory
+        * @description fetches historical positions
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+        * @param {string[]} [symbols] unified contract symbols
+        * @param {int} [since] not used by mexc fetchPositionsHistory
+        * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+        * @param {object} params extra parameters specific to the exchange api endpoint
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {int} type position type，1: long, 2: short
+        * @param {int} page_num current page number, default is 1
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["page_size"] = limit;
+        }
+        object response = await this.contractPrivateGetPositionListHistoryPositions(this.extend(request, parameters));
+        //
+        //    {
+        //        success: true,
+        //        code: '0',
+        //        data: [
+        //            {
+        //                positionId: '390281084',
+        //                symbol: 'RVN_USDT',
+        //                positionType: '1',
+        //                openType: '2',
+        //                state: '3',
+        //                holdVol: '0',
+        //                frozenVol: '0',
+        //                closeVol: '1141',
+        //                holdAvgPrice: '0.03491',
+        //                holdAvgPriceFullyScale: '0.03491',
+        //                openAvgPrice: '0.03491',
+        //                openAvgPriceFullyScale: '0.03491',
+        //                closeAvgPrice: '0.03494',
+        //                liquidatePrice: '0.03433',
+        //                oim: '0',
+        //                im: '0',
+        //                holdFee: '0',
+        //                realised: '0.1829',
+        //                leverage: '50',
+        //                createTime: '1711512408000',
+        //                updateTime: '1711512553000',
+        //                autoAddIm: false,
+        //                version: '4',
+        //                profitRatio: '0.0227',
+        //                newOpenAvgPrice: '0.03491',
+        //                newCloseAvgPrice: '0.03494',
+        //                closeProfitLoss: '0.3423',
+        //                fee: '0.1593977',
+        //                positionShowStatus: 'CLOSED'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        object data = this.safeList(response, "data");
+        object positions = this.parsePositions(data, symbols, parameters);
+        return this.filterBySinceLimit(positions, since, limit);
+    }
+
+    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#setMarginMode
+        * @description set margin mode to 'cross' or 'isolated'
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+        * @param {string} marginMode 'cross' or 'isolated'
+        * @param {string} [symbol] required when there is no position, else provide params["positionId"]
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.positionId] required when a position is set
+        * @param {string} [params.direction] "long" or "short" required when there is no position
+        * @returns {object} response from the exchange
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (isTrue(getValue(market, "spot")))
+        {
+            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
+        }
+        marginMode = ((string)marginMode).ToLower();
+        if (isTrue(isTrue(!isEqual(marginMode, "isolated")) && isTrue(!isEqual(marginMode, "cross"))))
+        {
+            throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+        }
+        object leverage = this.safeInteger(parameters, "leverage");
+        if (isTrue(isEqual(leverage, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a leverage parameter")) ;
+        }
+        object direction = this.safeStringLower2(parameters, "direction", "positionId");
+        object request = new Dictionary<string, object>() {
+            { "leverage", leverage },
+            { "openType", ((bool) isTrue((isEqual(marginMode, "isolated")))) ? 1 : 2 },
+        };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(direction, null)))
+        {
+            ((IDictionary<string,object>)request)["positionType"] = ((bool) isTrue((isEqual(direction, "short")))) ? 2 : 1;
+        }
+        parameters = this.omit(parameters, "direction");
+        object response = await this.contractPrivatePostPositionChangeLeverage(this.extend(request, parameters));
+        //
+        // { success: true, code: '0' }
+        //
+        return this.parseLeverage(response, market);
+    }
+
+    public override object nonce()
+    {
+        return subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -5393,7 +5861,7 @@ public partial class mexc : Exchange
             object paramsEncoded = "";
             if (isTrue(isEqual(access, "private")))
             {
-                ((IDictionary<string,object>)parameters)["timestamp"] = this.milliseconds();
+                ((IDictionary<string,object>)parameters)["timestamp"] = this.nonce();
                 ((IDictionary<string,object>)parameters)["recvWindow"] = this.safeInteger(this.options, "recvWindow", 5000);
             }
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
@@ -5411,7 +5879,7 @@ public partial class mexc : Exchange
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
             }
-            if (isTrue(isEqual(method, "POST")))
+            if (isTrue(isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(method, "DELETE")))))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
@@ -5428,7 +5896,7 @@ public partial class mexc : Exchange
             } else
             {
                 this.checkRequiredCredentials();
-                object timestamp = ((object)this.milliseconds()).ToString();
+                object timestamp = ((object)this.nonce()).ToString();
                 object auth = "";
                 headers = new Dictionary<string, object>() {
                     { "ApiKey", this.apiKey },

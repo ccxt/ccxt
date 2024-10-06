@@ -21,10 +21,15 @@ public partial class Exchange
         var res = await this.fetchMarketsWs(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<Dictionary<string, object>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> CreateSafeDictionary()
+    {
+        var res = this.createSafeDictionary();
+        return ((Dictionary<string, object>)res);
+    }
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -39,6 +44,34 @@ public partial class Exchange
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTradesWs(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    public async Task<List<Liquidation>> WatchLiquidations(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    public async Task<List<Liquidation>> WatchLiquidationsForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    public async Task<List<Liquidation>> WatchMyLiquidations(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    public async Task<List<Liquidation>> WatchMyLiquidationsForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
     }
     public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -68,12 +101,12 @@ public partial class Exchange
         var res = await this.watchOrdersForSymbols(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<Dictionary<string, Dictionary<string, OHLCV[]>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return ((Dictionary<string, Dictionary<string, OHLCV[]>>)res);
+        return Helper.ConvertToDictionaryOHLCVList(res);
     }
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -81,7 +114,7 @@ public partial class Exchange
         var res = await this.watchOrderBookForSymbols(symbols, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
-    public async Task<Dictionary<string, object>> FetchDepositAddresses(List<string> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddresses(codes, parameters);
         return ((Dictionary<string, object>)res);
@@ -92,10 +125,15 @@ public partial class Exchange
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
-    public async Task<MarginMode> FetchMarginMode(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginMode(symbol, parameters);
         return new MarginMode(res);
+    }
+    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarginModes(symbols, parameters);
+        return new MarginModes(res);
     }
     public async Task<OrderBook> FetchRestOrderBookSafe(object symbol, object limit = null, Dictionary<string, object> parameters = null)
     {
@@ -113,29 +151,49 @@ public partial class Exchange
         var res = await this.fetchTime(parameters);
         return (Int64)res;
     }
-    public async Task<Dictionary<string, object>> FetchTradingLimits(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchTradingLimits(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingLimits(symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRates> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRates(parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRates(res);
     }
-    public async Task<Dictionary<string, object>> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
+    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRates(parameters);
-        return ((Dictionary<string, object>)res);
+        return new IsolatedBorrowRates(res);
     }
-    public async Task<Dictionary<string, LeverageTier>> FetchLeverageTiers(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, LeverageTier>)res);
+        return new LeverageTiers(res);
     }
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    public async Task<FundingRates> FetchFundingIntervals(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingIntervals(symbols, parameters);
+        return new FundingRates(res);
+    }
+    public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    public async Task<FundingRates> WatchFundingRates(List<string> symbols, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    public async Task<Dictionary<string, object>> WatchFundingRatesForSymbols(List<string> symbols, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRatesForSymbols(symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
@@ -158,15 +216,32 @@ public partial class Exchange
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Int64> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
-        return (Int64)res;
+        return new Leverage(res);
+    }
+    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverages(symbols, parameters);
+        return new Leverages(res);
     }
     public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    public async Task<Dictionary<string, object>> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMargin(symbol, amount, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public async Task<List<MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, double? since2 = 0, double? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMarginAdjustmentHistory(symbol, type, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new MarginModification(item)).ToList<MarginModification>();
     }
     public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
     {
@@ -267,35 +342,36 @@ public partial class Exchange
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var amount = amount2 == 0 ? null : (object)amount2;
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrderWs(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
-    }
-    public async Task<Dictionary<string, object>> FetchPermissions(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPermissions(parameters);
-        return ((Dictionary<string, object>)res);
     }
     public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
     }
+    public async Task<List<Position>> FetchPositionWs(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionWs(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
     public async Task<Position> WatchPosition(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchPosition(symbol, parameters);
         return new Position(res);
     }
-    public async Task<List<Position>> WatchPositions(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchPositions(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
-    public async Task<List<Position>> WatchPositionForSymbols(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> WatchPositionForSymbols(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -307,20 +383,30 @@ public partial class Exchange
         var res = await this.fetchPositionsForSymbol(symbol, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
-    public async Task<List<Position>> FetchPositions(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> FetchPositionsForSymbolWs(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsForSymbolWs(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
-    public async Task<List<Position>> FetchPositionsRisk(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> FetchPositionsWs(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsWs(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    public async Task<List<Position>> FetchPositionsRisk(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionsRisk(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
-    public async Task<Dictionary<string, Ticker>> FetchBidsAsks(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -381,27 +467,17 @@ public partial class Exchange
         var res = await this.fetchStatus(parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchFundingFee(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingFee(code, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchFundingFees(List<string> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
-    }
     public async Task<Dictionary<string, object>> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFee(code, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchTransactionFees(List<string> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchTransactionFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, DepositWithdrawFeeNetwork>> FetchDepositWithdrawFees(List<string> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, DepositWithdrawFeeNetwork>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
         return ((Dictionary<string, DepositWithdrawFeeNetwork>)res);
@@ -411,19 +487,29 @@ public partial class Exchange
         var res = await this.fetchDepositWithdrawFee(code, parameters);
         return new DepositWithdrawFeeNetwork(res);
     }
-    public async Task<Dictionary<string, object>> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
+    public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new CrossBorrowRate(res);
     }
-    public async Task<Dictionary<string, object>> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new IsolatedBorrowRate(res);
     }
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrice(symbol, parameters);
+        return new Ticker(res);
+    }
+    public async Task<Ticker> FetchTickerWs(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickerWs(symbol, parameters);
         return new Ticker(res);
     }
     public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
@@ -431,18 +517,33 @@ public partial class Exchange
         var res = await this.watchTicker(symbol, parameters);
         return new Ticker(res);
     }
-    public async Task<Tickers> FetchTickers(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
-    public async Task<Dictionary<string, OrderBook>> FetchOrderBooks(List<string> symbols = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrices(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Tickers> FetchTickersWs(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickersWs(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Dictionary<string, OrderBook>> FetchOrderBooks(List<String> symbols = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBooks(symbols, limit, parameters);
         return ((Dictionary<string, OrderBook>)res);
     }
-    public async Task<Tickers> WatchTickers(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
         return new Tickers(res);
@@ -473,14 +574,28 @@ public partial class Exchange
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, double amount, double? price2 = 0, object trailingAmount = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateTrailingAmountOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, object trailingAmount = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createTrailingAmountOrderWs(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price2 = 0, object trailingPercent = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateTrailingPercentOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, object trailingPercent = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createTrailingPercentOrderWs(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters);
         return new Order(res);
     }
     public async Task<Order> CreateMarketOrderWithCost(string symbol, string side, double cost, Dictionary<string, object> parameters = null)
@@ -498,9 +613,23 @@ public partial class Exchange
         var res = await this.createMarketSellOrderWithCost(symbol, cost, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateTriggerOrder(string symbol, string type, string side, object amount, object price = null, object triggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateMarketOrderWithCostWs(string symbol, string side, double cost, Dictionary<string, object> parameters = null)
     {
+        var res = await this.createMarketOrderWithCostWs(symbol, side, cost, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateTriggerOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? triggerPrice2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var triggerPrice = triggerPrice2 == 0 ? null : (object)triggerPrice2;
         var res = await this.createTriggerOrder(symbol, type, side, amount, price, triggerPrice, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateTriggerOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, double? triggerPrice2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var triggerPrice = triggerPrice2 == 0 ? null : (object)triggerPrice2;
+        var res = await this.createTriggerOrderWs(symbol, type, side, amount, price, triggerPrice, parameters);
         return new Order(res);
     }
     public async Task<Order> CreateStopLossOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? stopLossPrice2 = 0, Dictionary<string, object> parameters = null)
@@ -510,11 +639,25 @@ public partial class Exchange
         var res = await this.createStopLossOrder(symbol, type, side, amount, price, stopLossPrice, parameters);
         return new Order(res);
     }
+    public async Task<Order> CreateStopLossOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, double? stopLossPrice2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var stopLossPrice = stopLossPrice2 == 0 ? null : (object)stopLossPrice2;
+        var res = await this.createStopLossOrderWs(symbol, type, side, amount, price, stopLossPrice, parameters);
+        return new Order(res);
+    }
     public async Task<Order> CreateTakeProfitOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? takeProfitPrice2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var takeProfitPrice = takeProfitPrice2 == 0 ? null : (object)takeProfitPrice2;
         var res = await this.createTakeProfitOrder(symbol, type, side, amount, price, takeProfitPrice, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateTakeProfitOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, double? takeProfitPrice2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var takeProfitPrice = takeProfitPrice2 == 0 ? null : (object)takeProfitPrice2;
+        var res = await this.createTakeProfitOrderWs(symbol, type, side, amount, price, takeProfitPrice, parameters);
         return new Order(res);
     }
     public async Task<Order> CreateOrderWithTakeProfitAndStopLoss(string symbol, string type, string side, double amount, double? price2 = 0, double? takeProfit2 = 0, double? stopLoss2 = 0, Dictionary<string, object> parameters = null)
@@ -523,6 +666,14 @@ public partial class Exchange
         var takeProfit = takeProfit2 == 0 ? null : (object)takeProfit2;
         var stopLoss = stopLoss2 == 0 ? null : (object)stopLoss2;
         var res = await this.createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateOrderWithTakeProfitAndStopLossWs(string symbol, string type, string side, double amount, double? price2 = 0, double? takeProfit2 = 0, double? stopLoss2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var takeProfit = takeProfit2 == 0 ? null : (object)takeProfit2;
+        var stopLoss = stopLoss2 == 0 ? null : (object)stopLoss2;
+        var res = await this.createOrderWithTakeProfitAndStopLossWs(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
         return new Order(res);
     }
     public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
@@ -554,6 +705,16 @@ public partial class Exchange
     public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public async Task<Dictionary<string, object>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrdersForSymbols(orders, parameters);
         return ((Dictionary<string, object>)res);
     }
     public async Task<Dictionary<string, object>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
@@ -669,6 +830,22 @@ public partial class Exchange
         var res = await this.fetchGreeks(symbol, parameters);
         return new Greeks(res);
     }
+    public async Task<OptionChain> FetchOptionChain(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOptionChain(code, parameters);
+        return new OptionChain(res);
+    }
+    public async Task<Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOption(symbol, parameters);
+        return new Option(res);
+    }
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
     public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -739,10 +916,21 @@ public partial class Exchange
         var res = await this.createLimitOrder(symbol, side, amount, price, parameters);
         return new Order(res);
     }
+    public async Task<Order> CreateLimitOrderWs(string symbol, string side, double amount, double price, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createLimitOrderWs(symbol, side, amount, price, parameters);
+        return new Order(res);
+    }
     public async Task<Order> CreateMarketOrder(string symbol, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createMarketOrder(symbol, side, amount, price, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateMarketOrderWs(string symbol, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createMarketOrderWs(symbol, side, amount, price, parameters);
         return new Order(res);
     }
     public async Task<Order> CreateLimitBuyOrder(string symbol, double amount, double price, Dictionary<string, object> parameters = null)
@@ -750,9 +938,19 @@ public partial class Exchange
         var res = await this.createLimitBuyOrder(symbol, amount, price, parameters);
         return new Order(res);
     }
+    public async Task<Order> CreateLimitBuyOrderWs(string symbol, double amount, double price, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createLimitBuyOrderWs(symbol, amount, price, parameters);
+        return new Order(res);
+    }
     public async Task<Order> CreateLimitSellOrder(string symbol, double amount, double price, Dictionary<string, object> parameters = null)
     {
         var res = await this.createLimitSellOrder(symbol, amount, price, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateLimitSellOrderWs(string symbol, double amount, double price, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createLimitSellOrderWs(symbol, amount, price, parameters);
         return new Order(res);
     }
     public async Task<Order> CreateMarketBuyOrder(string symbol, double amount, Dictionary<string, object> parameters = null)
@@ -760,15 +958,25 @@ public partial class Exchange
         var res = await this.createMarketBuyOrder(symbol, amount, parameters);
         return new Order(res);
     }
+    public async Task<Order> CreateMarketBuyOrderWs(string symbol, double amount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketBuyOrderWs(symbol, amount, parameters);
+        return new Order(res);
+    }
     public async Task<Order> CreateMarketSellOrder(string symbol, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketSellOrder(symbol, amount, parameters);
         return new Order(res);
     }
-    public async Task<Dictionary<string, object>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateMarketSellOrderWs(string symbol, double amount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketSellOrderWs(symbol, amount, parameters);
+        return new Order(res);
+    }
+    public async Task<List<LeverageTier>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketLeverageTiers(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
     }
     public async Task<Order> CreatePostOnlyOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -776,10 +984,22 @@ public partial class Exchange
         var res = await this.createPostOnlyOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    public async Task<Order> CreatePostOnlyOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createPostOnlyOrderWs(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
     public async Task<Order> CreateReduceOnlyOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createReduceOnlyOrder(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateReduceOnlyOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createReduceOnlyOrderWs(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
     public async Task<Order> CreateStopOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? stopPrice2 = 0, Dictionary<string, object> parameters = null)
@@ -789,9 +1009,21 @@ public partial class Exchange
         var res = await this.createStopOrder(symbol, type, side, amount, price, stopPrice, parameters);
         return new Order(res);
     }
+    public async Task<Order> CreateStopOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, double? stopPrice2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var stopPrice = stopPrice2 == 0 ? null : (object)stopPrice2;
+        var res = await this.createStopOrderWs(symbol, type, side, amount, price, stopPrice, parameters);
+        return new Order(res);
+    }
     public async Task<Order> CreateStopLimitOrder(string symbol, string side, double amount, double price, double stopPrice, Dictionary<string, object> parameters = null)
     {
         var res = await this.createStopLimitOrder(symbol, side, amount, price, stopPrice, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> CreateStopLimitOrderWs(string symbol, string side, double amount, double price, double stopPrice, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createStopLimitOrderWs(symbol, side, amount, price, stopPrice, parameters);
         return new Order(res);
     }
     public async Task<Order> CreateStopMarketOrder(string symbol, string side, double amount, double stopPrice, Dictionary<string, object> parameters = null)
@@ -799,29 +1031,44 @@ public partial class Exchange
         var res = await this.createStopMarketOrder(symbol, side, amount, stopPrice, parameters);
         return new Order(res);
     }
-    public async Task<Dictionary<string, object>> FetchLastPrices(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateStopMarketOrderWs(string symbol, string side, double amount, double stopPrice, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createStopMarketOrderWs(symbol, side, amount, stopPrice, parameters);
+        return new Order(res);
+    }
+    public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LastPrices(res);
     }
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
-    public async Task<Dictionary<string, object>> FetchTradingFeesWs(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFeesWs(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFeesWs(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
+    }
+    public async Task<Currencies> FetchConvertCurrencies(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertCurrencies(parameters);
+        return new Currencies(res);
     }
     public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
         return new FundingRate(res);
     }
     public async Task<List<OHLCV>> FetchMarkOHLCV(object symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
@@ -882,6 +1129,32 @@ public partial class Exchange
         var res = await this.fetchPaginatedCallIncremental(method, symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<List<Position>> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    public async Task<TransferEntry> FetchTransfer(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTransfer(id, code, parameters);
+        return new TransferEntry(res);
+    }
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTransfers(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
+    }
 }
 // class wrappers
 public class  Ace: ace { public Ace(object args = null) : base(args) { } }
@@ -896,13 +1169,11 @@ public class  Binanceusdm: binanceusdm { public Binanceusdm(object args = null) 
 public class  Bingx: bingx { public Bingx(object args = null) : base(args) { } }
 public class  Bit2c: bit2c { public Bit2c(object args = null) : base(args) { } }
 public class  Bitbank: bitbank { public Bitbank(object args = null) : base(args) { } }
-public class  Bitbay: bitbay { public Bitbay(object args = null) : base(args) { } }
 public class  Bitbns: bitbns { public Bitbns(object args = null) : base(args) { } }
 public class  Bitcoincom: bitcoincom { public Bitcoincom(object args = null) : base(args) { } }
 public class  Bitfinex: bitfinex { public Bitfinex(object args = null) : base(args) { } }
 public class  Bitfinex2: bitfinex2 { public Bitfinex2(object args = null) : base(args) { } }
 public class  Bitflyer: bitflyer { public Bitflyer(object args = null) : base(args) { } }
-public class  Bitforex: bitforex { public Bitforex(object args = null) : base(args) { } }
 public class  Bitget: bitget { public Bitget(object args = null) : base(args) { } }
 public class  Bithumb: bithumb { public Bithumb(object args = null) : base(args) { } }
 public class  Bitmart: bitmart { public Bitmart(object args = null) : base(args) { } }
@@ -924,7 +1195,9 @@ public class  Btcturk: btcturk { public Btcturk(object args = null) : base(args)
 public class  Bybit: bybit { public Bybit(object args = null) : base(args) { } }
 public class  Cex: cex { public Cex(object args = null) : base(args) { } }
 public class  Coinbase: coinbase { public Coinbase(object args = null) : base(args) { } }
-public class  Coinbasepro: coinbasepro { public Coinbasepro(object args = null) : base(args) { } }
+public class  Coinbaseadvanced: coinbaseadvanced { public Coinbaseadvanced(object args = null) : base(args) { } }
+public class  Coinbaseexchange: coinbaseexchange { public Coinbaseexchange(object args = null) : base(args) { } }
+public class  Coinbaseinternational: coinbaseinternational { public Coinbaseinternational(object args = null) : base(args) { } }
 public class  Coincheck: coincheck { public Coincheck(object args = null) : base(args) { } }
 public class  Coinex: coinex { public Coinex(object args = null) : base(args) { } }
 public class  Coinlist: coinlist { public Coinlist(object args = null) : base(args) { } }
@@ -943,12 +1216,13 @@ public class  Fmfwio: fmfwio { public Fmfwio(object args = null) : base(args) { 
 public class  Gate: gate { public Gate(object args = null) : base(args) { } }
 public class  Gateio: gateio { public Gateio(object args = null) : base(args) { } }
 public class  Gemini: gemini { public Gemini(object args = null) : base(args) { } }
+public class  Hashkey: hashkey { public Hashkey(object args = null) : base(args) { } }
 public class  Hitbtc: hitbtc { public Hitbtc(object args = null) : base(args) { } }
-public class  Hitbtc3: hitbtc3 { public Hitbtc3(object args = null) : base(args) { } }
 public class  Hollaex: hollaex { public Hollaex(object args = null) : base(args) { } }
 public class  Htx: htx { public Htx(object args = null) : base(args) { } }
 public class  Huobi: huobi { public Huobi(object args = null) : base(args) { } }
 public class  Huobijp: huobijp { public Huobijp(object args = null) : base(args) { } }
+public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) : base(args) { } }
 public class  Idex: idex { public Idex(object args = null) : base(args) { } }
 public class  Independentreserve: independentreserve { public Independentreserve(object args = null) : base(args) { } }
 public class  Indodax: indodax { public Indodax(object args = null) : base(args) { } }
@@ -969,7 +1243,9 @@ public class  Oceanex: oceanex { public Oceanex(object args = null) : base(args)
 public class  Okcoin: okcoin { public Okcoin(object args = null) : base(args) { } }
 public class  Okx: okx { public Okx(object args = null) : base(args) { } }
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }
+public class  Oxfun: oxfun { public Oxfun(object args = null) : base(args) { } }
 public class  P2b: p2b { public P2b(object args = null) : base(args) { } }
+public class  Paradex: paradex { public Paradex(object args = null) : base(args) { } }
 public class  Paymium: paymium { public Paymium(object args = null) : base(args) { } }
 public class  Phemex: phemex { public Phemex(object args = null) : base(args) { } }
 public class  Poloniex: poloniex { public Poloniex(object args = null) : base(args) { } }
@@ -977,11 +1253,15 @@ public class  Poloniexfutures: poloniexfutures { public Poloniexfutures(object a
 public class  Probit: probit { public Probit(object args = null) : base(args) { } }
 public class  Timex: timex { public Timex(object args = null) : base(args) { } }
 public class  Tokocrypto: tokocrypto { public Tokocrypto(object args = null) : base(args) { } }
+public class  Tradeogre: tradeogre { public Tradeogre(object args = null) : base(args) { } }
 public class  Upbit: upbit { public Upbit(object args = null) : base(args) { } }
+public class  Vertex: vertex { public Vertex(object args = null) : base(args) { } }
 public class  Wavesexchange: wavesexchange { public Wavesexchange(object args = null) : base(args) { } }
 public class  Wazirx: wazirx { public Wazirx(object args = null) : base(args) { } }
 public class  Whitebit: whitebit { public Whitebit(object args = null) : base(args) { } }
 public class  Woo: woo { public Woo(object args = null) : base(args) { } }
+public class  Woofipro: woofipro { public Woofipro(object args = null) : base(args) { } }
+public class  Xt: xt { public Xt(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
 public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }

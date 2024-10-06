@@ -1,0 +1,40 @@
+{
+    "BTC": {
+        "info": false,
+        "id": "btc",
+        "numericId": false,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": false,
+        "name": false,
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": false,
+        "fees": {},
+        "networks": {},
+        "limits": {
+          "deposit": { "min": false, "max": false },
+          "withdraw": { "min": false, "max": false }
+        }
+    },
+    "IDR": {
+        "info": false,
+        "id": "idr",
+        "numericId": false,
+        "code": "IDR",
+        "precision": 1e-8,
+        "type": false,
+        "name": false,
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": false,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": { "min": false, "max": false },
+            "withdraw": { "min": false, "max": false }
+        }
+    }
+}

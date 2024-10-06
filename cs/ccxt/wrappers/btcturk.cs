@@ -10,6 +10,7 @@ public partial class btcturk
     /// retrieves data on all markets for btcturk
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/public-endpoints/exchange-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class btcturk
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/private-endpoints/account-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +50,7 @@ public partial class btcturk
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/public-endpoints/orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -74,6 +77,7 @@ public partial class btcturk
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/public-endpoints/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -93,6 +97,7 @@ public partial class btcturk
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/public-endpoints/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -112,6 +117,7 @@ public partial class btcturk
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/public-endpoints/trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -185,11 +191,12 @@ public partial class btcturk
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/private-endpoints/submit-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -211,6 +218,7 @@ public partial class btcturk
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/private-endpoints/cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -221,15 +229,16 @@ public partial class btcturk
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/private-endpoints/open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -263,6 +272,7 @@ public partial class btcturk
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/private-endpoints/all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -296,6 +306,7 @@ public partial class btcturk
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.btcturk.com/private-endpoints/user-transactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

@@ -92,7 +92,11 @@ class bitteam extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
@@ -191,7 +195,7 @@ class bitteam extends Exchange {
                     'maker' => $this->parse_number('0.002'),
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
                 'networksById' => array(
@@ -244,7 +248,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitteam
@@ -345,7 +349,7 @@ class bitteam extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'name');
         $numericId = $this->safe_integer($market, 'id');
         $parts = explode('_', $id);
@@ -354,8 +358,6 @@ class bitteam extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $active = $this->safe_value($market, 'active');
-        $amountPrecision = $this->safe_integer($market, 'baseStep');
-        $pricePrecision = $this->safe_integer($market, 'quoteStep');
         $timeStart = $this->safe_string($market, 'timeStart');
         $created = $this->parse8601($timeStart);
         $minCost = null;
@@ -391,8 +393,8 @@ class bitteam extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseStep'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteStep'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -417,7 +419,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -548,7 +550,7 @@ class bitteam extends Exchange {
                 $numericId = $this->safe_integer($currency, 'id');
                 $code = $this->safe_currency_code($id);
                 $active = $this->safe_bool($currency, 'active', false);
-                $precision = $this->safe_integer($currency, 'precision');
+                $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
                 $txLimits = $this->safe_value($currency, 'txLimits', array());
                 $minWithdraw = $this->safe_string($txLimits, 'minWithdraw');
                 $maxWithdraw = $this->safe_string($txLimits, 'maxWithdraw');
@@ -569,7 +571,7 @@ class bitteam extends Exchange {
                 $withdraw = $this->safe_value($statuses, 'withdrawStatus');
                 $networkIds = is_array($feesByNetworkId) ? array_keys($feesByNetworkId) : array();
                 $networks = array();
-                $networkPrecision = $this->safe_integer($currency, 'decimals');
+                $networkPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
                 for ($j = 0; $j < count($networkIds); $j++) {
                     $networkId = $networkIds[$j];
                     $networkCode = $this->network_id_to_code($networkId, $code);
@@ -649,7 +651,7 @@ class bitteam extends Exchange {
                 'pairName' => $market['id'],
                 'resolution' => $resolution,
             );
-            $response = Async\await($this->historyGetApiTwHistoryPairNameResolution (array_merge($request, $params)));
+            $response = Async\await($this->historyGetApiTwHistoryPairNameResolution ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -678,7 +680,7 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $data = $this->safe_value($result, 'data', array());
+            $data = $this->safe_list($result, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -719,7 +721,7 @@ class bitteam extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeApiCmcOrderbookPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeApiCmcOrderbookPair ($this->extend($request, $params)));
             //
             //     {
             //         "timestamp" => 1701166703285,
@@ -778,7 +780,7 @@ class bitteam extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTradeApiCcxtOrdersOfUser (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTradeApiCcxtOrdersOfUser ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -862,7 +864,7 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $orders = $this->safe_value($result, 'orders', array());
+            $orders = $this->safe_list($result, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -885,7 +887,7 @@ class bitteam extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = Async\await($this->privateGetTradeApiCcxtOrderId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTradeApiCcxtOrderId ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -923,7 +925,7 @@ class bitteam extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result');
+            $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -943,7 +945,7 @@ class bitteam extends Exchange {
             $request = array(
                 'type' => 'active',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -962,7 +964,7 @@ class bitteam extends Exchange {
             $request = array(
                 'type' => 'closed',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -981,7 +983,7 @@ class bitteam extends Exchange {
             $request = array(
                 'type' => 'cancelled',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -994,7 +996,7 @@ class bitteam extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bitteam api endpoint
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
@@ -1013,7 +1015,7 @@ class bitteam extends Exchange {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
             }
-            $response = Async\await($this->privatePostTradeApiCcxtOrdercreate (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeApiCcxtOrdercreate ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1037,7 +1039,7 @@ class bitteam extends Exchange {
             //         }
             //     }
             //
-            $order = $this->safe_value($response, 'result', array());
+            $order = $this->safe_dict($response, 'result', array());
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -1056,7 +1058,7 @@ class bitteam extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privatePostTradeApiCcxtCancelorder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeApiCcxtCancelorder ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1065,7 +1067,7 @@ class bitteam extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result);
         }) ();
     }
@@ -1088,7 +1090,7 @@ class bitteam extends Exchange {
             } else {
                 $request['pairId'] = '0'; // '0' for all markets
             }
-            $response = Async\await($this->privatePostTradeApiCcxtCancelAllOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeApiCcxtCancelAllOrder ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1103,7 +1105,7 @@ class bitteam extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrders
         //     array(
@@ -1247,7 +1249,7 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'accepted' => 'open',
             'executed' => 'closed',
@@ -1348,7 +1350,7 @@ class bitteam extends Exchange {
             $request = array(
                 'name' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeApiPairName (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeApiPairName ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1533,12 +1535,12 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $pair = $this->safe_value($result, 'pair', array());
+            $pair = $this->safe_dict($result, 'pair', array());
             return $this->parse_ticker($pair, $market);
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //     {
@@ -1682,7 +1684,7 @@ class bitteam extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradeApiCmcTradesPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTradeApiCmcTradesPair ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1729,7 +1731,7 @@ class bitteam extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTradeApiCcxtTradesOfUser (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTradeApiCcxtTradesOfUser ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -1864,12 +1866,12 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $trades = $this->safe_value($result, 'trades', array());
+            $trades = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     array(
@@ -1957,7 +1959,6 @@ class bitteam extends Exchange {
         $fee = array(
             'currency' => $this->safe_currency_code($feeCurrencyId),
             'cost' => $feeCost,
-            'rate' => null,
         );
         $intTs = $this->parse_to_int($timestamp);
         return $this->safe_trade(array(
@@ -2079,7 +2080,7 @@ class bitteam extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetTradeApiTransactionsOfUser (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTradeApiTransactionsOfUser ($this->extend($request, $params)));
             //
             //     {
             //         "ok" => true,
@@ -2169,12 +2170,12 @@ class bitteam extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            $transactions = $this->safe_value($result, 'transactions', array());
+            $transactions = $this->safe_list($result, 'transactions', array());
             return $this->parse_transactions($transactions, $currency, $since, $limit);
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "id" => 1329229,
@@ -2273,7 +2274,7 @@ class bitteam extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'approving' => 'pending',
             'success' => 'ok',
@@ -2306,7 +2307,7 @@ class bitteam extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

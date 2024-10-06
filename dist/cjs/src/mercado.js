@@ -4,6 +4,7 @@ var mercado$1 = require('./abstract/mercado.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
+var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -40,6 +41,9 @@ class mercado extends mercado$1 {
                 'fetchBorrowRateHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -60,8 +64,11 @@ class mercado extends mercado$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -433,7 +440,7 @@ class mercado extends mercado$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -454,7 +461,10 @@ class mercado extends mercado$1 {
                 if (price === undefined) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
                 }
-                request['cost'] = this.priceToPrecision(market['symbol'], amount * price);
+                const amountString = this.numberToString(amount);
+                const priceString = this.numberToString(price);
+                const cost = this.parseToNumeric(Precise["default"].stringMul(amountString, priceString));
+                request['cost'] = this.priceToPrecision(market['symbol'], cost);
             }
             else {
                 request['quantity'] = this.amountToPrecision(market['symbol'], amount);
@@ -511,7 +521,7 @@ class mercado extends mercado$1 {
         //     }
         //
         const responseData = this.safeValue(response, 'response_data', {});
-        const order = this.safeValue(responseData, 'order', {});
+        const order = this.safeDict(responseData, 'order', {});
         return this.parseOrder(order, market);
     }
     parseOrderStatus(status) {
@@ -614,7 +624,7 @@ class mercado extends mercado$1 {
         };
         const response = await this.privatePostGetOrder(this.extend(request, params));
         const responseData = this.safeValue(response, 'response_data', {});
-        const order = this.safeValue(responseData, 'order');
+        const order = this.safeDict(responseData, 'order');
         return this.parseOrder(order, market);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -681,7 +691,7 @@ class mercado extends mercado$1 {
         //     }
         //
         const responseData = this.safeValue(response, 'response_data', {});
-        const withdrawal = this.safeValue(responseData, 'withdrawal');
+        const withdrawal = this.safeDict(responseData, 'withdrawal');
         return this.parseTransaction(withdrawal, currency);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -786,7 +796,7 @@ class mercado extends mercado$1 {
         };
         const response = await this.privatePostListOrders(this.extend(request, params));
         const responseData = this.safeValue(response, 'response_data', {});
-        const orders = this.safeValue(responseData, 'orders', []);
+        const orders = this.safeList(responseData, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -811,7 +821,7 @@ class mercado extends mercado$1 {
         };
         const response = await this.privatePostListOrders(this.extend(request, params));
         const responseData = this.safeValue(response, 'response_data', {});
-        const orders = this.safeValue(responseData, 'orders', []);
+        const orders = this.safeList(responseData, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

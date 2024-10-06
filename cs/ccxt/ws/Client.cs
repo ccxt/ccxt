@@ -15,12 +15,12 @@ public partial class Exchange
     {
         public string url; // Replace with your WebSocket server URL
         public ClientWebSocket webSocket = new ClientWebSocket();
-        // public ClientWebSocket webSocket;
 
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
-
+        public IDictionary<string, ConcurrentQueue<object>> messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
+        public bool useMessageQueue = false;
         public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
@@ -46,7 +46,7 @@ public partial class Exchange
 
         public object lastPong = null;
 
-        public object keepAlive = null;
+        public object keepAlive = 30000;
 
         public int maxPingPongMisses = 3;
 
@@ -54,7 +54,7 @@ public partial class Exchange
 
         public bool error = false;
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool useMessageQueue = false)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -64,6 +64,8 @@ public partial class Exchange
             this.verbose = isVerbose;
             this.onClose = onClose;
             this.onError = onError;
+            this.keepAlive = keepA;
+            this.useMessageQueue = useMessageQueue;
 
             if (proxy != null)
             {
@@ -75,27 +77,23 @@ public partial class Exchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            // var tcs = new TaskCompletionSource<object>();
-            // this.futures[messageHash] = tcs;
-            // return tcs.Task;
-            if (!this.futures.ContainsKey(messageHash))
+            var future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+            if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
             {
-                // var tcs = new TaskCompletionSource<object>();
-                var future = new Future();
-                lock (this.futures)
-                {
-                    // Console.WriteLine("Adding future, inside lock");
-                    this.futures[messageHash] = future;
-                }
-                // Console.WriteLine("outside lock");
-                // return future.task;
+                future.reject(rejection);
+                (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).AddOrUpdate(messageHash, new ConcurrentQueue<object>(), (key, value) => new ConcurrentQueue<object>());
                 return future;
             }
-            else
+            if (this.useMessageQueue)
             {
-                // return (Task<object>)this.futures[messageHash].task;
-                return this.futures[messageHash];
+                var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
+                if (queue.TryDequeue(out object result))
+                {
+                    future.resolve(result);
+                    (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future removedFuture);
+                }
             }
+            return future;
         }
 
         public void resolve(object content, object messageHash2)
@@ -105,11 +103,27 @@ public partial class Exchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            if (this.futures.ContainsKey(messageHash))
+            if (this.useMessageQueue)
             {
-                var future = this.futures[messageHash];
-                this.futures.Remove(messageHash); // this order matters
-                future.resolve(content);
+                var queue = (this.messageQueue as ConcurrentDictionary<string, ConcurrentQueue<object>>).GetOrAdd(messageHash, (key) => new ConcurrentQueue<object>());
+                queue.Enqueue(content);
+                while (queue.Count > 10) {
+                    queue.TryDequeue(out object _);
+                }
+                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+                {
+                    if (queue.TryDequeue(out object result))
+                    {
+                        future.resolve(result);
+                    }
+                }
+            }
+            else
+            {
+                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+                {
+                    future.resolve(content);
+                }
             }
         }
 
@@ -118,11 +132,13 @@ public partial class Exchange
             if (messageHash2 != null)
             {
                 var messageHash = messageHash2.ToString();
-                if (this.futures.ContainsKey(messageHash))
+                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
                 {
-                    var future = this.futures[messageHash];
-                    this.futures.Remove(messageHash); // this order matters
                     future.reject(content);
+                }
+                else
+                {
+                    (this.rejections as ConcurrentDictionary<string, object>).TryAdd(messageHash, content);
                 }
             }
             else
@@ -139,6 +155,7 @@ public partial class Exchange
         public void reset(object message2)
         {
             // stub implement this later
+            this.messageQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
             this.reject(error);
         }
 
@@ -165,9 +182,21 @@ public partial class Exchange
             return this.connected.Task;
         }
 
+        public void onPong()
+        {
+            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (this.verbose)
+            {
+                Console.WriteLine("Pong received: " + this.lastPong.ToString());
+            }
+        }
+
         public async void PingLoop()
         {
-
+            if (keepAlive != null)
+            {
+                await Task.Delay(Convert.ToInt32(keepAlive));
+            }
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (this.verbose)
             {
@@ -195,7 +224,19 @@ public partial class Exchange
                         var pingResult = this.ping(this);
                         if (pingResult != null)
                         {
-                            await this.send(pingResult);
+                            // if (this.verbose)
+                            // {
+                            //     Console.WriteLine("Sending ping: " + pingResult);
+                            // }
+                            if (pingResult is string)
+                            {
+                                await this.send((string)pingResult);
+                            }
+                            else
+                            {
+                                await this.send(pingResult);
+
+                            }
                         }
                     }
                     else
@@ -204,18 +245,33 @@ public partial class Exchange
 
                     }
                 }
-                await Task.Delay((int)convertedKeepAlive);
+                await Task.Delay(Convert.ToInt32(convertedKeepAlive));
             }
         }
+
+
+        private static readonly SemaphoreSlim _connectSemaphore = new SemaphoreSlim(1, 1);
 
         public void Connect()
         {
             var tcs = this.connected;
             // Run the connection logic in a background task
+
+            if (this.webSocket.State == WebSocketState.Open)
+            {
+                return; // already connected, return. Might happen when we call connect multiple times in a row
+
+            }
             Task.Run(async () =>
             {
                 try
                 {
+                    await _connectSemaphore.WaitAsync();
+                    if (this.webSocket.State == WebSocketState.Open)
+                    {
+                        return; // already connected, return. Might happen when we call connect multiple times in a row
+
+                    }
                     await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
                     if (this.verbose)
                     {
@@ -231,47 +287,83 @@ public partial class Exchange
                 {
                     tcs.SetException(ex); // Set the exception if something goes wrong
                 }
+                finally
+                {
+                    _connectSemaphore.Release();
+                }
             });
 
             // return tcs.Task;
         }
 
+
+        private static readonly SemaphoreSlim _sendSemaphore = new SemaphoreSlim(1, 1);
+
+        protected static async Task sendAsyncWrapper(ClientWebSocket webSocket, ArraySegment<byte> ArraySegment, WebSocketMessageType WebSocketMessageType, bool endOnMessage, CancellationToken CancellationToken)
+        {
+            await _sendSemaphore.WaitAsync();
+            try
+            {
+                if (webSocket.State == WebSocketState.Open)
+                {
+                    await webSocket.SendAsync(ArraySegment, WebSocketMessageType, endOnMessage, CancellationToken);
+                }
+            }
+            finally
+            {
+                _sendSemaphore.Release();
+            }
+        }
+
         public async Task send(object message)
         {
-            var jsonMessage = Exchange.Json(message).ToString();
+            var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
             if (this.verbose)
             {
                 Console.WriteLine($"Sending message: {jsonMessage}");
             }
             var bytes = Encoding.UTF8.GetBytes(jsonMessage);
             var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-            await this.webSocket.SendAsync(arraySegment,
+            await sendAsyncWrapper(this.webSocket, arraySegment,
                                 WebSocketMessageType.Text,
                                 true,
                                 CancellationToken.None);
         }
 
-        private static async Task Sending(ClientWebSocket webSocket)
+        // private static async Task Sending(ClientWebSocket webSocket)
+        // {
+        //    try
+        //    {
+        //        while (webSocket.State == WebSocketState.Open)
+        //        {
+        //            string message = Console.ReadLine();
+
+        //            if (!string.IsNullOrEmpty(message))
+        //            {
+        //                var bytes = Encoding.UTF8.GetBytes(message);
+        //                await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Sending error: {ex.Message}");
+        //    }
+        // }
+
+        private void TryHandleMessage (string message)
         {
+            object deserializedMessages = message;
             try
             {
-                while (webSocket.State == WebSocketState.Open)
-                {
-                    string message = Console.ReadLine();
-
-                    if (!string.IsNullOrEmpty(message))
-                    {
-                        var bytes = Encoding.UTF8.GetBytes(message);
-                        await webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
-                    }
-                }
+                deserializedMessages = JsonHelper.Deserialize(message);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine($"Sending error: {ex.Message}");
             }
+            this.handleMessage(this, deserializedMessages);
         }
-
+    
         private async Task Receiving(ClientWebSocket webSocket)
         {
             var buffer = new byte[1000000]; // check best size later
@@ -294,15 +386,11 @@ public partial class Exchange
                     {
                         // var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         var message = Encoding.UTF8.GetString(memory.ToArray(), 0, (int)memory.Length);
-                        var deserializedMessages = JsonHelper.Deserialize(message);
-
                         if (this.verbose)
                         {
                             Console.WriteLine($"On message: {message}");
                         }
-
-                        this.handleMessage(this, deserializedMessages);
-
+                        this.TryHandleMessage(message);
                     }
                     else if (result.MessageType == WebSocketMessageType.Binary)
                     {
@@ -319,15 +407,11 @@ public partial class Exchange
 
                             string decompressedString = System.Text.Encoding.UTF8.GetString(decompressedData);
 
-                            var deserializedJson = JsonHelper.Deserialize(decompressedString);
-
                             if (this.verbose)
                             {
                                 Console.WriteLine($"On binary message {decompressedString}");
                             }
-
-                            this.handleMessage(this, deserializedJson);
-
+                            this.TryHandleMessage(decompressedString);
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                     }
@@ -352,6 +436,30 @@ public partial class Exchange
                 }
                 this.isConnected = false;
                 this.onError(this, ex);
+            }
+        }
+
+        public async Task Close()
+        {
+            if (this.webSocket.State == WebSocketState.Open)
+            {
+                try
+                {
+                    await this.webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                }
+                catch (Exception e)
+                {
+                    // Console.WriteLine(e);
+                }
+
+            }
+            foreach (var future in this.futures.Values)
+            {
+                if (!future.task.IsCompleted)
+                {
+                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
+
+                }
             }
         }
     }

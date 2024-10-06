@@ -82,6 +82,11 @@ class Precise {
         return new Precise($result, $denominatorRationizer + $other->decimals);
     }
 
+    public function or($other) {
+        $integerResult = gmp_or($this->integer, $other->integer);
+        return new Precise($integerResult, $this->decimals + $other->decimals);
+    }
+
     public function min($other) {
         return $this->lt($other) ? $this : $other;
     }
@@ -213,6 +218,13 @@ class Precise {
             return null;
         }
         return strval((new Precise($string1))->mod(new Precise($string2)));
+    }
+
+    public static function string_or($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return strval((new Precise($string1))->or(new Precise($string2)));
     }
 
     public static function string_equals($string1, $string2) {

@@ -4,18 +4,15 @@ import fs from 'fs'
 import log from 'ololog'
 
 const skipMethods = [
-    'fetchMarkets',
+    // 'fetchMarkets',
     'fetchMarketsWs',
     'createDepositAddress', // will be updated later
     // skip because of c# already typed methods
     "fetchLeverageTiers",
     "fetchDepositWithdrawFees",
-    "fetchFundingRate",
-    "fetchLedger",
     "fetchBorrowInterest",
     "withdraw",
     "fetchDepositWithdrawFee",
-    "fetchLedgerEntry",
     'watchTickers', // will be updated later
 ]
 
@@ -54,8 +51,7 @@ const exchanges = allExchanges.ids;
 const wsExchanges = allExchanges.ws;
 
 // Function to extract method names and return types from a .d.ts file
-function extractMethodsInfo(filePath: string): Record<string, string> {
-  const program = ts.createProgram([filePath], {});
+function extractMethodsInfo(filePath: string, program: ts.Program): Record<string, string> {
   const checker = program.getTypeChecker();
   const sourceFile = program.getSourceFile(filePath);
 
@@ -72,7 +68,17 @@ function extractMethodsInfo(filePath: string): Record<string, string> {
 
       node.parameters.forEach((param) => {
         const paramName = param.name.getText(sourceFile);
-        const paramType = checker.typeToString(checker.getTypeAtLocation(param));
+        let paramType: string;
+        const param2 = param as any;
+        var customType = param2?.type?.typeName?.escapedText;
+        if (customType && customType.startsWith('Int'))  { // right now handle only the difference between Int and Number, and let
+            // the rest be handled by the default typeToString, like Str vs string, Strings vs string[], etc
+            paramType = param2?.type?.typeName?.escapedText;
+        } else {
+            const typeNode = checker.getTypeAtLocation(param);
+            paramType = checker.typeToString(typeNode);
+        }
+
         methods[methodName]['parameters'][paramName] = paramType;
       });
     }
@@ -122,23 +128,35 @@ function main() {
         exchangesToCheck = exchanges;
     }
 
-    const sourceOfTruth = extractMethodsInfo(basePath + 'base/Exchange.d.ts');
+    let restPaths = new Array<string>();
+    let wsPaths = new Array<string>();
+    for (const exchange of exchangesToCheck) {
+        restPaths.push(basePath + exchange + '.d.ts')
+        if (wsExchanges.includes(exchange)) { 
+            wsPaths.push(basePath + 'pro/' + exchange + '.d.ts')
+        }
+    }
+    const program = ts.createProgram([...restPaths, ...wsPaths,basePath + 'base/Exchange.d.ts'], {});
+    
+    const sourceOfTruth = extractMethodsInfo(basePath + 'base/Exchange.d.ts', program);
     let foundIssues = false;
     let foundParametersIssues = false;
     let paramsDifferences = 0;
     let differences = 0;
     let methodsWithDifferences = new Set<string>();
     let methodsWithParamsDifferences = new Set<string>();
+
     for (const exchange of exchangesToCheck) {
+
         if (skipExchanges.includes(exchange)) {
             continue;
         }
         const restPath = basePath + exchange + '.d.ts';
         const wsPath = basePath + 'pro/' + exchange + '.d.ts';
-        const restMethodsInfo = extractMethodsInfo(restPath); // rest API
+        const restMethodsInfo = extractMethodsInfo(restPath, program); // rest API
         let wsMethodsInfo: any = {};
         if (wsExchanges.includes(exchange)) {
-            wsMethodsInfo = extractMethodsInfo(wsPath); // ws API
+            wsMethodsInfo = extractMethodsInfo(wsPath, program); // ws API
         }
         const methodsInfo = {...restMethodsInfo, ...wsMethodsInfo};
         for (const method in methodsInfo) {

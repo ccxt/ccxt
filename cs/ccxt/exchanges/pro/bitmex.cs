@@ -13,6 +13,10 @@ public partial class bitmex : ccxt.bitmex
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
+                { "watchLiquidations", true },
+                { "watchLiquidationsForSymbols", true },
+                { "watchMyLiquidations", null },
+                { "watchMyLiquidationsForSymbols", null },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -54,21 +58,16 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object name = "instrument";
-        object messageHash = add(add(name, ":"), getValue(market, "id"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
-            { "op", "subscribe" },
-            { "args", new List<object>() {messageHash} },
-        };
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        symbol = this.symbol(symbol);
+        object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
+        return getValue(tickers, symbol);
     }
 
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
@@ -77,6 +76,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchTickers
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -87,30 +87,30 @@ public partial class bitmex : ccxt.bitmex
         object name = "instrument";
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHashes = new List<object>() {};
+        object rawSubscriptions = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object market = this.market(symbol);
-                object hash = add(add(name, ":"), getValue(market, "id"));
-                ((IList<object>)messageHashes).Add(hash);
+                object subscription = add(add(name, ":"), getValue(market, "id"));
+                ((IList<object>)rawSubscriptions).Add(subscription);
+                object messageHash = add("ticker:", symbol);
+                ((IList<object>)messageHashes).Add(messageHash);
             }
         } else
         {
-            ((IList<object>)messageHashes).Add(name);
+            ((IList<object>)rawSubscriptions).Add(name);
+            ((IList<object>)messageHashes).Add("alltickers");
         }
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
-            { "args", messageHashes },
+            { "args", rawSubscriptions },
         };
-        object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), rawSubscriptions);
         if (isTrue(this.newUpdates))
         {
-            if (isTrue(isEqual(symbols, null)))
-            {
-                return ticker;
-            }
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
             return result;
@@ -346,25 +346,143 @@ public partial class bitmex : ccxt.bitmex
         //         ]
         //     }
         //
-        object table = this.safeString(message, "table");
         object data = this.safeList(message, "data", new List<object>() {});
         object tickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object update = getValue(data, i);
             object marketId = this.safeString(update, "symbol");
-            object market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
-            object messageHash = add(add(table, ":"), marketId);
-            object ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
-            object info = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
-            ticker = this.parseTicker(this.extend(info, update), market);
-            ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+            object symbol = this.safeSymbol(marketId);
+            if (!isTrue((inOp(this.tickers, symbol))))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {});
+            }
+            object updatedTicker = this.parseTicker(update);
+            object fullParsedTicker = this.deepExtend(getValue(this.tickers, symbol), updatedTicker);
+            ((IDictionary<string,object>)tickers)[(string)symbol] = fullParsedTicker;
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = fullParsedTicker;
+            object messageHash = add("ticker:", symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {fullParsedTicker, messageHash});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {fullParsedTicker, "alltickers"});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, "instrument"});
         return message;
+    }
+
+    public async override Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#watchLiquidations
+        * @description watch the public liquidations of a trading pair
+        * @see https://www.bitmex.com/app/wsAPI#Liquidation
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#watchLiquidationsForSymbols
+        * @description watch the public liquidations of a trading pair
+        * @see https://www.bitmex.com/app/wsAPI#Liquidation
+        * @param {string} symbol unified CCXT market symbol
+        * @param {int} [since] the earliest time in ms to fetch liquidations for
+        * @param {int} [limit] the maximum number of liquidation structures to retrieve
+        * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+        * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true);
+        object messageHashes = new List<object>() {};
+        object subscriptionHashes = new List<object>() {};
+        if (isTrue(this.isEmpty(symbols)))
+        {
+            ((IList<object>)subscriptionHashes).Add("liquidation");
+            ((IList<object>)messageHashes).Add("liquidations");
+        } else
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                ((IList<object>)subscriptionHashes).Add(add("liquidation:", getValue(market, "id")));
+                ((IList<object>)messageHashes).Add(add("liquidations::", symbol));
+            }
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "op", "subscribe" },
+            { "args", subscriptionHashes },
+        };
+        object newLiquidations = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionHashes);
+        if (isTrue(this.newUpdates))
+        {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+
+    public virtual void handleLiquidation(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "table":"liquidation",
+        //        "action":"partial",
+        //        "keys":[
+        //           "orderID"
+        //        ],
+        //        "types":{
+        //           "orderID":"guid",
+        //           "symbol":"symbol",
+        //           "side":"symbol",
+        //           "price":"float",
+        //           "leavesQty":"long"
+        //        },
+        //        "filter":{},
+        //        "data":[
+        //           {
+        //              "orderID":"e0a568ee-7830-4428-92c3-73e82b9576ce",
+        //              "symbol":"XPLAUSDT",
+        //              "side":"Sell",
+        //              "price":0.206,
+        //              "leavesQty":340
+        //           }
+        //        ]
+        //    }
+        //
+        object rawLiquidations = this.safeValue(message, "data", new List<object>() {});
+        object newLiquidations = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+        {
+            object rawLiquidation = getValue(rawLiquidations, i);
+            object liquidation = this.parseLiquidation(rawLiquidation);
+            object symbol = getValue(liquidation, "symbol");
+            object liquidations = this.safeValue(this.liquidations, symbol);
+            if (isTrue(isEqual(liquidations, null)))
+            {
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            callDynamically(liquidations, "append", new object[] {liquidation});
+            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            ((IList<object>)newLiquidations).Add(liquidation);
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newLiquidations, "liquidations"});
+        object liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
+        object symbols = new List<object>(((IDictionary<string,object>)liquidationsBySymbol).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(liquidationsBySymbol, symbol), add("liquidations::", symbol)});
+        }
     }
 
     public async override Task<object> watchBalance(object parameters = null)
@@ -373,6 +491,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchBalance
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -564,8 +683,8 @@ public partial class bitmex : ccxt.bitmex
         {
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
-            object messageHash = add(add(table, ":"), marketId);
             object symbol = getValue(market, "symbol");
+            object messageHash = add(add(table, ":"), symbol);
             object trades = this.parseTrades(getValue(dataByMarketIds, marketId), market);
             object stored = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(stored, null)))
@@ -588,6 +707,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -595,22 +715,7 @@ public partial class bitmex : ccxt.bitmex
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object table = "trade";
-        object messageHash = add(add(table, ":"), getValue(market, "id"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
-            { "op", "subscribe" },
-            { "args", new List<object>() {messageHash} },
-        };
-        object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
-        {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
-        }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     public async virtual Task<object> authenticate(object parameters = null)
@@ -634,7 +739,7 @@ public partial class bitmex : ccxt.bitmex
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
@@ -652,7 +757,7 @@ public partial class bitmex : ccxt.bitmex
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
     }
@@ -662,8 +767,8 @@ public partial class bitmex : ccxt.bitmex
         /**
         * @method
         * @name bitmex#watchPositions
-        * @see https://www.bitmex.com/app/wsAPI
         * @description watch all open positions
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} params extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
@@ -876,6 +981,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchOrders
         * @description watches information on multiple orders made by the user
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1101,11 +1207,12 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchMyTrades
         * @description watches information on multiple trades made by the user
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified market symbol of the market trades were made in
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1227,6 +1334,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1242,6 +1350,7 @@ public partial class bitmex : ccxt.bitmex
         * @method
         * @name bitmex#watchOrderBookForSymbols
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1284,12 +1393,56 @@ public partial class bitmex : ccxt.bitmex
         return (orderbook as IOrderBook).limit();
     }
 
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitmex#watchTradesForSymbols
+        * @description get the list of most recent trades for a list of symbols
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object table = "trade";
+        object topics = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            object topic = add(add(table, ":"), getValue(market, "id"));
+            ((IList<object>)topics).Add(topic);
+            object messageHash = add(add(table, ":"), symbol);
+            ((IList<object>)messageHashes).Add(messageHash);
+        }
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {
+            { "op", "subscribe" },
+            { "args", topics },
+        };
+        object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics);
+        if (isTrue(this.newUpdates))
+        {
+            object first = this.safeValue(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+        }
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
         * @name bitmex#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://www.bitmex.com/app/wsAPI#Subscriptions
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1397,7 +1550,7 @@ public partial class bitmex : ccxt.bitmex
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             object messageHash = add(add(table, ":"), getValue(market, "id"));
-            object result = new List<object>() {subtract(this.parse8601(this.safeString(candle, "timestamp")), multiply(duration, 1000)), this.safeFloat(candle, "open"), this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
+            object result = new List<object>() {subtract(this.parse8601(this.safeString(candle, "timestamp")), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
@@ -1479,12 +1632,20 @@ public partial class bitmex : ccxt.bitmex
         //
         object action = this.safeString(message, "action");
         object table = this.safeString(message, "table");
+        if (isTrue(isEqual(table, null)))
+        {
+            return;  // protecting from weird updates
+        }
         object data = this.safeValue(message, "data", new List<object>() {});
         // if it's an initial snapshot
         if (isTrue(isEqual(action, "partial")))
         {
-            object filter = this.safeValue(message, "filter", new Dictionary<string, object>() {});
+            object filter = this.safeDict(message, "filter", new Dictionary<string, object>() {});
             object marketId = this.safeValue(filter, "symbol");
+            if (isTrue(isEqual(marketId, null)))
+            {
+                return;  // protecting from weird update
+            }
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             if (isTrue(isEqual(table, "orderBookL2")))
@@ -1507,7 +1668,7 @@ public partial class bitmex : ccxt.bitmex
                 object side = this.safeString(getValue(data, i), "side");
                 side = ((bool) isTrue((isEqual(side, "Buy")))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
-                (bookside as IOrderBookSide).store(price, size, id);
+                (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 object datetime = this.safeString(getValue(data, i), "timestamp");
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
@@ -1520,6 +1681,10 @@ public partial class bitmex : ccxt.bitmex
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object marketId = this.safeValue(getValue(data, i), "symbol");
+                if (isTrue(isEqual(marketId, null)))
+                {
+                    return;  // protecting from weird update
+                }
                 if (!isTrue((inOp(numUpdatesByMarketId, marketId))))
                 {
                     ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = 0;
@@ -1534,7 +1699,7 @@ public partial class bitmex : ccxt.bitmex
                 object side = this.safeString(getValue(data, i), "side");
                 side = ((bool) isTrue((isEqual(side, "Buy")))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
-                (bookside as IOrderBookSide).store(price, size, id);
+                (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 object datetime = this.safeString(getValue(data, i), "timestamp");
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
@@ -1678,6 +1843,7 @@ public partial class bitmex : ccxt.bitmex
                 { "order", this.handleOrders },
                 { "execution", this.handleMyTrades },
                 { "margin", this.handleBalance },
+                { "liquidation", this.handleLiquidation },
                 { "position", this.handlePositions },
             };
             object method = this.safeValue(methods, table);

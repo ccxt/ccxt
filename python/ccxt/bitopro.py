@@ -7,14 +7,14 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -73,8 +73,13 @@ class bitopro(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
+                'fetchPosition': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -220,7 +225,7 @@ class bitopro(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_currencies(self, params={}):
+    def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
@@ -245,7 +250,7 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             currencyId = self.safe_string(currency, 'currency')
@@ -255,7 +260,7 @@ class bitopro(Exchange, ImplicitAPI):
             fee = self.safe_number(currency, 'withdrawFee')
             withdrawMin = self.safe_number(currency, 'minWithdraw')
             withdrawMax = self.safe_number(currency, 'maxWithdraw')
-            limits = {
+            limits: dict = {
                 'withdraw': {
                     'min': withdrawMin,
                     'max': withdrawMax,
@@ -280,7 +285,7 @@ class bitopro(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitopro
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
@@ -311,7 +316,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         active = not self.safe_value(market, 'maintain')
         id = self.safe_string(market, 'pair')
         uppercaseId = id.upper()
@@ -320,7 +325,7 @@ class bitopro(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        limits = {
+        limits: dict = {
             'amount': {
                 'min': self.safe_number(market, 'minLimitBaseAmount'),
                 'max': self.safe_number(market, 'maxLimitBaseAmount'),
@@ -372,7 +377,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "pair":"btc_twd",
@@ -420,7 +425,7 @@ class bitopro(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.publicGetTickersPair(self.extend(request, params))
@@ -479,7 +484,7 @@ class bitopro(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -507,7 +512,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades
         #         {
@@ -598,7 +603,7 @@ class bitopro(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.publicGetTradesPair(self.extend(request, params))
@@ -617,7 +622,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md
@@ -689,7 +694,7 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = {}
+        result: dict = {}
         maker = self.safe_number(first, 'makerFee')
         taker = self.safe_number(first, 'takerFee')
         for i in range(0, len(self.symbols)):
@@ -728,13 +733,15 @@ class bitopro(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         resolution = self.safe_string(self.timeframes, timeframe, timeframe)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'resolution': resolution,
         }
         # we need to have a limit argument because "to" and "from" are required
         if limit is None:
             limit = 500
+        else:
+            limit = min(limit, 75000)  # supports slightly more than 75k candles atm, but limit here to avoid errors
         timeframeInSeconds = self.parse_timeframe(timeframe)
         alignedSince = None
         if since is None:
@@ -809,7 +816,7 @@ class bitopro(Exchange, ImplicitAPI):
         #         "tradable":true
         #     }]
         #
-        result = {
+        result: dict = {
             'info': response,
         }
         for i in range(0, len(response)):
@@ -818,7 +825,7 @@ class bitopro(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             amount = self.safe_string(balance, 'amount')
             available = self.safe_string(balance, 'available')
-            account = {
+            account: dict = {
                 'free': available,
                 'total': amount,
             }
@@ -850,8 +857,8 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_balance(balances)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             '-1': 'open',
             '0': 'open',
             '1': 'open',
@@ -862,7 +869,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, None)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder
         #         {
@@ -949,7 +956,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_order.md
@@ -957,13 +964,13 @@ class bitopro(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'type': type,
             'pair': market['id'],
             'action': side,
@@ -1015,7 +1022,7 @@ class bitopro(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'id': id,
             'pair': market['id'],
         }
@@ -1031,6 +1038,20 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
+    def parse_cancel_orders(self, data):
+        dataKeys = list(data.keys())
+        orders = []
+        for i in range(0, len(dataKeys)):
+            marketId = dataKeys[i]
+            orderIds = data[marketId]
+            for j in range(0, len(orderIds)):
+                orders.append(self.safe_order({
+                    'info': orderIds[j],
+                    'id': orderIds[j],
+                    'symbol': self.safe_symbol(marketId),
+                }))
+        return orders
+
     def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
@@ -1045,7 +1066,7 @@ class bitopro(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         id = market['uppercaseId']
-        request = {}
+        request: dict = {}
         request[id] = ids
         response = self.privatePutOrders(self.extend(request, params))
         #
@@ -1058,7 +1079,8 @@ class bitopro(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        data = self.safe_dict(response, 'data')
+        return self.parse_cancel_orders(data)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1069,7 +1091,7 @@ class bitopro(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             # 'pair': market['id'],  # optional
         }
         response = None
@@ -1079,7 +1101,7 @@ class bitopro(Exchange, ImplicitAPI):
             response = self.privateDeleteOrdersPair(self.extend(request, params))
         else:
             response = self.privateDeleteOrdersAll(self.extend(request, params))
-        result = self.safe_value(response, 'data', {})
+        data = self.safe_value(response, 'data', {})
         #
         #     {
         #         "data":{
@@ -1090,12 +1112,13 @@ class bitopro(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return result
+        return self.parse_cancel_orders(data)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1104,7 +1127,7 @@ class bitopro(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'orderId': id,
             'pair': market['id'],
         }
@@ -1148,7 +1171,7 @@ class bitopro(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
             # 'startTimestamp': 0,
             # 'endTimestamp': 0,
@@ -1192,7 +1215,7 @@ class bitopro(Exchange, ImplicitAPI):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        request = {
+        request: dict = {
             'statusKind': 'OPEN',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1207,7 +1230,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'statusKind': 'DONE',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1226,7 +1249,7 @@ class bitopro(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = self.privateGetOrdersTradesPair(self.extend(request, params))
@@ -1252,8 +1275,8 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_transaction_status(self, status):
-        states = {
+    def parse_transaction_status(self, status: Str):
+        states: dict = {
             'COMPLETE': 'ok',
             'INVALID': 'failed',
             'PROCESSING': 'pending',
@@ -1266,7 +1289,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(states, status, status)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1361,7 +1384,7 @@ class bitopro(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires the code argument')
         self.load_markets()
         currency = self.safe_currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             # 'endTimestamp': 0,
             # 'id': '',
@@ -1408,7 +1431,7 @@ class bitopro(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires the code argument')
         self.load_markets()
         currency = self.safe_currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             # 'endTimestamp': 0,
             # 'id': '',
@@ -1453,7 +1476,7 @@ class bitopro(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires the code argument')
         self.load_markets()
         currency = self.safe_currency(code)
-        request = {
+        request: dict = {
             'serial': id,
             'currency': currency['id'],
         }
@@ -1477,7 +1500,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_withdraw_invoice.md
@@ -1492,7 +1515,7 @@ class bitopro(Exchange, ImplicitAPI):
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': self.number_to_string(amount),
             'address': address,
@@ -1574,7 +1597,7 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -1596,7 +1619,7 @@ class bitopro(Exchange, ImplicitAPI):
                 if query:
                     url += '?' + self.urlencode(query)
                 nonce = self.milliseconds()
-                rawData = {
+                rawData: dict = {
                     'nonce': nonce,
                 }
                 data = self.json(rawData)
@@ -1611,7 +1634,7 @@ class bitopro(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to the default error handler
         if code >= 200 and code < 300:

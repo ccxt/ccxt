@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -22,6 +22,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -41,7 +42,6 @@ class blockchaincom extends \ccxt\async\blockchaincom {
                     ),
                     'noOriginHeader' => false,
                 ),
-                'sequenceNumbers' => array(),
             ),
             'streaming' => array(
             ),
@@ -311,7 +311,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             'average' => null,
             'baseVolume' => $this->safe_string($lastTicker, 'baseVolume'),
             'quoteVolume' => null,
-            'info' => array_merge($this->safe_value($lastTicker, 'info', array()), $ticker),
+            'info' => $this->extend($this->safe_value($lastTicker, 'info', array()), $ticker),
         ), $market);
     }
 
@@ -696,25 +696,25 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //     }
         //
         $event = $this->safe_string($message, 'event');
+        if ($event === 'subscribed') {
+            return;
+        }
         $type = $this->safe_string($message, 'channel');
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
         $datetime = $this->safe_string($message, 'timestamp');
         $timestamp = $this->parse8601($datetime);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->counted_order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        if ($this->safe_value($this->orderbooks, $symbol) === null) {
+            $this->orderbooks[$symbol] = $this->counted_order_book();
         }
-        if ($event === 'subscribed') {
-            return;
-        } elseif ($event === 'snapshot') {
+        $orderbook = $this->orderbooks[$symbol];
+        if ($event === 'snapshot') {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             $orderbook->reset ($snapshot);
         } elseif ($event === 'updated') {
-            $asks = $this->safe_value($message, 'asks', array());
-            $bids = $this->safe_value($message, 'bids', array());
+            $asks = $this->safe_list($message, 'asks', array());
+            $bids = $this->safe_list($message, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['timestamp'] = $timestamp;
@@ -736,23 +736,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
     }
 
-    public function check_sequence_number(Client $client, $message) {
-        $seqnum = $this->safe_integer($message, 'seqnum', 0);
-        $channel = $this->safe_string($message, 'channel', '');
-        $sequenceNumbersByChannel = $this->safe_value($this->options, 'sequenceNumbers', array());
-        $lastSeqnum = $this->safe_integer($sequenceNumbersByChannel, $channel);
-        if ($lastSeqnum === null) {
-            $this->options['sequenceNumbers'][$channel] = $seqnum;
-        } else {
-            if ($seqnum !== $lastSeqnum + 1) {
-                throw new ExchangeError($this->id . ' ' . $channel . ' $seqnum ' . $seqnum . ' is not the expected ' . ($lastSeqnum + 1));
-            }
-            $this->options['sequenceNumbers'][$channel] = $seqnum;
-        }
-    }
-
     public function handle_message(Client $client, $message) {
-        $this->check_sequence_number($client, $message);
         $channel = $this->safe_string($message, 'channel');
         $handlers = array(
             'ticker' => array($this, 'handle_ticker'),
@@ -792,20 +776,22 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $messageHash = 'authenticated';
-        $future = $client->future ($messageHash);
-        $isAuthenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($isAuthenticated === null) {
-            $this->check_required_credentials();
-            $request = array(
-                'action' => 'subscribe',
-                'channel' => 'auth',
-                'token' => $this->secret,
-            );
-            return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $messageHash = 'authenticated';
+            $future = $client->future ($messageHash);
+            $isAuthenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($isAuthenticated === null) {
+                $this->check_required_credentials();
+                $request = array(
+                    'action' => 'subscribe',
+                    'channel' => 'auth',
+                    'token' => $this->secret,
+                );
+                return $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
+            }
+            return Async\await($future);
+        }) ();
     }
 }

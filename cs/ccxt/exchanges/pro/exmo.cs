@@ -14,7 +14,7 @@ public partial class exmo : ccxt.exmo
                 { "ws", true },
                 { "watchBalance", true },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchMyTrades", true },
                 { "watchOrders", false },
@@ -219,6 +219,7 @@ public partial class exmo : ccxt.exmo
         * @method
         * @name exmo#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -236,6 +237,39 @@ public partial class exmo : ccxt.exmo
         };
         object request = this.deepExtend(message, parameters);
         return await this.watch(url, messageHash, request, messageHash, request);
+    }
+
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name exmo#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object args = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+            ((IList<object>)args).Add(add("spot/ticker:", getValue(market, "id")));
+        }
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object message = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "topics", args },
+            { "id", this.requestId() },
+        };
+        object request = this.deepExtend(message, parameters);
+        await this.watchMultiple(url, messageHashes, request, messageHashes, request);
+        return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -550,12 +584,11 @@ public partial class exmo : ccxt.exmo
         object orderBook = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object messageHash = add("orderbook:", symbol);
         object timestamp = this.safeInteger(message, "ts");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object eventVar = this.safeString(message, "event");
         if (isTrue(isEqual(eventVar, "snapshot")))
         {
@@ -563,8 +596,8 @@ public partial class exmo : ccxt.exmo
             (orderbook as IOrderBook).reset(snapshot);
         } else
         {
-            object asks = this.safeValue(orderBook, "ask", new List<object>() {});
-            object bids = this.safeValue(orderBook, "bid", new List<object>() {});
+            object asks = this.safeList(orderBook, "ask", new List<object>() {});
+            object bids = this.safeList(orderBook, "bid", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -711,7 +744,7 @@ public partial class exmo : ccxt.exmo
                 { "nonce", time },
             };
             object message = this.extend(request, query);
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

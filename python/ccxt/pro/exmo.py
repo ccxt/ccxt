@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Int, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -20,7 +20,7 @@ class exmo(ccxt.async_support.exmo):
                 'ws': True,
                 'watchBalance': True,
                 'watchTicker': True,
-                'watchTickers': False,
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchMyTrades': True,
                 'watchOrders': False,  # TODO
@@ -59,7 +59,7 @@ class exmo(ccxt.async_support.exmo):
         type, query = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'balance:' + type
         url = self.urls['api']['ws'][type]
-        subscribe = {
+        subscribe: dict = {
             'method': 'subscribe',
             'topics': [type + '/wallet'],
             'id': self.request_id(),
@@ -199,6 +199,7 @@ class exmo(ccxt.async_support.exmo):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -208,7 +209,7 @@ class exmo(ccxt.async_support.exmo):
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'ticker:' + symbol
-        message = {
+        message: dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/ticker:' + market['id'],
@@ -217,6 +218,32 @@ class exmo(ccxt.async_support.exmo):
         }
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, request)
+
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#fd8f47bc-8517-43c0-bb60-1d61a86d4471
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        messageHashes = []
+        args = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            messageHashes.append('ticker:' + market['symbol'])
+            args.append('spot/ticker:' + market['id'])
+        url = self.urls['api']['ws']['public']
+        message: dict = {
+            'method': 'subscribe',
+            'topics': args,
+            'id': self.request_id(),
+        }
+        request = self.deep_extend(message, params)
+        await self.watch_multiple(url, messageHashes, request, messageHashes, request)
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -263,7 +290,7 @@ class exmo(ccxt.async_support.exmo):
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'trades:' + symbol
-        message = {
+        message: dict = {
             'method': 'subscribe',
             'topics': [
                 'spot/trades:' + market['id'],
@@ -329,7 +356,7 @@ class exmo(ccxt.async_support.exmo):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = 'myTrades:' + market['symbol']
-        message = {
+        message: dict = {
             'method': 'subscribe',
             'topics': [
                 type + '/user_trades',
@@ -417,7 +444,7 @@ class exmo(ccxt.async_support.exmo):
             rawTrade = self.safe_value(message, 'data', {})
             rawTrades = [rawTrade]
         trades = self.parse_trades(rawTrades)
-        symbols = {}
+        symbols: dict = {}
         for j in range(0, len(trades)):
             trade = trades[j]
             myTrades.append(trade)
@@ -443,7 +470,7 @@ class exmo(ccxt.async_support.exmo):
         url = self.urls['api']['ws']['public']
         messageHash = 'orderbook:' + symbol
         params = self.omit(params, 'aggregation')
-        subscribe = {
+        subscribe: dict = {
             'method': 'subscribe',
             'id': self.request_id(),
             'topics': [
@@ -495,17 +522,16 @@ class exmo(ccxt.async_support.exmo):
         orderBook = self.safe_value(message, 'data', {})
         messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer(message, 'ts')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
-            self.orderbooks[symbol] = orderbook
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         event = self.safe_string(message, 'event')
         if event == 'snapshot':
             snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'bid', 'ask')
             orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(orderBook, 'ask', [])
-            bids = self.safe_value(orderBook, 'bid', [])
+            asks = self.safe_list(orderBook, 'ask', [])
+            bids = self.safe_list(orderBook, 'bid', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp
@@ -537,7 +563,7 @@ class exmo(ccxt.async_support.exmo):
         #     "topic": "spot/ticker:BTC_USDT"
         # }
         event = self.safe_string(message, 'event')
-        events = {
+        events: dict = {
             'logged_in': self.handle_authentication_message,
             'info': self.handle_info,
             'subscribed': self.handle_subscribed,
@@ -551,7 +577,7 @@ class exmo(ccxt.async_support.exmo):
             if topic is not None:
                 parts = topic.split(':')
                 channel = self.safe_string(parts, 0)
-                handlers = {
+                handlers: dict = {
                     'spot/ticker': self.handle_ticker,
                     'spot/wallet': self.handle_balance,
                     'margin/wallet': self.handle_balance,
@@ -617,7 +643,7 @@ class exmo(ccxt.async_support.exmo):
             requestId = self.request_id()
             signData = self.apiKey + str(time)
             sign = self.hmac(self.encode(signData), self.encode(self.secret), hashlib.sha512, 'base64')
-            request = {
+            request: dict = {
                 'method': 'login',
                 'id': requestId,
                 'api_key': self.apiKey,
@@ -625,6 +651,6 @@ class exmo(ccxt.async_support.exmo):
                 'nonce': time,
             }
             message = self.extend(request, query)
-            future = self.watch(url, messageHash, message)
+            future = await self.watch(url, messageHash, message, messageHash)
             client.subscriptions[messageHash] = future
         return future

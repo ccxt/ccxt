@@ -46,8 +46,11 @@ public partial class coincheck : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -180,6 +183,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -195,6 +199,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#fetchOpenOrders
         * @description fetch all unfilled currently open orders
+        * @see https://coincheck.com/documents/exchange/api#order-opens
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -279,6 +284,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://coincheck.com/documents/exchange/api#order-book
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -340,6 +346,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://coincheck.com/documents/exchange/api#ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -461,6 +468,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#fetchMyTrades
         * @description fetch all trades made by the user
+        * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -498,7 +506,7 @@ public partial class coincheck : Exchange
         //                  ]
         //      }
         //
-        object transactions = this.safeValue(response, "data", new List<object>() {});
+        object transactions = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(transactions, market, since, limit);
     }
 
@@ -508,6 +516,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#fetchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://coincheck.com/documents/exchange/api#public-trades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -535,7 +544,7 @@ public partial class coincheck : Exchange
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -545,6 +554,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#fetchTradingFees
         * @description fetch the trading fees for multiple markets
+        * @see https://coincheck.com/documents/exchange/api#account-info
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
         */
@@ -595,11 +605,12 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#createOrder
         * @description create a trade order
+        * @see https://coincheck.com/documents/exchange/api#order-new
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -635,6 +646,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#cancelOrder
         * @description cancels an open order
+        * @see https://coincheck.com/documents/exchange/api#order-cancel
         * @param {string} id order id
         * @param {string} symbol not used by coincheck cancelOrder ()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -644,7 +656,14 @@ public partial class coincheck : Exchange
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await this.privateDeleteExchangeOrdersId(this.extend(request, parameters));
+        object response = await this.privateDeleteExchangeOrdersId(this.extend(request, parameters));
+        //
+        //    {
+        //        "success": true,
+        //        "id": 12345
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -653,6 +672,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#fetchDeposits
         * @description fetch all deposits made to an account
+        * @see https://coincheck.com/documents/exchange/api#account-deposits
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch deposits for
         * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -696,7 +716,7 @@ public partial class coincheck : Exchange
         //     }
         //   ]
         // }
-        object data = this.safeValue(response, "deposits", new List<object>() {});
+        object data = this.safeList(response, "deposits", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, new Dictionary<string, object>() {
             { "type", "deposit" },
         });
@@ -708,6 +728,7 @@ public partial class coincheck : Exchange
         * @method
         * @name coincheck#fetchWithdrawals
         * @description fetch all withdrawals made from an account
+        * @see https://coincheck.com/documents/exchange/api#withdraws
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -748,7 +769,7 @@ public partial class coincheck : Exchange
         //     }
         //   ]
         // }
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });

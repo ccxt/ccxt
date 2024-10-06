@@ -9,10 +9,11 @@ public partial class coinbase : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinbase" },
-            { "name", "Coinbase" },
+            { "name", "Coinbase Advanced" },
             { "countries", new List<object>() {"US"} },
             { "pro", true },
-            { "rateLimit", 400 },
+            { "certified", true },
+            { "rateLimit", 34 },
             { "version", "v2" },
             { "userAgent", getValue(this.userAgents, "chrome") },
             { "headers", new Dictionary<string, object>() {
@@ -29,7 +30,8 @@ public partial class coinbase : Exchange
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "closeAllPositions", false },
-                { "closePosition", false },
+                { "closePosition", true },
+                { "createConvertTrade", true },
                 { "createDepositAddress", true },
                 { "createLimitBuyOrder", true },
                 { "createLimitSellOrder", true },
@@ -44,6 +46,7 @@ public partial class coinbase : Exchange
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", true },
+                { "deposit", true },
                 { "editOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
@@ -52,9 +55,16 @@ public partial class coinbase : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
+                { "fetchConvertQuote", true },
+                { "fetchConvertTrade", true },
+                { "fetchConvertTradeHistory", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
+                { "fetchDeposit", true },
+                { "fetchDepositAddress", "emulated" },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -79,17 +89,17 @@ public partial class coinbase : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
-                { "fetchPosition", false },
+                { "fetchPosition", true },
                 { "fetchPositionMode", false },
-                { "fetchPositions", false },
+                { "fetchPositions", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
-                { "fetchTradingFee", false },
-                { "fetchTradingFees", false },
+                { "fetchTradingFee", "emulated" },
+                { "fetchTradingFees", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
                 { "setLeverage", false },
@@ -103,7 +113,7 @@ public partial class coinbase : Exchange
                     { "rest", "https://api.coinbase.com" },
                 } },
                 { "www", "https://www.coinbase.com" },
-                { "doc", new List<object>() {"https://developers.coinbase.com/api/v2", "https://docs.cloud.coinbase.com/advanced-trade-api/docs/welcome"} },
+                { "doc", new List<object>() {"https://developers.coinbase.com/api/v2", "https://docs.cloud.coinbase.com/advanced-trade/docs/welcome"} },
                 { "fees", new List<object>() {"https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees", "https://www.coinbase.com/advanced-fees"} },
                 { "referral", "https://www.coinbase.com/join/58cbe25a355148797479dbd2" },
             } },
@@ -114,28 +124,131 @@ public partial class coinbase : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v2", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"currencies", "time", "exchange-rates", "users/{user_id}", "prices/{symbol}/buy", "prices/{symbol}/sell", "prices/{symbol}/spot"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "currencies", 10.6 },
+                            { "currencies/crypto", 10.6 },
+                            { "time", 10.6 },
+                            { "exchange-rates", 10.6 },
+                            { "users/{user_id}", 10.6 },
+                            { "prices/{symbol}/buy", 10.6 },
+                            { "prices/{symbol}/sell", 10.6 },
+                            { "prices/{symbol}/spot", 10.6 },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"accounts", "accounts/{account_id}", "accounts/{account_id}/addresses", "accounts/{account_id}/addresses/{address_id}", "accounts/{account_id}/addresses/{address_id}/transactions", "accounts/{account_id}/transactions", "accounts/{account_id}/transactions/{transaction_id}", "accounts/{account_id}/buys", "accounts/{account_id}/buys/{buy_id}", "accounts/{account_id}/sells", "accounts/{account_id}/sells/{sell_id}", "accounts/{account_id}/deposits", "accounts/{account_id}/deposits/{deposit_id}", "accounts/{account_id}/withdrawals", "accounts/{account_id}/withdrawals/{withdrawal_id}", "payment-methods", "payment-methods/{payment_method_id}", "user", "user/auth"} },
-                        { "post", new List<object>() {"accounts", "accounts/{account_id}/primary", "accounts/{account_id}/addresses", "accounts/{account_id}/transactions", "accounts/{account_id}/transactions/{transaction_id}/complete", "accounts/{account_id}/transactions/{transaction_id}/resend", "accounts/{account_id}/buys", "accounts/{account_id}/buys/{buy_id}/commit", "accounts/{account_id}/sells", "accounts/{account_id}/sells/{sell_id}/commit", "accounts/{account_id}/deposits", "accounts/{account_id}/deposits/{deposit_id}/commit", "accounts/{account_id}/withdrawals", "accounts/{account_id}/withdrawals/{withdrawal_id}/commit"} },
-                        { "put", new List<object>() {"accounts/{account_id}", "user"} },
-                        { "delete", new List<object>() {"accounts/{id}", "accounts/{account_id}/transactions/{transaction_id}"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "accounts", 10.6 },
+                            { "accounts/{account_id}", 10.6 },
+                            { "accounts/{account_id}/addresses", 10.6 },
+                            { "accounts/{account_id}/addresses/{address_id}", 10.6 },
+                            { "accounts/{account_id}/addresses/{address_id}/transactions", 10.6 },
+                            { "accounts/{account_id}/transactions", 10.6 },
+                            { "accounts/{account_id}/transactions/{transaction_id}", 10.6 },
+                            { "accounts/{account_id}/buys", 10.6 },
+                            { "accounts/{account_id}/buys/{buy_id}", 10.6 },
+                            { "accounts/{account_id}/sells", 10.6 },
+                            { "accounts/{account_id}/sells/{sell_id}", 10.6 },
+                            { "accounts/{account_id}/deposits", 10.6 },
+                            { "accounts/{account_id}/deposits/{deposit_id}", 10.6 },
+                            { "accounts/{account_id}/withdrawals", 10.6 },
+                            { "accounts/{account_id}/withdrawals/{withdrawal_id}", 10.6 },
+                            { "payment-methods", 10.6 },
+                            { "payment-methods/{payment_method_id}", 10.6 },
+                            { "user", 10.6 },
+                            { "user/auth", 10.6 },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "accounts", 10.6 },
+                            { "accounts/{account_id}/primary", 10.6 },
+                            { "accounts/{account_id}/addresses", 10.6 },
+                            { "accounts/{account_id}/transactions", 10.6 },
+                            { "accounts/{account_id}/transactions/{transaction_id}/complete", 10.6 },
+                            { "accounts/{account_id}/transactions/{transaction_id}/resend", 10.6 },
+                            { "accounts/{account_id}/buys", 10.6 },
+                            { "accounts/{account_id}/buys/{buy_id}/commit", 10.6 },
+                            { "accounts/{account_id}/sells", 10.6 },
+                            { "accounts/{account_id}/sells/{sell_id}/commit", 10.6 },
+                            { "accounts/{account_id}/deposits", 10.6 },
+                            { "accounts/{account_id}/deposits/{deposit_id}/commit", 10.6 },
+                            { "accounts/{account_id}/withdrawals", 10.6 },
+                            { "accounts/{account_id}/withdrawals/{withdrawal_id}/commit", 10.6 },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "accounts/{account_id}", 10.6 },
+                            { "user", 10.6 },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "accounts/{id}", 10.6 },
+                            { "accounts/{account_id}/transactions/{transaction_id}", 10.6 },
+                        } },
                     } },
                 } },
                 { "v3", new Dictionary<string, object>() {
+                    { "public", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "brokerage/time", 3 },
+                            { "brokerage/market/product_book", 3 },
+                            { "brokerage/market/products", 3 },
+                            { "brokerage/market/products/{product_id}", 3 },
+                            { "brokerage/market/products/{product_id}/candles", 3 },
+                            { "brokerage/market/products/{product_id}/ticker", 3 },
+                        } },
+                    } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"brokerage/accounts", "brokerage/accounts/{account_uuid}", "brokerage/orders/historical/batch", "brokerage/orders/historical/fills", "brokerage/orders/historical/{order_id}", "brokerage/products", "brokerage/products/{product_id}", "brokerage/products/{product_id}/candles", "brokerage/products/{product_id}/ticker", "brokerage/portfolios", "brokerage/portfolios/{portfolio_uuid}", "brokerage/transaction_summary", "brokerage/product_book", "brokerage/best_bid_ask", "brokerage/convert/trade/{trade_id}", "brokerage/time", "brokerage/cfm/balance_summary", "brokerage/cfm/positions", "brokerage/cfm/positions/{product_id}", "brokerage/cfm/sweeps", "brokerage/intx/portfolio/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}", "brokerage/intx/positions/{portfolio_uuid}/{symbol}"} },
-                        { "post", new List<object>() {"brokerage/orders", "brokerage/orders/batch_cancel", "brokerage/orders/edit", "brokerage/orders/edit_preview", "brokerage/orders/preview", "brokerage/portfolios", "brokerage/portfolios/move_funds", "brokerage/convert/quote", "brokerage/convert/trade/{trade_id}", "brokerage/cfm/sweeps/schedule", "brokerage/intx/allocate"} },
-                        { "put", new List<object>() {"brokerage/portfolios/{portfolio_uuid}"} },
-                        { "delete", new List<object>() {"brokerage/portfolios/{portfolio_uuid}", "brokerage/cfm/sweeps"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "brokerage/accounts", 1 },
+                            { "brokerage/accounts/{account_uuid}", 1 },
+                            { "brokerage/orders/historical/batch", 1 },
+                            { "brokerage/orders/historical/fills", 1 },
+                            { "brokerage/orders/historical/{order_id}", 1 },
+                            { "brokerage/products", 3 },
+                            { "brokerage/products/{product_id}", 3 },
+                            { "brokerage/products/{product_id}/candles", 3 },
+                            { "brokerage/products/{product_id}/ticker", 3 },
+                            { "brokerage/best_bid_ask", 3 },
+                            { "brokerage/product_book", 3 },
+                            { "brokerage/transaction_summary", 3 },
+                            { "brokerage/portfolios", 1 },
+                            { "brokerage/portfolios/{portfolio_uuid}", 1 },
+                            { "brokerage/convert/trade/{trade_id}", 1 },
+                            { "brokerage/cfm/balance_summary", 1 },
+                            { "brokerage/cfm/positions", 1 },
+                            { "brokerage/cfm/positions/{product_id}", 1 },
+                            { "brokerage/cfm/sweeps", 1 },
+                            { "brokerage/intx/portfolio/{portfolio_uuid}", 1 },
+                            { "brokerage/intx/positions/{portfolio_uuid}", 1 },
+                            { "brokerage/intx/positions/{portfolio_uuid}/{symbol}", 1 },
+                            { "brokerage/payment_methods", 1 },
+                            { "brokerage/payment_methods/{payment_method_id}", 1 },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "brokerage/orders", 1 },
+                            { "brokerage/orders/batch_cancel", 1 },
+                            { "brokerage/orders/edit", 1 },
+                            { "brokerage/orders/edit_preview", 1 },
+                            { "brokerage/orders/preview", 1 },
+                            { "brokerage/portfolios", 1 },
+                            { "brokerage/portfolios/move_funds", 1 },
+                            { "brokerage/convert/quote", 1 },
+                            { "brokerage/convert/trade/{trade_id}", 1 },
+                            { "brokerage/cfm/sweeps/schedule", 1 },
+                            { "brokerage/intx/allocate", 1 },
+                            { "brokerage/orders/close_position", 1 },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "brokerage/portfolios/{portfolio_uuid}", 1 },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "brokerage/portfolios/{portfolio_uuid}", 1 },
+                            { "brokerage/cfm/sweeps", 1 },
+                        } },
                     } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
-                    { "taker", this.parseNumber("0.006") },
-                    { "maker", this.parseNumber("0.004") },
+                    { "taker", this.parseNumber("0.012") },
+                    { "maker", this.parseNumber("0.006") },
                     { "tierBased", true },
                     { "percentage", true },
                     { "tiers", new Dictionary<string, object>() {
@@ -167,6 +280,8 @@ public partial class coinbase : Exchange
                     { "internal_server_error", typeof(ExchangeError) },
                     { "UNSUPPORTED_ORDER_CONFIGURATION", typeof(BadRequest) },
                     { "INSUFFICIENT_FUND", typeof(BadRequest) },
+                    { "PERMISSION_DENIED", typeof(PermissionDenied) },
+                    { "INVALID_ARGUMENT", typeof(BadRequest) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "request timestamp expired", typeof(InvalidNonce) },
@@ -187,12 +302,18 @@ public partial class coinbase : Exchange
                 { "CGLD", "CELO" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "usePrivate", false },
+                { "brokerId", "ccxt" },
                 { "stablePairs", new List<object>() {"BUSD-USD", "CBETH-ETH", "DAI-USD", "GUSD-USD", "GYEN-USD", "PAX-USD", "PAX-USDT", "USDC-EUR", "USDC-GBP", "USDT-EUR", "USDT-GBP", "USDT-USD", "USDT-USDC", "WBTC-BTC"} },
                 { "fetchCurrencies", new Dictionary<string, object>() {
                     { "expires", 5000 },
                 } },
                 { "accounts", new List<object>() {"wallet", "fiat"} },
                 { "v3Accounts", new List<object>() {"ACCOUNT_TYPE_CRYPTO", "ACCOUNT_TYPE_FIAT"} },
+                { "networks", new Dictionary<string, object>() {
+                    { "ERC20", "ethereum" },
+                    { "XLM", "stellar" },
+                } },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "advanced", true },
                 { "fetchMarkets", "fetchMarketsV3" },
@@ -200,6 +321,7 @@ public partial class coinbase : Exchange
                 { "fetchTickers", "fetchTickersV3" },
                 { "fetchAccounts", "fetchAccountsV3" },
                 { "fetchBalance", "v2PrivateGetAccounts" },
+                { "fetchTime", "v2PublicGetTime" },
                 { "user_native_currency", "USD" },
             } },
         });
@@ -213,20 +335,31 @@ public partial class coinbase : Exchange
         * @description fetches the current integer timestamp in milliseconds from the exchange server
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
         parameters ??= new Dictionary<string, object>();
-        object response = await this.v2PublicGetTime(parameters);
-        //
-        //     {
-        //         "data": {
-        //             "epoch": 1589295679,
-        //             "iso": "2020-05-12T15:01:19Z"
-        //         }
-        //     }
-        //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return this.safeTimestamp(data, "epoch");
+        object defaultMethod = this.safeString(this.options, "fetchTime", "v2PublicGetTime");
+        object method = this.safeString(parameters, "method", defaultMethod);
+        parameters = this.omit(parameters, "method");
+        object response = null;
+        if (isTrue(isEqual(method, "v2PublicGetTime")))
+        {
+            response = await this.v2PublicGetTime(parameters);
+            //
+            //     {
+            //         "data": {
+            //             "epoch": 1589295679,
+            //             "iso": "2020-05-12T15:01:19Z"
+            //         }
+            //     }
+            //
+            response = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        } else
+        {
+            response = await this.v3PublicGetBrokerageTime(parameters);
+        }
+        return this.safeTimestamp2(response, "epoch", "epochSeconds");
     }
 
     public async override Task<object> fetchAccounts(object parameters = null)
@@ -235,7 +368,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchAccounts
         * @description fetch all the accounts associated with a profile
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -316,7 +449,7 @@ public partial class coinbase : Exchange
         object accounts = this.safeList(response, "data", new List<object>() {});
         object length = getArrayLength(accounts);
         object lastIndex = subtract(length, 1);
-        object last = this.safeValue(accounts, lastIndex);
+        object last = this.safeDict(accounts, lastIndex);
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
             ((IDictionary<string,object>)last)["next_starting_after"] = cursor;
@@ -335,10 +468,10 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, parameters, "cursor", "cursor", null, 100);
+            return await this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, parameters, "cursor", "cursor", null, 250);
         }
         object request = new Dictionary<string, object>() {
-            { "limit", 100 },
+            { "limit", 250 },
         };
         object response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, parameters));
         //
@@ -374,7 +507,7 @@ public partial class coinbase : Exchange
         object accounts = this.safeList(response, "accounts", new List<object>() {});
         object length = getArrayLength(accounts);
         object lastIndex = subtract(length, 1);
-        object last = this.safeValue(accounts, lastIndex);
+        object last = this.safeDict(accounts, lastIndex);
         object cursor = this.safeString(response, "cursor");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
@@ -382,6 +515,33 @@ public partial class coinbase : Exchange
             ((List<object>)accounts)[Convert.ToInt32(lastIndex)] = last;
         }
         return this.parseAccounts(accounts, parameters);
+    }
+
+    public async virtual Task<object> fetchPortfolios(object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchPortfolios
+        * @description fetch all the portfolios
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+        */
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.v3PrivateGetBrokeragePortfolios(parameters);
+        object portfolios = this.safeList(response, "portfolios", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(portfolios)); postFixIncrement(ref i))
+        {
+            object portfolio = getValue(portfolios, i);
+            ((IList<object>)result).Add(new Dictionary<string, object>() {
+                { "id", this.safeString(portfolio, "uuid") },
+                { "type", this.safeString(portfolio, "type") },
+                { "code", null },
+                { "info", portfolio },
+            });
+        }
+        return result;
     }
 
     public override object parseAccount(object account)
@@ -441,9 +601,9 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object active = this.safeValue(account, "active");
+        object active = this.safeBool(account, "active");
         object currencyIdV3 = this.safeString(account, "currency");
-        object currency = this.safeValue(account, "currency", new Dictionary<string, object>() {});
+        object currency = this.safeDict(account, "currency", new Dictionary<string, object>() {});
         object currencyId = this.safeString(currency, "code", currencyIdV3);
         object typeV3 = this.safeString(account, "name");
         object typeV2 = this.safeString(account, "type");
@@ -527,7 +687,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object tag = this.safeString(data, "destination_tag");
         object address = this.safeString(data, "address");
         return new Dictionary<string, object>() {
@@ -587,10 +747,12 @@ public partial class coinbase : Exchange
     public async virtual Task<object> fetchTransactionsWithMethod(object method, object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = await this.prepareAccountRequestWithCurrencyCode(code, limit, parameters);
+        object request = null;
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(code, limit, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         await this.loadMarkets();
-        object query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, query) }));
+        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseTransactions(getValue(response, "data"), null, since, limit);
     }
 
@@ -599,15 +761,14 @@ public partial class coinbase : Exchange
         /**
         * @method
         * @name coinbase#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+        * @description Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+        * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
-        // fiat only, for crypto transactions use fetchLedger
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, parameters);
     }
@@ -617,15 +778,14 @@ public partial class coinbase : Exchange
         /**
         * @method
         * @name coinbase#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+        * @description Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+        * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch deposits for
         * @param {int} [limit] the maximum number of deposits structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
-        // fiat only, for crypto transactions use fetchLedger
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, parameters);
     }
@@ -761,25 +921,25 @@ public partial class coinbase : Exchange
         object feeObject = null;
         if (isTrue(isEqual(transactionType, "send")))
         {
-            object network = this.safeValue(transaction, "network", new Dictionary<string, object>() {});
-            amountAndCurrencyObject = this.safeValue(network, "transaction_amount", new Dictionary<string, object>() {});
-            feeObject = this.safeValue(network, "transaction_fee", new Dictionary<string, object>() {});
+            object network = this.safeDict(transaction, "network", new Dictionary<string, object>() {});
+            amountAndCurrencyObject = this.safeDict(network, "transaction_amount", new Dictionary<string, object>() {});
+            feeObject = this.safeDict(network, "transaction_fee", new Dictionary<string, object>() {});
         } else
         {
-            amountAndCurrencyObject = this.safeValue(transaction, "subtotal", new Dictionary<string, object>() {});
-            feeObject = this.safeValue(transaction, "fee", new Dictionary<string, object>() {});
+            amountAndCurrencyObject = this.safeDict(transaction, "subtotal", new Dictionary<string, object>() {});
+            feeObject = this.safeDict(transaction, "fee", new Dictionary<string, object>() {});
         }
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         if (isTrue(isEqual(status, null)))
         {
-            object committed = this.safeValue(transaction, "committed");
+            object committed = this.safeBool(transaction, "committed");
             status = ((bool) isTrue(committed)) ? "ok" : "pending";
         }
         object id = this.safeString(transaction, "id");
         object currencyId = this.safeString(amountAndCurrencyObject, "currency");
         object feeCurrencyId = this.safeString(feeObject, "currency");
-        object datetime = this.safeValue(transaction, "created_at");
-        object toObject = this.safeValue(transaction, "to", new Dictionary<string, object>() {});
+        object datetime = this.safeString(transaction, "created_at");
+        object toObject = this.safeDict(transaction, "to", new Dictionary<string, object>() {});
         object toAddress = this.safeString(toObject, "address");
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -798,7 +958,7 @@ public partial class coinbase : Exchange
             { "amount", this.safeNumber(amountAndCurrencyObject, "amount") },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "status", status },
-            { "updated", this.parse8601(this.safeValue(transaction, "updated_at")) },
+            { "updated", this.parse8601(this.safeString(transaction, "updated_at")) },
             { "fee", new Dictionary<string, object>() {
                 { "cost", this.safeNumber(feeObject, "amount") },
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
@@ -870,10 +1030,10 @@ public partial class coinbase : Exchange
         //     }
         //
         object symbol = null;
-        object totalObject = this.safeValue(trade, "total", new Dictionary<string, object>() {});
-        object amountObject = this.safeValue(trade, "amount", new Dictionary<string, object>() {});
-        object subtotalObject = this.safeValue(trade, "subtotal", new Dictionary<string, object>() {});
-        object feeObject = this.safeValue(trade, "fee", new Dictionary<string, object>() {});
+        object totalObject = this.safeDict(trade, "total", new Dictionary<string, object>() {});
+        object amountObject = this.safeDict(trade, "amount", new Dictionary<string, object>() {});
+        object subtotalObject = this.safeDict(trade, "subtotal", new Dictionary<string, object>() {});
+        object feeObject = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
         object marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market, "-");
         if (isTrue(!isEqual(market, null)))
@@ -890,7 +1050,7 @@ public partial class coinbase : Exchange
                 symbol = add(add(bs, "/"), quote);
             }
         }
-        object sizeInQuote = this.safeValue(trade, "size_in_quote");
+        object sizeInQuote = this.safeBool(trade, "size_in_quote");
         object v3Price = this.safeString(trade, "price");
         object v3Cost = null;
         object v3Amount = this.safeString(trade, "size");
@@ -953,27 +1113,32 @@ public partial class coinbase : Exchange
         /**
         * @method
         * @name coinbase#fetchMarkets
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
         * @description retrieves data on all markets for coinbase
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.usePrivate] use private endpoint for fetching markets
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
         object method = this.safeString(this.options, "fetchMarkets", "fetchMarketsV3");
-        return await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+        if (isTrue(isEqual(method, "fetchMarketsV3")))
+        {
+            return await this.fetchMarketsV3(parameters);
+        }
+        return await this.fetchMarketsV2(parameters);
     }
 
     public async virtual Task<object> fetchMarketsV2(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.fetchCurrenciesFromCache(parameters);
-        object currencies = this.safeValue(response, "currencies", new Dictionary<string, object>() {});
-        object exchangeRates = this.safeValue(response, "exchangeRates", new Dictionary<string, object>() {});
-        object data = this.safeValue(currencies, "data", new List<object>() {});
+        object currencies = this.safeDict(response, "currencies", new Dictionary<string, object>() {});
+        object exchangeRates = this.safeDict(response, "exchangeRates", new Dictionary<string, object>() {});
+        object data = this.safeList(currencies, "data", new List<object>() {});
         object dataById = this.indexBy(data, "id");
-        object rates = this.safeValue(this.safeValue(exchangeRates, "data", new Dictionary<string, object>() {}), "rates", new Dictionary<string, object>() {});
+        object rates = this.safeDict(this.safeDict(exchangeRates, "data", new Dictionary<string, object>() {}), "rates", new Dictionary<string, object>() {});
         object baseIds = new List<object>(((IDictionary<string,object>)rates).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(baseIds)); postFixIncrement(ref i))
@@ -1046,9 +1211,172 @@ public partial class coinbase : Exchange
     public async virtual Task<object> fetchMarketsV3(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.v3PrivateGetBrokerageProducts(parameters);
+        object usePrivate = false;
+        var usePrivateparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "usePrivate", false);
+        usePrivate = ((IList<object>)usePrivateparametersVariable)[0];
+        parameters = ((IList<object>)usePrivateparametersVariable)[1];
+        object spotUnresolvedPromises = new List<object>() {};
+        if (isTrue(usePrivate))
+        {
+            ((IList<object>)spotUnresolvedPromises).Add(this.v3PrivateGetBrokerageProducts(parameters));
+        } else
+        {
+            ((IList<object>)spotUnresolvedPromises).Add(this.v3PublicGetBrokerageMarketProducts(parameters));
+        }
         //
-        //     [
+        //    {
+        //        products: [
+        //            {
+        //                product_id: 'BTC-USD',
+        //                price: '67060',
+        //                price_percentage_change_24h: '3.30054960636883',
+        //                volume_24h: '10967.87426597',
+        //                volume_percentage_change_24h: '141.73048325503036',
+        //                base_increment: '0.00000001',
+        //                quote_increment: '0.01',
+        //                quote_min_size: '1',
+        //                quote_max_size: '150000000',
+        //                base_min_size: '0.00000001',
+        //                base_max_size: '3400',
+        //                base_name: 'Bitcoin',
+        //                quote_name: 'US Dollar',
+        //                watched: false,
+        //                is_disabled: false,
+        //                new: false,
+        //                status: 'online',
+        //                cancel_only: false,
+        //                limit_only: false,
+        //                post_only: false,
+        //                trading_disabled: false,
+        //                auction_mode: false,
+        //                product_type: 'SPOT',
+        //                quote_currency_id: 'USD',
+        //                base_currency_id: 'BTC',
+        //                fcm_trading_session_details: null,
+        //                mid_market_price: '',
+        //                alias: '',
+        //                alias_to: [ 'BTC-USDC' ],
+        //                base_display_symbol: 'BTC',
+        //                quote_display_symbol: 'USD',
+        //                view_only: false,
+        //                price_increment: '0.01',
+        //                display_name: 'BTC-USD',
+        //                product_venue: 'CBE'
+        //            },
+        //            ...
+        //        ],
+        //        num_products: '646'
+        //    }
+        //
+        if (isTrue(this.checkRequiredCredentials(false)))
+        {
+            ((IList<object>)spotUnresolvedPromises).Add(this.v3PrivateGetBrokerageTransactionSummary(parameters));
+        }
+        //
+        //    {
+        //        total_volume: '9.995989116664404',
+        //        total_fees: '0.07996791093331522',
+        //        fee_tier: {
+        //            pricing_tier: 'Advanced 1',
+        //            usd_from: '0',
+        //            usd_to: '1000',
+        //            taker_fee_rate: '0.008',
+        //            maker_fee_rate: '0.006',
+        //            aop_from: '',
+        //            aop_to: ''
+        //        },
+        //        margin_rate: null,
+        //        goods_and_services_tax: null,
+        //        advanced_trade_only_volume: '9.995989116664404',
+        //        advanced_trade_only_fees: '0.07996791093331522',
+        //        coinbase_pro_volume: '0',
+        //        coinbase_pro_fees: '0',
+        //        total_balance: '',
+        //        has_promo_fee: false
+        //    }
+        //
+        object unresolvedContractPromises = new List<object>() {};
+        try
+        {
+            unresolvedContractPromises = new List<object> {this.v3PublicGetBrokerageMarketProducts(this.extend(parameters, new Dictionary<string, object>() {
+    { "product_type", "FUTURE" },
+})), this.v3PublicGetBrokerageMarketProducts(this.extend(parameters, new Dictionary<string, object>() {
+    { "product_type", "FUTURE" },
+    { "contract_expiry_type", "PERPETUAL" },
+}))};
+            if (isTrue(this.checkRequiredCredentials(false)))
+            {
+                ((IList<object>)unresolvedContractPromises).Add(this.extend(parameters, new Dictionary<string, object>() {
+                    { "product_type", "FUTURE" },
+                }));
+                ((IList<object>)unresolvedContractPromises).Add(this.extend(parameters, new Dictionary<string, object>() {
+                    { "product_type", "FUTURE" },
+                    { "contract_expiry_type", "PERPETUAL" },
+                }));
+            }
+        } catch(Exception e)
+        {
+            unresolvedContractPromises = new List<object>() {}; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
+        }
+        object promises = await promiseAll(spotUnresolvedPromises);
+        object contractPromises = null;
+        try
+        {
+            contractPromises = await promiseAll(unresolvedContractPromises); // some users don't have access to contracts
+        } catch(Exception e)
+        {
+            contractPromises = new List<object>() {};
+        }
+        object spot = this.safeDict(promises, 0, new Dictionary<string, object>() {});
+        object fees = this.safeDict(promises, 1, new Dictionary<string, object>() {});
+        object expiringFutures = this.safeDict(contractPromises, 0, new Dictionary<string, object>() {});
+        object perpetualFutures = this.safeDict(contractPromises, 1, new Dictionary<string, object>() {});
+        object expiringFees = this.safeDict(contractPromises, 2, new Dictionary<string, object>() {});
+        object perpetualFees = this.safeDict(contractPromises, 3, new Dictionary<string, object>() {});
+        //
+        //     {
+        //         "total_volume": 0,
+        //         "total_fees": 0,
+        //         "fee_tier": {
+        //             "pricing_tier": "",
+        //             "usd_from": "0",
+        //             "usd_to": "10000",
+        //             "taker_fee_rate": "0.006",
+        //             "maker_fee_rate": "0.004"
+        //         },
+        //         "margin_rate": null,
+        //         "goods_and_services_tax": null,
+        //         "advanced_trade_only_volume": 0,
+        //         "advanced_trade_only_fees": 0,
+        //         "coinbase_pro_volume": 0,
+        //         "coinbase_pro_fees": 0
+        //     }
+        //
+        object feeTier = this.safeDict(fees, "fee_tier", new Dictionary<string, object>() {});
+        object expiringFeeTier = this.safeDict(expiringFees, "fee_tier", new Dictionary<string, object>() {}); // fee tier null?
+        object perpetualFeeTier = this.safeDict(perpetualFees, "fee_tier", new Dictionary<string, object>() {}); // fee tier null?
+        object data = this.safeList(spot, "products", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.parseSpotMarket(getValue(data, i), feeTier));
+        }
+        object futureData = this.safeList(expiringFutures, "products", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(futureData)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.parseContractMarket(getValue(futureData, i), expiringFeeTier));
+        }
+        object perpetualData = this.safeList(perpetualFutures, "products", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(perpetualData)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.parseContractMarket(getValue(perpetualData, i), perpetualFeeTier));
+        }
+        return result;
+    }
+
+    public virtual object parseSpotMarket(object market, object feeTier)
+    {
+        //
         //         {
         //             "product_id": "TONE-USD",
         //             "price": "0.01523",
@@ -1077,117 +1405,318 @@ public partial class coinbase : Exchange
         //             "base_currency_id": "TONE",
         //             "fcm_trading_session_details": null,
         //             "mid_market_price": ""
-        //         },
-        //         ...
-        //     ]
+        //         }
         //
-        object fees = await this.v3PrivateGetBrokerageTransactionSummary(parameters);
+        object id = this.safeString(market, "product_id");
+        object baseId = this.safeString(market, "base_currency_id");
+        object quoteId = this.safeString(market, "quote_currency_id");
+        object bs = this.safeCurrencyCode(baseId);
+        object quote = this.safeCurrencyCode(quoteId);
+        object marketType = this.safeStringLower(market, "product_type");
+        object tradingDisabled = this.safeBool(market, "trading_disabled");
+        object stablePairs = this.safeList(this.options, "stablePairs", new List<object>() {});
+        object defaultTakerFee = this.safeNumber(getValue(this.fees, "trading"), "taker");
+        object defaultMakerFee = this.safeNumber(getValue(this.fees, "trading"), "maker");
+        object takerFee = ((bool) isTrue(this.inArray(id, stablePairs))) ? 0.00001 : this.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee);
+        object makerFee = ((bool) isTrue(this.inArray(id, stablePairs))) ? 0 : this.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee);
+        return this.safeMarketStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "symbol", add(add(bs, "/"), quote) },
+            { "base", bs },
+            { "quote", quote },
+            { "settle", null },
+            { "baseId", baseId },
+            { "quoteId", quoteId },
+            { "settleId", null },
+            { "type", marketType },
+            { "spot", (isEqual(marketType, "spot")) },
+            { "margin", null },
+            { "swap", false },
+            { "future", false },
+            { "option", false },
+            { "active", !isTrue(tradingDisabled) },
+            { "contract", false },
+            { "linear", null },
+            { "inverse", null },
+            { "taker", takerFee },
+            { "maker", makerFee },
+            { "contractSize", null },
+            { "expiry", null },
+            { "expiryDatetime", null },
+            { "strike", null },
+            { "optionType", null },
+            { "precision", new Dictionary<string, object>() {
+                { "amount", this.safeNumber(market, "base_increment") },
+                { "price", this.safeNumber2(market, "price_increment", "quote_increment") },
+            } },
+            { "limits", new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(market, "base_min_size") },
+                    { "max", this.safeNumber(market, "base_max_size") },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(market, "quote_min_size") },
+                    { "max", this.safeNumber(market, "quote_max_size") },
+                } },
+            } },
+            { "created", null },
+            { "info", market },
+        });
+    }
+
+    public virtual object parseContractMarket(object market, object feeTier)
+    {
+        // expiring
         //
-        //     {
-        //         "total_volume": 0,
-        //         "total_fees": 0,
-        //         "fee_tier": {
-        //             "pricing_tier": "",
-        //             "usd_from": "0",
-        //             "usd_to": "10000",
-        //             "taker_fee_rate": "0.006",
-        //             "maker_fee_rate": "0.004"
-        //         },
-        //         "margin_rate": null,
-        //         "goods_and_services_tax": null,
-        //         "advanced_trade_only_volume": 0,
-        //         "advanced_trade_only_fees": 0,
-        //         "coinbase_pro_volume": 0,
-        //         "coinbase_pro_fees": 0
-        //     }
+        //        {
+        //           "product_id":"BIT-26APR24-CDE",
+        //           "price":"71145",
+        //           "price_percentage_change_24h":"-2.36722931247427",
+        //           "volume_24h":"108549",
+        //           "volume_percentage_change_24h":"155.78255337197794",
+        //           "base_increment":"1",
+        //           "quote_increment":"0.01",
+        //           "quote_min_size":"0",
+        //           "quote_max_size":"100000000",
+        //           "base_min_size":"1",
+        //           "base_max_size":"100000000",
+        //           "base_name":"",
+        //           "quote_name":"US Dollar",
+        //           "watched":false,
+        //           "is_disabled":false,
+        //           "new":false,
+        //           "status":"",
+        //           "cancel_only":false,
+        //           "limit_only":false,
+        //           "post_only":false,
+        //           "trading_disabled":false,
+        //           "auction_mode":false,
+        //           "product_type":"FUTURE",
+        //           "quote_currency_id":"USD",
+        //           "base_currency_id":"",
+        //           "fcm_trading_session_details":{
+        //              "is_session_open":true,
+        //              "open_time":"2024-04-08T22:00:00Z",
+        //              "close_time":"2024-04-09T21:00:00Z"
+        //           },
+        //           "mid_market_price":"71105",
+        //           "alias":"",
+        //           "alias_to":[
+        //           ],
+        //           "base_display_symbol":"",
+        //           "quote_display_symbol":"USD",
+        //           "view_only":false,
+        //           "price_increment":"5",
+        //           "display_name":"BTC 26 APR 24",
+        //           "product_venue":"FCM",
+        //           "future_product_details":{
+        //              "venue":"cde",
+        //              "contract_code":"BIT",
+        //              "contract_expiry":"2024-04-26T15:00:00Z",
+        //              "contract_size":"0.01",
+        //              "contract_root_unit":"BTC",
+        //              "group_description":"Nano Bitcoin Futures",
+        //              "contract_expiry_timezone":"Europe/London",
+        //              "group_short_description":"Nano BTC",
+        //              "risk_managed_by":"MANAGED_BY_FCM",
+        //              "contract_expiry_type":"EXPIRING",
+        //              "contract_display_name":"BTC 26 APR 24"
+        //           }
+        //        }
         //
-        object feeTier = this.safeValue(fees, "fee_tier", new Dictionary<string, object>() {});
-        object data = this.safeValue(response, "products", new List<object>() {});
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        // perpetual
+        //
+        //        {
+        //           "product_id":"ETH-PERP-INTX",
+        //           "price":"3630.98",
+        //           "price_percentage_change_24h":"0.65142426292038",
+        //           "volume_24h":"114020.1501",
+        //           "volume_percentage_change_24h":"63.33650787154869",
+        //           "base_increment":"0.0001",
+        //           "quote_increment":"0.01",
+        //           "quote_min_size":"10",
+        //           "quote_max_size":"50000000",
+        //           "base_min_size":"0.0001",
+        //           "base_max_size":"50000",
+        //           "base_name":"",
+        //           "quote_name":"USDC",
+        //           "watched":false,
+        //           "is_disabled":false,
+        //           "new":false,
+        //           "status":"",
+        //           "cancel_only":false,
+        //           "limit_only":false,
+        //           "post_only":false,
+        //           "trading_disabled":false,
+        //           "auction_mode":false,
+        //           "product_type":"FUTURE",
+        //           "quote_currency_id":"USDC",
+        //           "base_currency_id":"",
+        //           "fcm_trading_session_details":null,
+        //           "mid_market_price":"3630.975",
+        //           "alias":"",
+        //           "alias_to":[],
+        //           "base_display_symbol":"",
+        //           "quote_display_symbol":"USDC",
+        //           "view_only":false,
+        //           "price_increment":"0.01",
+        //           "display_name":"ETH PERP",
+        //           "product_venue":"INTX",
+        //           "future_product_details":{
+        //              "venue":"",
+        //              "contract_code":"ETH",
+        //              "contract_expiry":null,
+        //              "contract_size":"1",
+        //              "contract_root_unit":"ETH",
+        //              "group_description":"",
+        //              "contract_expiry_timezone":"",
+        //              "group_short_description":"",
+        //              "risk_managed_by":"MANAGED_BY_VENUE",
+        //              "contract_expiry_type":"PERPETUAL",
+        //              "perpetual_details":{
+        //                 "open_interest":"0",
+        //                 "funding_rate":"0.000016",
+        //                 "funding_time":"2024-04-09T09:00:00.000008Z",
+        //                 "max_leverage":"10"
+        //              },
+        //              "contract_display_name":"ETH PERPETUAL"
+        //           }
+        //        }
+        //
+        object id = this.safeString(market, "product_id");
+        object futureProductDetails = this.safeDict(market, "future_product_details", new Dictionary<string, object>() {});
+        object contractExpiryType = this.safeString(futureProductDetails, "contract_expiry_type");
+        object contractSize = this.safeNumber(futureProductDetails, "contract_size");
+        object contractExpire = this.safeString(futureProductDetails, "contract_expiry");
+        object expireTimestamp = this.parse8601(contractExpire);
+        object expireDateTime = this.iso8601(expireTimestamp);
+        object isSwap = (isEqual(contractExpiryType, "PERPETUAL"));
+        object baseId = this.safeString(futureProductDetails, "contract_root_unit");
+        object quoteId = this.safeString(market, "quote_currency_id");
+        object bs = this.safeCurrencyCode(baseId);
+        object quote = this.safeCurrencyCode(quoteId);
+        object tradingDisabled = this.safeBool(market, "is_disabled");
+        object symbol = add(add(bs, "/"), quote);
+        object type = null;
+        if (isTrue(isSwap))
         {
-            object market = getValue(data, i);
-            object id = this.safeString(market, "product_id");
-            object baseId = this.safeString(market, "base_currency_id");
-            object quoteId = this.safeString(market, "quote_currency_id");
-            object bs = this.safeCurrencyCode(baseId);
-            object quote = this.safeCurrencyCode(quoteId);
-            object marketType = this.safeStringLower(market, "product_type");
-            object tradingDisabled = this.safeValue(market, "trading_disabled");
-            object stablePairs = this.safeValue(this.options, "stablePairs", new List<object>() {});
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
-                { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
-                { "base", bs },
-                { "quote", quote },
-                { "settle", null },
-                { "baseId", baseId },
-                { "quoteId", quoteId },
-                { "settleId", null },
-                { "type", marketType },
-                { "spot", (isEqual(marketType, "spot")) },
-                { "margin", null },
-                { "swap", false },
-                { "future", false },
-                { "option", false },
-                { "active", !isTrue(tradingDisabled) },
-                { "contract", false },
-                { "linear", null },
-                { "inverse", null },
-                { "taker", ((bool) isTrue(this.inArray(id, stablePairs))) ? 0.00001 : this.safeNumber(feeTier, "taker_fee_rate") },
-                { "maker", ((bool) isTrue(this.inArray(id, stablePairs))) ? 0 : this.safeNumber(feeTier, "maker_fee_rate") },
-                { "contractSize", null },
-                { "expiry", null },
-                { "expiryDatetime", null },
-                { "strike", null },
-                { "optionType", null },
-                { "precision", new Dictionary<string, object>() {
-                    { "amount", this.safeNumber(market, "base_increment") },
-                    { "price", this.safeNumber2(market, "price_increment", "quote_increment") },
-                } },
-                { "limits", new Dictionary<string, object>() {
-                    { "leverage", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(market, "base_min_size") },
-                        { "max", this.safeNumber(market, "base_max_size") },
-                    } },
-                    { "price", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "cost", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(market, "quote_min_size") },
-                        { "max", this.safeNumber(market, "quote_max_size") },
-                    } },
-                } },
-                { "created", null },
-                { "info", market },
-            });
+            type = "swap";
+            symbol = add(add(symbol, ":"), quote);
+        } else
+        {
+            type = "future";
+            symbol = add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expireTimestamp));
         }
-        return result;
+        object takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
+        object makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
+        object taker = ((bool) isTrue(takerFeeRate)) ? takerFeeRate : this.parseNumber("0.06");
+        object maker = ((bool) isTrue(makerFeeRate)) ? makerFeeRate : this.parseNumber("0.04");
+        return this.safeMarketStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "symbol", symbol },
+            { "base", bs },
+            { "quote", quote },
+            { "settle", quote },
+            { "baseId", baseId },
+            { "quoteId", quoteId },
+            { "settleId", quoteId },
+            { "type", type },
+            { "spot", false },
+            { "margin", false },
+            { "swap", isSwap },
+            { "future", !isTrue(isSwap) },
+            { "option", false },
+            { "active", !isTrue(tradingDisabled) },
+            { "contract", true },
+            { "linear", true },
+            { "inverse", false },
+            { "taker", taker },
+            { "maker", maker },
+            { "contractSize", contractSize },
+            { "expiry", expireTimestamp },
+            { "expiryDatetime", expireDateTime },
+            { "strike", null },
+            { "optionType", null },
+            { "precision", new Dictionary<string, object>() {
+                { "amount", this.safeNumber(market, "base_increment") },
+                { "price", this.safeNumber2(market, "price_increment", "quote_increment") },
+            } },
+            { "limits", new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(market, "base_min_size") },
+                    { "max", this.safeNumber(market, "base_max_size") },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(market, "quote_min_size") },
+                    { "max", this.safeNumber(market, "quote_max_size") },
+                } },
+            } },
+            { "created", null },
+            { "info", market },
+        });
     }
 
     public async virtual Task<object> fetchCurrenciesFromCache(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "fetchCurrencies", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchCurrencies", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(options, "timestamp");
         object expires = this.safeInteger(options, "expires", 1000);
         object now = this.milliseconds();
         if (isTrue(isTrue((isEqual(timestamp, null))) || isTrue((isGreaterThan((subtract(now, timestamp)), expires)))))
         {
-            object currencies = await this.v2PublicGetCurrencies(parameters);
+            object promises = new List<object> {this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)};
+            object promisesResult = await promiseAll(promises);
+            object fiatResponse = this.safeDict(promisesResult, 0, new Dictionary<string, object>() {});
+            //
+            //    [
+            //        "data": {
+            //            id: 'IMP',
+            //            name: 'Isle of Man Pound',
+            //            min_size: '0.01'
+            //        },
+            //        ...
+            //    ]
+            //
+            object cryptoResponse = this.safeDict(promisesResult, 1, new Dictionary<string, object>() {});
+            //
+            //    {
+            //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+            //        code: 'AERO',
+            //        name: 'Aerodrome Finance',
+            //        color: '#0433FF',
+            //        sort_index: '340',
+            //        exponent: '8',
+            //        type: 'crypto',
+            //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+            //    }
+            //
+            object fiatData = this.safeList(fiatResponse, "data", new List<object>() {});
+            object cryptoData = this.safeList(cryptoResponse, "data", new List<object>() {});
             object exchangeRates = await this.v2PublicGetExchangeRates(parameters);
             ((IDictionary<string,object>)this.options)["fetchCurrencies"] = this.extend(options, new Dictionary<string, object>() {
-                { "currencies", currencies },
+                { "currencies", this.arrayConcat(fiatData, cryptoData) },
                 { "exchangeRates", exchangeRates },
                 { "timestamp", now },
             });
         }
-        return this.safeValue(this.options, "fetchCurrencies", new Dictionary<string, object>() {});
+        return this.safeDict(this.options, "fetchCurrencies", new Dictionary<string, object>() {});
     }
 
     public async override Task<object> fetchCurrencies(object parameters = null)
@@ -1203,20 +1732,29 @@ public partial class coinbase : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object response = await this.fetchCurrenciesFromCache(parameters);
-        object currencies = this.safeValue(response, "currencies", new Dictionary<string, object>() {});
+        object currencies = this.safeList(response, "currencies", new List<object>() {});
         //
-        //     {
-        //         "data":[
-        //             {"id":"AED","name":"United Arab Emirates Dirham","min_size":"0.01000000"},
-        //             {"id":"AFN","name":"Afghan Afghani","min_size":"0.01000000"},
-        //             {"id":"ALL","name":"Albanian Lek","min_size":"0.01000000"},
-        //             {"id":"AMD","name":"Armenian Dram","min_size":"0.01000000"},
-        //             {"id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"},
-        //             ...
-        //         ],
-        //     }
+        // fiat
         //
-        object exchangeRates = this.safeValue(response, "exchangeRates", new Dictionary<string, object>() {});
+        //    {
+        //        id: 'IMP',
+        //        name: 'Isle of Man Pound',
+        //        min_size: '0.01'
+        //    },
+        //
+        // crypto
+        //
+        //    {
+        //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //        code: 'AERO',
+        //        name: 'Aerodrome Finance',
+        //        color: '#0433FF',
+        //        sort_index: '340',
+        //        exponent: '8',
+        //        type: 'crypto',
+        //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //    }
+        //
         //
         //     {
         //         "data":{
@@ -1232,25 +1770,24 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(currencies, "data", new List<object>() {});
-        object dataById = this.indexBy(data, "id");
-        object rates = this.safeValue(this.safeValue(exchangeRates, "data", new Dictionary<string, object>() {}), "rates", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)rates).Keys);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        object networks = new Dictionary<string, object>() {};
+        object networksById = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
-            object key = getValue(keys, i);
-            object type = ((bool) isTrue((inOp(dataById, key)))) ? "fiat" : "crypto";
-            object currency = this.safeValue(dataById, key, new Dictionary<string, object>() {});
-            object id = this.safeString(currency, "id", key);
-            object name = this.safeString(currency, "name");
+            object currency = getValue(currencies, i);
+            object assetId = this.safeString(currency, "asset_id");
+            object id = this.safeString2(currency, "id", "code");
             object code = this.safeCurrencyCode(id);
+            object name = this.safeString(currency, "name");
+            ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = ((string)name).ToLower();
+            ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)name).ToLower();
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "info", currency },
                 { "id", id },
                 { "code", code },
-                { "info", currency },
-                { "type", type },
-                { "name", name },
+                { "type", ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat" },
+                { "name", this.safeString(currency, "name") },
                 { "active", true },
                 { "deposit", null },
                 { "withdraw", null },
@@ -1267,7 +1804,15 @@ public partial class coinbase : Exchange
                     } },
                 } },
             };
+            if (isTrue(!isEqual(assetId, null)))
+            {
+                object lowerCaseName = ((string)name).ToLower();
+                ((IDictionary<string,object>)networks)[(string)code] = lowerCaseName;
+                ((IDictionary<string,object>)networksById)[(string)lowerCaseName] = code;
+            }
         }
+        ((IDictionary<string,object>)this.options)["networks"] = this.extend(networks, getValue(this.options, "networks"));
+        ((IDictionary<string,object>)this.options)["networksById"] = this.extend(networksById, getValue(this.options, "networksById"));
         return result;
     }
 
@@ -1277,10 +1822,11 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.usePrivate] use private endpoint for fetching tickers
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1311,8 +1857,8 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rates = this.safeValue(data, "rates", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rates = this.safeDict(data, "rates", new Dictionary<string, object>() {});
         object quoteId = this.safeString(data, "currency");
         object result = new Dictionary<string, object>() {};
         object baseIds = new List<object>(((IDictionary<string,object>)rates).Keys);
@@ -1338,7 +1884,26 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["product_ids"] = this.marketIds(symbols);
         }
-        object response = await this.v3PrivateGetBrokerageProducts(this.extend(request, parameters));
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", this.getMarketFromSymbols(symbols), parameters, "default");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isTrue(!isEqual(marketType, null)) && isTrue(!isEqual(marketType, "default"))))
+        {
+            ((IDictionary<string,object>)request)["product_type"] = ((bool) isTrue((isEqual(marketType, "swap")))) ? "FUTURE" : "SPOT";
+        }
+        object response = null;
+        object usePrivate = false;
+        var usePrivateparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "usePrivate", false);
+        usePrivate = ((IList<object>)usePrivateparametersVariable)[0];
+        parameters = ((IList<object>)usePrivateparametersVariable)[1];
+        if (isTrue(usePrivate))
+        {
+            response = await this.v3PrivateGetBrokerageProducts(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v3PublicGetBrokerageMarketProducts(this.extend(request, parameters));
+        }
         //
         //     {
         //         "products": [
@@ -1376,7 +1941,7 @@ public partial class coinbase : Exchange
         //         "num_products": 549
         //     }
         //
-        object data = this.safeValue(response, "products", new List<object>() {});
+        object data = this.safeList(response, "products", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -1395,12 +1960,13 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.usePrivate] whether to use the private endpoint for fetching the ticker
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1432,9 +1998,9 @@ public partial class coinbase : Exchange
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        object spotData = this.safeValue(spot, "data", new Dictionary<string, object>() {});
-        object askData = this.safeValue(ask, "data", new Dictionary<string, object>() {});
-        object bidData = this.safeValue(bid, "data", new Dictionary<string, object>() {});
+        object spotData = this.safeDict(spot, "data", new Dictionary<string, object>() {});
+        object askData = this.safeDict(ask, "data", new Dictionary<string, object>() {});
+        object bidData = this.safeDict(bid, "data", new Dictionary<string, object>() {});
         object bidAskLast = new Dictionary<string, object>() {
             { "bid", this.safeNumber(bidData, "amount") },
             { "ask", this.safeNumber(askData, "amount") },
@@ -1452,7 +2018,18 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "limit", 1 },
         };
-        object response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters));
+        object usePrivate = false;
+        var usePrivateparametersVariable = this.handleOptionAndParams(parameters, "fetchTicker", "usePrivate", false);
+        usePrivate = ((IList<object>)usePrivateparametersVariable)[0];
+        parameters = ((IList<object>)usePrivateparametersVariable)[1];
+        object response = null;
+        if (isTrue(usePrivate))
+        {
+            response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker(this.extend(request, parameters));
+        }
         //
         //     {
         //         "trades": [
@@ -1471,7 +2048,7 @@ public partial class coinbase : Exchange
         //         "best_ask": "28208.62"
         //     }
         //
-        object data = this.safeValue(response, "trades", new List<object>() {});
+        object data = this.safeList(response, "trades", new List<object>() {});
         object ticker = this.parseTicker(getValue(data, 0), market);
         ((IDictionary<string,object>)ticker)["bid"] = this.safeNumber(response, "best_bid");
         ((IDictionary<string,object>)ticker)["ask"] = this.safeNumber(response, "best_ask");
@@ -1566,8 +2143,8 @@ public partial class coinbase : Exchange
         object askVolume = null;
         if (isTrue((inOp(ticker, "bids"))))
         {
-            object bids = this.safeValue(ticker, "bids", new List<object>() {});
-            object asks = this.safeValue(ticker, "asks", new List<object>() {});
+            object bids = this.safeList(ticker, "bids", new List<object>() {});
+            object asks = this.safeList(ticker, "asks", new List<object>() {});
             bid = this.safeNumber(getValue(bids, 0), "price");
             bidVolume = this.safeNumber(getValue(bids, 0), "size");
             ask = this.safeNumber(getValue(asks, 0), "price");
@@ -1603,9 +2180,9 @@ public partial class coinbase : Exchange
     public virtual object parseCustomBalance(object response, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object balances = this.safeValue2(response, "data", "accounts", new List<object>() {});
-        object accounts = this.safeValue(parameters, "type", getValue(this.options, "accounts"));
-        object v3Accounts = this.safeValue(parameters, "type", getValue(this.options, "v3Accounts"));
+        object balances = this.safeList2(response, "data", "accounts", new List<object>() {});
+        object accounts = this.safeList(parameters, "type", getValue(this.options, "accounts"));
+        object v3Accounts = this.safeList(parameters, "type", getValue(this.options, "v3Accounts"));
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -1615,14 +2192,14 @@ public partial class coinbase : Exchange
             object type = this.safeString(balance, "type");
             if (isTrue(this.inArray(type, accounts)))
             {
-                object value = this.safeValue(balance, "balance");
+                object value = this.safeDict(balance, "balance");
                 if (isTrue(!isEqual(value, null)))
                 {
                     object currencyId = this.safeString(value, "currency");
                     object code = this.safeCurrencyCode(currencyId);
                     object total = this.safeString(value, "amount");
                     object free = total;
-                    object account = this.safeValue(result, code);
+                    object account = this.safeDict(result, code);
                     if (isTrue(isEqual(account, null)))
                     {
                         account = this.account();
@@ -1637,8 +2214,8 @@ public partial class coinbase : Exchange
                 }
             } else if (isTrue(this.inArray(type, v3Accounts)))
             {
-                object available = this.safeValue(balance, "available_balance");
-                object hold = this.safeValue(balance, "hold");
+                object available = this.safeDict(balance, "available_balance");
+                object hold = this.safeDict(balance, "hold");
                 if (isTrue(isTrue(!isEqual(available, null)) && isTrue(!isEqual(hold, null))))
                 {
                     object currencyId = this.safeString(available, "currency");
@@ -1646,7 +2223,7 @@ public partial class coinbase : Exchange
                     object used = this.safeString(hold, "value");
                     object free = this.safeString(available, "value");
                     object total = Precise.stringAdd(used, free);
-                    object account = this.safeValue(result, code);
+                    object account = this.safeDict(result, code);
                     if (isTrue(isEqual(account, null)))
                     {
                         account = this.account();
@@ -1672,26 +2249,35 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
+        * @param {object} [params.type] "spot" (default) or "swap" or "future"
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {
-            { "limit", 250 },
-        };
+        object request = new Dictionary<string, object>() {};
         object response = null;
         object isV3 = this.safeBool(parameters, "v3", false);
-        parameters = this.omit(parameters, "v3");
+        parameters = this.omit(parameters, new List<object>() {"v3"});
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object method = this.safeString(this.options, "fetchBalance", "v3PrivateGetBrokerageAccounts");
-        if (isTrue(isTrue((isV3)) || isTrue((isEqual(method, "v3PrivateGetBrokerageAccounts")))))
+        if (isTrue(isEqual(marketType, "future")))
         {
+            response = await this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, parameters));
+        } else if (isTrue(isTrue((isV3)) || isTrue((isEqual(method, "v3PrivateGetBrokerageAccounts")))))
+        {
+            ((IDictionary<string,object>)request)["limit"] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, parameters));
         } else
         {
+            ((IDictionary<string,object>)request)["limit"] = 100;
             response = await this.v2PrivateGetAccounts(this.extend(request, parameters));
         }
         //
@@ -1765,6 +2351,7 @@ public partial class coinbase : Exchange
         //         "size": 9
         //     }
         //
+        ((IDictionary<string,object>)parameters)["type"] = marketType;
         return this.parseCustomBalance(response, parameters);
     }
 
@@ -1773,28 +2360,74 @@ public partial class coinbase : Exchange
         /**
         * @method
         * @name coinbase#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-        * @param {string} code unified currency code, default is undefined
+        * @description Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+        * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "next_starting_after", "starting_after", null, 100);
+        }
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
         }
-        object request = await this.prepareAccountRequestWithCurrencyCode(code, limit, parameters);
-        object query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        object request = null;
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(code, limit, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        object response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, query));
-        return this.parseLedger(getValue(response, "data"), currency, since, limit);
+        object response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters));
+        object ledger = this.parseLedger(getValue(response, "data"), currency, since, limit);
+        object length = getArrayLength(ledger);
+        if (isTrue(isEqual(length, 0)))
+        {
+            return ledger;
+        }
+        object lastIndex = subtract(length, 1);
+        object last = this.safeDict(ledger, lastIndex);
+        object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
+        object cursor = this.safeString(pagination, "next_starting_after");
+        if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
+        {
+            object lastFee = this.safeDict(last, "fee");
+            ((IDictionary<string,object>)last)["next_starting_after"] = cursor;
+            ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = new Dictionary<string, object>() {
+                { "info", this.safeDict(last, "info") },
+                { "id", this.safeString(last, "id") },
+                { "timestamp", this.safeInteger(last, "timestamp") },
+                { "datetime", this.safeString(last, "datetime") },
+                { "direction", this.safeString(last, "direction") },
+                { "account", this.safeString(last, "account") },
+                { "referenceId", null },
+                { "referenceAccount", null },
+                { "type", this.safeString(last, "type") },
+                { "currency", this.safeString(last, "currency") },
+                { "amount", this.safeNumber(last, "amount") },
+                { "before", null },
+                { "after", null },
+                { "status", this.safeString(last, "status") },
+                { "fee", new Dictionary<string, object>() {
+                    { "cost", this.safeNumber(lastFee, "cost") },
+                    { "currency", this.safeString(lastFee, "currency") },
+                } },
+            };
+        }
+        return ledger;
     }
 
     public virtual object parseLedgerEntryStatus(object status)
@@ -2066,7 +2699,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object amountInfo = this.safeValue(item, "amount", new Dictionary<string, object>() {});
+        object amountInfo = this.safeDict(item, "amount", new Dictionary<string, object>() {});
         object amount = this.safeString(amountInfo, "amount");
         object direction = null;
         if (isTrue(Precise.stringLt(amount, "0")))
@@ -2079,6 +2712,7 @@ public partial class coinbase : Exchange
         }
         object currencyId = this.safeString(amountInfo, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         //
         // the address and txid do not belong to the unified ledger structure
         //
@@ -2089,9 +2723,9 @@ public partial class coinbase : Exchange
         //     let txid = undefined;
         //
         object fee = null;
-        object networkInfo = this.safeValue(item, "network", new Dictionary<string, object>() {});
+        object networkInfo = this.safeDict(item, "network", new Dictionary<string, object>() {});
         // txid = network['hash']; // txid does not belong to the unified ledger structure
-        object feeInfo = this.safeValue(networkInfo, "transaction_fee");
+        object feeInfo = this.safeDict(networkInfo, "transaction_fee");
         if (isTrue(!isEqual(feeInfo, null)))
         {
             object feeCurrencyId = this.safeString(feeInfo, "currency");
@@ -2102,7 +2736,7 @@ public partial class coinbase : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object timestamp = this.parse8601(this.safeValue(item, "created_at"));
+        object timestamp = this.parse8601(this.safeString(item, "created_at"));
         object id = this.safeString(item, "id");
         object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         object status = this.parseLedgerEntryStatus(this.safeString(item, "status"));
@@ -2117,7 +2751,7 @@ public partial class coinbase : Exchange
                 accountId = getValue(parts, 3);
             }
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
             { "timestamp", timestamp },
@@ -2133,13 +2767,14 @@ public partial class coinbase : Exchange
             { "after", null },
             { "status", status },
             { "fee", fee },
-        };
+        }, currency);
     }
 
-    public async virtual Task<object> findAccountId(object code)
+    public async virtual Task<object> findAccountId(object code, object parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        await this.loadAccounts();
+        await this.loadAccounts(false, parameters);
         for (object i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
         {
             object account = getValue(this.accounts, i);
@@ -2173,13 +2808,14 @@ public partial class coinbase : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object accountId = this.safeString2(parameters, "account_id", "accountId");
+        parameters = this.omit(parameters, new List<object>() {"account_id", "accountId"});
         if (isTrue(isEqual(accountId, null)))
         {
             if (isTrue(isEqual(code, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
-            accountId = await this.findAccountId(code);
+            accountId = await this.findAccountId(code, parameters);
             if (isTrue(isEqual(accountId, null)))
             {
                 throw new ExchangeError ((string)add(add(this.id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code)) ;
@@ -2192,7 +2828,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        return request;
+        return new List<object>() {request, parameters};
     }
 
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
@@ -2201,7 +2837,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#createMarketBuyOrderWithCost
         * @description create a market buy order by providing the symbol and cost
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {float} cost how much you want to trade in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2224,7 +2860,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#createOrder
         * @description create a trade order
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -2236,18 +2872,24 @@ public partial class coinbase : Exchange
         * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
         * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
         * @param {bool} [params.postOnly] true or false
-        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
+        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
         * @param {string} [params.stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
         * @param {string} [params.end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
         * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
+        * @param {float} [params.leverage] default to 1, the leverage to use for the order
+        * @param {string} [params.marginMode] 'cross' or 'isolated'
+        * @param {string} [params.retail_portfolio_id] portfolio uid
+        * @param {boolean} [params.is_max] Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
+        * @param {string} [params.tradable_balance] amount of tradable balance
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object id = this.safeString(this.options, "brokerId", "ccxt");
         object request = new Dictionary<string, object>() {
-            { "client_order_id", this.uuid() },
+            { "client_order_id", add(add(id, "-"), this.uuid()) },
             { "product_id", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
         };
@@ -2258,7 +2900,7 @@ public partial class coinbase : Exchange
         object isStopLoss = !isEqual(stopLossPrice, null);
         object isTakeProfit = !isEqual(takeProfitPrice, null);
         object timeInForce = this.safeString(parameters, "timeInForce");
-        object postOnly = ((bool) isTrue((isEqual(timeInForce, "PO")))) ? true : this.safeValue2(parameters, "postOnly", "post_only", false);
+        object postOnly = ((bool) isTrue((isEqual(timeInForce, "PO")))) ? true : this.safeBool2(parameters, "postOnly", "post_only", false);
         object endTime = this.safeString(parameters, "end_time");
         object stopDirection = this.safeString(parameters, "stop_direction");
         if (isTrue(isEqual(type, "limit")))
@@ -2337,6 +2979,22 @@ public partial class coinbase : Exchange
                             { "post_only", postOnly },
                         } },
                     };
+                } else if (isTrue(isEqual(timeInForce, "IOC")))
+                {
+                    ((IDictionary<string,object>)request)["order_configuration"] = new Dictionary<string, object>() {
+                        { "sor_limit_ioc", new Dictionary<string, object>() {
+                            { "base_size", this.amountToPrecision(symbol, amount) },
+                            { "limit_price", this.priceToPrecision(symbol, price) },
+                        } },
+                    };
+                } else if (isTrue(isEqual(timeInForce, "FOK")))
+                {
+                    ((IDictionary<string,object>)request)["order_configuration"] = new Dictionary<string, object>() {
+                        { "limit_limit_fok", new Dictionary<string, object>() {
+                            { "base_size", this.amountToPrecision(symbol, amount) },
+                            { "limit_price", this.priceToPrecision(symbol, price) },
+                        } },
+                    };
                 } else
                 {
                     ((IDictionary<string,object>)request)["order_configuration"] = new Dictionary<string, object>() {
@@ -2354,7 +3012,7 @@ public partial class coinbase : Exchange
             {
                 throw new NotSupported ((string)add(this.id, " createOrder() only stop limit orders are supported")) ;
             }
-            if (isTrue(isEqual(side, "buy")))
+            if (isTrue(isTrue(getValue(market, "spot")) && isTrue((isEqual(side, "buy")))))
             {
                 object total = null;
                 object createMarketBuyOrderRequiresPrice = true;
@@ -2396,8 +3054,19 @@ public partial class coinbase : Exchange
                 };
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time"});
-        object preview = this.safeValue2(parameters, "preview", "test", false);
+        object marginMode = this.safeString(parameters, "marginMode");
+        if (isTrue(!isEqual(marginMode, null)))
+        {
+            if (isTrue(isEqual(marginMode, "isolated")))
+            {
+                ((IDictionary<string,object>)request)["margin_type"] = "ISOLATED";
+            } else if (isTrue(isEqual(marginMode, "cross")))
+            {
+                ((IDictionary<string,object>)request)["margin_type"] = "CROSS";
+            }
+        }
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"});
+        object preview = this.safeBool2(parameters, "preview", "test", false);
         object response = null;
         if (isTrue(preview))
         {
@@ -2445,10 +3114,10 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object success = this.safeValue(response, "success");
+        object success = this.safeBool(response, "success");
         if (isTrue(!isEqual(success, true)))
         {
-            object errorResponse = this.safeValue(response, "error_response");
+            object errorResponse = this.safeDict(response, "error_response");
             object errorTitle = this.safeString(errorResponse, "error");
             object errorMessage = this.safeString(errorResponse, "message");
             if (isTrue(!isEqual(errorResponse, null)))
@@ -2458,7 +3127,7 @@ public partial class coinbase : Exchange
                 throw new ExchangeError ((string)errorMessage) ;
             }
         }
-        object data = this.safeValue(response, "success_response", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "success_response", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2530,15 +3199,16 @@ public partial class coinbase : Exchange
         object symbol = this.safeSymbol(marketId, market, "-");
         if (isTrue(!isEqual(symbol, null)))
         {
-            market = this.market(symbol);
+            market = this.safeMarket(symbol, market);
         }
-        object orderConfiguration = this.safeValue(order, "order_configuration", new Dictionary<string, object>() {});
-        object limitGTC = this.safeValue(orderConfiguration, "limit_limit_gtc");
-        object limitGTD = this.safeValue(orderConfiguration, "limit_limit_gtd");
-        object stopLimitGTC = this.safeValue(orderConfiguration, "stop_limit_stop_limit_gtc");
-        object stopLimitGTD = this.safeValue(orderConfiguration, "stop_limit_stop_limit_gtd");
-        object marketIOC = this.safeValue(orderConfiguration, "market_market_ioc");
-        object isLimit = (isTrue((!isEqual(limitGTC, null))) || isTrue((!isEqual(limitGTD, null))));
+        object orderConfiguration = this.safeDict(order, "order_configuration", new Dictionary<string, object>() {});
+        object limitGTC = this.safeDict(orderConfiguration, "limit_limit_gtc");
+        object limitGTD = this.safeDict(orderConfiguration, "limit_limit_gtd");
+        object limitIOC = this.safeDict(orderConfiguration, "sor_limit_ioc");
+        object stopLimitGTC = this.safeDict(orderConfiguration, "stop_limit_stop_limit_gtc");
+        object stopLimitGTD = this.safeDict(orderConfiguration, "stop_limit_stop_limit_gtd");
+        object marketIOC = this.safeDict(orderConfiguration, "market_market_ioc");
+        object isLimit = (isTrue(isTrue((!isEqual(limitGTC, null))) || isTrue((!isEqual(limitGTD, null)))) || isTrue((!isEqual(limitIOC, null))));
         object isStop = (isTrue((!isEqual(stopLimitGTC, null))) || isTrue((!isEqual(stopLimitGTD, null))));
         object price = null;
         object amount = null;
@@ -2546,16 +3216,26 @@ public partial class coinbase : Exchange
         object triggerPrice = null;
         if (isTrue(isLimit))
         {
-            object target = ((bool) isTrue((!isEqual(limitGTC, null)))) ? limitGTC : limitGTD;
+            object target = null;
+            if (isTrue(!isEqual(limitGTC, null)))
+            {
+                target = limitGTC;
+            } else if (isTrue(!isEqual(limitGTD, null)))
+            {
+                target = limitGTD;
+            } else
+            {
+                target = limitIOC;
+            }
             price = this.safeString(target, "limit_price");
             amount = this.safeString(target, "base_size");
-            postOnly = this.safeValue(target, "post_only");
+            postOnly = this.safeBool(target, "post_only");
         } else if (isTrue(isStop))
         {
             object stopTarget = ((bool) isTrue((!isEqual(stopLimitGTC, null)))) ? stopLimitGTC : stopLimitGTD;
             price = this.safeString(stopTarget, "limit_price");
             amount = this.safeString(stopTarget, "base_size");
-            postOnly = this.safeValue(stopTarget, "post_only");
+            postOnly = this.safeBool(stopTarget, "post_only");
             triggerPrice = this.safeString(stopTarget, "stop_price");
         } else
         {
@@ -2643,7 +3323,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#cancelOrder
         * @description cancels an open order
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
         * @param {string} id order id
         * @param {string} symbol not used by coinbase cancelOrder()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2652,7 +3332,7 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object orders = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
-        return this.safeValue(orders, 0, new Dictionary<string, object>() {});
+        return this.safeDict(orders, 0, new Dictionary<string, object>() {});
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -2661,7 +3341,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#cancelOrders
         * @description cancel multiple orders
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
         * @param {string[]} ids order ids
         * @param {string} symbol not used by coinbase cancelOrders()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2689,10 +3369,10 @@ public partial class coinbase : Exchange
         //         ]
         //     }
         //
-        object orders = this.safeValue(response, "results", new List<object>() {});
+        object orders = this.safeList(response, "results", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object success = this.safeValue(getValue(orders, i), "success");
+            object success = this.safeBool(getValue(orders, i), "success");
             if (isTrue(!isEqual(success, true)))
             {
                 throw new BadRequest ((string)add(this.id, " cancelOrders() has failed, check your arguments and parameters")) ;
@@ -2707,13 +3387,13 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#editOrder
         * @description edit a trade order
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder
         * @param {string} id cancel order id
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2732,7 +3412,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object preview = this.safeValue2(parameters, "preview", "test", false);
+        object preview = this.safeBool2(parameters, "preview", "test", false);
         object response = null;
         if (isTrue(preview))
         {
@@ -2760,7 +3440,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOrder
         * @description fetches information on an order made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder
         * @param {string} id the order id
         * @param {string} symbol unified market symbol that the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2816,7 +3496,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object order = this.safeValue(response, "order", new Dictionary<string, object>() {});
+        object order = this.safeDict(response, "order", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -2826,7 +3506,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOrders
         * @description fetches information on multiple orders made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
         * @param {string} symbol unified market symbol that the orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2844,7 +3524,7 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 100);
+            return await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 1000);
         }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2864,10 +3544,10 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeValueN(parameters, new List<object>() {"until", "till"});
+        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_date"] = this.iso8601(until);
         }
         object response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, parameters));
@@ -2913,8 +3593,8 @@ public partial class coinbase : Exchange
         //         "cursor": ""
         //     }
         //
-        object orders = this.safeValue(response, "orders", new List<object>() {});
-        object first = this.safeValue(orders, 0);
+        object orders = this.safeList(response, "orders", new List<object>() {});
+        object first = this.safeDict(orders, 0);
         object cursor = this.safeString(response, "cursor");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
@@ -2949,10 +3629,10 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeValueN(parameters, new List<object>() {"until", "till"});
+        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_date"] = this.iso8601(until);
         }
         object response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, parameters));
@@ -2998,8 +3678,8 @@ public partial class coinbase : Exchange
         //         "cursor": ""
         //     }
         //
-        object orders = this.safeValue(response, "orders", new List<object>() {});
-        object first = this.safeValue(orders, 0);
+        object orders = this.safeList(response, "orders", new List<object>() {});
+        object first = this.safeDict(orders, 0);
         object cursor = this.safeString(response, "cursor");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
@@ -3015,7 +3695,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOpenOrders
         * @description fetches information on all currently open orders
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
         * @param {string} symbol unified market symbol of the orders
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -3043,7 +3723,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
         * @param {string} symbol unified market symbol of the orders
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] the maximum number of closed order structures to retrieve
@@ -3071,7 +3751,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchCanceledOrders
         * @description fetches information on multiple canceled orders made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
         * @param {string} symbol unified market symbol of the orders
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] the maximum number of canceled order structures to retrieve
@@ -3088,7 +3768,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3096,28 +3776,31 @@ public partial class coinbase : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] the latest time in ms to fetch trades for
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the candles
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object maxLimit = 300;
+        limit = ((bool) isTrue((isEqual(limit, null)))) ? maxLimit : mathMin(limit, maxLimit);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 299);
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, subtract(maxLimit, 1));
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "id") },
             { "granularity", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object until = this.safeValueN(parameters, new List<object>() {"until", "till", "end"});
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeIntegerN(parameters, new List<object>() {"until", "end"});
+        parameters = this.omit(parameters, new List<object>() {"until"});
         object duration = this.parseTimeframe(timeframe);
-        object candles300 = multiply(300, duration);
+        object requestedDuration = multiply(limit, duration);
         object sinceString = null;
         if (isTrue(!isEqual(since, null)))
         {
@@ -3125,17 +3808,29 @@ public partial class coinbase : Exchange
         } else
         {
             object now = ((object)this.seconds()).ToString();
-            sinceString = Precise.stringSub(now, ((object)candles300).ToString());
+            sinceString = Precise.stringSub(now, ((object)requestedDuration).ToString());
         }
         ((IDictionary<string,object>)request)["start"] = sinceString;
-        object endString = this.numberToString(until);
-        if (isTrue(isEqual(until, null)))
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
+        } else
         {
             // 300 candles max
-            endString = Precise.stringAdd(sinceString, ((object)candles300).ToString());
+            ((IDictionary<string,object>)request)["end"] = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
         }
-        ((IDictionary<string,object>)request)["end"] = endString;
-        object response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, parameters));
+        object response = null;
+        object usePrivate = false;
+        var usePrivateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "usePrivate", false);
+        usePrivate = ((IList<object>)usePrivateparametersVariable)[0];
+        parameters = ((IList<object>)usePrivateparametersVariable)[1];
+        if (isTrue(usePrivate))
+        {
+            response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v3PublicGetBrokerageMarketProductsProductIdCandles(this.extend(request, parameters));
+        }
         //
         //     {
         //         "candles": [
@@ -3150,7 +3845,7 @@ public partial class coinbase : Exchange
         //         ]
         //     }
         //
-        object candles = this.safeValue(response, "candles", new List<object>() {});
+        object candles = this.safeList(response, "candles", new List<object>() {});
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
@@ -3177,11 +3872,12 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchTrades
         * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades
         * @param {string} symbol unified market symbol of the trades
         * @param {int} [since] not used by coinbase fetchTrades
         * @param {int} [limit] the maximum number of trade structures to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the trades
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3190,11 +3886,37 @@ public partial class coinbase : Exchange
         object request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "id") },
         };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start"] = this.numberToString(this.parseToInt(divide(since, 1000)));
+        }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
-        object response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters));
+        object until = null;
+        var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "until");
+        until = ((IList<object>)untilparametersVariable)[0];
+        parameters = ((IList<object>)untilparametersVariable)[1];
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
+        } else if (isTrue(!isEqual(since, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
+        }
+        object response = null;
+        object usePrivate = false;
+        var usePrivateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "usePrivate", false);
+        usePrivate = ((IList<object>)usePrivateparametersVariable)[0];
+        parameters = ((IList<object>)usePrivateparametersVariable)[1];
+        if (isTrue(usePrivate))
+        {
+            response = await this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v3PublicGetBrokerageMarketProductsProductIdTicker(this.extend(request, parameters));
+        }
         //
         //     {
         //         "trades": [
@@ -3211,7 +3933,7 @@ public partial class coinbase : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -3221,7 +3943,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchMyTrades
         * @description fetch all trades made by the user
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills
         * @param {string} symbol unified market symbol of the trades
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] the maximum number of trade structures to fetch
@@ -3258,10 +3980,10 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_sequence_timestamp"] = this.iso8601(since);
         }
-        object until = this.safeValueN(parameters, new List<object>() {"until", "till"});
+        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
-            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            parameters = this.omit(parameters, new List<object>() {"until"});
             ((IDictionary<string,object>)request)["end_sequence_timestamp"] = this.iso8601(until);
         }
         object response = await this.v3PrivateGetBrokerageOrdersHistoricalFills(this.extend(request, parameters));
@@ -3288,8 +4010,8 @@ public partial class coinbase : Exchange
         //         "cursor": ""
         //     }
         //
-        object trades = this.safeValue(response, "fills", new List<object>() {});
-        object first = this.safeValue(trades, 0);
+        object trades = this.safeList(response, "fills", new List<object>() {});
+        object first = this.safeDict(trades, 0);
         object cursor = this.safeString(response, "cursor");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
@@ -3305,10 +4027,11 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
@@ -3321,7 +4044,18 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.v3PrivateGetBrokerageProductBook(this.extend(request, parameters));
+        object response = null;
+        object usePrivate = false;
+        var usePrivateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "usePrivate", false);
+        usePrivate = ((IList<object>)usePrivateparametersVariable)[0];
+        parameters = ((IList<object>)usePrivateparametersVariable)[1];
+        if (isTrue(usePrivate))
+        {
+            response = await this.v3PrivateGetBrokerageProductBook(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v3PublicGetBrokerageMarketProductBook(this.extend(request, parameters));
+        }
         //
         //     {
         //         "pricebook": {
@@ -3342,7 +4076,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "pricebook", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "pricebook", new Dictionary<string, object>() {});
         object time = this.safeString(data, "time");
         object timestamp = this.parse8601(time);
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
@@ -3354,7 +4088,7 @@ public partial class coinbase : Exchange
         * @method
         * @name coinbase#fetchBidsAsks
         * @description fetches the bid and ask price and volume for multiple markets
-        * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
         * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -3390,7 +4124,7 @@ public partial class coinbase : Exchange
         //         ]
         //     }
         //
-        object tickers = this.safeValue(response, "pricebooks", new List<object>() {});
+        object tickers = this.safeList(response, "pricebooks", new List<object>() {});
         return this.parseTickers(tickers, symbols);
     }
 
@@ -3423,7 +4157,7 @@ public partial class coinbase : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
-            accountId = await this.findAccountId(code);
+            accountId = await this.findAccountId(code, parameters);
             if (isTrue(isEqual(accountId, null)))
             {
                 throw new ExchangeError ((string)add(add(this.id, " withdraw() could not find account id for "), code)) ;
@@ -3493,8 +4227,788 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
+    }
+
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchDepositAddress
+        * @description fetch the deposit address for a currency associated with this account
+        * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+        * @param {string} code unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = null;
+        var requestparametersVariable = await this.prepareAccountRequestWithCurrencyCode(getValue(currency, "code"));
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters));
+        //
+        //    {
+        //        pagination: {
+        //            ending_before: null,
+        //            starting_after: null,
+        //            previous_ending_before: null,
+        //            next_starting_after: null,
+        //            limit: '25',
+        //            order: 'desc',
+        //            previous_uri: null,
+        //            next_uri: null
+        //        },
+        //        data: [
+        //            {
+        //                id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                address_info: { address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk' },
+        //                name: null,
+        //                created_at: '2023-05-29T21:12:12Z',
+        //                updated_at: '2023-05-29T21:12:12Z',
+        //                network: 'solana',
+        //                uri_scheme: 'solana',
+        //                resource: 'address',
+        //                resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //                warnings: [
+        //                    {
+        //                    type: 'correct_address_warning',
+        //                    title: 'This is an ERC20 USDC address.',
+        //                    details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //                    image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //                    options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
+        //                    }
+        //                ],
+        //                qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //                address_label: 'USDC address (Solana)',
+        //                default_receive: true,
+        //                deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //                callback_url: null,
+        //                share_address_copy: {
+        //                    line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //                    line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //                },
+        //                receive_subtitle: 'ERC-20',
+        //                inline_warning: {
+        //                    text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //                    tooltip: {
+        //                    title: 'USDC (Solana)',
+        //                    subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        //                    }
+        //                }
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object addressStructures = this.parseDepositAddresses(data, null, false);
+        return this.indexBy(addressStructures, "network");
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        address: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //        address_info: {
+        //            address: 'GCF74576I7AQ56SLMKBQAP255EGUOWCRVII3S44KEXVNJEOIFVBDMXVL',
+        //            destination_tag: '3722061866'
+        //        },
+        //        name: null,
+        //        created_at: '2023-05-29T21:12:12Z',
+        //        updated_at: '2023-05-29T21:12:12Z',
+        //        network: 'solana',
+        //        uri_scheme: 'solana',
+        //        resource: 'address',
+        //        resource_path: '/v2/accounts/a7b3d387-bfb8-5ce7-b8da-1f507e81cf25/addresses/64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
+        //        warnings: [
+        //            {
+        //            type: 'correct_address_warning',
+        //            title: 'This is an ERC20 USDC address.',
+        //            details: 'Only send ERC20 USD Coin (USDC) to this address.',
+        //            image_url: 'https://www.coinbase.com/assets/addresses/global-receive-warning-a3d91807e61c717e5a38d270965003dcc025ca8a3cea40ec3d7835b7c86087fa.png',
+        //            options: [ { text: 'I understand', style: 'primary', id: 'dismiss' } ]
+        //            }
+        //        ],
+        //        qr_code_image_url: 'https://static-assets.coinbase.com/p2p/l2/asset_network_combinations/v5/usdc-solana.png',
+        //        address_label: 'USDC address (Solana)',
+        //        default_receive: true,
+        //        deposit_uri: 'solana:5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk?spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        //        callback_url: null,
+        //        share_address_copy: {
+        //            line1: '5xjPKeAXpnhA2kHyinvdVeui6RXVdEa3B2J3SCAwiKnk',
+        //            line2: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.'
+        //        },
+        //        receive_subtitle: 'ERC-20',
+        //        inline_warning: {
+        //            text: 'This address can only receive USDC-SPL from Solana network. Don’t send USDC from other networks, other SPL tokens or NFTs, or it may result in a loss of funds.',
+        //            tooltip: {
+        //            title: 'USDC (Solana)',
+        //            subtitle: 'This address can only receive USDC-SPL from Solana network.'
+        //            }
+        //        }
+        //    }
+        //
+        object address = this.safeString(depositAddress, "address");
+        this.checkAddress(address);
+        object networkId = this.safeString(depositAddress, "network");
+        object code = this.safeCurrencyCode(null, currency);
+        object addressLabel = this.safeString(depositAddress, "address_label");
+        object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+        object marketId = this.safeString(splitAddressLabel, 0);
+        object addressInfo = this.safeDict(depositAddress, "address_info");
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeCurrencyCode(marketId, currency) },
+            { "address", address },
+            { "tag", this.safeString(addressInfo, "destination_tag") },
+            { "network", this.networkIdToCode(networkId, code) },
+        };
+    }
+
+    public async virtual Task<object> deposit(object code, object amount, object id, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#deposit
+        * @description make a deposit
+        * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+        * @param {string} code unified currency code
+        * @param {float} amount the amount to deposit
+        * @param {string} id the payment method id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.accountId] the id of the account to deposit into
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object accountId = this.safeString2(parameters, "account_id", "accountId");
+        parameters = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        if (isTrue(isEqual(accountId, null)))
+        {
+            if (isTrue(isEqual(code, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " deposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
+            }
+            accountId = await this.findAccountId(code, parameters);
+            if (isTrue(isEqual(accountId, null)))
+            {
+                throw new ExchangeError ((string)add(add(this.id, " deposit() could not find account id for "), code)) ;
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "account_id", accountId },
+            { "amount", this.numberToString(amount) },
+            { "currency", ((string)code).ToUpper() },
+            { "payment_method", id },
+        };
+        object response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, parameters));
+        //
+        //     {
+        //         "data": {
+        //             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "status": "created",
+        //             "payment_method": {
+        //                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //                 "resource": "payment_method",
+        //                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //             },
+        //             "transaction": {
+        //                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //                 "resource": "transaction",
+        //                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //             },
+        //             "amount": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "subtotal": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "created_at": "2015-01-31T20:49:02Z",
+        //             "updated_at": "2015-02-11T16:54:02-08:00",
+        //             "resource": "deposit",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "committed": true,
+        //             "fee": {
+        //                 "amount": "0.00",
+        //                 "currency": "USD"
+        //             },
+        //             "payout_at": "2015-02-18T16:54:00-08:00"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseTransaction(data);
+    }
+
+    public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchDeposit
+        * @description fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+        * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+        * @param {string} id deposit id
+        * @param {string} [code] unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.accountId] the id of the account that the funds were deposited into
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object accountId = this.safeString2(parameters, "account_id", "accountId");
+        parameters = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        if (isTrue(isEqual(accountId, null)))
+        {
+            if (isTrue(isEqual(code, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
+            }
+            accountId = await this.findAccountId(code, parameters);
+            if (isTrue(isEqual(accountId, null)))
+            {
+                throw new ExchangeError ((string)add(add(this.id, " fetchDeposit() could not find account id for "), code)) ;
+            }
+        }
+        object request = new Dictionary<string, object>() {
+            { "account_id", accountId },
+            { "deposit_id", id },
+        };
+        object response = await this.v2PrivateGetAccountsAccountIdDepositsDepositId(this.extend(request, parameters));
+        //
+        //     {
+        //         "data": {
+        //             "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "status": "completed",
+        //             "payment_method": {
+        //                 "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //                 "resource": "payment_method",
+        //                 "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //             },
+        //             "transaction": {
+        //                 "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //                 "resource": "transaction",
+        //                 "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //             },
+        //             "amount": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "subtotal": {
+        //                 "amount": "10.00",
+        //                 "currency": "USD"
+        //             },
+        //             "created_at": "2015-01-31T20:49:02Z",
+        //             "updated_at": "2015-02-11T16:54:02-08:00",
+        //             "resource": "deposit",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/deposits/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //             "committed": true,
+        //             "fee": {
+        //                 "amount": "0.00",
+        //                 "currency": "USD"
+        //             },
+        //             "payout_at": "2015-02-18T16:54:00-08:00"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseTransaction(data);
+    }
+
+    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchConvertQuote
+        * @description fetch a quote for converting from one currency to another
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.trade_incentive_metadata] an object to fill in user incentive data
+        * @param {string} [params.trade_incentive_metadata.user_incentive_id] the id of the incentive
+        * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "from_account", fromCode },
+            { "to_account", toCode },
+            { "amount", this.numberToString(amount) },
+        };
+        object response = await this.v3PrivatePostBrokerageConvertQuote(this.extend(request, parameters));
+        object data = this.safeDict(response, "trade", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#createConvertTrade
+        * @description convert from one currency to another
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade
+        * @param {string} id the id of the trade that you want to make
+        * @param {string} fromCode the currency that you want to sell and convert from
+        * @param {string} toCode the currency that you want to buy and convert into
+        * @param {float} [amount] how much you want to trade in units of the from currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "trade_id", id },
+            { "from_account", fromCode },
+            { "to_account", toCode },
+        };
+        object response = await this.v3PrivatePostBrokerageConvertTradeTradeId(this.extend(request, parameters));
+        object data = this.safeDict(response, "trade", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchConvertTrade
+        * @description fetch the data for a conversion trade
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade
+        * @param {string} id the id of the trade that you want to commit
+        * @param {string} code the unified currency code that was converted from
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {strng} params.toCode the unified currency code that was converted into
+        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(code, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchConvertTrade() requires a code argument")) ;
+        }
+        object toCode = this.safeString(parameters, "toCode");
+        if (isTrue(isEqual(toCode, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchConvertTrade() requires a toCode parameter")) ;
+        }
+        parameters = this.omit(parameters, "toCode");
+        object request = new Dictionary<string, object>() {
+            { "trade_id", id },
+            { "from_account", code },
+            { "to_account", toCode },
+        };
+        object response = await this.v3PrivateGetBrokerageConvertTradeTradeId(this.extend(request, parameters));
+        object data = this.safeDict(response, "trade", new Dictionary<string, object>() {});
+        return this.parseConversion(data);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        object fromCoin = this.safeString(conversion, "source_currency");
+        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        object to = this.safeString(conversion, "target_currency");
+        object toCode = this.safeCurrencyCode(to, toCurrency);
+        object fromAmountStructure = this.safeDict(conversion, "user_entered_amount");
+        object feeStructure = this.safeDict(conversion, "total_fee");
+        object feeAmountStructure = this.safeDict(feeStructure, "amount");
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", null },
+            { "datetime", null },
+            { "id", this.safeString(conversion, "id") },
+            { "fromCurrency", fromCode },
+            { "fromAmount", this.safeNumber(fromAmountStructure, "value") },
+            { "toCurrency", toCode },
+            { "toAmount", null },
+            { "price", null },
+            { "fee", this.safeNumber(feeAmountStructure, "value") },
+        };
+    }
+
+    public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#closePosition
+        * @description *futures only* closes open positions for a market
+        * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+        * @param {string} symbol Unified CCXT market symbol
+        * @param {string} [side] not used by coinbase
+        * @param {object} [params] extra parameters specific to the coinbase api endpoint
+        * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
+        * @param {float} [params.size] the size of the position to close, optional
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "future")))
+        {
+            throw new NotSupported ((string)add(this.id, " closePosition() only supported for futures markets")) ;
+        }
+        object clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
+        parameters = this.omit(parameters, "clientOrderId");
+        object request = new Dictionary<string, object>() {
+            { "product_id", getValue(market, "id") },
+        };
+        if (isTrue(isEqual(clientOrderId, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " closePosition() requires a clientOrderId parameter")) ;
+        }
+        ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        object response = await this.v3PrivatePostBrokerageOrdersClosePosition(this.extend(request, parameters));
+        object order = this.safeDict(response, "success_response", new Dictionary<string, object>() {});
+        return this.parseOrder(order);
+    }
+
+    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchPositions
+        * @description fetch all open positions
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
+        * @param {string[]} [symbols] list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
+        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            market = this.market(getValue(symbols, 0));
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(type, "future")))
+        {
+            response = await this.v3PrivateGetBrokerageCfmPositions(parameters);
+        } else
+        {
+            object portfolio = null;
+            var portfolioparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "portfolio");
+            portfolio = ((IList<object>)portfolioparametersVariable)[0];
+            parameters = ((IList<object>)portfolioparametersVariable)[1];
+            if (isTrue(isEqual(portfolio, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
+            }
+            object request = new Dictionary<string, object>() {
+                { "portfolio_uuid", portfolio },
+            };
+            response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.extend(request, parameters));
+        }
+        object positions = this.safeList(response, "positions", new List<object>() {});
+        return this.parsePositions(positions, symbols);
+    }
+
+    public async override Task<object> fetchPosition(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchPosition
+        * @description fetch data on a single open contract trade position
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
+        * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
+        * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
+        * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
+        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object response = null;
+        if (isTrue(getValue(market, "future")))
+        {
+            object productId = this.safeString(market, "product_id");
+            if (isTrue(isEqual(productId, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchPosition() requires a \"product_id\" in params")) ;
+            }
+            object futureRequest = new Dictionary<string, object>() {
+                { "product_id", productId },
+            };
+            response = await this.v3PrivateGetBrokerageCfmPositionsProductId(this.extend(futureRequest, parameters));
+        } else
+        {
+            object portfolio = null;
+            var portfolioparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "portfolio");
+            portfolio = ((IList<object>)portfolioparametersVariable)[0];
+            parameters = ((IList<object>)portfolioparametersVariable)[1];
+            if (isTrue(isEqual(portfolio, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
+            }
+            object request = new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "portfolio_uuid", portfolio },
+            };
+            response = await this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.extend(request, parameters));
+        }
+        object position = this.safeDict(response, "position", new Dictionary<string, object>() {});
+        return this.parsePosition(position, market);
+    }
+
+    public override object parsePosition(object position, object market = null)
+    {
+        //
+        // {
+        //     "product_id": "1r4njf84-0-0",
+        //     "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
+        //     "symbol": "ADA-PERP-INTX",
+        //     "vwap": {
+        //        "value": "0.6171",
+        //        "currency": "USDC"
+        //     },
+        //     "position_side": "POSITION_SIDE_LONG",
+        //     "net_size": "20",
+        //     "buy_order_size": "0",
+        //     "sell_order_size": "0",
+        //     "im_contribution": "0.1",
+        //     "unrealized_pnl": {
+        //        "value": "0.074",
+        //        "currency": "USDC"
+        //     },
+        //     "mark_price": {
+        //        "value": "0.6208",
+        //        "currency": "USDC"
+        //     },
+        //     "liquidation_price": {
+        //        "value": "0",
+        //        "currency": "USDC"
+        //     },
+        //     "leverage": "1",
+        //     "im_notional": {
+        //        "value": "12.342",
+        //        "currency": "USDC"
+        //     },
+        //     "mm_notional": {
+        //        "value": "0.814572",
+        //        "currency": "USDC"
+        //     },
+        //     "position_notional": {
+        //        "value": "12.342",
+        //        "currency": "USDC"
+        //     },
+        //     "margin_type": "MARGIN_TYPE_CROSS",
+        //     "liquidation_buffer": "19.677828",
+        //     "liquidation_percentage": "4689.3506",
+        //     "portfolio_summary": {
+        //        "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
+        //        "collateral": "20.4184",
+        //        "position_notional": "12.342",
+        //        "open_position_notional": "12.342",
+        //        "pending_fees": "0",
+        //        "borrow": "0",
+        //        "accrued_interest": "0",
+        //        "rolling_debt": "0",
+        //        "portfolio_initial_margin": "0.1",
+        //        "portfolio_im_notional": {
+        //           "value": "12.342",
+        //           "currency": "USDC"
+        //        },
+        //        "portfolio_maintenance_margin": "0.066",
+        //        "portfolio_mm_notional": {
+        //           "value": "0.814572",
+        //           "currency": "USDC"
+        //        },
+        //        "liquidation_percentage": "4689.3506",
+        //        "liquidation_buffer": "19.677828",
+        //        "margin_type": "MARGIN_TYPE_CROSS",
+        //        "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
+        //        "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
+        //        "unrealized_pnl": {
+        //           "value": "0.074",
+        //           "currency": "USDC"
+        //        },
+        //        "buying_power": {
+        //           "value": "8.1504",
+        //           "currency": "USDC"
+        //        },
+        //        "total_balance": {
+        //           "value": "20.4924",
+        //           "currency": "USDC"
+        //        },
+        //        "max_withdrawal": {
+        //           "value": "8.0764",
+        //           "currency": "USDC"
+        //        }
+        //     },
+        //     "entry_vwap": {
+        //        "value": "0.6091",
+        //        "currency": "USDC"
+        //     }
+        // }
+        //
+        object marketId = this.safeString(position, "symbol", "");
+        market = this.safeMarket(marketId, market);
+        object rawMargin = this.safeString(position, "margin_type");
+        object marginMode = null;
+        if (isTrue(!isEqual(rawMargin, null)))
+        {
+            marginMode = ((bool) isTrue((isEqual(rawMargin, "MARGIN_TYPE_CROSS")))) ? "cross" : "isolated";
+        }
+        object notionalObject = this.safeDict(position, "position_notional", new Dictionary<string, object>() {});
+        object positionSide = this.safeString(position, "position_side");
+        object side = ((bool) isTrue((isEqual(positionSide, "POSITION_SIDE_LONG")))) ? "long" : "short";
+        object unrealizedPNLObject = this.safeDict(position, "unrealized_pnl", new Dictionary<string, object>() {});
+        object liquidationPriceObject = this.safeDict(position, "liquidation_price", new Dictionary<string, object>() {});
+        object liquidationPrice = this.safeNumber(liquidationPriceObject, "value");
+        object vwapObject = this.safeDict(position, "vwap", new Dictionary<string, object>() {});
+        object summaryObject = this.safeDict(position, "portfolio_summary", new Dictionary<string, object>() {});
+        return this.safePosition(new Dictionary<string, object>() {
+            { "info", position },
+            { "id", this.safeString(position, "product_id") },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "notional", this.safeNumber(notionalObject, "value") },
+            { "marginMode", marginMode },
+            { "liquidationPrice", liquidationPrice },
+            { "entryPrice", this.safeNumber(vwapObject, "value") },
+            { "unrealizedPnl", this.safeNumber(unrealizedPNLObject, "value") },
+            { "realizedPnl", null },
+            { "percentage", null },
+            { "contracts", this.safeNumber(position, "net_size") },
+            { "contractSize", getValue(market, "contractSize") },
+            { "markPrice", null },
+            { "lastPrice", null },
+            { "side", side },
+            { "hedged", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "lastUpdateTimestamp", null },
+            { "maintenanceMargin", null },
+            { "maintenanceMarginPercentage", null },
+            { "collateral", this.safeNumber(summaryObject, "collateral") },
+            { "initialMargin", null },
+            { "initialMarginPercentage", null },
+            { "leverage", this.safeNumber(position, "leverage") },
+            { "marginRatio", null },
+            { "stopLossPrice", null },
+            { "takeProfitPrice", null },
+        });
+    }
+
+    public async override Task<object> fetchTradingFees(object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchTradingFees
+        * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+        * @description fetch the trading fees for multiple markets
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.type] 'spot' or 'swap'
+        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object isSpot = (isEqual(type, "spot"));
+        object productType = ((bool) isTrue(isSpot)) ? "SPOT" : "FUTURE";
+        object request = new Dictionary<string, object>() {
+            { "product_type", productType },
+        };
+        object response = await this.v3PrivateGetBrokerageTransactionSummary(this.extend(request, parameters));
+        //
+        // {
+        //     total_volume: '0',
+        //     total_fees: '0',
+        //     fee_tier: {
+        //       pricing_tier: 'Advanced 1',
+        //       usd_from: '0',
+        //       usd_to: '1000',
+        //       taker_fee_rate: '0.008',
+        //       maker_fee_rate: '0.006',
+        //       aop_from: '',
+        //       aop_to: ''
+        //     },
+        //     margin_rate: null,
+        //     goods_and_services_tax: null,
+        //     advanced_trade_only_volume: '0',
+        //     advanced_trade_only_fees: '0',
+        //     coinbase_pro_volume: '0',
+        //     coinbase_pro_fees: '0',
+        //     total_balance: '',
+        //     has_promo_fee: false
+        // }
+        //
+        object data = this.safeDict(response, "fee_tier", new Dictionary<string, object>() {});
+        object taker_fee = this.safeNumber(data, "taker_fee_rate");
+        object marker_fee = this.safeNumber(data, "maker_fee_rate");
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            if (isTrue(isTrue((isTrue(isSpot) && isTrue(getValue(market, "spot")))) || isTrue((!isTrue(isSpot) && !isTrue(getValue(market, "spot"))))))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
+                    { "info", response },
+                    { "symbol", symbol },
+                    { "maker", taker_fee },
+                    { "taker", marker_fee },
+                    { "percentage", true },
+                };
+            }
+        }
+        return result;
+    }
+
+    public virtual object createAuthToken(object seconds, object method = null, object url = null)
+    {
+        // it may not work for v2
+        object uri = null;
+        if (isTrue(!isEqual(url, null)))
+        {
+            uri = add(add(method, " "), ((string)url).Replace((string)"https://", (string)""));
+            object quesPos = getIndexOf(uri, "?");
+            // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+            // Also it's not possible that the question mark is first character, only check > 0 here.
+            if (isTrue(isGreaterThan(quesPos, 0)))
+            {
+                uri = slice(uri, 0, quesPos);
+            }
+        }
+        object nonce = this.randomBytes(16);
+        object request = new Dictionary<string, object>() {
+            { "aud", new List<object>() {"retail_rest_api_proxy"} },
+            { "iss", "coinbase-cloud" },
+            { "nbf", seconds },
+            { "exp", add(seconds, 120) },
+            { "sub", this.apiKey },
+            { "iat", seconds },
+        };
+        if (isTrue(!isEqual(uri, null)))
+        {
+            ((IDictionary<string,object>)request)["uri"] = uri;
+        }
+        object token = jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
+            { "kid", this.apiKey },
+            { "nonce", nonce },
+            { "alg", "ES256" },
+        });
+        return token;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -3504,7 +5018,8 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         object version = getValue(api, 0);
         object signed = isEqual(getValue(api, 1), "private");
-        object pathPart = ((bool) isTrue((isEqual(version, "v3")))) ? "api/v3" : "v2";
+        object isV3 = isEqual(version, "v3");
+        object pathPart = ((bool) isTrue((isV3))) ? "api/v3" : "v2";
         object fullPath = add(add(add("/", pathPart), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object savedPath = fullPath;
@@ -3519,29 +5034,17 @@ public partial class coinbase : Exchange
         if (isTrue(signed))
         {
             object authorization = this.safeString(this.headers, "Authorization");
+            object authorizationString = null;
             if (isTrue(!isEqual(authorization, null)))
             {
-                headers = new Dictionary<string, object>() {
-                    { "Authorization", authorization },
-                    { "Content-Type", "application/json" },
-                };
+                authorizationString = authorization;
             } else if (isTrue(isTrue(this.token) && !isTrue(this.checkRequiredCredentials(false))))
             {
-                headers = new Dictionary<string, object>() {
-                    { "Authorization", add("Bearer ", this.token) },
-                    { "Content-Type", "application/json" },
-                };
-                if (isTrue(!isEqual(method, "GET")))
-                {
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
-                    {
-                        body = this.json(query);
-                    }
-                }
+                authorizationString = add("Bearer ", this.token);
             } else
             {
                 this.checkRequiredCredentials();
-                object nonce = ((object)this.nonce()).ToString();
+                object seconds = this.seconds();
                 object payload = "";
                 if (isTrue(!isEqual(method, "GET")))
                 {
@@ -3550,22 +5053,74 @@ public partial class coinbase : Exchange
                         body = this.json(query);
                         payload = body;
                     }
-                }
-                object auth = null;
-                if (isTrue(isEqual(version, "v3")))
-                {
-                    auth = add(add(add(nonce, method), savedPath), payload);
                 } else
                 {
-                    auth = add(add(add(nonce, method), fullPath), payload);
+                    if (!isTrue(isV3))
+                    {
+                        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                        {
+                            payload = add(payload, add("?", this.urlencode(query)));
+                        }
+                    }
                 }
-                object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                // v3: 'GET' doesn't need payload in the signature. inside url is enough
+                // https://docs.cloud.coinbase.com/advanced-trade/docs/auth#example-request
+                // v2: 'GET' require payload in the signature
+                // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
+                object isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
+                if (isTrue(isCloudAPiKey))
+                {
+                    if (isTrue(((string)this.apiKey).StartsWith(((string)"-----BEGIN"))))
+                    {
+                        throw new ArgumentsRequired ((string)add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
+                    }
+                    // // it may not work for v2
+                    // let uri = method + ' ' + url.replace ('https://', '');
+                    // const quesPos = uri.indexOf ('?');
+                    // // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
+                    // // Also it's not possible that the question mark is first character, only check > 0 here.
+                    // if (quesPos > 0) {
+                    //     uri = uri.slice (0, quesPos);
+                    // }
+                    // const nonce = this.randomBytes (16);
+                    // const request: Dict = {
+                    //     'aud': [ 'retail_rest_api_proxy' ],
+                    //     'iss': 'coinbase-cloud',
+                    //     'nbf': seconds,
+                    //     'exp': seconds + 120,
+                    //     'sub': this.apiKey,
+                    //     'uri': uri,
+                    //     'iat': seconds,
+                    // };
+                    object token = this.createAuthToken(seconds, method, url);
+                    // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+                    authorizationString = add("Bearer ", token);
+                } else
+                {
+                    object timestampString = ((object)this.seconds()).ToString();
+                    object auth = add(add(add(timestampString, method), savedPath), payload);
+                    object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                    headers = new Dictionary<string, object>() {
+                        { "CB-ACCESS-KEY", this.apiKey },
+                        { "CB-ACCESS-SIGN", signature },
+                        { "CB-ACCESS-TIMESTAMP", timestampString },
+                        { "Content-Type", "application/json" },
+                    };
+                }
+            }
+            if (isTrue(!isEqual(authorizationString, null)))
+            {
                 headers = new Dictionary<string, object>() {
-                    { "CB-ACCESS-KEY", this.apiKey },
-                    { "CB-ACCESS-SIGN", signature },
-                    { "CB-ACCESS-TIMESTAMP", nonce },
+                    { "Authorization", authorizationString },
                     { "Content-Type", "application/json" },
                 };
+                if (isTrue(!isEqual(method, "GET")))
+                {
+                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                    {
+                        body = this.json(query);
+                    }
+                }
             }
         }
         return new Dictionary<string, object>() {
@@ -3605,7 +5160,7 @@ public partial class coinbase : Exchange
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
-        object errors = this.safeValue(response, "errors");
+        object errors = this.safeList(response, "errors");
         if (isTrue(!isEqual(errors, null)))
         {
             if (isTrue(((errors is IList<object>) || (errors.GetType().IsGenericType && errors.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -3625,8 +5180,7 @@ public partial class coinbase : Exchange
             }
         }
         object advancedTrade = getValue(this.options, "advanced");
-        object data = this.safeValue(response, "data");
-        if (isTrue(isTrue((isEqual(data, null))) && isTrue((!isTrue(advancedTrade)))))
+        if (isTrue(!isTrue((inOp(response, "data"))) && isTrue((!isTrue(advancedTrade)))))
         {
             throw new ExchangeError ((string)add(add(this.id, " failed due to a malformed response "), this.json(response))) ;
         }

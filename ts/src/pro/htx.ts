@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import htxRest from '../htx.js';
-import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
+import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -29,6 +29,7 @@ export default class htx extends htxRest {
                 'watchTickers': false,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
@@ -100,6 +101,7 @@ export default class htx extends htxRest {
                 'api': 'api', // or api-aws for clients hosted on AWS
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': true,
                 },
                 'ws': {
                     'gunzip': true,
@@ -115,7 +117,7 @@ export default class htx extends htxRest {
                         '2002': AuthenticationError, // { action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state' }
                         '2021': BadRequest,
                         '2001': BadSymbol, // { action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
-                        '2011': BadSymbol, // { op: 'sub', cid: '1649149285', topic: 'orders_cross.hereltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
+                        '2011': BadSymbol, // { op: 'sub', cid: '1649149285', topic: 'orders_cross.ltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
                         '2040': BadRequest, // { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
                         '4007': BadRequest, // { op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540 }
                     },
@@ -135,6 +137,8 @@ export default class htx extends htxRest {
          * @method
          * @name huobi#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -205,6 +209,9 @@ export default class htx extends htxRest {
          * @method
          * @name huobi#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -270,6 +277,9 @@ export default class htx extends htxRest {
          * @method
          * @name huobi#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -440,6 +450,8 @@ export default class htx extends htxRest {
                 client.resolve (orderbook, messageHash);
             }
         } catch (e) {
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject (e, messageHash);
         }
     }
@@ -454,13 +466,13 @@ export default class htx extends htxRest {
         const market = this.market (symbol);
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'req': messageHash,
             'id': requestId,
         };
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
-        const snapshotSubscription = {
+        const snapshotSubscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -577,7 +589,10 @@ export default class htx extends htxRest {
             orderbook['nonce'] = version;
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
-            throw new InvalidNonce (this.id + ' watchOrderBook() received a mesage out of order');
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+            }
         }
         const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);
@@ -639,20 +654,19 @@ export default class htx extends htxRest {
         //     }
         //
         const messageHash = this.safeString (message, 'ch');
-        const tick = this.safeValue (message, 'tick');
+        const tick = this.safeDict (message, 'tick');
         const event = this.safeString (tick, 'event');
-        const ch = this.safeValue (message, 'ch');
+        const ch = this.safeString (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const size = this.safeString (parts, 3);
             const sizeParts = size.split ('_');
             const limit = this.safeInteger (sizeParts, 1);
-            orderbook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
         if ((event === undefined) && (orderbook['nonce'] === undefined)) {
             orderbook.cache.push (message);
         } else {
@@ -676,11 +690,12 @@ export default class htx extends htxRest {
          * @method
          * @name huobi#watchMyTrades
          * @description watches information on multiple trades made by the user
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -774,6 +789,7 @@ export default class htx extends htxRest {
          * @method
          * @name huobi#watchOrders
          * @description watches information on multiple orders made by the user
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -941,7 +957,7 @@ export default class htx extends htxRest {
                 const status = this.parseOrderStatus (this.safeString2 (data, 'orderStatus', 'status', 'closed'));
                 const filled = this.safeString (data, 'execAmt');
                 const remaining = this.safeString (data, 'remainAmt');
-                const order = {
+                const order: Dict = {
                     'id': orderId,
                     'trades': trades,
                     'status': status,
@@ -959,13 +975,13 @@ export default class htx extends htxRest {
             const rawTrades = this.safeValue (message, 'trade', []);
             const tradesLength = rawTrades.length;
             if (tradesLength > 0) {
-                const tradesObject = {
+                const tradesObject: Dict = {
                     'trades': rawTrades,
                     'ch': messageHash,
                     'symbol': marketId,
                 };
                 // inject order params in every trade
-                const extendTradeParams = {
+                const extendTradeParams: Dict = {
                     'order': this.safeString (parsedOrder, 'id'),
                     'type': this.safeString (parsedOrder, 'type'),
                     'side': this.safeString (parsedOrder, 'side'),
@@ -1349,6 +1365,10 @@ export default class htx extends htxRest {
          * @method
          * @name huobi#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1426,7 +1446,7 @@ export default class htx extends htxRest {
                 }
             }
         }
-        const subscriptionParams = {
+        const subscriptionParams: Dict = {
             'type': type,
             'subType': subType,
             'margin': marginMode,
@@ -1636,7 +1656,7 @@ export default class htx extends htxRest {
                                 const account = this.account ();
                                 account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
                                 account['used'] = this.safeString (balance, 'margin_frozen');
-                                const accountsByCode = {};
+                                const accountsByCode: Dict = {};
                                 accountsByCode[code] = account;
                                 const symbol = market['symbol'];
                                 this.balance[symbol] = this.safeBalance (accountsByCode);
@@ -1796,7 +1816,7 @@ export default class htx extends htxRest {
         const type = this.safeString (parts, 0);
         if (type === 'market') {
             const methodName = this.safeString (parts, 2);
-            const methods = {
+            const methods: Dict = {
                 'depth': this.handleOrderBook,
                 'mbp': this.handleOrderBook,
                 'detail': this.handleTicker,
@@ -1897,7 +1917,7 @@ export default class htx extends htxRest {
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        const promise = client.futures['authenticated'];
+        const promise = client.futures['auth'];
         promise.resolve (message);
     }
 
@@ -1926,6 +1946,12 @@ export default class htx extends htxRest {
         //         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
         //         "ts": 1698419490189
         //     }
+        //     {
+        //         "action":"req",
+        //         "code":2002,
+        //         "ch":"auth",
+        //         "message":"auth.fail"
+        //     }
         //
         const status = this.safeString (message, 'status');
         if (status === 'error') {
@@ -1936,6 +1962,7 @@ export default class htx extends htxRest {
                 const errorCode = this.safeString (message, 'err-code');
                 try {
                     this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode, this.json (message));
+                    throw new ExchangeError (this.json (message));
                 } catch (e) {
                     const messageHash = this.safeString (subscription, 'messageHash');
                     client.reject (e, messageHash);
@@ -1947,11 +1974,12 @@ export default class htx extends htxRest {
             }
             return false;
         }
-        const code = this.safeInteger2 (message, 'code', 'err-code');
-        if (code !== undefined && ((code !== 200) && (code !== 0))) {
+        const code = this.safeString2 (message, 'code', 'err-code');
+        if (code !== undefined && ((code !== '200') && (code !== '0'))) {
             const feedback = this.id + ' ' + this.json (message);
             try {
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
+                throw new ExchangeError (feedback);
             } catch (e) {
                 if (e instanceof AuthenticationError) {
                     client.reject (e, 'auth');
@@ -2234,7 +2262,7 @@ export default class htx extends htxRest {
 
     getUrlByMarketType (type, isLinear = true, isPrivate = false, isFeed = false) {
         const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
+        const hostname: Dict = { 'hostname': this.hostname };
         let hostnameURL = undefined;
         let url = undefined;
         if (type === 'spot') {
@@ -2258,11 +2286,11 @@ export default class htx extends htxRest {
 
     async subscribePublic (url, symbol, messageHash, method = undefined, params = {}) {
         const requestId = this.requestId ();
-        const request = {
+        const request: Dict = {
             'sub': messageHash,
             'id': requestId,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -2276,7 +2304,7 @@ export default class htx extends htxRest {
 
     async subscribePrivate (channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
         const requestId = this.requestId ();
-        const subscription = {
+        const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
             'params': params,
@@ -2298,14 +2326,11 @@ export default class htx extends htxRest {
         const isLinear = subtype === 'linear';
         const url = this.getUrlByMarketType (type, isLinear, true);
         const hostname = (type === 'spot') ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
-        const authParams = {
+        const authParams: Dict = {
             'type': type,
             'url': url,
             'hostname': hostname,
         };
-        if (type === 'spot') {
-            this.options['ws']['gunzip'] = false;
-        }
         await this.authenticate (authParams);
         return await this.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
     }
@@ -2318,7 +2343,7 @@ export default class htx extends htxRest {
             throw new ArgumentsRequired (this.id + ' authenticate requires a url, hostname and type argument');
         }
         this.checkRequiredCredentials ();
-        const messageHash = 'authenticated';
+        const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
         const client = this.client (url);
         const future = client.future (messageHash);
@@ -2347,7 +2372,7 @@ export default class htx extends htxRest {
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             let request = undefined;
             if (type === 'spot') {
-                const newParams = {
+                const newParams: Dict = {
                     'authType': 'api',
                     'accessKey': this.apiKey,
                     'signatureMethod': 'HmacSHA256',
@@ -2372,13 +2397,13 @@ export default class htx extends htxRest {
                 };
             }
             const requestId = this.requestId ();
-            const subscription = {
+            const subscription: Dict = {
                 'id': requestId,
                 'messageHash': messageHash,
                 'params': params,
             };
             this.watch (url, messageHash, request, messageHash, subscription);
         }
-        return future;
+        return await future;
     }
 }

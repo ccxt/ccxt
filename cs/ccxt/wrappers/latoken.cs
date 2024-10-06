@@ -10,6 +10,7 @@ public partial class latoken
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class latoken
     /// retrieves data on all markets for latoken
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -39,10 +41,10 @@ public partial class latoken
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<Dictionary<string, object>> FetchCurrenciesFromCache(Dictionary<string, object> parameters = null)
     {
@@ -53,6 +55,7 @@ public partial class latoken
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Account/operation/getBalancesByUser"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -72,6 +75,7 @@ public partial class latoken
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -98,6 +102,7 @@ public partial class latoken
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -117,6 +122,7 @@ public partial class latoken
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -136,6 +142,7 @@ public partial class latoken
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -169,6 +176,8 @@ public partial class latoken
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair"/>  <br/>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -179,10 +188,10 @@ public partial class latoken
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     public async Task<Dictionary<string, object>> FetchPublicTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
@@ -198,6 +207,8 @@ public partial class latoken
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByTrader"/>  <br/>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByAssetAndTrader"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -354,7 +365,7 @@ public partial class latoken
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -439,15 +450,16 @@ public partial class latoken
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// use fetchDepositsWithdrawals instead
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Transaction/operation/getUserTransactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -481,6 +493,7 @@ public partial class latoken
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Transfer/operation/getUsersTransfers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -503,17 +516,20 @@ public partial class latoken
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
     /// <summary>
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByEmail"/>  <br/>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferById"/>  <br/>
+    /// See <see href="https://api.latoken.com/doc/v2/#tag/Transfer/operation/transferByPhone"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

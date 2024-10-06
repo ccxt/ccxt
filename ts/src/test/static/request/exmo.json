@@ -1,7 +1,9 @@
 {
     "exchange": "exmo",
     "skipKeys": [
-        "nonce"
+        "nonce",
+        "from",
+        "to"
     ],
     "outputType": "urlencoded",
     "methods": {
@@ -183,11 +185,11 @@
                 "method": "createOrder",
                 "url": "https://api.exmo.com/v1.1/order_create",
                 "input": [
-                  "LTC/USDT",
-                  "limit",
-                  "buy",
-                  0.1,
-                  50
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
                 ],
                 "output": "nonce=1701427482963&pair=LTC_USDT&quantity=0.1&price=50&type=buy"
             },
@@ -196,12 +198,65 @@
                 "method": "createOrder",
                 "url": "https://api.exmo.com/v1.1/order_create",
                 "input": [
-                  "LTC/USDT",
-                  "market",
-                  "sell",
-                  0.1
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.1
                 ],
                 "output": "nonce=1701427519555&pair=LTC_USDT&quantity=0.1&price=0&type=market_sell"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.exmo.com/v1.1/trades?pair=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.exmo.com/v1.1/order_book?pair=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.exmo.com/v1.1/ticker",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.exmo.com/v1.1/ticker",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.exmo.com/v1.1/candles_history?symbol=BTC_USDT&resolution=1&from=1709932983&to=1709992984",
+                "input": [
+                    "BTC/USDT"
+                ]
             }
         ]
     }

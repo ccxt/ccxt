@@ -11,6 +11,16 @@ public partial class binanceus : binance
 {
     public binanceus (object args = null): base(args) {}
 
+    public async Task<object> sapiGetCopyTradingFuturesUserStatus (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetCopyTradingFuturesUserStatus",parameters);
+    }
+
+    public async Task<object> sapiGetCopyTradingFuturesLeadSymbol (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetCopyTradingFuturesLeadSymbol",parameters);
+    }
+
     public async Task<object> sapiGetSystemStatus (object parameters = null)
     {
         return await this.callAsync ("sapiGetSystemStatus",parameters);
@@ -19,6 +29,11 @@ public partial class binanceus : binance
     public async Task<object> sapiGetAccountSnapshot (object parameters = null)
     {
         return await this.callAsync ("sapiGetAccountSnapshot",parameters);
+    }
+
+    public async Task<object> sapiGetAccountInfo (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetAccountInfo",parameters);
     }
 
     public async Task<object> sapiGetMarginAsset (object parameters = null)
@@ -361,16 +376,6 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiGetLoanFlexibleLtvAdjustmentHistory",parameters);
     }
 
-    public async Task<object> sapiGetLoanFlexibleLoanableData (object parameters = null)
-    {
-        return await this.callAsync ("sapiGetLoanFlexibleLoanableData",parameters);
-    }
-
-    public async Task<object> sapiGetLoanFlexibleCollateralData (object parameters = null)
-    {
-        return await this.callAsync ("sapiGetLoanFlexibleCollateralData",parameters);
-    }
-
     public async Task<object> sapiGetLoanVipOngoingOrders (object parameters = null)
     {
         return await this.callAsync ("sapiGetLoanVipOngoingOrders",parameters);
@@ -444,6 +449,11 @@ public partial class binanceus : binance
     public async Task<object> sapiGetCapitalWithdrawHistory (object parameters = null)
     {
         return await this.callAsync ("sapiGetCapitalWithdrawHistory",parameters);
+    }
+
+    public async Task<object> sapiGetCapitalWithdrawAddressList (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetCapitalWithdrawAddressList",parameters);
     }
 
     public async Task<object> sapiGetCapitalContractConvertibleCoins (object parameters = null)
@@ -1221,6 +1231,21 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiGetSimpleEarnFlexibleHistoryCollateralRecord",parameters);
     }
 
+    public async Task<object> sapiGetDciProductList (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetDciProductList",parameters);
+    }
+
+    public async Task<object> sapiGetDciProductPositions (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetDciProductPositions",parameters);
+    }
+
+    public async Task<object> sapiGetDciProductAccounts (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetDciProductAccounts",parameters);
+    }
+
     public async Task<object> sapiGetAssetAssetDistributionHistory (object parameters = null)
     {
         return await this.callAsync ("sapiGetAssetAssetDistributionHistory",parameters);
@@ -1826,11 +1851,6 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiPostLoanCustomizeMarginCall",parameters);
     }
 
-    public async Task<object> sapiPostLoanFlexibleBorrow (object parameters = null)
-    {
-        return await this.callAsync ("sapiPostLoanFlexibleBorrow",parameters);
-    }
-
     public async Task<object> sapiPostLoanFlexibleRepay (object parameters = null)
     {
         return await this.callAsync ("sapiPostLoanFlexibleRepay",parameters);
@@ -1944,6 +1964,16 @@ public partial class binanceus : binance
     public async Task<object> sapiPostSimpleEarnLockedSetAutoSubscribe (object parameters = null)
     {
         return await this.callAsync ("sapiPostSimpleEarnLockedSetAutoSubscribe",parameters);
+    }
+
+    public async Task<object> sapiPostDciProductSubscribe (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostDciProductSubscribe",parameters);
+    }
+
+    public async Task<object> sapiPostDciProductAutoCompoundEdit (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostDciProductAutoCompoundEdit",parameters);
     }
 
     public async Task<object> sapiPostOtcQuotes (object parameters = null)
@@ -2101,6 +2131,36 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiV2GetSubAccountFuturesPositionRisk",parameters);
     }
 
+    public async Task<object> sapiV2GetLoanFlexibleOngoingOrders (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleOngoingOrders",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleBorrowHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleBorrowHistory",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleRepayHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleRepayHistory",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleLtvAdjustmentHistory (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleLtvAdjustmentHistory",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleLoanableData (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleLoanableData",parameters);
+    }
+
+    public async Task<object> sapiV2GetLoanFlexibleCollateralData (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2GetLoanFlexibleCollateralData",parameters);
+    }
+
     public async Task<object> sapiV2GetClAccount (object parameters = null)
     {
         return await this.callAsync ("sapiV2GetClAccount",parameters);
@@ -2119,6 +2179,21 @@ public partial class binanceus : binance
     public async Task<object> sapiV2PostSubAccountSubAccountApiIpRestriction (object parameters = null)
     {
         return await this.callAsync ("sapiV2PostSubAccountSubAccountApiIpRestriction",parameters);
+    }
+
+    public async Task<object> sapiV2PostLoanFlexibleBorrow (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2PostLoanFlexibleBorrow",parameters);
+    }
+
+    public async Task<object> sapiV2PostLoanFlexibleRepay (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2PostLoanFlexibleRepay",parameters);
+    }
+
+    public async Task<object> sapiV2PostLoanFlexibleAdjustLtv (object parameters = null)
+    {
+        return await this.callAsync ("sapiV2PostLoanFlexibleAdjustLtv",parameters);
     }
 
     public async Task<object> sapiV3GetSubAccountAssets (object parameters = null)
@@ -2254,6 +2329,11 @@ public partial class binanceus : binance
     public async Task<object> dapiPublicGetOpenInterest (object parameters = null)
     {
         return await this.callAsync ("dapiPublicGetOpenInterest",parameters);
+    }
+
+    public async Task<object> dapiPublicGetFundingInfo (object parameters = null)
+    {
+        return await this.callAsync ("dapiPublicGetFundingInfo",parameters);
     }
 
     public async Task<object> dapiDataGetDeliveryPrice (object parameters = null)
@@ -2526,6 +2606,11 @@ public partial class binanceus : binance
         return await this.callAsync ("fapiPublicGetIndexPriceKlines",parameters);
     }
 
+    public async Task<object> fapiPublicGetPremiumIndexKlines (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetPremiumIndexKlines",parameters);
+    }
+
     public async Task<object> fapiPublicGetFundingRate (object parameters = null)
     {
         return await this.callAsync ("fapiPublicGetFundingRate",parameters);
@@ -2691,6 +2776,11 @@ public partial class binanceus : binance
         return await this.callAsync ("fapiPrivateGetCommissionRate",parameters);
     }
 
+    public async Task<object> fapiPrivateGetRateLimitOrder (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetRateLimitOrder",parameters);
+    }
+
     public async Task<object> fapiPrivateGetApiTradingStatus (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetApiTradingStatus",parameters);
@@ -2786,6 +2876,21 @@ public partial class binanceus : binance
         return await this.callAsync ("fapiPrivateGetTradeAsynId",parameters);
     }
 
+    public async Task<object> fapiPrivateGetFeeBurn (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetFeeBurn",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetSymbolConfig (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetSymbolConfig",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetAccountConfig (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetAccountConfig",parameters);
+    }
+
     public async Task<object> fapiPrivatePostBatchOrders (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePostBatchOrders",parameters);
@@ -2841,6 +2946,11 @@ public partial class binanceus : binance
         return await this.callAsync ("fapiPrivatePostApiReferralUserCustomization",parameters);
     }
 
+    public async Task<object> fapiPrivatePostFeeBurn (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostFeeBurn",parameters);
+    }
+
     public async Task<object> fapiPrivatePutListenKey (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePutListenKey",parameters);
@@ -2894,6 +3004,21 @@ public partial class binanceus : binance
     public async Task<object> fapiPrivateV2GetPositionRisk (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateV2GetPositionRisk",parameters);
+    }
+
+    public async Task<object> fapiPrivateV3GetAccount (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateV3GetAccount",parameters);
+    }
+
+    public async Task<object> fapiPrivateV3GetBalance (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateV3GetBalance",parameters);
+    }
+
+    public async Task<object> fapiPrivateV3GetPositionRisk (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateV3GetPositionRisk",parameters);
     }
 
     public async Task<object> eapiPublicGetPing (object parameters = null)
@@ -3239,6 +3364,21 @@ public partial class binanceus : binance
     public async Task<object> privatePostOrderOco (object parameters = null)
     {
         return await this.callAsync ("privatePostOrderOco",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOco (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOco",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOto (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOto",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOtoco (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOtoco",parameters);
     }
 
     public async Task<object> privatePostSorOrder (object parameters = null)
@@ -3634,6 +3774,16 @@ public partial class binanceus : binance
     public async Task<object> papiPostAssetCollection (object parameters = null)
     {
         return await this.callAsync ("papiPostAssetCollection",parameters);
+    }
+
+    public async Task<object> papiPostMarginRepayDebt (object parameters = null)
+    {
+        return await this.callAsync ("papiPostMarginRepayDebt",parameters);
+    }
+
+    public async Task<object> papiPostUmFeeBurn (object parameters = null)
+    {
+        return await this.callAsync ("papiPostUmFeeBurn",parameters);
     }
 
     public async Task<object> papiPutListenKey (object parameters = null)

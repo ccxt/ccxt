@@ -91,6 +91,16 @@ public partial class krakenfutures : Exchange
         return await this.callAsync ("privateGetPnlpreferences",parameters);
     }
 
+    public async Task<object> privateGetAssignmentprogramCurrent (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAssignmentprogramCurrent",parameters);
+    }
+
+    public async Task<object> privateGetAssignmentprogramHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAssignmentprogramHistory",parameters);
+    }
+
     public async Task<object> privatePostSendorder (object parameters = null)
     {
         return await this.callAsync ("privatePostSendorder",parameters);
@@ -131,6 +141,16 @@ public partial class krakenfutures : Exchange
         return await this.callAsync ("privatePostWithdrawal",parameters);
     }
 
+    public async Task<object> privatePostAssignmentprogramAdd (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAssignmentprogramAdd",parameters);
+    }
+
+    public async Task<object> privatePostAssignmentprogramDelete (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAssignmentprogramDelete",parameters);
+    }
+
     public async Task<object> privatePutLeveragepreferences (object parameters = null)
     {
         return await this.callAsync ("privatePutLeveragepreferences",parameters);
@@ -164,6 +184,11 @@ public partial class krakenfutures : Exchange
     public async Task<object> historyGetAccountlogcsv (object parameters = null)
     {
         return await this.callAsync ("historyGetAccountlogcsv",parameters);
+    }
+
+    public async Task<object> historyGetAccountLog (object parameters = null)
+    {
+        return await this.callAsync ("historyGetAccountLog",parameters);
     }
 
     public async Task<object> historyGetMarketSymbolOrders (object parameters = null)

@@ -115,6 +115,7 @@ class coinmetro extends Exchange {
                 'reduceMargin' => false,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -164,6 +165,7 @@ class coinmetro extends Exchange {
                 'private' => array(
                     'get' => array(
                         'users/balances' => 1,
+                        'users/wallets' => 1,
                         'users/wallets/history/{since}' => 1.67,
                         'exchange/orders/status/{orderID}' => 1,
                         'exchange/orders/active' => 1,
@@ -206,7 +208,7 @@ class coinmetro extends Exchange {
                     'maker' => $this->parse_number('0'),
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
                 'currenciesByIdForParseMarket' => null,
@@ -250,7 +252,7 @@ class coinmetro extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -310,7 +312,6 @@ class coinmetro extends Exchange {
                 $deposit = $this->safe_value($currency, 'canDeposit');
                 $canTrade = $this->safe_value($currency, 'canTrade');
                 $active = $canTrade ? $withdraw : true;
-                $precision = $this->safe_integer($currency, 'digits');
                 $minAmount = $this->safe_number($currency, 'minQty');
                 $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
@@ -321,7 +322,7 @@ class coinmetro extends Exchange {
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
                     'fee' => null,
-                    'precision' => $precision,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'digits'))),
                     'limits' => array(
                         'amount' => array( 'min' => $minAmount, 'max' => null ),
                         'withdraw' => array( 'min' => null, 'max' => null ),
@@ -338,7 +339,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for coinmetro
@@ -353,19 +354,14 @@ class coinmetro extends Exchange {
             //
             //     array(
             //         array(
-            //             "pair" => "PERPEUR",
-            //             "precision" => 5,
-            //             "margin" => false
-            //         ),
-            //         array(
-            //             "pair" => "PERPUSD",
-            //             "precision" => 5,
-            //             "margin" => false
-            //         ),
-            //         array(
             //             "pair" => "YFIEUR",
             //             "precision" => 5,
             //             "margin" => false
+            //         ),
+            //         array(
+            //             "pair" => "BTCEUR",
+            //             "precision" => 2,
+            //             "margin" => true
             //         ),
             //         ...
             //     )
@@ -374,7 +370,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'pair');
         $parsedMarketId = $this->parse_market_id($id);
         $baseId = $this->safe_string($parsedMarketId, 'baseId');
@@ -413,9 +409,7 @@ class coinmetro extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'amount' => $basePrecisionAndLimits['precision'],
-                'price' => $quotePrecisionAndLimits['precision'],
-                'base' => $basePrecisionAndLimits['precision'],
-                'quote' => $quotePrecisionAndLimits['precision'],
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -471,12 +465,11 @@ class coinmetro extends Exchange {
     public function parse_market_precision_and_limits($currencyId) {
         $currencies = $this->safe_value($this->options, 'currenciesByIdForParseMarket', array());
         $currency = $this->safe_value($currencies, $currencyId, array());
-        $precision = $this->safe_integer($currency, 'precision');
         $limits = $this->safe_value($currency, 'limits', array());
         $amountLimits = $this->safe_value($limits, 'amount', array());
         $minLimit = $this->safe_number($amountLimits, 'min');
         $result = array(
-            'precision' => $precision,
+            'precision' => $this->safe_number($currency, 'precision'),
             'minLimit' => $minLimit,
         );
         return $result;
@@ -511,14 +504,14 @@ class coinmetro extends Exchange {
             } else {
                 $request['from'] = ':from'; // this endpoint doesn't accept empty from and to $params (setting them into the value described in the documentation)
             }
-            $until = $this->safe_integer_2($params, 'till', 'until', $until);
+            $until = $this->safe_integer($params, 'until', $until);
             if ($until !== null) {
-                $params = $this->omit($params, array( 'till', 'until' ));
+                $params = $this->omit($params, array( 'until' ));
                 $request['to'] = $until;
             } else {
                 $request['to'] = ':to';
             }
-            $response = Async\await($this->publicGetExchangeCandlesPairTimeframeFromTo (array_merge($request, $params)));
+            $response = Async\await($this->publicGetExchangeCandlesPairTimeframeFromTo ($this->extend($request, $params)));
             //
             //     {
             //         "candleHistory" => array(
@@ -546,7 +539,7 @@ class coinmetro extends Exchange {
             //         )
             //     }
             //
-            $candleHistory = $this->safe_value($response, 'candleHistory', array());
+            $candleHistory = $this->safe_list($response, 'candleHistory', array());
             return $this->parse_ohlcvs($candleHistory, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -584,7 +577,7 @@ class coinmetro extends Exchange {
                 // this endpoint accepts empty from param
                 $request['from'] = '';
             }
-            $response = Async\await($this->publicGetExchangeTicksPairFrom (array_merge($request, $params)));
+            $response = Async\await($this->publicGetExchangeTicksPairFrom ($this->extend($request, $params)));
             //
             //     {
             //         "tickHistory" => array(
@@ -613,7 +606,7 @@ class coinmetro extends Exchange {
             //         )
             //     }
             //
-            $tickHistory = $this->safe_value($response, 'tickHistory', array());
+            $tickHistory = $this->safe_list($response, 'tickHistory', array());
             return $this->parse_trades($tickHistory, $market, $since, $limit);
         }) ();
     }
@@ -641,7 +634,7 @@ class coinmetro extends Exchange {
                 // the exchange requires a value for the $since param
                 $request['since'] = 0;
             }
-            $response = Async\await($this->privateGetExchangeFillsSince (array_merge($request, $params)));
+            $response = Async\await($this->privateGetExchangeFillsSince ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -660,7 +653,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     array(
@@ -744,7 +737,7 @@ class coinmetro extends Exchange {
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetExchangeBookPair (array_merge($request, $params)));
+            $response = Async\await($this->publicGetExchangeBookPair ($this->extend($request, $params)));
             //
             //     {
             //         "book" => {
@@ -872,7 +865,7 @@ class coinmetro extends Exchange {
                 $marketId = $this->safe_string($twentyFourHInfo, 'pair');
                 if ($marketId !== null) {
                     $latestPrice = $this->safe_value($tickersObject, $marketId, array());
-                    $tickersObject[$marketId] = array_merge($twentyFourHInfo, $latestPrice);
+                    $tickersObject[$marketId] = $this->extend($twentyFourHInfo, $latestPrice);
                 }
             }
             $tickers = is_array($tickersObject) ? array_values($tickersObject) : array();
@@ -891,12 +884,12 @@ class coinmetro extends Exchange {
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetExchangePrices ($params));
-            $latestPrices = $this->safe_value($response, 'latestPrices', array());
+            $latestPrices = $this->safe_list($response, 'latestPrices', array());
             return $this->parse_tickers($latestPrices, $symbols);
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "pair" => "PERPUSD",
@@ -954,64 +947,63 @@ class coinmetro extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816
+             * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetUsersBalances ($params));
-            return $this->parse_balance($response);
+            $response = Async\await($this->privateGetUsersWallets ($params));
+            $list = $this->safe_list($response, 'list', array());
+            return $this->parse_balance($list);
         }) ();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance($balances): array {
         //
-        //     {
-        //         "USDC" => array(
-        //             "USDC" => 99,
-        //             "EUR" => 91.16,
-        //             "BTC" => 0.002334
+        //     array(
+        //         array(
+        //             "xcmLocks" => array(),
+        //             "xcmLockAmounts" => array(),
+        //             "refList" => array(),
+        //             "balanceHistory" => array(),
+        //             "_id" => "5fecd3c998e75c2e4d63f7c3",
+        //             "currency" => "BTC",
+        //             "label" => "BTC",
+        //             "userId" => "5fecd3c97fbfed1521db23bd",
+        //             "__v" => 0,
+        //             "balance" => 0.5,
+        //             "createdAt" => "2020-12-30T19:23:53.646Z",
+        //             "disabled" => false,
+        //             "updatedAt" => "2020-12-30T19:23:53.653Z",
+        //             "reserved" => 0,
+        //             "id" => "5fecd3c998e75c2e4d63f7c3"
         //         ),
-        //         "XCM" => array(
-        //             "XCM" => 0,
-        //             "EUR" => 0,
-        //             "BTC" => 0
-        //         ),
-        //         "TOTAL" => array(
-        //             "EUR" => 91.16,
-        //             "BTC" => 0.002334
-        //         ),
-        //         "REF" => {
-        //             "XCM" => 0,
-        //             "EUR" => 0,
-        //             "BTC" => 0
-        //         }
-        //     }
+        //         ...
+        //     )
         //
         $result = array(
-            'info' => $response,
+            'info' => $balances,
         );
-        $balances = $this->omit($response, array( 'TOTAL', 'REF' ));
-        $currencyIds = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
+        for ($i = 0; $i < count($balances); $i++) {
+            $balanceEntry = $this->safe_dict($balances, $i, array());
+            $currencyId = $this->safe_string($balanceEntry, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $currency = $this->safe_value($balances, $currencyId, array());
-            $account['total'] = $this->safe_string($currency, $currencyId);
+            $account['total'] = $this->safe_string($balanceEntry, 'balance');
+            $account['used'] = $this->safe_string($balanceEntry, 'reserved');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4e7831f7-a0e7-4c3e-9336-1d0e5dcb15cf
-             * @param {string} $code unified $currency $code, default is null
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
-             * @param {int} [$limit] max number of $ledger entrys to return (default 200, max 500)
+             * @param {int} [$limit] max number of $ledger entries to return (default 200, max 500)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
@@ -1028,7 +1020,7 @@ class coinmetro extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->privateGetUsersWalletsHistorySince (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUsersWalletsHistorySince ($this->extend($request, $params)));
             //
             //     {
             //         "list" => array(
@@ -1133,7 +1125,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         $datetime = $this->safe_string($item, 'timestamp');
         $currencyId = $this->safe_string($item, 'currencyId');
         $item = $this->omit($item, 'currencyId');
@@ -1212,7 +1204,7 @@ class coinmetro extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount in $market orders
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", "GTD"
@@ -1282,7 +1274,7 @@ class coinmetro extends Exchange {
             if (!$this->is_empty($userData)) {
                 $request['userData'] = $userData;
             }
-            $response = Async\await($this->privatePostExchangeOrdersCreate (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchangeOrdersCreate ($this->extend($request, $params)));
             //
             //     {
             //         "userID" => "65671262d93d9525ac009e36",
@@ -1359,9 +1351,9 @@ class coinmetro extends Exchange {
             $params = $this->omit($params, 'margin');
             $response = null;
             if ($isMargin || ($marginMode !== null)) {
-                $response = Async\await($this->privatePostExchangeOrdersCloseOrderID (array_merge($request, $params)));
+                $response = Async\await($this->privatePostExchangeOrdersCloseOrderID ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePutExchangeOrdersCancelOrderID (array_merge($request, $params)));
+                $response = Async\await($this->privatePutExchangeOrdersCancelOrderID ($this->extend($request, $params)));
             }
             //
             //     {
@@ -1406,7 +1398,7 @@ class coinmetro extends Exchange {
             $request = array(
                 'orderID' => $orderId,
             );
-            $response = Async\await($this->privatePostExchangeOrdersCloseOrderID (array_merge($request, $params)));
+            $response = Async\await($this->privatePostExchangeOrdersCloseOrderID ($this->extend($request, $params)));
             //
             //     {
             //         "userID" => "65671262d93d9525ac009e36",
@@ -1486,7 +1478,7 @@ class coinmetro extends Exchange {
             if ($since !== null) {
                 $request['since'] = $since;
             }
-            $response = Async\await($this->privateGetExchangeOrdersHistorySince (array_merge($request, $params)));
+            $response = Async\await($this->privateGetExchangeOrdersHistorySince ($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
@@ -1505,7 +1497,7 @@ class coinmetro extends Exchange {
             $request = array(
                 'orderID' => $id,
             );
-            $response = Async\await($this->privateGetExchangeOrdersStatusOrderID (array_merge($request, $params)));
+            $response = Async\await($this->privateGetExchangeOrdersStatusOrderID ($this->extend($request, $params)));
             //
             //     {
             //         "_id" => "657b4e6d60a954244939ac6f",
@@ -1545,7 +1537,7 @@ class coinmetro extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder $market
         //     {
@@ -1849,13 +1841,13 @@ class coinmetro extends Exchange {
             $currencyId = $currency['id'];
             $request = array();
             $request[$currencyId] = $this->currency_to_precision($code, $amount);
-            $response = Async\await($this->privatePutUsersMarginCollateral (array_merge($request, $params)));
+            $response = Async\await($this->privatePutUsersMarginCollateral ($this->extend($request, $params)));
             //
             //     array( "message" => "OK" )
             //
             $result = $this->safe_value($response, 'result', array());
             $transaction = $this->parse_margin_loan($result, $currency);
-            return array_merge($transaction, array(
+            return $this->extend($transaction, array(
                 'amount' => $amount,
             ));
         }) ();
@@ -1920,7 +1912,7 @@ class coinmetro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

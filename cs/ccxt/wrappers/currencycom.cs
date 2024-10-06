@@ -10,6 +10,7 @@ public partial class currencycom
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/timeUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class currencycom
     /// retrieves data on all markets for currencycom
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -39,15 +41,16 @@ public partial class currencycom
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -58,15 +61,16 @@ public partial class currencycom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -77,15 +81,16 @@ public partial class currencycom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFees(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -105,6 +110,7 @@ public partial class currencycom
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/depthUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -131,6 +137,7 @@ public partial class currencycom
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -150,6 +157,7 @@ public partial class currencycom
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -169,6 +177,7 @@ public partial class currencycom
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/klinesUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -202,6 +211,7 @@ public partial class currencycom
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/aggTradesUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -235,11 +245,12 @@ public partial class currencycom
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/orderUsingPOST"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -281,6 +292,7 @@ public partial class currencycom
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/openOrdersUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -314,6 +326,7 @@ public partial class currencycom
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/cancelOrderUsingDELETE"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -333,6 +346,7 @@ public partial class currencycom
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/myTradesUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -366,6 +380,7 @@ public partial class currencycom
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositsUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -399,6 +414,7 @@ public partial class currencycom
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getWithdrawalsUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -432,6 +448,7 @@ public partial class currencycom
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getTransactionsUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -475,10 +492,17 @@ public partial class currencycom
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getLedgerUsingGET"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -488,7 +512,7 @@ public partial class currencycom
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -500,17 +524,18 @@ public partial class currencycom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/leverageSettingsUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -521,15 +546,16 @@ public partial class currencycom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Int64> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
-        return (Int64)res;
+        return new Leverage(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositAddressUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -549,6 +575,7 @@ public partial class currencycom
     /// fetch all open positions
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apitradedoc.currency.com/swagger-ui.html#/rest-api/tradingPositionsUsingGET"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

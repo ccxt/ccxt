@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dictionary, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,6 +43,7 @@ export default class upbit extends Exchange {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
@@ -70,6 +71,7 @@ export default class upbit extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'transfer': false,
                 'withdraw': true,
@@ -78,6 +80,7 @@ export default class upbit extends Exchange {
                 '1m': 'minutes',
                 '3m': 'minutes',
                 '5m': 'minutes',
+                '10m': 'minutes',
                 '15m': 'minutes',
                 '30m': 'minutes',
                 '1h': 'minutes',
@@ -107,6 +110,7 @@ export default class upbit extends Exchange {
                         'candles/minutes/1',
                         'candles/minutes/3',
                         'candles/minutes/5',
+                        'candles/minutes/10',
                         'candles/minutes/15',
                         'candles/minutes/30',
                         'candles/minutes/60',
@@ -125,6 +129,9 @@ export default class upbit extends Exchange {
                         'orders/chance',
                         'order',
                         'orders',
+                        'orders/closed',
+                        'orders/open',
+                        'orders/uuids',
                         'withdraws',
                         'withdraw',
                         'withdraws/chance',
@@ -203,7 +210,7 @@ export default class upbit extends Exchange {
     async fetchCurrencyById (id: string, params = {}) {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
-        const request = {
+        const request: Dict = {
             'currency': id,
         };
         const response = await this.privateGetWithdrawsChance (this.extend (request, params));
@@ -301,7 +308,7 @@ export default class upbit extends Exchange {
     async fetchMarketById (id: string, params = {}) {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
-        const request = {
+        const request: Dict = {
             'market': id,
         };
         const response = await this.privateGetOrdersChance (this.extend (request, params));
@@ -401,7 +408,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name upbit#fetchMarkets
@@ -424,7 +431,7 @@ export default class upbit extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'market');
         const [ quoteId, baseId ] = id.split ('-');
         const base = this.safeCurrencyCode (baseId);
@@ -483,7 +490,7 @@ export default class upbit extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -550,7 +557,7 @@ export default class upbit extends Exchange {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
         }
-        const request = {
+        const request: Dict = {
             'markets': ids,
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
@@ -582,7 +589,7 @@ export default class upbit extends Exchange {
         //                               "ask_size": 2.752,
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const orderbook = response[i];
             const marketId = this.safeString (orderbook, 'market');
@@ -615,14 +622,14 @@ export default class upbit extends Exchange {
         return this.safeValue (orderbooks, symbol) as OrderBook;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //       {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
         //                    "trade_time": "104543",
         //                "trade_date_kst": "20181122",
         //                "trade_time_kst": "194543",
-        //               "trade_timestamp":  1542883543097,
+        //               "trade_timestamp":  1542883543096,
         //                 "opening_price":  0.02976455,
         //                    "high_price":  0.02992577,
         //                     "low_price":  0.02934283,
@@ -696,7 +703,7 @@ export default class upbit extends Exchange {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
         }
-        const request = {
+        const request: Dict = {
             'markets': ids,
         };
         const response = await this.publicGetTicker (this.extend (request, params));
@@ -728,7 +735,7 @@ export default class upbit extends Exchange {
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        const result = {};
+        const result: Dict = {};
         for (let t = 0; t < response.length; t++) {
             const ticker = this.parseTicker (response[t]);
             const symbol = ticker['symbol'];
@@ -751,7 +758,7 @@ export default class upbit extends Exchange {
         return this.safeValue (tickers, symbol) as Ticker;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -840,7 +847,7 @@ export default class upbit extends Exchange {
         if (limit === undefined) {
             limit = 200;
         }
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'count': limit,
         };
@@ -870,7 +877,7 @@ export default class upbit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name upbit#fetchTradingFee
@@ -882,7 +889,7 @@ export default class upbit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         const response = await this.privateGetOrdersChance (this.extend (request, params));
@@ -982,7 +989,7 @@ export default class upbit extends Exchange {
         if (limit === undefined) {
             limit = 200;
         }
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'timeframe': timeframeValue,
             'count': limit,
@@ -1032,19 +1039,21 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name upbit#createOrder
          * @description create a trade order
          * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0
+         * @see https://global-docs.upbit.com/reference/order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] for market buy orders, the quote quantity that can be used as an alternative for the amount
+         * @param {string} [params.timeInForce] 'IOC' or 'FOK'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1057,7 +1066,7 @@ export default class upbit extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder() allows buy or sell side only!');
         }
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'side': orderSide,
         };
@@ -1094,6 +1103,13 @@ export default class upbit extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'identifier');
         if (clientOrderId !== undefined) {
             request['identifier'] = clientOrderId;
+        }
+        if (type !== 'market') {
+            const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
+            params = this.omit (params, 'timeInForce');
+            if (timeInForce !== undefined) {
+                request['time_in_force'] = timeInForce;
+            }
         }
         params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
@@ -1132,7 +1148,7 @@ export default class upbit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'uuid': id,
         };
         const response = await this.privateDeleteOrder (this.extend (request, params));
@@ -1171,7 +1187,7 @@ export default class upbit extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'page': 1,
             // 'order_by': 'asc', // 'desc'
         };
@@ -1203,6 +1219,46 @@ export default class upbit extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
+    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name upbit#fetchDeposit
+         * @description fetch information on a deposit
+         * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+         * @param {string} id the unique id for the deposit
+         * @param {string} [code] unified currency code of the currency deposited
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'uuid': id,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetDeposit (this.extend (request, params));
+        //
+        //     {
+        //         "type": "deposit",
+        //         "uuid": "7f54527e-2eee-4268-860e-fd8b9d7fe3c7",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "99795bbfeca91eaa071068bb659b33eeb65d8aaff2551fdf7c78f345d188952b",
+        //         "state": "ACCEPTED",
+        //         "created_at": "2023-12-12T04:58:41Z",
+        //         "done_at": "2023-12-12T05:31:50Z",
+        //         "amount": "35.72344",
+        //         "fee": "0.0",
+        //         "transaction_type": "default"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
@@ -1216,7 +1272,7 @@ export default class upbit extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             // 'state': 'submitting', // 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
         };
         let currency = undefined;
@@ -1248,13 +1304,53 @@ export default class upbit extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name upbit#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+         * @param {string} id the unique id for the withdrawal
+         * @param {string} [code] unified currency code of the currency withdrawn
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'uuid': id,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "95ef274b-23a6-4de4-95b0-5cbef4ca658f",
+        //         "currency": "ADA",
+        //         "net_type": "ADA",
+        //         "txid": "b1528f149297a71671b86636f731f8fdb0ff53da0f1d8c19093d59df96f34583",
+        //         "state": "DONE",
+        //         "created_at": "2023-12-14T02:46:52Z",
+        //         "done_at": "2023-12-14T03:10:11Z",
+        //         "amount": "35.22344",
+        //         "fee": "0.5",
+        //         "transaction_type": "default"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료
             'almost_accepted': 'pending', // 출금대기중
             'rejected': 'failed', // 거부
-            'accepted': 'pending', // 승인됨
+            'accepted': 'ok', // 승인됨
             'processing': 'pending', // 처리 중
             'done': 'ok', // 완료
             'canceled': 'canceled', // 취소됨
@@ -1262,9 +1358,9 @@ export default class upbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
-        // fetchDeposits
+        // fetchDeposits, fetchDeposit
         //
         //     {
         //         "type": "deposit",
@@ -1278,7 +1374,7 @@ export default class upbit extends Exchange {
         //         "fee": "0.0"
         //     }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals, fetchWithdrawal
         //
         //     {
         //         "type": "withdraw",
@@ -1293,27 +1389,21 @@ export default class upbit extends Exchange {
         //         "krw_amount": "80420.0"
         //     }
         //
-        const id = this.safeString (transaction, 'uuid');
-        const amount = this.safeNumber (transaction, 'amount');
         const address = undefined; // not present in the data structure received from the exchange
         const tag = undefined; // not present in the data structure received from the exchange
-        const txid = this.safeString (transaction, 'txid');
         const updatedRaw = this.safeString (transaction, 'done_at');
-        const updated = this.parse8601 (updatedRaw);
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at', updatedRaw));
         let type = this.safeString (transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
         const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
-        const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'state'));
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const code = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transaction,
-            'id': id,
+            'id': this.safeString (transaction, 'uuid'),
             'currency': code,
-            'amount': amount,
+            'amount': this.safeNumber (transaction, 'amount'),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
@@ -1321,23 +1411,23 @@ export default class upbit extends Exchange {
             'tag': tag,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'status': status,
+            'status': this.parseTransactionStatus (this.safeStringLower (transaction, 'state')),
             'type': type,
-            'updated': updated,
-            'txid': txid,
+            'updated': this.parse8601 (updatedRaw),
+            'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'internal': undefined,
             'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.safeNumber (transaction, 'fee'),
             },
         };
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
@@ -1345,7 +1435,7 @@ export default class upbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1387,6 +1477,28 @@ export default class upbit extends Exchange {
         //                 "side": "bid",
         //             },
         //         ],
+        //     }
+        //
+        // fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //         "side": "ask",
+        //         "ord_type": "limit",
+        //         "price": "1.5",
+        //         "state": "wait",
+        //         "market": "SGD-XRP",
+        //         "created_at": "2024-06-05T09:37:10Z",
+        //         "volume": "10",
+        //         "remaining_volume": "10",
+        //         "reserved_fee": "0",
+        //         "remaining_fee": "0",
+        //         "paid_fee": "0",
+        //         "locked": "10",
+        //         "executed_volume": "0",
+        //         "executed_funds": "0",
+        //         "trades_count": 0,
+        //         "time_in_force": "ioc"
         //     }
         //
         const id = this.safeString (order, 'uuid');
@@ -1458,7 +1570,7 @@ export default class upbit extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': undefined,
+            'timeInForce': this.safeStringUpper (order, 'time_in_force'),
             'postOnly': undefined,
             'side': side,
             'price': price,
@@ -1475,87 +1587,165 @@ export default class upbit extends Exchange {
         });
     }
 
-    async fetchOrdersByState (state, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name upbit#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://global-docs.upbit.com/reference/open-order
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.state] default is 'wait', set to 'watch' for stop limit orders
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
-        const request = {
-            // 'market': this.marketId (symbol),
-            'state': state,
-            // 'page': 1,
-            // 'order_by': 'asc',
-        };
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOrdersOpen (this.extend (request, params));
         //
         //     [
         //         {
-        //             "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //             "side": "bid",
+        //             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //             "side": "ask",
         //             "ord_type": "limit",
-        //             "price": "17417000.0",
-        //             "state": "done",
-        //             "market": "KRW-BTC",
-        //             "created_at": "2018-04-05T14:09:14+09:00",
-        //             "volume": "1.0",
-        //             "remaining_volume": "0.0",
-        //             "reserved_fee": "26125.5",
-        //             "remaining_fee": "25974.0",
-        //             "paid_fee": "151.5",
-        //             "locked": "17341974.0",
-        //             "executed_volume": "1.0",
-        //             "trades_count":2
-        //         },
+        //             "price": "1.5",
+        //             "state": "wait",
+        //             "market": "SGD-XRP",
+        //             "created_at": "2024-06-05T09:37:10Z",
+        //             "volume": "10",
+        //             "remaining_volume": "10",
+        //             "reserved_fee": "0",
+        //             "remaining_fee": "0",
+        //             "paid_fee": "0",
+        //             "locked": "10",
+        //             "executed_volume": "0",
+        //             "executed_funds": "0",
+        //             "trades_count": 0
+        //         }
         //     ]
         //
         return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name upbit#fetchOpenOrders
-         * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
-         * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        return await this.fetchOrdersByState ('wait', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name upbit#fetchClosedOrders
-         * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
          * @description fetches information on multiple closed orders made by the user
+         * @see https://global-docs.upbit.com/reference/closed-order
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest order
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.fetchOrdersByState ('done', symbol, since, limit, params);
+        await this.loadMarkets ();
+        let request: Dict = {
+            'state': 'done',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        const response = await this.privateGetOrdersClosed (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //             "side": "ask",
+        //             "ord_type": "limit",
+        //             "price": "1.5",
+        //             "state": "done",
+        //             "market": "SGD-XRP",
+        //             "created_at": "2024-06-05T09:37:10Z",
+        //             "volume": "10",
+        //             "remaining_volume": "10",
+        //             "reserved_fee": "0",
+        //             "remaining_fee": "0",
+        //             "paid_fee": "0",
+        //             "locked": "10",
+        //             "executed_volume": "0",
+        //             "executed_funds": "0",
+        //             "trades_count": 0,
+        //             "time_in_force": "ioc"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchCanceledOrders
-         * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
          * @description fetches information on multiple canceled orders made by the user
+         * @see https://global-docs.upbit.com/reference/closed-order
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest order
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.fetchOrdersByState ('cancel', symbol, since, limit, params);
+        await this.loadMarkets ();
+        let request: Dict = {
+            'state': 'cancel',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        const response = await this.privateGetOrdersClosed (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        //             "side": "ask",
+        //             "ord_type": "limit",
+        //             "price": "1.5",
+        //             "state": "cancel",
+        //             "market": "SGD-XRP",
+        //             "created_at": "2024-06-05T09:37:10Z",
+        //             "volume": "10",
+        //             "remaining_volume": "10",
+        //             "reserved_fee": "0",
+        //             "remaining_fee": "0",
+        //             "paid_fee": "0",
+        //             "locked": "10",
+        //             "executed_volume": "0",
+        //             "executed_funds": "0",
+        //             "trades_count": 0,
+        //             "time_in_force": "ioc"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1569,7 +1759,7 @@ export default class upbit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'uuid': id,
         };
         const response = await this.privateGetOrder (this.extend (request, params));
@@ -1619,7 +1809,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchDepositAddresses (codes: string[] = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchDepositAddresses
@@ -1722,7 +1912,7 @@ export default class upbit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         // https://github.com/ccxt/ccxt/issues/6452
@@ -1749,7 +1939,7 @@ export default class upbit extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name upbit#withdraw
@@ -1766,7 +1956,7 @@ export default class upbit extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'amount': amount,
         };
         let response = undefined;
@@ -1823,30 +2013,33 @@ export default class upbit extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
-            const request = {
+            headers = {};
+            const nonce = this.uuid ();
+            const request: Dict = {
                 'access_key': this.apiKey,
                 'nonce': nonce,
             };
-            if (Object.keys (query).length) {
-                const auth = this.urlencode (query);
+            const hasQuery = Object.keys (query).length;
+            let auth = undefined;
+            if ((method !== 'GET') && (method !== 'DELETE')) {
+                body = this.json (params);
+                headers['Content-Type'] = 'application/json';
+            }
+            if (hasQuery) {
+                auth = this.rawencode (query);
+            }
+            if (auth !== undefined) {
                 const hash = this.hash (this.encode (auth), sha512);
                 request['query_hash'] = hash;
                 request['query_hash_alg'] = 'SHA512';
             }
             const token = jwt (request, this.encode (this.secret), sha256);
-            headers = {
-                'Authorization': 'Bearer ' + token,
-            };
-            if ((method !== 'GET') && (method !== 'DELETE')) {
-                body = this.json (params);
-                headers['Content-Type'] = 'application/json';
-            }
+            headers['Authorization'] = 'Bearer ' + token;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

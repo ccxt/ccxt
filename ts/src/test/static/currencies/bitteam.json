@@ -41,7 +41,7 @@
         "deposit": true,
         "withdraw": true,
         "fee": 0.0005,
-        "precision": 8,
+        "precision": 0.00000001,
         "limits": {
             "amount": {},
             "withdraw": {
@@ -60,7 +60,7 @@
                 "withdraw": true,
                 "active": true,
                 "fee": 0.0005,
-                "precision": 8,
+                "precision": 0.00000001,
                 "limits": {
                     "amount": {},
                     "withdraw": {
@@ -149,7 +149,7 @@
         "deposit": true,
         "withdraw": true,
         "fee": 0.005,
-        "precision": 8,
+        "precision": 0.00000001,
         "limits": {
             "amount": {},
             "withdraw": {
@@ -168,7 +168,7 @@
                 "withdraw": true,
                 "active": true,
                 "fee": 0.005,
-                "precision": 18,
+                "precision": 0.000000000000000001,
                 "limits": {
                     "amount": {},
                     "withdraw": {
@@ -269,7 +269,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 6,
+        "precision": 0.000001,
         "limits": {
             "amount": {},
             "withdraw": {
@@ -288,7 +288,7 @@
                 "withdraw": true,
                 "active": true,
                 "fee": 2,
-                "precision": 6,
+                "precision": 0.000001,
                 "limits": {
                     "amount": {},
                     "withdraw": {
@@ -353,7 +353,7 @@
                 "withdraw": true,
                 "active": true,
                 "fee": 2,
-                "precision": 6,
+                "precision": 0.000001,
                 "limits": {
                     "amount": {},
                     "withdraw": {
@@ -418,7 +418,7 @@
                 "withdraw": true,
                 "active": true,
                 "fee": 2,
-                "precision": 6,
+                "precision": 0.000001,
                 "limits": {
                     "amount": {},
                     "withdraw": {
@@ -520,7 +520,7 @@
         "deposit": true,
         "withdraw": true,
         "fee": 0.001,
-        "precision": 8,
+        "precision": 0.00000001,
         "limits": {
             "amount": {},
             "withdraw": {
@@ -539,7 +539,7 @@
                 "withdraw": true,
                 "active": true,
                 "fee": 0.001,
-                "precision": 8,
+                "precision": 0.00000001,
                 "limits": {
                     "amount": {},
                     "withdraw": {
@@ -627,7 +627,7 @@
         "deposit": true,
         "withdraw": true,
         "fee": 2,
-        "precision": 8,
+        "precision": 0.00000001,
         "limits": {
             "amount": {},
             "withdraw": {
@@ -646,7 +646,7 @@
                 "withdraw": true,
                 "active": true,
                 "fee": 2,
-                "precision": 18,
+                "precision": 0.000000000000000001,
                 "limits": {
                     "amount": {},
                     "withdraw": {

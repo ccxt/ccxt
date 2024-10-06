@@ -18,7 +18,9 @@ public partial class whitebit : ccxt.whitebit
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchTicker", true },
+                { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -63,6 +65,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://docs.whitebit.com/public/websocket/#kline
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -122,16 +125,21 @@ public partial class whitebit : ccxt.whitebit
             object symbol = getValue(market, "symbol");
             object messageHash = add(add("candles", ":"), symbol);
             object parsed = this.parseOHLCV(data, market);
-            ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol);
-            object stored = getValue(this.ohlcvs, symbol);
-            if (isTrue(isEqual(stored, null)))
+            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
+            if (!isTrue((inOp(this.ohlcvs, symbol))))
+            {
+                ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
+            }
+            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
+            if (!isTrue((inOp(getValue(this.ohlcvs, symbol), "unknown"))))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = stored;
+                var stored = new ArrayCacheByTimestamp(limit);
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))["unknown"] = stored;
             }
-            callDynamically(stored, "append", new object[] {parsed});
-            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+            object ohlcv = getValue(getValue(this.ohlcvs, symbol), "unknown");
+            callDynamically(ohlcv, "append", new object[] {parsed});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
         }
         return message;
     }
@@ -142,6 +150,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://docs.whitebit.com/public/websocket/#market-depth
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -173,6 +182,7 @@ public partial class whitebit : ccxt.whitebit
         //     "params":[
         //        true,
         //        {
+        //           "timestamp": 1708679568.940867,
         //           "asks":[
         //              [ "21252.45","0.01957"],
         //              ["21252.55","0.126205"],
@@ -209,15 +219,15 @@ public partial class whitebit : ccxt.whitebit
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object data = this.safeValue(parameters, 1);
-        object orderbook = null;
-        if (isTrue(inOp(this.orderbooks, symbol)))
+        object timestamp = this.safeTimestamp(data, "timestamp");
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = getValue(this.orderbooks, symbol);
-        } else
-        {
-            orderbook = this.orderBook();
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            object ob = this.orderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
         }
+        object orderbook = getValue(this.orderbooks, symbol);
+        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         if (isTrue(isSnapshot))
         {
             object snapshot = this.parseOrderBook(data, symbol);
@@ -254,6 +264,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://docs.whitebit.com/public/websocket/#market-statistics
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -266,6 +277,40 @@ public partial class whitebit : ccxt.whitebit
         object messageHash = add("ticker:", symbol);
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
         return await this.watchMultipleSubscription(messageHash, method, symbol, false, parameters);
+    }
+
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name whitebit#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://docs.whitebit.com/public/websocket/#market-statistics
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object method = "market_subscribe";
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object id = this.nonce();
+        object messageHashes = new List<object>() {};
+        object args = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object market = this.market(getValue(symbols, i));
+            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+            ((IList<object>)args).Add(getValue(market, "id"));
+        }
+        object request = new Dictionary<string, object>() {
+            { "id", id },
+            { "method", method },
+            { "params", args },
+        };
+        await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
     public virtual object handleTicker(WebSocketClient client, object message)
@@ -327,6 +372,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://docs.whitebit.com/public/websocket/#market-trades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -401,6 +447,7 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchMyTrades
         * @description watches trades made by the user
+        * @see https://docs.whitebit.com/private/websocket/#deals
         * @param {str} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -511,11 +558,12 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchOrders
         * @description watches information on multiple orders made by the user
+        * @see https://docs.whitebit.com/private/websocket/#orders-pending
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -704,6 +752,8 @@ public partial class whitebit : ccxt.whitebit
         * @method
         * @name whitebit#watchBalance
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://docs.whitebit.com/private/websocket/#balance-spot
+        * @see https://docs.whitebit.com/private/websocket/#balance-margin
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -844,7 +894,7 @@ public partial class whitebit : ccxt.whitebit
                 };
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
                 }
                 return await this.watch(url, messageHash, resubRequest, method, subscription);
             }
@@ -901,7 +951,7 @@ public partial class whitebit : ccxt.whitebit
                 await this.watch(url, messageHash, request, messageHash, subscription);
             } catch(Exception e)
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 ((Future)future).reject(e);
             }
         }
@@ -943,7 +993,7 @@ public partial class whitebit : ccxt.whitebit
                 ((WebSocketClient)client).reject(e, "authenticated");
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, "authenticated")))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
                 }
                 return false;
             }
@@ -964,14 +1014,11 @@ public partial class whitebit : ccxt.whitebit
         {
             return;
         }
-        object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
-        if (isTrue(!isEqual(result, null)))
+        object result = this.safeString(message, "result");
+        if (isTrue(isEqual(result, "pong")))
         {
-            if (isTrue(isEqual(result, "pong")))
-            {
-                this.handlePong(client as WebSocketClient, message);
-                return;
-            }
+            this.handlePong(client as WebSocketClient, message);
+            return;
         }
         object id = this.safeInteger(message, "id");
         if (isTrue(!isEqual(id, null)))

@@ -12,7 +12,8 @@ public partial class binanceus : binance
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.binanceus();
         object restDescribe = restInstance.describe();
-        object extended = this.deepExtend(base.describe(), restDescribe);
+        object parentWsDescribe = base.describeData();
+        object extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "binanceus" },
             { "name", "Binance US" },
@@ -42,14 +43,6 @@ public partial class binanceus : binance
                 { "quoteOrderQty", false },
                 { "defaultType", "spot" },
                 { "fetchMarkets", new List<object>() {"spot"} },
-            } },
-            { "fees", new Dictionary<string, object>() {
-                { "trading", new Dictionary<string, object>() {
-                    { "tierBased", false },
-                    { "percentage", true },
-                    { "taker", 0 },
-                    { "maker", 0 },
-                } },
             } },
         });
     }

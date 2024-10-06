@@ -91,7 +91,7 @@ public partial class currencycom : ccxt.currencycom
         //                     "accountId": 5470310874305732,
         //                     "collateralCurrency": true,
         //                     "asset": "USD",
-        //                     "free": 47.82576735,
+        //                     "free": 47.82576736,
         //                     "locked": 1.187925,
         //                     "default": true
         //                 },
@@ -106,7 +106,7 @@ public partial class currencycom : ccxt.currencycom
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
         }
     }
 
@@ -152,7 +152,7 @@ public partial class currencycom : ccxt.currencycom
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
     }
@@ -200,7 +200,7 @@ public partial class currencycom : ccxt.currencycom
         };
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message, object subscription)
+    public virtual void handleTrades(WebSocketClient client, object message)
     {
         //
         //     {
@@ -495,17 +495,19 @@ public partial class currencycom : ccxt.currencycom
         object destination = "depthMarketData.subscribe";
         object messageHash = add(add(destination, ":"), symbol);
         object timestamp = this.safeInteger(data, "ts");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         (orderbook as IOrderBook).reset(new Dictionary<string, object>() {
+            { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         });
-        object bids = this.safeValue(data, "bid", new Dictionary<string, object>() {});
-        object asks = this.safeValue(data, "ofr", new Dictionary<string, object>() {});
+        object bids = this.safeDict(data, "bid", new Dictionary<string, object>() {});
+        object asks = this.safeDict(data, "ofr", new Dictionary<string, object>() {});
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

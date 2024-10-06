@@ -29,6 +29,8 @@ public partial class poloniexfutures : Exchange
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", false },
                 { "fetchL3OrderBook", true },
@@ -65,7 +67,7 @@ public partial class poloniexfutures : Exchange
                     { "private", "https://futures-api.poloniex.com" },
                 } },
                 { "www", "https://www.poloniex.com" },
-                { "doc", "https://futures-docs.poloniex.com" },
+                { "doc", "https://api-docs.poloniex.com/futures/" },
                 { "fees", "https://poloniex.com/fee-schedule" },
                 { "referral", "https://poloniex.com/signup?c=UBFZJRPJ" },
             } },
@@ -202,7 +204,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchMarkets
         * @description retrieves data on all markets for poloniexfutures
-        * @see https://futures-docs.poloniex.com/#symbol-2
+        * @see https://api-docs.poloniex.com/futures/api/symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -371,7 +373,25 @@ public partial class poloniexfutures : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object timestamp = this.safeIntegerProduct(ticker, "ts", 0.000001);
+        object timestampString = this.safeString(ticker, "ts");
+        object multiplier = null;
+        if (isTrue(isEqual(((string)timestampString).Length, 16)))
+        {
+            // 16 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/270587157#L5454
+            multiplier = 0.001;
+        } else if (isTrue(isEqual(((string)timestampString).Length, 17)))
+        {
+            // 17 digits: https://app.travis-ci.com/github/ccxt/ccxt/builds/269959181#L4011
+            multiplier = 0.0001;
+        } else if (isTrue(isEqual(((string)timestampString).Length, 18)))
+        {
+            multiplier = 0.00001;
+        } else
+        {
+            // 19 length default
+            multiplier = 0.000001;
+        }
+        object timestamp = this.safeIntegerProduct(ticker, "ts", multiplier);
         object last = this.safeString2(ticker, "price", "lastPrice");
         object percentage = Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -404,7 +424,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
+        * @see https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-20
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -443,7 +463,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+        * @see https://api-docs.poloniex.com/futures/api/ticker#get-real-time-ticker-of-all-symbols
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -451,7 +471,8 @@ public partial class poloniexfutures : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetTickers(parameters);
-        return this.parseTickers(this.safeValue(response, "data", new List<object>() {}), symbols);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTickers(data, symbols);
     }
 
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -460,8 +481,8 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfuturesfutures#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://futures-docs.poloniex.com/#get-full-order-book-level-2
-        * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
+        * @see https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book---level-2
+        * @see https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book--level-3
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -553,7 +574,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchL3OrderBook
         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
+        * @see https://api-docs.poloniex.com/futures/api/orderbook#get-full-order-book--level-3
         * @param {string} symbol unified market symbol
         * @param {int} [limit] max number of orders to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -672,7 +693,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchTrades
         * @description get the list of most recent trades for a particular symbol
-        * @see https://futures-docs.poloniex.com/#historical-data
+        * @see https://api-docs.poloniex.com/futures/api/historical#transaction-history
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -702,7 +723,7 @@ public partial class poloniexfutures : Exchange
         //        },
         //    }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -712,7 +733,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
-        * @see https://futures-docs.poloniex.com/#time
+        * @see https://api-docs.poloniex.com/futures/api/time#server-time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
         */
@@ -734,7 +755,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://futures-docs.poloniex.com/#k-chart
+        * @see https://api-docs.poloniex.com/futures/api/kline#get-k-line-data-of-contract
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -785,7 +806,7 @@ public partial class poloniexfutures : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -812,7 +833,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://futures-docs.poloniex.com/#get-account-overview
+        * @see https://api-docs.poloniex.com/futures/api/account#get-account-overview
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -852,12 +873,12 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#createOrder
         * @description Create an order on the exchange
-        * @see https://futures-docs.poloniex.com/#place-an-order
+        * @see https://api-docs.poloniex.com/futures/api/orders#place-an-order
         * @param {string} symbol Unified CCXT market symbol
         * @param {string} type 'limit' or 'market'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params]  extra parameters specific to the exchange API endpoint
         * @param {float} [params.leverage] Leverage size of the order
         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -971,7 +992,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#cancelOrder
         * @description cancels an open order
-        * @see https://futures-docs.poloniex.com/#cancel-an-order
+        * @see https://api-docs.poloniex.com/futures/api/orders#cancel-an-order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1015,7 +1036,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchPositions
         * @description fetch all open positions
-        * @see https://futures-docs.poloniex.com/#get-position-list
+        * @see https://api-docs.poloniex.com/futures/api/positions#get-position-list
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -1069,7 +1090,7 @@ public partial class poloniexfutures : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parsePositions(data, symbols);
     }
 
@@ -1175,7 +1196,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchFundingHistory
         * @description fetch the history of funding payments paid and received on this account
-        * @see https://futures-docs.poloniex.com/#get-funding-history
+        * @see https://api-docs.poloniex.com/futures/api/funding-fees#get-funding-history
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch funding history for
         * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1294,7 +1315,7 @@ public partial class poloniexfutures : Exchange
         for (object i = 0; isLessThan(i, cancelledOrderIdsLength); postFixIncrement(ref i))
         {
             object cancelledOrderId = this.safeString(cancelledOrderIds, i);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "id", cancelledOrderId },
                 { "clientOrderId", null },
                 { "timestamp", null },
@@ -1316,7 +1337,7 @@ public partial class poloniexfutures : Exchange
                 { "postOnly", null },
                 { "stopPrice", null },
                 { "info", response },
-            });
+            }));
         }
         return result;
     }
@@ -1327,8 +1348,8 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchOrdersByStatus
         * @description fetches a list of orders placed on the exchange
-        * @see https://futures-docs.poloniex.com/#get-order-list
-        * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
         * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
         * @param {string} symbol unified symbol for the market to retrieve orders from
         * @param {int} [since] timestamp in ms of the earliest order to retrieve
@@ -1343,8 +1364,8 @@ public partial class poloniexfutures : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object stop = this.safeValue2(parameters, "stop", "trigger");
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"triger", "stop", "until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"trigger", "stop", "until"});
         if (isTrue(isEqual(status, "closed")))
         {
             status = "done";
@@ -1448,13 +1469,13 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchOpenOrders
         * @description fetch all unfilled currently open orders
-        * @see https://futures-docs.poloniex.com/#get-order-list
-        * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1469,13 +1490,13 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
-        * @see https://futures-docs.poloniex.com/#get-order-list
-        * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-order-listdeprecated
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-untriggered-stop-order-list
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.till] end time in ms
+        * @param {int} [params.until] end time in ms
         * @param {string} [params.side] buy or sell
         * @param {string} [params.type] limit, or market
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1490,8 +1511,9 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchOrder
         * @description fetches information on an order made by the user
-        * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
-        * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-details-of-a-single-order
+        * @see https://api-docs.poloniex.com/futures/api/orders#get-single-order-by-clientoid
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1561,7 +1583,7 @@ public partial class poloniexfutures : Exchange
         //    }
         //
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
-        object responseData = this.safeValue(response, "data");
+        object responseData = this.safeDict(response, "data");
         return this.parseOrder(responseData, market);
     }
 
@@ -1700,7 +1722,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchFundingRate
         * @description fetch the current funding rate
-        * @see https://futures-docs.poloniex.com/#get-premium-index
+        * @see https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1721,28 +1743,70 @@ public partial class poloniexfutures : Exchange
         //        "predictedValue": 0.00375
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseFundingRate(data, market);
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name poloniexfutures#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
+    }
+
+    public override object parseFundingRate(object data, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "granularity": 28800000,
+        //         "timePoint": 1637380800000,
+        //         "value": 0.0001,
+        //         "predictedValue": 0.0001,
+        //     }
+        //
         object fundingTimestamp = this.safeInteger(data, "timePoint");
-        // the website displayes the previous funding rate as "funding rate"
+        object marketId = this.safeString(data, "symbol");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", null },
             { "datetime", null },
-            { "fundingRate", this.safeNumber(data, "predictedValue") },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", null },
-            { "nextFundingRate", null },
+            { "fundingRate", this.safeNumber(data, "value") },
+            { "fundingTimestamp", fundingTimestamp },
+            { "fundingDatetime", this.iso8601(fundingTimestamp) },
+            { "nextFundingRate", this.safeNumber(data, "predictedValue") },
             { "nextFundingTimestamp", null },
             { "nextFundingDatetime", null },
-            { "previousFundingRate", this.safeNumber(data, "value") },
-            { "previousFundingTimestamp", fundingTimestamp },
-            { "previousFundingDatetime", this.iso8601(fundingTimestamp) },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(this.safeString(data, "granularity")) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1751,7 +1815,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#fetchMyTrades
         * @description fetch all trades made by the user
-        * @see https://futures-docs.poloniex.com/#get-fills
+        * @see https://api-docs.poloniex.com/futures/api/fills#get-fillsdeprecated
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1810,7 +1874,7 @@ public partial class poloniexfutures : Exchange
         //    }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object trades = this.safeValue(data, "items", new Dictionary<string, object>() {});
+        object trades = this.safeList(data, "items", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1820,7 +1884,7 @@ public partial class poloniexfutures : Exchange
         * @method
         * @name poloniexfutures#setMarginMode
         * @description set margin mode to 'cross' or 'isolated'
-        * @see https://futures-docs.poloniex.com/#change-margin-mode
+        * @see https://api-docs.poloniex.com/futures/api/margin-mode#change-margin-mode
         * @param {string} marginMode "0" (isolated) or "1" (cross)
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint

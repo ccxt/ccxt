@@ -6,15 +6,14 @@
 
 //  ---------------------------------------------------------------------------
 import hitbtc from './hitbtc.js';
-import bequantRest from '../bequant.js';
+import hitbtcRest from '../hitbtc.js';
+import bitcoincomRest from '../bitcoincom.js';
 // ---------------------------------------------------------------------------
 export default class bitcoincom extends hitbtc {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new bequantRest();
-        const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(super.describe(), restDescribe);
-        return this.deepExtend(extended, {
+        const describeExtended = this.getDescribeForExtendedWsExchange(new bitcoincomRest(), new hitbtcRest(), super.describe());
+        return this.deepExtend(describeExtended, {
             'id': 'bitcoincom',
             'name': 'bitcoin.com',
             'countries': ['KN'],

@@ -4,12 +4,12 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import assert from 'assert';
 import testAccount from './base/test.account.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchAccounts(exchange, skippedProperties) {
     const method = 'fetchAccounts';
     const accounts = await exchange.fetchAccounts();
-    assert(Array.isArray(accounts), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(accounts));
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, accounts);
     for (let i = 0; i < accounts.length; i++) {
         testAccount(exchange, skippedProperties, method, accounts[i]);
     }

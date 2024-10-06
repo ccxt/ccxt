@@ -71,10 +71,12 @@ public partial class p2b : Exchange
                 { "fetchOrderBooks", false },
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
-                { "fetchPermissions", false },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
                 { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -461,7 +463,7 @@ public partial class p2b : Exchange
     {
         /**
         * @method
-        * @name p2bfutures#fetchOrderBook
+        * @name p2b#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
         * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -563,7 +565,7 @@ public partial class p2b : Exchange
         //        current_time: '1699255571.413828'
         //    }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseTrades(result, market, since, limit);
     }
 
@@ -642,7 +644,7 @@ public partial class p2b : Exchange
     {
         /**
         * @method
-        * @name poloniexfutures#fetchOHLCV
+        * @name p2b#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -688,7 +690,7 @@ public partial class p2b : Exchange
         //        current_time: '1699256375.030494'
         //    }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOHLCVs(result, market, timeframe, since, limit);
     }
 
@@ -788,7 +790,7 @@ public partial class p2b : Exchange
         * @param {string} type must be 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -828,7 +830,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result, market);
     }
 
@@ -878,7 +880,7 @@ public partial class p2b : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(response, "result");
+        object result = this.safeDict(response, "result");
         return this.parseOrder(result);
     }
 
@@ -938,7 +940,7 @@ public partial class p2b : Exchange
         //        ]
         //    }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOrders(result, market, since, limit);
     }
 
@@ -994,7 +996,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object records = this.safeValue(result, "records", new List<object>() {});
+        object records = this.safeList(result, "records", new List<object>() {});
         return this.parseTrades(records, market, since, limit);
     }
 
@@ -1079,7 +1081,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object deals = this.safeValue(result, "deals", new List<object>() {});
+        object deals = this.safeList(result, "deals", new List<object>() {});
         return this.parseTrades(deals, market, since, limit);
     }
 

@@ -2,8 +2,8 @@
 
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -13,8 +13,15 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchLiquidations': false,
+                'watchLiquidatinsForSymbols': false,
+                'watchMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'watchTicker': true,
+                'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchBalance': true,
@@ -25,6 +32,21 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchOrderBookForSymbols': true,
             },
             'options': {
+                'timeframes': {
+                    '1m': '1min',
+                    '3m': '1min',
+                    '5m': '5min',
+                    '15m': '15min',
+                    '30m': '30min',
+                    '1h': '1hour',
+                    '2h': '2hour',
+                    '4h': '4hour',
+                    '8h': '8hour',
+                    '12h': '12hour',
+                    '1d': '1day',
+                    '1w': '1week',
+                    '1M': '1month',
+                },
                 'accountsByType': {
                     'swap': 'future',
                     'cross': 'margin',
@@ -42,9 +64,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchOrderBook': {
                     'snapshotDelay': 20,
                     'snapshotMaxRetries': 3,
-                },
-                'watchTicker': {
-                    'name': 'contractMarket/tickerV2', // market/ticker
                 },
                 'watchPosition': {
                     'fetchPositionSnapshot': true, // or false
@@ -132,14 +151,14 @@ export default class kucoinfutures extends kucoinfuturesRest {
 
     async subscribe (url, messageHash, subscriptionHash, subscription, params = {}) {
         const requestId = this.requestId ().toString ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': subscriptionHash,
             'response': true,
         };
         const message = this.extend (request, params);
-        const subscriptionRequest = {
+        const subscriptionRequest: Dict = {
             'id': requestId,
         };
         if (subscription === undefined) {
@@ -150,22 +169,35 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
-    async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscription, params = {}) {
+    async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params = {}) {
         const requestId = this.requestId ().toString ();
-        const request = {
+        const request: Dict = {
             'id': requestId,
             'type': 'subscribe',
             'topic': topic,
             'response': true,
         };
-        const message = this.extend (request, params);
-        const subscriptionRequest = {
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), subscriptionHashes, subscriptionArgs);
+    }
+
+    async unSubscribeMultiple (url, messageHashes, topic, subscriptionHashes, params = {}, subscription: Dict = undefined) {
+        const requestId = this.requestId ().toString ();
+        const request: Dict = {
             'id': requestId,
+            'type': 'unsubscribe',
+            'topic': topic,
+            'response': true,
         };
-        if (subscription === undefined) {
-            subscription = subscriptionRequest;
-        } else {
-            subscription = this.extend (subscriptionRequest, subscription);
+        const message = this.extend (request, params);
+        if (subscription !== undefined) {
+            subscription[requestId] = requestId;
+        }
+        const client = this.client (url);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            if (!(subscriptionHash in client.subscriptions)) {
+                client.subscriptions[requestId] = subscriptionHash;
+            }
         }
         return await this.watchMultiple (url, messageHashes, message, subscriptionHashes, subscription);
     }
@@ -175,7 +207,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @method
          * @name kucoinfutures#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
+         * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -183,31 +215,50 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = await this.negotiate (false);
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const channel = this.safeString (options, 'name', 'contractMarket/tickerV2');
-        const topic = '/' + channel + ':' + market['id'];
-        const messageHash = 'ticker:' + symbol;
-        return await this.subscribe (url, messageHash, topic, undefined, params);
+        params['callerMethodName'] = 'watchTicker';
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name kucoinfutures#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const ticker = await this.watchMultiRequest ('watchTickers', '/contractMarket/ticker:', symbols, params);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
         //
-        // market/tickerV2
+        // ticker (v1)
         //
         //    {
-        //        "type": "message",
-        //        "topic": "/contractMarket/tickerV2:ADAUSDTM",
-        //        "subject": "tickerV2",
-        //        "data": {
-        //            "symbol": "ADAUSDTM",
-        //            "sequence": 1668007800439,
-        //            "bestBidSize": 178,
-        //            "bestBidPrice": "0.35959",
-        //            "bestAskPrice": "0.35981",
-        //            "ts": "1668141430037124460",
-        //            "bestAskSize": 134
-        //        }
+        //     "subject": "ticker",
+        //     "topic": "/contractMarket/ticker:XBTUSDM",
+        //     "data": {
+        //         "symbol": "XBTUSDM", //Market of the symbol
+        //         "sequence": 45, //Sequence number which is used to judge the continuity of the pushed messages
+        //         "side": "sell", //Transaction side of the last traded taker order
+        //         "price": "3600.0", //Filled price
+        //         "size": 16, //Filled quantity
+        //         "tradeId": "5c9dcf4170744d6f5a3d32fb", //Order ID
+        //         "bestBidSize": 795, //Best bid size
+        //         "bestBidPrice": "3200.0", //Best bid
+        //         "bestAskPrice": "3600.0", //Best ask size
+        //         "bestAskSize": 284, //Best ask
+        //         "ts": 1553846081210004941 //Filled time - nanosecond
+        //     }
         //    }
         //
         const data = this.safeValue (message, 'data', {});
@@ -215,9 +266,99 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
         this.tickers[market['symbol']] = ticker;
-        const messageHash = 'ticker:' + market['symbol'];
-        client.resolve (ticker, messageHash);
-        return message;
+        client.resolve (ticker, this.getMessageHash ('ticker', market['symbol']));
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name kucoinfutures#watchBidsAsks
+         * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/get-ticker-v2
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const ticker = await this.watchMultiRequest ('watchBidsAsks', '/contractMarket/tickerV2:', symbols, params);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    async watchMultiRequest (methodName, channelName: string, symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        [ methodName, params ] = this.handleParamString (params, 'callerMethodName', methodName);
+        const isBidsAsks = (methodName === 'watchBidsAsks');
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        const length = symbols.length;
+        if (length > 100) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() accepts a maximum of 100 symbols');
+        }
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const prefix = isBidsAsks ? 'bidask' : 'ticker';
+            messageHashes.push (this.getMessageHash (prefix, market['symbol']));
+        }
+        const url = await this.negotiate (false);
+        const marketIds = this.marketIds (symbols);
+        const joined = marketIds.join (',');
+        const requestId = this.requestId ().toString ();
+        const request: Dict = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': channelName + joined,
+            'response': true,
+        };
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        // arrives one symbol dict
+        //
+        // {
+        //   "subject": "tickerV2",
+        //   "topic": "/contractMarket/tickerV2:XBTUSDM",
+        //   "data": {
+        //     "symbol": "XBTUSDM", //Market of the symbol
+        //     "bestBidSize": 795, // Best bid size
+        //     "bestBidPrice": 3200.0, // Best bid
+        //     "bestAskPrice": 3600.0, // Best ask
+        //     "bestAskSize": 284, // Best ask size
+        //     "ts": 1553846081210004941 // Filled time - nanosecond
+        //   }
+        // }
+        //
+        const parsedTicker = this.parseWsBidAsk (message);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        client.resolve (parsedTicker, this.getMessageHash ('bidask', symbol));
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const data = this.safeDict (ticker, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeIntegerProduct (data, 'ts', 0.000001);
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (data, 'bestAskPrice'),
+            'askVolume': this.safeNumber (data, 'bestAskSize'),
+            'bid': this.safeNumber (data, 'bestBidPrice'),
+            'bidVolume': this.safeNumber (data, 'bestBidSize'),
+            'info': ticker,
+        }, market);
     }
 
     async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
@@ -237,14 +378,14 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const url = await this.negotiate (true);
         const market = this.market (symbol);
         const topic = '/contract/position:' + market['id'];
-        const request = {
+        const request: Dict = {
             'privateChannel': true,
         };
         const messageHash = 'position:' + market['symbol'];
         const client = this.client (url);
         this.setPositionCache (client, symbol);
         const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', true);
-        const awaitPositionSnapshot = this.safeValue ('watchPosition', 'awaitPositionSnapshot', true);
+        const awaitPositionSnapshot = this.handleOption ('watchPosition', 'awaitPositionSnapshot', true);
         const currentPosition = this.getCurrentPosition (symbol);
         if (fetchPositionSnapshot && awaitPositionSnapshot && currentPosition === undefined) {
             const snapshot = await client.future ('fetchPositionSnapshot:' + symbol);
@@ -417,7 +558,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name kucoinfutures#watchTrades
+         * @name kucoinfutures#watchTradesForSymbols
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -443,13 +584,58 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push ('trades:' + symbol);
             subscriptionHashes.push ('/contractMarket/execution:' + marketId);
         }
-        const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params);
+        const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, undefined, params);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name kucoinfutures#unWatchTrades
+         * @description unWatches trades stream
+         * @see https://docs.kucoin.com/futures/#execution-data
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name kucoinfutures#unWatchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const url = await this.negotiate (false);
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const topic = '/contractMarket/execution:' + marketIds.join (',');
+        const subscriptionHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push ('unsubscribe:trades:' + symbol);
+            subscriptionHashes.push ('trades:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'subMessageHashes': subscriptionHashes,
+            'topic': 'trades',
+            'unsubscribe': true,
+            'symbols': symbols,
+        };
+        return await this.unSubscribeMultiple (url, messageHashes, topic, messageHashes, params, subscription);
     }
 
     handleTrade (client: Client, message) {
@@ -488,6 +674,83 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name kucoinfutures#watchOHLCV
+         * @see https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const url = await this.negotiate (false);
+        const marketId = this.marketId (symbol);
+        const timeframes = this.safeDict (this.options, 'timeframes');
+        const timeframeId = this.safeString (timeframes, timeframe, timeframe);
+        const topic = '/contractMarket/limitCandle:' + marketId + '_' + timeframeId;
+        const messageHash = 'ohlcv::' + symbol + '_' + timeframe;
+        const ohlcv = await this.subscribe (url, messageHash, topic, undefined, params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //    {
+        //        "topic":"/contractMarket/limitCandle:LTCUSDTM_1min",
+        //        "type":"message",
+        //        "data":{
+        //            "symbol":"LTCUSDTM",
+        //            "candles":[
+        //                "1715470980",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "61.0",
+        //                "61"
+        //            ],
+        //            "time":1715470994801
+        //        },
+        //        "subject":"candle.stick"
+        //    }
+        //
+        const topic = this.safeString (message, 'topic');
+        const parts = topic.split ('_');
+        const timeframeId = this.safeString (parts, 1);
+        const data = this.safeDict (message, 'data');
+        const timeframes = this.safeDict (this.options, 'timeframes');
+        const timeframe = this.findTimeframe (timeframeId, timeframes);
+        const marketId = this.safeString (data, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        const messageHash = 'ohlcv::' + symbol + '_' + timeframe;
+        const ohlcv = this.safeList (data, 'candles');
+        const parsed = [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 6), // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+        ];
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        if (!(timeframe in this.ohlcvs[symbol])) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+        }
+        const stored = this.ohlcvs[symbol][timeframe];
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
+    }
+
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
@@ -513,6 +776,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @method
          * @name kucoinfutures#watchOrderBookForSymbols
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kucoin.com/futures/#level-2-market-data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -532,9 +796,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false);
         const topic = '/contractMarket/level2:' + marketIds.join (',');
-        const subscription = {
-            'method': this.handleOrderBookSubscription,
-            'symbols': symbols,
+        const subscriptionArgs: Dict = {
             'limit': limit,
         };
         const subscriptionHashes = [];
@@ -545,8 +807,52 @@ export default class kucoinfutures extends kucoinfuturesRest {
             messageHashes.push ('orderbook:' + symbol);
             subscriptionHashes.push ('/contractMarket/level2:' + marketId);
         }
-        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscription, params);
+        const orderbook = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, subscriptionArgs, params);
         return orderbook.limit ();
+    }
+
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name kucoinfutures#unWatchOrderBook
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kucoin.com/futures/#level-2-market-data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name kucoinfutures#unWatchOrderBookForSymbols
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const url = await this.negotiate (false);
+        const topic = '/contractMarket/level2:' + marketIds.join (',');
+        const subscriptionHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push ('unsubscribe:orderbook:' + symbol);
+            subscriptionHashes.push ('orderbook:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'unsubscribe': true,
+            'topic': 'orderbook',
+            'subMessageHashes': subscriptionHashes,
+        };
+        return await this.unSubscribeMultiple (url, messageHashes, topic, messageHashes, params, subscription);
     }
 
     handleDelta (orderbook, delta) {
@@ -598,11 +904,13 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
-        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        const nonce = this.safeInteger (storedOrderBook, 'nonce');
-        if (storedOrderBook === undefined) {
-            return; // this shouldn't be needed, but for some reason sometimes this runs before handleOrderBookSubscription in c#
+        if (!(symbol in this.orderbooks)) {
+            const subscriptionArgs = this.safeDict (client.subscriptions, topic, {});
+            const limit = this.safeInteger (subscriptionArgs, 'limit');
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
+        const storedOrderBook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const deltaEnd = this.safeInteger (data, 'sequence');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -649,40 +957,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return cache.length;
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
-        const limit = this.safeInteger (subscription, 'limit');
-        const symbols = this.safeValue (subscription, 'symbols');
-        if (symbols === undefined) {
-            const symbol = this.safeString (subscription, 'symbol');
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-        } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-        }
-        // moved snapshot initialization to handleOrderBook to fix
-        // https://github.com/ccxt/ccxt/issues/6820
-        // the general idea is to fetch the snapshot after the first delta
-        // but not before, because otherwise we cannot synchronize the feed
-    }
-
-    handleSubscriptionStatus (client: Client, message) {
-        //
-        //     {
-        //         "id": "1578090438322",
-        //         "type": "ack"
-        //     }
-        //
-        const id = this.safeString (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
-        const method = this.safeValue (subscription, 'method');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
-        }
-    }
-
     handleSystemStatus (client: Client, message) {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -712,7 +986,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const url = await this.negotiate (true);
         const topic = '/contractMarket/tradeOrders';
-        const request = {
+        const request: Dict = {
             'privateChannel': true,
         };
         let messageHash = 'orders';
@@ -729,7 +1003,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'open': 'open',
             'filled': 'closed',
             'match': 'open',
@@ -838,10 +1112,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const url = await this.negotiate (true);
         const topic = '/contractAccount/wallet';
-        const request = {
+        const request: Dict = {
             'privateChannel': true,
         };
-        const subscription = {
+        const subscription: Dict = {
             'method': this.handleBalanceSubscription,
         };
         const messageHash = 'balance';
@@ -886,7 +1160,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         this.checkRequiredCredentials ();
         const messageHash = 'balance';
         const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'swap'); // spot, margin, main, funding, future, mining, trade, contract, pool
-        const params = {
+        const params: Dict = {
             'type': selectedType,
         };
         const snapshot = await this.fetchBalance (params);
@@ -948,9 +1222,11 @@ export default class kucoinfutures extends kucoinfuturesRest {
         //    }
         //
         const subject = this.safeString (message, 'subject');
-        const methods = {
+        const methods: Dict = {
             'level2': this.handleOrderBook,
-            'tickerV2': this.handleTicker,
+            'ticker': this.handleTicker,
+            'candle.stick': this.handleOHLCV,
+            'tickerV2': this.handleBidAsk,
             'availableBalance.change': this.handleBalance,
             'match': this.handleTrade,
             'orderChange': this.handleOrder,
@@ -965,7 +1241,16 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }
     }
 
-    ping (client) {
+    getMessageHash (elementName: string, symbol: Str = undefined) {
+        // elementName can be 'ticker', 'bidask', ...
+        if (symbol !== undefined) {
+            return elementName + '@' + symbol;
+        } else {
+            return elementName + 's@all';
+        }
+    }
+
+    ping (client: Client) {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping
@@ -1002,15 +1287,46 @@ export default class kucoinfutures extends kucoinfuturesRest {
         this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
     }
 
+    handleSubscriptionStatus (client: Client, message) {
+        //
+        //     {
+        //         "id": "1578090438322",
+        //         "type": "ack"
+        //     }
+        //
+        const id = this.safeString (message, 'id');
+        if (!(id in client.subscriptions)) {
+            return;
+        }
+        const subscriptionHash = this.safeString (client.subscriptions, id);
+        const subscription = this.safeValue (client.subscriptions, subscriptionHash);
+        delete client.subscriptions[id];
+        const method = this.safeValue (subscription, 'method');
+        if (method !== undefined) {
+            method.call (this, client, message, subscription);
+        }
+        const isUnSub = this.safeBool (subscription, 'unsubscribe', false);
+        if (isUnSub) {
+            const messageHashes = this.safeList (subscription, 'messageHashes', []);
+            const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription (client, subHash, messageHash);
+            }
+            this.cleanCache (subscription);
+        }
+    }
+
     handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
-        const methods = {
+        const methods: Dict = {
             // 'heartbeat': this.handleHeartbeat,
             'welcome': this.handleSystemStatus,
-            'ack': this.handleSubscriptionStatus,
             'message': this.handleSubject,
             'pong': this.handlePong,
             'error': this.handleErrorMessage,
+            'ack': this.handleSubscriptionStatus,
         };
         const method = this.safeValue (methods, type);
         if (method !== undefined) {

@@ -37,6 +37,9 @@ public partial class timex : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposit", false },
+                { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -57,12 +60,16 @@ public partial class timex : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
+                { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchWithdrawal", false },
@@ -185,12 +192,30 @@ public partial class timex : Exchange
         });
     }
 
+    public async override Task<object> fetchTime(object parameters = null)
+    {
+        /**
+        * @method
+        * @name timex#fetchTime
+        * @description fetches the current integer timestamp in milliseconds from the exchange server
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int} the current integer timestamp in milliseconds from the exchange server
+        */
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.tradingviewGetTime(parameters);
+        //
+        //     1708682617
+        //
+        return multiply(this.parseToInt(response), 1000);
+    }
+
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         /**
         * @method
         * @name timex#fetchMarkets
         * @description retrieves data on all markets for timex
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listMarkets
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -226,6 +251,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchCurrencies
         * @description fetches all available currencies on an exchange
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCurrencies
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an associative dictionary of currencies
         */
@@ -271,6 +297,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchDeposits
         * @description fetch all deposits made to an account
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getDeposits
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch deposits for
         * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -310,6 +337,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchWithdrawals
         * @description fetch all withdrawals made to an account
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Manager/getWithdraws
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
         * @param {int} [limit] the maximum number of transaction structures to retrieve
@@ -404,6 +432,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers
         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -441,6 +470,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTickers
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -471,7 +501,7 @@ public partial class timex : Exchange
         //         }
         //     ]
         //
-        object ticker = this.safeValue(response, 0);
+        object ticker = this.safeDict(response, 0);
         return this.parseTicker(ticker, market);
     }
 
@@ -481,6 +511,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/orderbookV2
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -531,6 +562,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listTrades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -577,6 +609,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Public/listCandles
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -651,6 +684,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getBalances
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -675,11 +709,12 @@ public partial class timex : Exchange
         * @method
         * @name timex#createOrder
         * @description create a trade order
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/createOrder
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -745,7 +780,7 @@ public partial class timex : Exchange
         //     }
         //
         object orders = this.safeValue(response, "orders", new List<object>() {});
-        object order = this.safeValue(orders, 0, new Dictionary<string, object>() {});
+        object order = this.safeDict(orders, 0, new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -802,7 +837,7 @@ public partial class timex : Exchange
         }
         object orders = this.safeValue(response, "changedOrders", new List<object>() {});
         object firstOrder = this.safeValue(orders, 0, new Dictionary<string, object>() {});
-        object order = this.safeValue(firstOrder, "newOrder", new Dictionary<string, object>() {});
+        object order = this.safeDict(firstOrder, "newOrder", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -812,6 +847,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#cancelOrder
         * @description cancels an open order
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
         * @param {string} id order id
         * @param {string} symbol not used by timex cancelOrder ()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -819,7 +855,8 @@ public partial class timex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        return await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        object orders = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        return this.safeDict(orders, 0);
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -828,6 +865,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#cancelOrders
         * @description cancel multiple orders
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
         * @param {string[]} ids order ids
         * @param {string} symbol unified market symbol, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -863,7 +901,24 @@ public partial class timex : Exchange
         //         ],
         //         "unchangedOrders": [ "string" ],
         //     }
-        return response;
+        //
+        object changedOrders = this.safeList(response, "changedOrders", new List<object>() {});
+        object unchangedOrders = this.safeList(response, "unchangedOrders", new List<object>() {});
+        object orders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(changedOrders)); postFixIncrement(ref i))
+        {
+            object newOrder = this.safeDict(getValue(changedOrders, i), "newOrder");
+            ((IList<object>)orders).Add(this.parseOrder(newOrder));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(unchangedOrders)); postFixIncrement(ref i))
+        {
+            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", getValue(unchangedOrders, i) },
+                { "id", getValue(unchangedOrders, i) },
+                { "status", "unchanged" },
+            }));
+        }
+        return orders;
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -872,6 +927,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchOrder
         * @description fetches information on an order made by the user
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrderDetails
         * @param {string} symbol not used by timex fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -916,7 +972,7 @@ public partial class timex : Exchange
         //     }
         //
         object order = this.safeValue(response, "order", new Dictionary<string, object>() {});
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseOrder(this.extend(order, new Dictionary<string, object>() {
             { "trades", trades },
         }));
@@ -928,6 +984,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchOpenOrders
         * @description fetch all unfilled currently open orders
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getOpenOrders
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -975,7 +1032,7 @@ public partial class timex : Exchange
         //         ]
         //     }
         //
-        object orders = this.safeValue(response, "orders", new List<object>() {});
+        object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -985,6 +1042,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchClosedOrders
         * @description fetches information on multiple closed orders made by the user
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrders
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1037,7 +1095,7 @@ public partial class timex : Exchange
         //         ]
         //     }
         //
-        object orders = this.safeValue(response, "orders", new List<object>() {});
+        object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1047,6 +1105,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchMyTrades
         * @description fetch all trades made by the user
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getTrades_1
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1095,7 +1154,7 @@ public partial class timex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1114,6 +1173,8 @@ public partial class timex : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "maker", rate },
             { "taker", rate },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1123,6 +1184,7 @@ public partial class timex : Exchange
         * @method
         * @name timex#fetchTradingFee
         * @description fetch the trading fees for a market
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/getFees
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1530,17 +1592,85 @@ public partial class timex : Exchange
         }, market);
     }
 
+    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name timex#fetchDepositAddress
+        * @description fetch the deposit address for a currency associated with this account, does not accept params["network"]
+        * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Currency/selectCurrencyBySymbol
+        * @param {string} code unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(currency, "code") },
+        };
+        object response = await this.currenciesGetSSymbol(this.extend(request, parameters));
+        //
+        //    {
+        //        id: '1',
+        //        currency: {
+        //            symbol: 'BTC',
+        //            name: 'Bitcoin',
+        //            address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        //            decimals: '8',
+        //            tradeDecimals: '20',
+        //            fiatSymbol: 'BTC',
+        //            depositEnabled: true,
+        //            withdrawalEnabled: true,
+        //            transferEnabled: true,
+        //            active: true
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "currency", new Dictionary<string, object>() {});
+        return this.parseDepositAddress(data, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        symbol: 'BTC',
+        //        name: 'Bitcoin',
+        //        address: '0x8370fbc6ddec1e18b4e41e72ed943e238458487c',
+        //        decimals: '8',
+        //        tradeDecimals: '20',
+        //        fiatSymbol: 'BTC',
+        //        depositEnabled: true,
+        //        withdrawalEnabled: true,
+        //        transferEnabled: true,
+        //        active: true
+        //    }
+        //
+        object currencyId = this.safeString(depositAddress, "symbol");
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "address", this.safeString(depositAddress, "address") },
+            { "tag", null },
+            { "network", null },
+        };
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object paramsToExtract = this.extractParams(path);
+        path = this.implodeParams(path, parameters);
+        parameters = this.omit(parameters, paramsToExtract);
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), "rest"), "/"), api), "/"), path);
         if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
         {
             url = add(url, add("?", this.urlencodeWithArrayRepeat(parameters)));
         }
-        if (isTrue(!isEqual(api, "public")))
+        if (isTrue(isTrue(!isEqual(api, "public")) && isTrue(!isEqual(api, "tradingview"))))
         {
             this.checkRequiredCredentials();
             object auth = this.stringToBase64(add(add(this.apiKey, ":"), this.secret));

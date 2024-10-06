@@ -2,6 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import hitbtc from './hitbtc.js';
+import hitbtcRest from '../hitbtc.js';
 import bequantRest from '../bequant.js';
 
 // ---------------------------------------------------------------------------
@@ -9,10 +10,8 @@ import bequantRest from '../bequant.js';
 export default class bequant extends hitbtc {
     describe () {
         // eslint-disable-next-line new-cap
-        const restInstance = new bequantRest ();
-        const restDescribe = restInstance.describe ();
-        const extended = this.deepExtend (super.describe (), restDescribe);
-        return this.deepExtend (extended, {
+        const describeExtended = this.getDescribeForExtendedWsExchange (new bequantRest (), new hitbtcRest (), super.describe ());
+        return this.deepExtend (describeExtended, {
             'id': 'bequant',
             'name': 'Bequant',
             'countries': [ 'MT' ], // Malta
@@ -22,6 +21,10 @@ export default class bequant extends hitbtc {
                 'api': {
                     'public': 'https://api.bequant.io/api/3',
                     'private': 'https://api.bequant.io/api/3',
+                    'ws': {
+                        'public': 'wss://api.bequant.io/api/3/ws/public',
+                        'private': 'wss://api.bequant.io/api/3/ws/trading',
+                    },
                 },
                 'www': 'https://bequant.io',
                 'doc': [

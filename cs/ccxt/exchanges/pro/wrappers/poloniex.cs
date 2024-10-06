@@ -10,12 +10,12 @@ public partial class poloniex
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/trade-request#create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -79,7 +79,7 @@ public partial class poloniex
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -111,7 +111,7 @@ public partial class poloniex
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -131,7 +131,7 @@ public partial class poloniex
     /// cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -151,7 +151,7 @@ public partial class poloniex
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-channels-market-data-candlesticks"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -185,7 +185,7 @@ public partial class poloniex
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-channels-market-data-ticker"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/market-data#ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -210,7 +210,7 @@ public partial class poloniex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-channels-market-data-trades"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/market-data#trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -241,10 +241,44 @@ public partial class poloniex
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// get the list of most recent trades for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/market-data#trades"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest trade to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of trades to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    public async Task<List<Trade>> WatchTradesForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchTradesForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-channels-market-data-book-level-2"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -271,7 +305,7 @@ public partial class poloniex
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-channels-market-data-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -305,7 +339,7 @@ public partial class poloniex
     /// watches information on multiple trades made by the user using orders stream
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-channels-market-data-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -339,7 +373,7 @@ public partial class poloniex
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-channels-market-data-balances"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/websocket/balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

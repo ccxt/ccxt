@@ -5,16 +5,16 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.oceanex import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -54,6 +54,9 @@ class oceanex(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': None,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchMarkets': True,
@@ -114,6 +117,11 @@ class oceanex(Exchange, ImplicitAPI):
                         'order/delete',
                         'order/delete/multi',
                         'orders/clear',
+                        '/withdraws/special/new',
+                        '/deposit_address',
+                        '/deposit_addresses',
+                        '/deposit_history',
+                        '/withdraw_history',
                     ],
                 },
             },
@@ -153,14 +161,14 @@ class oceanex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for oceanex
         :see: https://api.oceanex.pro/doc/v1/#markets-post
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request = {'show_details': True}
+        request: dict = {'show_details': True}
         response = await self.publicGetMarkets(self.extend(request, params))
         #
         #    {
@@ -178,7 +186,7 @@ class oceanex(Exchange, ImplicitAPI):
         markets = self.safe_value(response, 'data', [])
         return self.parse_markets(markets)
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market: dict) -> Market:
         id = self.safe_value(market, 'id')
         name = self.safe_value(market, 'name')
         baseId, quoteId = name.split('/')
@@ -247,7 +255,7 @@ class oceanex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pair': market['id'],
         }
         response = await self.publicGetTickersPair(self.extend(request, params))
@@ -268,7 +276,7 @@ class oceanex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -284,7 +292,7 @@ class oceanex(Exchange, ImplicitAPI):
         if symbols is None:
             symbols = self.symbols
         marketIds = self.market_ids(symbols)
-        request = {'markets': marketIds}
+        request: dict = {'markets': marketIds}
         response = await self.publicGetTickersMulti(self.extend(request, params))
         #
         #     {
@@ -304,7 +312,7 @@ class oceanex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(data)):
             ticker = data[i]
             marketId = self.safe_string(ticker, 'market')
@@ -364,7 +372,7 @@ class oceanex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if limit is not None:
@@ -406,7 +414,7 @@ class oceanex(Exchange, ImplicitAPI):
         if symbols is None:
             symbols = self.symbols
         marketIds = self.market_ids(symbols)
-        request = {
+        request: dict = {
             'markets': marketIds,
         }
         if limit is not None:
@@ -436,7 +444,7 @@ class oceanex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(data)):
             orderbook = data[i]
             marketId = self.safe_string(orderbook, 'market')
@@ -457,7 +465,7 @@ class oceanex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
         }
         if limit is not None:
@@ -481,10 +489,10 @@ class oceanex(Exchange, ImplicitAPI):
         #          ]
         #      }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -540,7 +548,7 @@ class oceanex(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'data')
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
         :see: https://api.oceanex.pro/doc/v1/#trading-fees-post
@@ -549,7 +557,7 @@ class oceanex(Exchange, ImplicitAPI):
         """
         response = await self.publicGetFeesTrading(params)
         data = self.safe_value(response, 'data', [])
-        result = {}
+        result: dict = {}
         for i in range(0, len(data)):
             group = data[i]
             maker = self.safe_value(group, 'ask_fee', {})
@@ -572,7 +580,7 @@ class oceanex(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data')
         balances = self.safe_value(data, 'accounts', [])
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_value(balance, 'currency')
@@ -594,7 +602,7 @@ class oceanex(Exchange, ImplicitAPI):
         response = await self.privateGetMembersMe(params)
         return self.parse_balance(response)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
         :see: https://api.oceanex.pro/doc/v1/#new-order-post
@@ -602,13 +610,13 @@ class oceanex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'side': side,
             'ord_type': type,
@@ -617,7 +625,7 @@ class oceanex(Exchange, ImplicitAPI):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -633,7 +641,7 @@ class oceanex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         ids = [id]
-        request = {'ids': ids}
+        request: dict = {'ids': ids}
         response = await self.privateGetOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
         dataLength = len(data)
@@ -656,7 +664,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'states': ['wait'],
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -671,7 +679,7 @@ class oceanex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        request = {
+        request: dict = {
             'states': ['done', 'cancel'],
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -692,7 +700,7 @@ class oceanex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         states = self.safe_value(params, 'states', ['wait', 'done', 'cancel'])
         query = self.omit(params, 'states')
-        request = {
+        request: dict = {
             'market': market['id'],
             'states': states,
             'need_price': 'True',
@@ -740,19 +748,19 @@ class oceanex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'market': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['timestamp'] = since
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 10000)
         response = await self.publicPostK(self.extend(request, params))
-        ohlcvs = self.safe_value(response, 'data', [])
+        ohlcvs = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "created_at": "2019-01-18T00:38:18Z",
@@ -806,8 +814,8 @@ class oceanex(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
@@ -825,7 +833,7 @@ class oceanex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         response = await self.privatePostOrderDelete(self.extend({'id': id}, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
@@ -839,7 +847,7 @@ class oceanex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         response = await self.privatePostOrderDeleteMulti(self.extend({'ids': ids}, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_orders(data)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -852,8 +860,79 @@ class oceanex(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         response = await self.privatePostOrdersClear(params)
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_orders(data)
+
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+        """
+        fetch the deposit addresses for a currency associated with self account
+        :see: https://api.oceanex.pro/doc/v1/#deposit-addresses-post
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary `address structures <https://docs.ccxt.com/#/?id=address-structure>`, indexed by the network
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'currency': currency['id'],
+        }
+        response = await self.privatePostDepositAddresses(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        message: 'Operation successful',
+        #        data: {
+        #          data: {
+        #            currency_id: 'usdt',
+        #            display_name: 'USDT',
+        #            num_of_resources: '3',
+        #            resources: [
+        #              {
+        #                chain_name: 'TRC20',
+        #                currency_id: 'usdt',
+        #                address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        #                memo: '',
+        #                deposit_status: 'enabled'
+        #              },
+        #              ...
+        #            ]
+        #          }
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data', {})
+        data2 = self.safe_dict(data, 'data', {})
+        resources = self.safe_list(data2, 'resources', [])
+        result = {}
+        for i in range(0, len(resources)):
+            resource = resources[i]
+            enabled = self.safe_string(resource, 'deposit_status')
+            if enabled == 'enabled':
+                parsedAddress = self.parse_deposit_address(resource, currency)
+                result[parsedAddress['currency']] = parsedAddress
+        return result
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+        #
+        #    {
+        #        chain_name: 'TRC20',
+        #        currency_id: 'usdt',
+        #        address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        #        memo: '',
+        #        deposit_status: 'enabled'
+        #    }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        currencyId = self.safe_string(depositAddress, 'currency_id')
+        networkId = self.safe_string(depositAddress, 'chain_name')
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'address': address,
+            'tag': self.safe_string(depositAddress, 'memo'),
+            'network': self.network_id_to_code(networkId),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -872,7 +951,7 @@ class oceanex(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
-            request = {
+            request: dict = {
                 'uid': self.apiKey,
                 'data': query,
             }
@@ -884,7 +963,7 @@ class oceanex(Exchange, ImplicitAPI):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         #
         #     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
         #

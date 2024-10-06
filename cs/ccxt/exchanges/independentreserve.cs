@@ -35,6 +35,9 @@ public partial class independentreserve : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -53,8 +56,11 @@ public partial class independentreserve : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -65,6 +71,7 @@ public partial class independentreserve : Exchange
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
+                { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg" },
@@ -108,11 +115,15 @@ public partial class independentreserve : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes(parameters);
+        object baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes(parameters);
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        object quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes(parameters);
+        object quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes(parameters);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        object limits = await this.publicGetGetOrderMinimumVolumes(parameters);
+        object limitsPromise = this.publicGetGetOrderMinimumVolumes(parameters);
+        var baseCurrenciesquoteCurrencieslimitsVariable = await promiseAll(new List<object>() {baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise});
+        var baseCurrencies = ((IList<object>) baseCurrenciesquoteCurrencieslimitsVariable)[0];
+        var quoteCurrencies = ((IList<object>) baseCurrenciesquoteCurrencieslimitsVariable)[1];
+        var limits = ((IList<object>) baseCurrenciesquoteCurrencieslimitsVariable)[2];
         //
         //     {
         //         "Xbt": 0.0001,
@@ -362,6 +373,21 @@ public partial class independentreserve : Exchange
         //         "FeePercent": 0.005,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
+        //    }
         object symbol = null;
         object baseId = this.safeString(order, "PrimaryCurrencyCode");
         object quoteId = this.safeString(order, "SecondaryCurrencyCode");
@@ -501,7 +527,7 @@ public partial class independentreserve : Exchange
         ((IDictionary<string,object>)request)["pageIndex"] = 1;
         ((IDictionary<string,object>)request)["pageSize"] = limit;
         object response = await this.privatePostGetOpenOrders(this.extend(request, parameters));
-        object data = this.safeValue(response, "Data", new List<object>() {});
+        object data = this.safeList(response, "Data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -534,7 +560,7 @@ public partial class independentreserve : Exchange
         ((IDictionary<string,object>)request)["pageIndex"] = 1;
         ((IDictionary<string,object>)request)["pageSize"] = limit;
         object response = await this.privatePostGetClosedOrders(this.extend(request, parameters));
-        object data = this.safeValue(response, "Data", new List<object>() {});
+        object data = this.safeList(response, "Data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -702,7 +728,7 @@ public partial class independentreserve : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -738,6 +764,7 @@ public partial class independentreserve : Exchange
         * @method
         * @name independentreserve#cancelOrder
         * @description cancels an open order
+        * @see https://www.independentreserve.com/features/api#CancelOrder
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -748,7 +775,188 @@ public partial class independentreserve : Exchange
         object request = new Dictionary<string, object>() {
             { "orderGuid", id },
         };
-        return await this.privatePostCancelOrder(this.extend(request, parameters));
+        object response = await this.privatePostCancelOrder(this.extend(request, parameters));
+        //
+        //    {
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
+        //    }
+        //
+        return this.parseOrder(response);
+    }
+
+    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name independentreserve#fetchDepositAddress
+        * @description fetch the deposit address for a currency associated with this account
+        * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+        * @param {string} code unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "primaryCurrencyCode", getValue(currency, "id") },
+        };
+        object response = await this.privatePostGetDigitalCurrencyDepositAddress(this.extend(request, parameters));
+        //
+        //    {
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        //    }
+        //
+        return this.parseDepositAddress(response);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        //    }
+        //
+        object address = this.safeString(depositAddress, "DepositAddress");
+        this.checkAddress(address);
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeString(currency, "code") },
+            { "address", address },
+            { "tag", this.safeString(depositAddress, "Tag") },
+            { "network", null },
+        };
+    }
+
+    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name independentreserve#withdraw
+        * @description make a withdrawal
+        * @see https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+        * @param {string} code unified currency code
+        * @param {float} amount the amount to withdraw
+        * @param {string} address the address to withdraw to
+        * @param {string} tag
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        tag = ((IList<object>)tagparametersVariable)[0];
+        parameters = ((IList<object>)tagparametersVariable)[1];
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "primaryCurrencyCode", getValue(currency, "id") },
+            { "withdrawalAddress", address },
+            { "amount", this.currencyToPrecision(code, amount) },
+        };
+        if (isTrue(!isEqual(tag, null)))
+        {
+            ((IDictionary<string,object>)request)["destinationTag"] = tag;
+        }
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            throw new BadRequest ((string)add(this.id, " withdraw () does not accept params[\"networkCode\"]")) ;
+        }
+        object response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters));
+        //
+        //    {
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
+        //    }
+        //
+        return this.parseTransaction(response, currency);
+    }
+
+    public override object parseTransaction(object transaction, object currency = null)
+    {
+        //
+        //    {
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
+        //    }
+        //
+        object amount = this.safeDict(transaction, "Amount");
+        object destination = this.safeDict(transaction, "Destination");
+        object currencyId = this.safeString(transaction, "PrimaryCurrencyCode");
+        object datetime = this.safeString(transaction, "CreatedTimestampUtc");
+        object address = this.safeString(destination, "Address");
+        object tag = this.safeString(destination, "Tag");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        return new Dictionary<string, object>() {
+            { "info", transaction },
+            { "id", this.safeString(transaction, "TransactionGuid") },
+            { "txid", null },
+            { "type", "withdraw" },
+            { "currency", code },
+            { "network", null },
+            { "amount", this.safeNumber(amount, "Total") },
+            { "status", this.safeString(transaction, "Status") },
+            { "timestamp", this.parse8601(datetime) },
+            { "datetime", datetime },
+            { "address", address },
+            { "addressFrom", null },
+            { "addressTo", address },
+            { "tag", tag },
+            { "tagFrom", null },
+            { "tagTo", tag },
+            { "updated", null },
+            { "comment", null },
+            { "fee", new Dictionary<string, object>() {
+                { "currency", code },
+                { "cost", this.safeNumber(amount, "Fee") },
+                { "rate", null },
+            } },
+            { "internal", false },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

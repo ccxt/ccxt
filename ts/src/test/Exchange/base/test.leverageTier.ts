@@ -1,7 +1,7 @@
-
+import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testLeverageTier (exchange, skippedProperties, method, entry) {
+function testLeverageTier (exchange: Exchange, skippedProperties: object, method: string, entry: object) {
     const format = {
         'tier': exchange.parseNumber ('1'),
         'minNotional': exchange.parseNumber ('0'),

@@ -1,6 +1,6 @@
 import sys
 import types
-from typing import Union, List, Optional, Any
+from typing import Union, List, Optional, Any as PythonAny
 from decimal import Decimal
 
 
@@ -20,6 +20,7 @@ else:
 OrderSide = Literal['buy', 'sell']
 OrderType = Literal['limit', 'market']
 PositionSide = Literal['long', 'short']
+Any = PythonAny
 
 
 class Entry:
@@ -52,6 +53,7 @@ Strings = Optional[List[str]]
 Int = Optional[int]
 Bool = Optional[bool]
 MarketType = Literal['spot', 'margin', 'swap', 'future', 'option']
+SubType = Literal['linear', 'inverse']
 
 
 class FeeInterface(TypedDict):
@@ -63,6 +65,15 @@ class FeeInterface(TypedDict):
 Fee = Optional[FeeInterface]
 
 
+class TradingFeeInterface(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    maker: Num
+    taker: Num
+    percentage: Bool
+    tierBased: Bool
+
+
 class Balance(TypedDict):
     free: Num
     used: Num
@@ -70,10 +81,17 @@ class Balance(TypedDict):
     debt: NotRequired[Num]
 
 
-class Account(TypedDict):
+class BalanceAccount(TypedDict):
     free: Str
     used: Str
     total: Str
+
+
+class Account(TypedDict):
+    id: Str
+    type: Str
+    code: Str
+    info: Dict[str, Any]
 
 
 class Trade(TypedDict):
@@ -121,7 +139,6 @@ class Position(TypedDict):
     stopLossPrice: Num
     takeProfitPrice: Num
 
-
 class OrderRequest(TypedDict):
     symbol: Str
     type: Str
@@ -129,6 +146,12 @@ class OrderRequest(TypedDict):
     amount: Union[None, float]
     price: Union[None, float]
     params: Dict[str, Any]
+
+
+class CancellationRequest(TypedDict):
+    id: Str
+    symbol: Str
+    clientOrderId: Str
 
 
 class Order(TypedDict):
@@ -154,7 +177,10 @@ class Order(TypedDict):
     stopLossPrice: Num
     cost: Num
     trades: List[Trade]
+    reduceOnly: Bool
+    postOnly: Bool
     fee: Fee
+
 
 class Liquidation(TypedDict):
     info: Dict[str, Any]
@@ -164,6 +190,7 @@ class Liquidation(TypedDict):
     price: Num
     baseValue: Num
     quoteValue: Num
+
 
 class FundingHistory(TypedDict):
     info: Dict[str, Any]
@@ -181,11 +208,12 @@ class Balances(Dict[str, Balance]):
 
 
 class OrderBook(TypedDict):
-    asks: List[Num]
-    bids: List[Num]
+    asks: List[List[Num]]
+    bids: List[List[Num]]
     datetime: Str
     timestamp: Int
     nonce: Int
+    symbol: Str
 
 
 class Transaction(TypedDict):
@@ -210,6 +238,7 @@ class Transaction(TypedDict):
     comment: Str
     internal: Bool
 
+
 class TransferEntry(TypedDict):
     info: Dict[str, any]
     id: Str
@@ -220,6 +249,7 @@ class TransferEntry(TypedDict):
     fromAccount: Str
     toAccount: Str
     status: Str
+
 
 class Ticker(TypedDict):
     info: Dict[str, Any]
@@ -242,6 +272,8 @@ class Ticker(TypedDict):
     average: Num
     quoteVolume: Num
     baseVolume: Num
+    markPrice: Num
+    indexPrice: Num
 
 
 Tickers = Dict[str, Ticker]
@@ -251,6 +283,20 @@ class MarginMode(TypedDict):
     info: Dict[str, Any]
     symbol: Str
     marginMode: Str
+
+
+MarginModes = Dict[str, MarginMode]
+
+
+class Leverage(TypedDict):
+    info: Dict[str, Any]
+    symbol: Str
+    marginMode: Str
+    longLeverage: Num
+    shortLeverage: Num
+
+
+Leverages = Dict[str, Leverage]
 
 
 class Greeks(TypedDict):
@@ -275,6 +321,45 @@ class Greeks(TypedDict):
     info: Dict[str, Any]
 
 
+class Conversion(TypedDict):
+    info: Dict[str, Any]
+    timestamp: Int
+    datetime: Str
+    id: Str
+    fromCurrency: Str
+    fromAmount: Num
+    toCurrency: Str
+    toAmount: Num
+    price: Num
+    fee: Num
+
+
+class Option(TypedDict):
+    info: Dict[str, Any]
+    currency: Str
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    impliedVolatility: Num
+    openInterest: Num
+    bidPrice: Num
+    askPrice: Num
+    midPrice: Num
+    markPrice: Num
+    lastPrice: Num
+    underlyingPrice: Num
+    change: Num
+    percentage: Num
+    baseVolume: Num
+    quoteVolume: Num
+
+
+OptionChain = Dict[str, Option]
+
+class MarketMarginModes(TypedDict):
+    cross: bool
+    isolated: bool
+
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
     id: Str
@@ -288,6 +373,7 @@ class MarketInterface(TypedDict):
     subType: Str
     spot: bool
     margin: bool
+    marginModes: MarketMarginModes
     swap: bool
     future: bool
     option: bool
@@ -310,12 +396,131 @@ class MarketInterface(TypedDict):
     limits: Any
     created: Int
 
+class Limit(TypedDict):
+    min: Num
+    max: Num
+
+
+class CurrencyLimits(TypedDict):
+    amount: Limit
+    withdraw: Limit
+
 
 class CurrencyInterface(TypedDict):
     id: Str
     code: Str
+    numericId: Int
     precision: Num
+    type: Str
+    margin: Bool
+    name: Str
+    active: Bool
+    deposit: Bool
+    withdraw: Bool
+    fee: Num
+    limits: CurrencyLimits
+    networks: Dict[str, any]
+    info: any
 
+
+class LastPrice(TypedDict):
+    symbol: Str
+    timestamp: Int
+    datetime: Str
+    price: Num
+    side: OrderSide
+    info: Dict[str, Any]
+
+
+class MarginModification(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    type: Optional[Literal['add', 'reduce', 'set']]
+    marginMode: Optional[Literal['isolated', 'cross']]
+    amount: Optional[float]
+    code: Str
+    status: Str
+    timestamp: Int
+    datetime: Str
+
+
+class CrossBorrowRate(TypedDict):
+    info: Dict[str, any]
+    currency: Str
+    rate: float
+    period: Optional[float]
+    timestamp: Int
+    datetime: Str
+
+
+class IsolatedBorrowRate(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    base: str
+    baseRate: float
+    quote: str
+    quoteRate: float
+    period: Int
+    timestamp: Int
+    datetime: Str
+
+
+class FundingRate(TypedDict):
+    symbol: Str
+    timestamp: Int
+    fundingRate: Num
+    datetime: Str
+    markPrice: Num
+    indexPrice: Num
+    interestRate: Num
+    estimatedSettlePrice: Num
+    fundingTimestamp: Int
+    fundingDatetime: Str
+    nextFundingTimestamp: Int
+    nextFundingDatetime: Str
+    nextFundingRate: Num
+    previousFundingTimestamp: Int
+    previousFundingDatetime: Str
+    previousFundingRate: Num
+    info: Dict[str, Any]
+    interval: Str
+
+
+class LeverageTier:
+    tier: Num
+    currency: Str
+    minNotional: Num
+    maxNotional: Num
+    maintenanceMarginRate: Num
+    maxLeverage: Num
+    info: Dict[str, Any]
+
+
+class LedgerEntry:
+    id: Str
+    info: Any
+    timestamp: Int
+    datetime: Str
+    direction: Str
+    account: Str
+    referenceId: Str
+    referenceAccount: Str
+    type: Str
+    currency: Str
+    amount: Str
+    before: float
+    after: float
+    status: Str
+    fee: Fee
+
+
+FundingRates = Dict[Str, FundingRate]
+LastPrices = Dict[Str, LastPrice]
+Currencies = Dict[Str, CurrencyInterface]
+TradingFees = Dict[Str, TradingFeeInterface]
+IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
+CrossBorrowRates = Dict[Str, CrossBorrowRate]
+LeverageTiers = Dict[Str, List[LeverageTier]]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

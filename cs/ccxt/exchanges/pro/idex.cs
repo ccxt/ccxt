@@ -185,9 +185,9 @@ public partial class idex : ccxt.idex
         if (isTrue(isEqual(length, 0)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit");
-            this.trades = new ArrayCacheBySymbolById(limit);
+            this.trades = ((object)new ArrayCacheBySymbolById(limit));
         }
-        object trades = this.trades;
+        object trades = ((object)this.trades);
         callDynamically(trades, "append", new object[] {trade});
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
     }
@@ -525,7 +525,7 @@ public partial class idex : ccxt.idex
         object price = this.safeFloat(delta, 0);
         object amount = this.safeFloat(delta, 1);
         object count = this.safeInteger(delta, 2);
-        (bookside as IOrderBookSide).store(price, amount, count);
+        (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, count});
     }
 
     public override void handleDeltas(object bookside, object deltas)

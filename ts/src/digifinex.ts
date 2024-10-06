@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,6 +54,8 @@ export default class digifinex extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -349,7 +351,7 @@ export default class digifinex extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name digifinex#fetchCurrencies
@@ -396,7 +398,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
             const id = this.safeString (currency, 'currency');
@@ -420,7 +422,7 @@ export default class digifinex extends Exchange {
             if (networkId !== undefined) {
                 networkCode = this.networkIdToCode (networkId);
             }
-            const network = {
+            const network: Dict = {
                 'info': currency,
                 'id': networkId,
                 'network': networkCode,
@@ -517,7 +519,7 @@ export default class digifinex extends Exchange {
         return result;
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name digifinex#fetchMarkets
@@ -794,7 +796,7 @@ export default class digifinex extends Exchange {
         //         "time_stamp": 1661487402396
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -892,7 +894,7 @@ export default class digifinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -974,7 +976,7 @@ export default class digifinex extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (type === 'swap') {
             response = await this.publicSwapGetPublicTickers (this.extend (request, params));
@@ -1029,7 +1031,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const tickers = this.safeValue2 (response, 'ticker', 'data', []);
         const date = this.safeInteger (response, 'date');
         for (let i = 0; i < tickers.length; i++) {
@@ -1056,7 +1058,7 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (market['swap']) {
             request['instrument_id'] = market['id'];
@@ -1123,7 +1125,7 @@ export default class digifinex extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -1193,11 +1195,13 @@ export default class digifinex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'vol', 'volume_24h'),
             'quoteVolume': this.safeString (ticker, 'base_vol'),
+            'markPrice': this.safeString (ticker, 'mark_price'),
+            'indexPrice': indexPrice,
             'info': ticker,
         }, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // spot: fetchTrades
         //
@@ -1393,7 +1397,7 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = market['swap'] ? Math.min (limit, 100) : limit;
         }
@@ -1446,7 +1450,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1498,13 +1502,13 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (market['swap']) {
             request['instrument_id'] = market['id'];
             request['granularity'] = timeframe;
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min (limit, 100);
             }
             response = await this.publicSwapGetPublicCandles (this.extend (request, params));
         } else {
@@ -1520,7 +1524,8 @@ export default class digifinex extends Exchange {
             } else if (limit !== undefined) {
                 const endTime = this.seconds ();
                 const duration = this.parseTimeframe (timeframe);
-                request['start_time'] = this.sum (endTime, -limit * duration);
+                const auxLimit = limit; // in c# -limit is mutating the arg
+                request['start_time'] = this.sum (endTime, -auxLimit * duration);
             }
             response = await this.publicSpotGetKline (this.extend (request, params));
         }
@@ -1561,7 +1566,7 @@ export default class digifinex extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#createOrder
@@ -1572,7 +1577,7 @@ export default class digifinex extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -1665,7 +1670,7 @@ export default class digifinex extends Exchange {
             ordersRequests.push (orderRequest);
         }
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         let response = undefined;
         if (market['swap']) {
             response = await this.privateSwapPostTradeBatchOrder (ordersRequests);
@@ -1705,7 +1710,7 @@ export default class digifinex extends Exchange {
         const result = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const individualOrder = {};
+            const individualOrder: Dict = {};
             individualOrder['order_id'] = data[i];
             individualOrder['instrument_id'] = market['id'];
             individualOrder['amount'] = this.safeNumber (rawOrder, 'amount');
@@ -1715,7 +1720,7 @@ export default class digifinex extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @ignore
@@ -1725,7 +1730,7 @@ export default class digifinex extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
@@ -1737,7 +1742,7 @@ export default class digifinex extends Exchange {
         if (marginMode !== undefined) {
             marketType = 'margin';
         }
-        const request = {};
+        const request: Dict = {};
         const swap = (marketType === 'swap');
         const isMarketOrder = (type === 'market');
         const isLimitOrder = (type === 'limit');
@@ -1861,7 +1866,7 @@ export default class digifinex extends Exchange {
         id = id.toString ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         if (marketType === 'swap') {
@@ -1911,8 +1916,38 @@ export default class digifinex extends Exchange {
             if (numCanceledOrders !== 1) {
                 throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
             }
+            const orders = this.parseCancelOrders (response);
+            return this.safeDict (orders, 0);
+        } else {
+            return this.safeOrder ({
+                'info': response,
+                'orderId': this.safeString (response, 'data'),
+            });
         }
-        return response;
+    }
+
+    parseCancelOrders (response) {
+        const success = this.safeList (response, 'success');
+        const error = this.safeList (response, 'error');
+        const result = [];
+        for (let i = 0; i < success.length; i++) {
+            const order = success[i];
+            result.push (this.safeOrder ({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < error.length; i++) {
+            const order = error[i];
+            result.push (this.safeOrder ({
+                'info': order,
+                'id': this.safeString2 (order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': this.safeString (order, 'client-order-id'),
+            }));
+        }
+        return result;
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
@@ -1929,7 +1964,7 @@ export default class digifinex extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        const request = {
+        const request: Dict = {
             'market': orderType,
             'order_id': ids.join (','),
         };
@@ -1946,16 +1981,11 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const canceledOrders = this.safeValue (response, 'success', []);
-        const numCanceledOrders = canceledOrders.length;
-        if (numCanceledOrders < 1) {
-            throw new OrderNotFound (this.id + ' cancelOrders() error');
-        }
-        return response;
+        return this.parseCancelOrders (response);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             '0': 'open',
             '1': 'open', // partially filled
             '2': 'closed',
@@ -1965,7 +1995,7 @@ export default class digifinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot: createOrder
         //
@@ -2127,7 +2157,7 @@ export default class digifinex extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
-        const request = {};
+        const request: Dict = {};
         const swap = (marketType === 'swap');
         if (swap) {
             if (since !== undefined) {
@@ -2205,7 +2235,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2230,7 +2260,7 @@ export default class digifinex extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', params);
-        const request = {};
+        const request: Dict = {};
         if (marketType === 'swap') {
             if (since !== undefined) {
                 request['start_timestamp'] = since;
@@ -2310,7 +2340,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2334,7 +2364,7 @@ export default class digifinex extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         if (marketType === 'swap') {
@@ -2426,7 +2456,7 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2507,16 +2537,16 @@ export default class digifinex extends Exchange {
         //     }
         //
         const responseRequest = (marketType === 'swap') ? 'data' : 'list';
-        const data = this.safeValue (response, responseRequest, []);
+        const data = this.safeList (response, responseRequest, []);
         return this.parseTrades (data, market, since, limit);
     }
 
     parseLedgerEntryType (type) {
-        const types = {};
+        const types: Dict = {};
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         // spot and margin
         //
@@ -2538,14 +2568,16 @@ export default class digifinex extends Exchange {
         //     }
         //
         const type = this.parseLedgerEntryType (this.safeString2 (item, 'type', 'finance_type'));
-        const code = this.safeCurrencyCode (this.safeString2 (item, 'currency_mark', 'currency'), currency);
+        const currencyId = this.safeString2 (item, 'currency_mark', 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const amount = this.safeNumber2 (item, 'num', 'change');
         const after = this.safeNumber (item, 'balance');
         let timestamp = this.safeTimestamp (item, 'time');
         if (timestamp === undefined) {
             timestamp = this.safeInteger (item, 'timestamp');
         }
-        return {
+        return this.safeLedgerEntry ({
             'info': item,
             'id': undefined,
             'direction': undefined,
@@ -2561,24 +2593,24 @@ export default class digifinex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
-        };
+        }, currency) as LedgerEntry;
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name digifinex#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLedger', params);
@@ -2688,7 +2720,7 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateSpotGetDepositAddress (this.extend (request, params));
@@ -2717,7 +2749,7 @@ export default class digifinex extends Exchange {
     async fetchTransactionsByType (type, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {
+        const request: Dict = {
             // 'currency': currency['id'],
             // 'from': 'fromId', // When direct is' prev ', from is 1, returning from old to new ascending, when direct is' next ', from is the ID of the most recent record, returned from the old descending order
             // 'size': 100, // default 100, max 500
@@ -2756,7 +2788,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, { 'type': type });
     }
 
@@ -2788,10 +2820,10 @@ export default class digifinex extends Exchange {
         return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
         // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
-        const statuses = {
+        const statuses: Dict = {
             '1': 'pending', // in Progress
             '2': 'pending', // to be confirmed
             '3': 'ok', // Completed
@@ -2800,7 +2832,7 @@ export default class digifinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -2865,14 +2897,14 @@ export default class digifinex extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
-        const statuses = {
+    parseTransferStatus (status: Str): Str {
+        const statuses: Dict = {
             '0': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
 
-    parseTransfer (transfer, currency: Currency = undefined) {
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -2931,7 +2963,7 @@ export default class digifinex extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const request = {
+        const request: Dict = {
             'currency_mark': currency['id'],
             'num': this.currencyToPrecision (code, amount),
             'from': fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
@@ -2946,7 +2978,7 @@ export default class digifinex extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name digifinex#withdraw
@@ -2962,7 +2994,7 @@ export default class digifinex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             // 'chain': 'ERC20', 'OMNI', 'TRC20', // required for USDT
             'address': address,
             'amount': this.currencyToPrecision (code, amount),
@@ -2983,7 +3015,7 @@ export default class digifinex extends Exchange {
 
     async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3016,7 +3048,7 @@ export default class digifinex extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined) {
         //
         //     {
         //         "amount": 0.0006103,
@@ -3050,7 +3082,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchCrossBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
         /**
          * @method
          * @name digifinex#fetchCrossBorrowRate
@@ -3061,7 +3093,7 @@ export default class digifinex extends Exchange {
          * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         const response = await this.privateSpotGetMarginAssets (this.extend (request, params));
         //
         //     {
@@ -3092,7 +3124,7 @@ export default class digifinex extends Exchange {
         return this.parseBorrowRate (result, currency);
     }
 
-    async fetchCrossBorrowRates (params = {}) {
+    async fetchCrossBorrowRates (params = {}): Promise<CrossBorrowRates> {
         /**
          * @method
          * @name digifinex#fetchCrossBorrowRates
@@ -3154,7 +3186,7 @@ export default class digifinex extends Exchange {
         //         "currency": "USDT"
         //     },
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
             const currency = this.safeString (item, codeKey);
@@ -3165,7 +3197,7 @@ export default class digifinex extends Exchange {
         return result as any;
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name digifinex#fetchFundingRate
@@ -3180,7 +3212,7 @@ export default class digifinex extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'instrument_id': market['id'],
         };
         const response = await this.publicSwapGetPublicFundingRate (this.extend (request, params));
@@ -3196,11 +3228,24 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseFundingRate (data, market) as any;
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name digifinex#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate (symbol, params);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -3213,6 +3258,9 @@ export default class digifinex extends Exchange {
         const marketId = this.safeString (contract, 'instrument_id');
         const timestamp = this.safeInteger (contract, 'funding_time');
         const nextTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const fundingTimeString = this.safeString (contract, 'funding_time');
+        const nextFundingTimeString = this.safeString (contract, 'next_funding_time');
+        const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
         return {
             'info': contract,
             'symbol': this.safeSymbol (marketId, market),
@@ -3225,13 +3273,25 @@ export default class digifinex extends Exchange {
             'fundingRate': this.safeNumber (contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': this.iso8601 (timestamp),
-            'nextFundingRate': this.safeString (contract, 'next_funding_rate'),
+            'nextFundingRate': this.safeNumber (contract, 'next_funding_rate'),
             'nextFundingTimestamp': nextTimestamp,
             'nextFundingDatetime': this.iso8601 (nextTimestamp),
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval (millisecondsInterval),
+        } as FundingRate;
+    }
+
+    parseFundingInterval (interval) {
+        const intervals: Dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
         };
+        return this.safeString (intervals, interval, interval);
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3253,7 +3313,7 @@ export default class digifinex extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'instrument_id': market['id'],
         };
         if (since !== undefined) {
@@ -3298,7 +3358,7 @@ export default class digifinex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    async fetchTradingFee (symbol: string, params = {}) {
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         /**
          * @method
          * @name digifinex#fetchTradingFee
@@ -3313,7 +3373,7 @@ export default class digifinex extends Exchange {
         if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchTradingFee() supports swap markets only');
         }
-        const request = {
+        const request: Dict = {
             'instrument_id': market['id'],
         };
         const response = await this.privateSwapGetAccountTradingFeeRate (this.extend (request, params));
@@ -3331,7 +3391,7 @@ export default class digifinex extends Exchange {
         return this.parseTradingFee (data, market);
     }
 
-    parseTradingFee (fee, market: Market = undefined) {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -3346,6 +3406,8 @@ export default class digifinex extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber (fee, 'maker_fee_rate'),
             'taker': this.safeNumber (fee, 'taker_fee_rate'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
 
@@ -3362,7 +3424,7 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         let marketType = undefined;
         if (symbols !== undefined) {
@@ -3470,7 +3532,7 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPosition', params);
@@ -3550,7 +3612,7 @@ export default class digifinex extends Exchange {
         }
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // swap
         //
@@ -3658,7 +3720,7 @@ export default class digifinex extends Exchange {
         if ((leverage < 1) || (leverage > 100)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 100');
         }
-        const request = {
+        const request: Dict = {
             'instrument_id': market['id'],
             'leverage': leverage,
         };
@@ -3692,7 +3754,7 @@ export default class digifinex extends Exchange {
         //
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name digifinex#fetchTransfers
@@ -3706,7 +3768,7 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.safeCurrencyCode (code);
             request['currency'] = currency['id'];
@@ -3733,11 +3795,11 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const transfers = this.safeValue (response, 'data', []);
+        const transfers = this.safeList (response, 'data', []);
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         /**
          * @method
          * @name digifinex#fetchLeverageTiers
@@ -3780,59 +3842,10 @@ export default class digifinex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         symbols = this.marketSymbols (symbols);
-        return this.parseLeverageTiers (data, symbols, 'symbol');
+        return this.parseLeverageTiers (data, symbols, 'instrument_id');
     }
 
-    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined) {
-        //
-        //     [
-        //         {
-        //             "instrument_id": "BTCUSDTPERP",
-        //             "type": "REAL",
-        //             "contract_type": "PERPETUAL",
-        //             "base_currency": "BTC",
-        //             "quote_currency": "USDT",
-        //             "clear_currency": "USDT",
-        //             "contract_value": "0.001",
-        //             "contract_value_currency": "BTC",
-        //             "is_inverse": false,
-        //             "is_trading": true,
-        //             "status": "ONLINE",
-        //             "price_precision": 1,
-        //             "tick_size": "0.1",
-        //             "min_order_amount": 1,
-        //             "open_max_limits": [
-        //                 {
-        //                     "leverage": "50",
-        //                     "max_limit": "1000000"
-        //                 }
-        //             ]
-        //         },
-        //     ]
-        //
-        const tiers = {};
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const marketId = this.safeString (entry, 'instrument_id');
-            const market = this.safeMarket (marketId);
-            const symbol = this.safeSymbol (marketId, market);
-            let symbolsLength = 0;
-            tiers[symbol] = this.parseMarketLeverageTiers (response[i], market);
-            if (symbols !== undefined) {
-                symbolsLength = symbols.length;
-                if (this.inArray (symbol, symbols)) {
-                    result[symbol] = this.parseMarketLeverageTiers (response[i], market);
-                }
-            }
-            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbols, symbol))) {
-                result[symbol] = this.parseMarketLeverageTiers (response[i], market);
-            }
-        }
-        return result;
-    }
-
-    async fetchMarketLeverageTiers (symbol: string, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         /**
          * @method
          * @name digifinex#fetchMarketLeverageTiers
@@ -3847,7 +3860,7 @@ export default class digifinex extends Exchange {
         if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
         }
-        const request = {
+        const request: Dict = {
             'instrument_id': market['id'],
         };
         const response = await this.publicSwapGetPublicInstrument (this.extend (request, params));
@@ -3882,7 +3895,7 @@ export default class digifinex extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -3991,7 +4004,7 @@ export default class digifinex extends Exchange {
         //       "code": 200,
         //   }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes);
     }
 
@@ -4022,7 +4035,7 @@ export default class digifinex extends Exchange {
         //         },
         //     ]
         //
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         codes = this.marketCodes (codes);
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -4037,11 +4050,11 @@ export default class digifinex extends Exchange {
                 depositWithdrawFees[code]['info'].push (entry);
                 const networkId = this.safeString (entry, 'chain');
                 const withdrawFee = this.safeValue (entry, 'min_withdraw_fee');
-                const withdrawResult = {
+                const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
                 };
-                const depositResult = {
+                const depositResult: Dict = {
                     'fee': undefined,
                     'percentage': undefined,
                 };
@@ -4066,7 +4079,7 @@ export default class digifinex extends Exchange {
         return depositWithdrawFees;
     }
 
-    async addMargin (symbol: string, amount, params = {}) {
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name digifinex#addMargin
@@ -4083,7 +4096,7 @@ export default class digifinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    async reduceMargin (symbol: string, amount, params = {}) {
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         /**
          * @method
          * @name digifinex#reduceMargin
@@ -4100,11 +4113,11 @@ export default class digifinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_id': market['id'],
             'amount': this.numberToString (amount),
             'type': type,
@@ -4130,7 +4143,7 @@ export default class digifinex extends Exchange {
         });
     }
 
-    parseMarginModification (data, market: Market = undefined) {
+    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -4143,12 +4156,15 @@ export default class digifinex extends Exchange {
         const rawType = this.safeInteger (data, 'type');
         return {
             'info': data,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
             'type': (rawType === 1) ? 'add' : 'reduce',
+            'marginMode': 'isolated',
             'amount': this.safeNumber (data, 'amount'),
             'total': undefined,
             'code': market['settle'],
-            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
@@ -4166,7 +4182,7 @@ export default class digifinex extends Exchange {
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets ();
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('end_timestamp', request, params);
         let market = undefined;
         if (symbol !== undefined) {
@@ -4193,7 +4209,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseIncomes (data, market, since, limit);
     }
 
@@ -4240,7 +4256,7 @@ export default class digifinex extends Exchange {
         if (marginMode === 'cross') {
             marginMode = 'crossed';
         }
-        const request = {
+        const request: Dict = {
             'instrument_id': market['id'],
             'margin_mode': marginMode,
         };
@@ -4304,7 +4320,7 @@ export default class digifinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fall back to default error handler
         }

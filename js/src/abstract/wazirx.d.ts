@@ -17,6 +17,11 @@ interface Exchange {
     privateGetOpenOrders(params?: {}): Promise<implicitReturnType>;
     privateGetOrder(params?: {}): Promise<implicitReturnType>;
     privateGetMyTrades(params?: {}): Promise<implicitReturnType>;
+    privateGetCoins(params?: {}): Promise<implicitReturnType>;
+    privateGetCryptoWithdraws(params?: {}): Promise<implicitReturnType>;
+    privateGetCryptoDepositsAddress(params?: {}): Promise<implicitReturnType>;
+    privateGetSubAccountFundTransferHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetSubAccountAccounts(params?: {}): Promise<implicitReturnType>;
     privatePostOrder(params?: {}): Promise<implicitReturnType>;
     privatePostOrderTest(params?: {}): Promise<implicitReturnType>;
     privatePostCreateAuthToken(params?: {}): Promise<implicitReturnType>;

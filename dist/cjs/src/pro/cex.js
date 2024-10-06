@@ -17,6 +17,7 @@ class cex extends cex$1 {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -126,6 +127,7 @@ class cex extends cex$1 {
         const url = this.urls['api']['ws'];
         const messageHash = 'trades';
         const subscriptionHash = 'old:' + symbol;
+        this.options['currentWatchTradeSymbol'] = symbol; // exchange supports only 1 symbol for this watchTrades channel
         const client = this.safeValue(this.clients, url);
         if (client !== undefined) {
             const subscriptionKeys = Object.keys(client.subscriptions);
@@ -157,21 +159,30 @@ class cex extends cex$1 {
         //     {
         //         "e": "history",
         //         "data": [
-        //             "sell:1665467367741:3888551:19058.8:14541219",
-        //             "buy:1665467367741:1059339:19071.5:14541218",
+        //            'buy:1710255706095:444444:71222.2:14892622'
+        //            'sell:1710255658251:42530:71300:14892621'
+        //            'buy:1710252424241:87913:72800:14892620'
+        //            ... timestamp descending
         //         ]
         //     }
         //
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
         const stored = new Cache.ArrayCache(limit);
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
-            const parsed = this.parseWsOldTrade(rawTrade);
+        const symbol = this.safeString(this.options, 'currentWatchTradeSymbol');
+        if (symbol === undefined) {
+            return;
+        }
+        const market = this.market(symbol);
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
+            const parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }
         const messageHash = 'trades';
-        this.trades = stored;
+        this.trades = stored; // trades don't have symbol
         client.resolve(this.trades, messageHash);
     }
     parseWsOldTrade(trade, market = undefined) {
@@ -194,7 +205,7 @@ class cex extends cex$1 {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': undefined,
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'side': side,
             'order': undefined,
@@ -215,9 +226,11 @@ class cex extends cex$1 {
         //     }
         //
         const data = this.safeValue(message, 'data', []);
-        const stored = this.trades;
-        for (let i = 0; i < data.length; i++) {
-            const rawTrade = data[i];
+        const stored = this.trades; // to do fix this, this.trades is not meant to be used like this
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const index = dataLength - 1 - i;
+            const rawTrade = data[index];
             const parsed = this.parseWsOldTrade(rawTrade);
             stored.append(parsed);
         }
@@ -333,12 +346,17 @@ class cex extends cex$1 {
         const data = this.safeValue(message, 'data', {});
         const ticker = this.parseWsTicker(data);
         const symbol = ticker['symbol'];
+        if (symbol === undefined) {
+            return;
+        }
         this.tickers[symbol] = ticker;
         let messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
         client.resolve(ticker, 'tickers');
         messageHash = this.safeString(message, 'oid');
-        client.resolve(ticker, messageHash);
+        if (messageHash !== undefined) {
+            client.resolve(ticker, messageHash);
+        }
     }
     parseWsTicker(ticker, market = undefined) {
         //
@@ -654,7 +672,7 @@ class cex extends cex$1 {
         //             }
         //         }
         //     }
-        //  fullfilledOrder
+        //  fulfilledOrder
         //     {
         //         "e": "order",
         //         "data": {
@@ -959,7 +977,7 @@ class cex extends cex$1 {
         const symbol = this.pairToSymbol(pair);
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2(data, 'timestamp_ms', 'timestamp');
-        const incrementalId = this.safeNumber(data, 'id');
+        const incrementalId = this.safeInteger(data, 'id');
         const orderbook = this.orderBook({});
         const snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
@@ -995,7 +1013,7 @@ class cex extends cex$1 {
         //     }
         //
         const data = this.safeValue(message, 'data', {});
-        const incrementalId = this.safeNumber(data, 'id');
+        const incrementalId = this.safeInteger(data, 'id');
         const pair = this.safeString(data, 'pair', '');
         const symbol = this.pairToSymbol(pair);
         const storedOrderBook = this.safeValue(this.orderbooks, symbol);
@@ -1088,7 +1106,10 @@ class cex extends cex$1 {
         for (let i = 0; i < sorted.length; i++) {
             stored.append(this.parseOHLCV(sorted[i], market));
         }
-        this.ohlcvs[symbol] = stored;
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        this.ohlcvs[symbol]['unknown'] = stored;
         client.resolve(stored, messageHash);
     }
     handleOHLCV24(client, message) {
@@ -1147,7 +1168,8 @@ class cex extends cex$1 {
         const pair = this.safeString(message, 'pair');
         const symbol = this.pairToSymbol(pair);
         const messageHash = 'ohlcv:' + symbol;
-        const stored = this.safeValue(this.ohlcvs, symbol);
+        // const stored = this.safeValue (this.ohlcvs, symbol);
+        const stored = this.ohlcvs[symbol]['unknown'];
         for (let i = 0; i < data.length; i++) {
             const ohlcv = [
                 this.safeTimestamp(data[i], 0),
@@ -1170,6 +1192,7 @@ class cex extends cex$1 {
          * @name cex#fetchOrderWs
          * @description fetches information on an order made by the user
          * @see https://docs.cex.io/#ws-api-get-order
+         * @param {string} id the order id
          * @param {string} symbol not used by cex fetchOrder
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1234,7 +1257,7 @@ class cex extends cex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -1272,7 +1295,7 @@ class cex extends cex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

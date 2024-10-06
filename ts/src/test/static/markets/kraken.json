@@ -1798,5 +1798,239 @@
         "wsId": "XRP/USD",
         "darkpool": false,
         "altname": "XRPUSD"
+    },
+    "LTC/USD": {
+        "id": "XLTCZUSD",
+        "symbol": "LTC/USD",
+        "base": "LTC",
+        "quote": "USD",
+        "baseId": "XLTC",
+        "quoteId": "ZUSD",
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.004,
+        "maker": 0.0025,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 3
+            },
+            "amount": {
+                "min": 0.05
+            },
+            "price": {
+                "min": 0.01
+            },
+            "cost": {
+                "min": 0.5
+            }
+        },
+        "info": {
+            "altname": "LTCUSD",
+            "wsname": "LTC/USD",
+            "aclass_base": "currency",
+            "base": "XLTC",
+            "aclass_quote": "currency",
+            "quote": "ZUSD",
+            "lot": "unit",
+            "cost_decimals": "5",
+            "pair_decimals": "2",
+            "lot_decimals": "8",
+            "lot_multiplier": "1",
+            "leverage_buy": [
+                2,
+                3
+            ],
+            "leverage_sell": [
+                2,
+                3
+            ],
+            "fees": [
+                [
+                    0,
+                    0.4
+                ],
+                [
+                    10000,
+                    0.35
+                ],
+                [
+                    50000,
+                    0.24
+                ],
+                [
+                    100000,
+                    0.22
+                ],
+                [
+                    250000,
+                    0.2
+                ],
+                [
+                    500000,
+                    0.18
+                ],
+                [
+                    1000000,
+                    0.16
+                ],
+                [
+                    2500000,
+                    0.14
+                ],
+                [
+                    5000000,
+                    0.12
+                ],
+                [
+                    10000000,
+                    0.1
+                ]
+            ],
+            "fees_maker": [
+                [
+                    0,
+                    0.25
+                ],
+                [
+                    10000,
+                    0.2
+                ],
+                [
+                    50000,
+                    0.14
+                ],
+                [
+                    100000,
+                    0.12
+                ],
+                [
+                    250000,
+                    0.1
+                ],
+                [
+                    500000,
+                    0.08
+                ],
+                [
+                    1000000,
+                    0.06
+                ],
+                [
+                    2500000,
+                    0.04
+                ],
+                [
+                    5000000,
+                    0.02
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ],
+            "fee_volume_currency": "ZUSD",
+            "margin_call": "80",
+            "margin_stop": "40",
+            "ordermin": "0.05",
+            "costmin": "0.5",
+            "tick_size": "0.01",
+            "status": "online",
+            "long_position_limit": "5300",
+            "short_position_limit": "3600"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0026
+                ],
+                [
+                    50000,
+                    0.0024
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1000000,
+                    0.0016
+                ],
+                [
+                    2500000,
+                    0.0014
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    10000000,
+                    0.0001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0016
+                ],
+                [
+                    50000,
+                    0.0014
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    250000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2500000,
+                    0.0004
+                ],
+                [
+                    5000000,
+                    0.0002
+                ],
+                [
+                    10000000,
+                    0
+                ]
+            ]
+        },
+        "wsId": "LTC/USD",
+        "darkpool": false,
+        "altname": "LTCUSD"
     }
 }

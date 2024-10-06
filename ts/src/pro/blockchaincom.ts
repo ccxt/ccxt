@@ -3,7 +3,7 @@
 import blockchaincomRest from '../blockchaincom.js';
 import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -17,6 +17,7 @@ export default class blockchaincom extends blockchaincomRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -36,7 +37,6 @@ export default class blockchaincom extends blockchaincomRest {
                     },
                     'noOriginHeader': false,
                 },
-                'sequenceNumbers': {},
             },
             'streaming': {
             },
@@ -65,7 +65,7 @@ export default class blockchaincom extends blockchaincomRest {
         await this.authenticate (params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'action': 'subscribe',
             'channel': 'balances',
         };
@@ -107,7 +107,7 @@ export default class blockchaincom extends blockchaincomRest {
         if (event === 'subscribed') {
             return;
         }
-        const result = { 'info': message };
+        const result: Dict = { 'info': message };
         const balances = this.safeValue (message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -431,7 +431,7 @@ export default class blockchaincom extends blockchaincomRest {
             symbol = market['symbol'];
         }
         const url = this.urls['api']['ws'];
-        const message = {
+        const message: Dict = {
             'action': 'subscribe',
             'channel': 'trading',
         };
@@ -615,7 +615,7 @@ export default class blockchaincom extends blockchaincomRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'pending': 'open',
             'open': 'open',
             'rejected': 'rejected',
@@ -645,7 +645,7 @@ export default class blockchaincom extends blockchaincomRest {
         const type = this.safeString (params, 'type', 'l2');
         params = this.omit (params, 'type');
         const messageHash = 'orderbook:' + symbol + ':' + type;
-        const subscribe = {
+        const subscribe: Dict = {
             'action': 'subscribe',
             'channel': type,
             'symbol': market['id'],
@@ -691,25 +691,25 @@ export default class blockchaincom extends blockchaincomRest {
         //     }
         //
         const event = this.safeString (message, 'event');
+        if (event === 'subscribed') {
+            return;
+        }
         const type = this.safeString (message, 'channel');
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (datetime);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.countedOrderBook ({});
-            this.orderbooks[symbol] = orderbook;
+        if (this.safeValue (this.orderbooks, symbol) === undefined) {
+            this.orderbooks[symbol] = this.countedOrderBook ();
         }
-        if (event === 'subscribed') {
-            return;
-        } else if (event === 'snapshot') {
+        const orderbook = this.orderbooks[symbol];
+        if (event === 'snapshot') {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             orderbook.reset (snapshot);
         } else if (event === 'updated') {
-            const asks = this.safeValue (message, 'asks', []);
-            const bids = this.safeValue (message, 'bids', []);
+            const asks = this.safeList (message, 'asks', []);
+            const bids = this.safeList (message, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
@@ -731,25 +731,9 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    checkSequenceNumber (client: Client, message) {
-        const seqnum = this.safeInteger (message, 'seqnum', 0);
-        const channel = this.safeString (message, 'channel', '');
-        const sequenceNumbersByChannel = this.safeValue (this.options, 'sequenceNumbers', {});
-        const lastSeqnum = this.safeInteger (sequenceNumbersByChannel, channel);
-        if (lastSeqnum === undefined) {
-            this.options['sequenceNumbers'][channel] = seqnum;
-        } else {
-            if (seqnum !== lastSeqnum + 1) {
-                throw new ExchangeError (this.id + ' ' + channel + ' seqnum ' + seqnum + ' is not the expected ' + (lastSeqnum + 1));
-            }
-            this.options['sequenceNumbers'][channel] = seqnum;
-        }
-    }
-
     handleMessage (client: Client, message) {
-        this.checkSequenceNumber (client, message);
         const channel = this.safeString (message, 'channel');
-        const handlers = {
+        const handlers: Dict = {
             'ticker': this.handleTicker,
             'trades': this.handleTrades,
             'prices': this.handleOHLCV,
@@ -794,13 +778,13 @@ export default class blockchaincom extends blockchaincomRest {
         const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
         if (isAuthenticated === undefined) {
             this.checkRequiredCredentials ();
-            const request = {
+            const request: Dict = {
                 'action': 'subscribe',
                 'channel': 'auth',
                 'token': this.secret,
             };
             return this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
-        return future;
+        return await future;
     }
 }

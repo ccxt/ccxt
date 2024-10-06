@@ -192,15 +192,15 @@ class CCXTProTranspiler extends Transpiler {
 
     transpileWsOrderBookTest() {
         const currentFolder = 'base/';
-        const testName = 'test.OrderBook';
+        const testName = 'test.orderBook';
         const testNameUncameled = this.uncamelcaseName(testName);
         const test = {
             base: true,
             name: testName,
             tsFile: this.wsTestsDirectories.ts + currentFolder + testName + '.ts',
             pyFileSync: this.wsTestsDirectories.py + currentFolder + testNameUncameled + '.py',
-            pyHeaders: ['\n', 'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402', '\n', '\n', this.arrayEqualFunctionForPy, '\n'],
-            phpHeaders: [ '\n', this.arrayEqualFunctionForPhp, '\n'],
+            pyHeaders: ['\n', 'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402', '\n', '\n'],
+            phpHeaders: [],
             phpFileSync: this.wsTestsDirectories.php + currentFolder + testNameUncameled + '.php',
         };
         this.transpileAndSaveExchangeTests ([test]);
@@ -208,15 +208,15 @@ class CCXTProTranspiler extends Transpiler {
 
     transpileWsCacheTest() {
         const currentFolder = 'base/';
-        const testName = 'test.Cache';
+        const testName = 'test.cache';
         const testNameUncameled = this.uncamelcaseName(testName);
         const test = {
             base: true,
             name: testName,
             tsFile: this.wsTestsDirectories.ts + currentFolder + testName + '.ts',
             pyFileSync: this.wsTestsDirectories.py + currentFolder + testNameUncameled + '.py',
-            pyHeaders: ['from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402', '\n', '\n', this.arrayEqualFunctionForPy, '\n'],
-            phpHeaders: [ '\n', this.arrayEqualFunctionForPhp, '\n'],
+            pyHeaders: ['from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402', '\n', '\n'],
+            phpHeaders: [],
             phpFileSync: this.wsTestsDirectories.php + currentFolder + testNameUncameled + '.php',
         };
         this.transpileAndSaveExchangeTests ([test]);
@@ -286,6 +286,8 @@ class CCXTProTranspiler extends Transpiler {
                     const exchangeName = match[1];
                     const exchangeNameRest = exchangeName + 'Rest';
                     result.python3 = result.python3.replace ('\nclass ', 'import ccxt.async_support.' + exchangeName + ' as ' + exchangeNameRest + '\n\n\nclass ');
+                    // correct `new Xyz()` format
+                    result.python3 = result.python3.replace ('new ' + exchangeNameRest, exchangeNameRest);
                     result.phpAsync = result.phpAsync.replace ('new '+ exchangeNameRest, 'new \\ccxt\\async\\' + exchangeName);
                 }
             }
@@ -309,7 +311,7 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
         transpiler.transpileWsTests ()
     } 
     else if (multiprocess) {
-        parallelizeTranspiling (exchanges.ws)
+        parallelizeTranspiling (exchanges.ws, undefined, force)
     } else {
         (async () => {
             await transpiler.transpileEverything (force, child)

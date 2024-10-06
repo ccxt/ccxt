@@ -278,6 +278,7 @@ public partial class bitrue : Exchange
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
                 { "fetchMyTradesMethod", "v2PrivateGetMyTrades" },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "recvWindow", multiply(5, 1000) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
@@ -289,6 +290,67 @@ public partial class bitrue : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
+                    { "AETERNITY", "Aeternity" },
+                    { "AION", "AION" },
+                    { "ALGO", "Algorand" },
+                    { "ASK", "ASK" },
+                    { "ATOM", "ATOM" },
+                    { "AVAXC", "AVAX C-Chain" },
+                    { "BCH", "BCH" },
+                    { "BEP2", "BEP2" },
+                    { "BEP20", "BEP20" },
+                    { "Bitcoin", "Bitcoin" },
+                    { "BRP20", "BRP20" },
+                    { "ADA", "Cardano" },
+                    { "CASINOCOIN", "CasinoCoin" },
+                    { "CASINOCOIN-XRPL", "CasinoCoin XRPL" },
+                    { "CONTENTOS", "Contentos" },
+                    { "DASH", "Dash" },
+                    { "DECOIN", "Decoin" },
+                    { "DFI", "DeFiChain" },
+                    { "DGB", "DGB" },
+                    { "DIVI", "Divi" },
+                    { "DOGE", "dogecoin" },
+                    { "EOS", "EOS" },
+                    { "ETC", "ETC" },
+                    { "FILECOIN", "Filecoin" },
+                    { "FREETON", "FREETON" },
+                    { "HBAR", "HBAR" },
+                    { "HEDERA", "Hedera Hashgraph" },
+                    { "HRC20", "HRC20" },
+                    { "ICON", "ICON" },
+                    { "ICP", "ICP" },
+                    { "IGNIS", "Ignis" },
+                    { "INTERNETCOMPUTER", "Internet Computer" },
+                    { "IOTA", "IOTA" },
+                    { "KAVA", "KAVA" },
+                    { "KSM", "KSM" },
+                    { "LTC", "LiteCoin" },
+                    { "LUNA", "Luna" },
+                    { "MATIC", "MATIC" },
+                    { "MOBILECOIN", "Mobile Coin" },
+                    { "MONACOIN", "MonaCoin" },
+                    { "XMR", "Monero" },
+                    { "NEM", "NEM" },
+                    { "NEP5", "NEP5" },
+                    { "OMNI", "OMNI" },
+                    { "PAC", "PAC" },
+                    { "DOT", "Polkadot" },
+                    { "RAVEN", "Ravencoin" },
+                    { "SAFEX", "Safex" },
+                    { "SOL", "SOLANA" },
+                    { "SGB", "Songbird" },
+                    { "XML", "Stellar Lumens" },
+                    { "XYM", "Symbol" },
+                    { "XTZ", "Tezos" },
+                    { "theta", "theta" },
+                    { "THETA", "THETA" },
+                    { "VECHAIN", "VeChain" },
+                    { "WANCHAIN", "Wanchain" },
+                    { "XINFIN", "XinFin Network" },
+                    { "XRP", "XRP" },
+                    { "XRPL", "XRPL" },
+                    { "ZIL", "ZIL" },
                 } },
                 { "defaultType", "spot" },
                 { "timeframes", new Dictionary<string, object>() {
@@ -339,7 +401,7 @@ public partial class bitrue : Exchange
                     { "Order would immediately match and take.", typeof(OrderImmediatelyFillable) },
                     { "Account has insufficient balance for requested action.", typeof(InsufficientFunds) },
                     { "Rest API trading is not enabled.", typeof(ExchangeNotAvailable) },
-                    { "You don\'t have permission.", typeof(PermissionDenied) },
+                    { "You don't have permission.", typeof(PermissionDenied) },
                     { "Market is closed.", typeof(ExchangeNotAvailable) },
                     { "Too many requests. Please try again later.", typeof(DDoSProtection) },
                     { "-1000", typeof(ExchangeNotAvailable) },
@@ -406,18 +468,6 @@ public partial class bitrue : Exchange
         });
     }
 
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        // info is available in currencies only if the user has configured his api keys
-        if (isTrue(!isEqual(this.safeValue(getValue(this.currencies, code), "precision"), null)))
-        {
-            return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(this.currencies, code), "precision"), this.precisionMode, this.paddingMode);
-        } else
-        {
-            return this.numberToString(fee);
-        }
-    }
-
     public override object nonce()
     {
         return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
@@ -470,79 +520,6 @@ public partial class bitrue : Exchange
         //     }
         //
         return this.safeInteger(response, "serverTime");
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object uppercaseNetworkId = ((string)networkId).ToUpper();
-        object networksById = new Dictionary<string, object>() {
-            { "Aeternity", "Aeternity" },
-            { "AION", "AION" },
-            { "Algorand", "Algorand" },
-            { "ASK", "ASK" },
-            { "ATOM", "ATOM" },
-            { "AVAX C-Chain", "AVAX C-Chain" },
-            { "bch", "bch" },
-            { "BCH", "BCH" },
-            { "BEP2", "BEP2" },
-            { "BEP20", "BEP20" },
-            { "Bitcoin", "Bitcoin" },
-            { "BRP20", "BRP20" },
-            { "Cardano", "ADA" },
-            { "CasinoCoin", "CasinoCoin" },
-            { "CasinoCoin XRPL", "CasinoCoin XRPL" },
-            { "Contentos", "Contentos" },
-            { "Dash", "Dash" },
-            { "Decoin", "Decoin" },
-            { "DeFiChain", "DeFiChain" },
-            { "DGB", "DGB" },
-            { "Divi", "Divi" },
-            { "dogecoin", "DOGE" },
-            { "EOS", "EOS" },
-            { "ERC20", "ERC20" },
-            { "ETC", "ETC" },
-            { "Filecoin", "Filecoin" },
-            { "FREETON", "FREETON" },
-            { "HBAR", "HBAR" },
-            { "Hedera Hashgraph", "Hedera Hashgraph" },
-            { "HRC20", "HRC20" },
-            { "ICON", "ICON" },
-            { "ICP", "ICP" },
-            { "Ignis", "Ignis" },
-            { "Internet Computer", "Internet Computer" },
-            { "IOTA", "IOTA" },
-            { "KAVA", "KAVA" },
-            { "KSM", "KSM" },
-            { "LiteCoin", "LiteCoin" },
-            { "Luna", "Luna" },
-            { "MATIC", "MATIC" },
-            { "Mobile Coin", "Mobile Coin" },
-            { "MonaCoin", "MonaCoin" },
-            { "Monero", "Monero" },
-            { "NEM", "NEM" },
-            { "NEP5", "NEP5" },
-            { "OMNI", "OMNI" },
-            { "PAC", "PAC" },
-            { "Polkadot", "Polkadot" },
-            { "Ravencoin", "Ravencoin" },
-            { "Safex", "Safex" },
-            { "SOLANA", "SOL" },
-            { "Songbird", "Songbird" },
-            { "Stellar Lumens", "Stellar Lumens" },
-            { "Symbol", "Symbol" },
-            { "Tezos", "XTZ" },
-            { "theta", "theta" },
-            { "THETA", "THETA" },
-            { "TRC20", "TRC20" },
-            { "VeChain", "VeChain" },
-            { "VECHAIN", "VECHAIN" },
-            { "Wanchain", "Wanchain" },
-            { "XinFin Network", "XinFin Network" },
-            { "XRP", "XRP" },
-            { "XRPL", "XRPL" },
-            { "ZIL", "ZIL" },
-        };
-        return this.safeString2(networksById, networkId, uppercaseNetworkId, networkId);
     }
 
     public async override Task<object> fetchCurrencies(object parameters = null)
@@ -1292,10 +1269,6 @@ public partial class bitrue : Exchange
             };
             if (isTrue(!isEqual(limit, null)))
             {
-                if (isTrue(isGreaterThan(limit, 300)))
-                {
-                    limit = 300;
-                }
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
             if (isTrue(getValue(market, "linear")))
@@ -1315,10 +1288,6 @@ public partial class bitrue : Exchange
             };
             if (isTrue(!isEqual(limit, null)))
             {
-                if (isTrue(isGreaterThan(limit, 1440)))
-                {
-                    limit = 1440;
-                }
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
             if (isTrue(!isEqual(since, null)))
@@ -1895,7 +1864,7 @@ public partial class bitrue : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
         * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
@@ -2042,6 +2011,7 @@ public partial class bitrue : Exchange
         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
         * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2596,7 +2566,7 @@ public partial class bitrue : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -2634,20 +2604,29 @@ public partial class bitrue : Exchange
         }
         object response = await this.spotV1PrivateGetWithdrawHistory(this.extend(request, parameters));
         //
-        //     {
-        //         "code": 200,
-        //         "msg": "succ",
-        //         "data": {
-        //             "msg": null,
-        //             "amount": 1000,
-        //             "fee": 1,
-        //             "ctime": null,
-        //             "coin": "usdt_erc20",
-        //             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-        //         }
-        //     }
+        //    {
+        //        "code": 200,
+        //        "msg": "succ",
+        //        "data": [
+        //            {
+        //                "id": 183745,
+        //                "symbol": "usdt_erc20",
+        //                "amount": "8.4000000000000000",
+        //                "fee": "1.6000000000000000",
+        //                "payAmount": "0.0000000000000000",
+        //                "createdAt": 1595336441000,
+        //                "updatedAt": 1595336576000,
+        //                "addressFrom": "",
+        //                "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        //                "txid": "",
+        //                "confirmations": 0,
+        //                "status": 6,
+        //                "tagType": null
+        //            }
+        //        ]
+        //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency);
     }
 
@@ -2859,7 +2838,7 @@ public partial class bitrue : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 
@@ -2929,7 +2908,7 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.spotV1PublicGetExchangeInfo(parameters);
-        object coins = this.safeValue(response, "coins");
+        object coins = this.safeList(response, "coins");
         return this.parseDepositWithdrawFees(coins, codes, "coin");
     }
 
@@ -2973,7 +2952,7 @@ public partial class bitrue : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -3033,7 +3012,7 @@ public partial class bitrue : Exchange
         //         }]
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransfers(data, currency, since, limit);
     }
 
@@ -3071,7 +3050,7 @@ public partial class bitrue : Exchange
         //         'data': null
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransfer(data, currency);
     }
 
@@ -3118,19 +3097,32 @@ public partial class bitrue : Exchange
         return response;
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", null },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", null },
             { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
-    public async virtual Task<object> setMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
         /**
         * @method
@@ -3228,6 +3220,12 @@ public partial class bitrue : Exchange
                 object signMessage = add(add(timestamp, method), signPath);
                 if (isTrue(isEqual(method, "GET")))
                 {
+                    object keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+                    object keysLength = getArrayLength(keys);
+                    if (isTrue(isGreaterThan(keysLength, 0)))
+                    {
+                        signMessage = add(signMessage, add("?", this.urlencode(parameters)));
+                    }
                     object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "X-CH-APIKEY", this.apiKey },
@@ -3241,7 +3239,7 @@ public partial class bitrue : Exchange
                         { "recvWindow", recvWindow },
                     }, parameters);
                     body = this.json(query);
-                    signMessage = add(signMessage, json(body));
+                    signMessage = add(signMessage, body);
                     object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },

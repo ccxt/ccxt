@@ -12,7 +12,7 @@ public partial class bigone : Exchange
             { "name", "BigONE" },
             { "countries", new List<object>() {"CN"} },
             { "version", "v3" },
-            { "rateLimit", 1200 },
+            { "rateLimit", 20 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -101,7 +101,7 @@ public partial class bigone : Exchange
                     { "delete", new List<object>() {"orders/{id}", "orders/batch"} },
                 } },
                 { "webExchange", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"uc/v2/assets"} },
+                    { "get", new List<object>() {"v3/assets"} },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -208,8 +208,8 @@ public partial class bigone : Exchange
                 { "exact", new Dictionary<string, object>() {
                     { "10001", typeof(BadRequest) },
                     { "10005", typeof(ExchangeError) },
-                    { "Amount\'s scale must greater than AssetPair\'s base scale", typeof(InvalidOrder) },
-                    { "Price mulit with amount should larger than AssetPair\'s min_quote_value", typeof(InvalidOrder) },
+                    { "Amount's scale must greater than AssetPair's base scale", typeof(InvalidOrder) },
+                    { "Price mulit with amount should larger than AssetPair's min_quote_value", typeof(InvalidOrder) },
                     { "10007", typeof(BadRequest) },
                     { "10011", typeof(ExchangeError) },
                     { "10013", typeof(BadSymbol) },
@@ -253,7 +253,7 @@ public partial class bigone : Exchange
         */
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         parameters ??= new Dictionary<string, object>();
-        object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGetUcV2Assets", true);
+        object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGetV3Assets", true);
         if (isTrue(isEqual(data, null)))
         {
             return null;
@@ -264,96 +264,45 @@ public partial class bigone : Exchange
         //     "message": "",
         //     "data": [
         //       {
-        //         "name": "TetherUS",
-        //         "symbol": "USDT",
-        //         "contract_address": "31",
-        //         "is_deposit_enabled": true,
-        //         "is_withdrawal_enabled": true,
-        //         "is_stub": false,
-        //         "withdrawal_fee": "5.0",
-        //         "is_fiat": false,
-        //         "is_memo_required": false,
-        //         "logo": {
-        //           "default": "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-        //           "white": "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        //             "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        //             "symbol": "USDT",
+        //             "name": "TetherUS",
+        //             "scale": 12,
+        //             "is_fiat": false,
+        //             "is_transfer_enabled": true,
+        //             "transfer_scale": 12,
+        //             "binding_gateways": [
+        //                 {
+        //                     "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        //                     "is_deposit_enabled": true,
+        //                     "gateway_name": "Ethereum",
+        //                     "min_withdrawal_amount": "0.000001",
+        //                     "withdrawal_fee": "5.71",
+        //                     "is_withdrawal_enabled": true,
+        //                     "min_deposit_amount": "0.000001",
+        //                     "is_memo_required": false,
+        //                     "withdrawal_scale": 6,
+        //                     "scale": 12
+        //                 },
+        //                 {
+        //                     "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+        //                     "is_deposit_enabled": true,
+        //                     "gateway_name": "BinanceSmartChain",
+        //                     "min_withdrawal_amount": "10",
+        //                     "withdrawal_fee": "5",
+        //                     "is_withdrawal_enabled": false,
+        //                     "min_deposit_amount": "1",
+        //                     "is_memo_required": false,
+        //                     "withdrawal_scale": 8,
+        //                     "scale": 12
+        //                 }
+        //             ]
         //         },
-        //         "info_link": null,
-        //         "scale": "12",
-        //         "default_gateway": ..., // one object from "gateways"
-        //         "gateways": [
-        //           {
-        //             "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-        //             "name": "Mixin",
-        //             "kind": "CHAIN",
-        //             "required_confirmations": "0",
-        //           },
-        //           {
-        //             "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //             "name": "Ethereum",
-        //             "kind": "CHAIN",
-        //             "required_confirmations": "18",
-        //           },
-        //           {
-        //             "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //             "name": "Tron",
-        //             "kind": "CHAIN",
-        //             "required_confirmations": "1",
-        //           },
-        //          ...
-        //         ],
-        //         "payments": [],
-        //         "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-        //         "binding_gateways": [
-        //           {
-        //             "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-        //             "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        //             "is_deposit_enabled": true,
-        //             "display_name": "Ethereum(ERC20)",
-        //             "gateway_name": "Ethereum",
-        //             "min_withdrawal_amount": "0.000001",
-        //             "min_internal_withdrawal_amount": "0.00000001",
-        //             "withdrawal_fee": "14",
-        //             "is_withdrawal_enabled": true,
-        //             "min_deposit_amount": "0.000001",
-        //             "is_memo_required": false,
-        //             "withdrawal_scale": "2",
-        //             "gateway": {
-        //               "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //               "name": "Ethereum",
-        //               "kind": "CHAIN",
-        //               "required_confirmations": "18",
-        //             },
-        //             "scale": "12",
-        //          },
-        //          {
-        //             "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-        //             "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-        //             "is_deposit_enabled": true,
-        //             "display_name": "Tron(TRC20)",
-        //             "gateway_name": "Tron",
-        //             "min_withdrawal_amount": "0.000001",
-        //             "min_internal_withdrawal_amount": "0.00000001",
-        //             "withdrawal_fee": "1",
-        //             "is_withdrawal_enabled": true,
-        //             "min_deposit_amount": "0.000001",
-        //             "is_memo_required": false,
-        //             "withdrawal_scale": "6",
-        //             "gateway": {
-        //               "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //               "name": "Tron",
-        //               "kind": "CHAIN",
-        //               "required_confirmations": "1",
-        //             },
-        //             "scale": "12",
-        //           },
-        //           ...
-        //         ],
-        //       },
         //       ...
         //     ],
         // }
         //
-        object currenciesData = this.safeValue(data, "data", new List<object>() {});
+        object currenciesData = this.safeList(data, "data", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
         {
@@ -361,9 +310,9 @@ public partial class bigone : Exchange
             object id = this.safeString(currency, "symbol");
             object code = this.safeCurrencyCode(id);
             object name = this.safeString(currency, "name");
-            object type = ((bool) isTrue(this.safeValue(currency, "is_fiat"))) ? "fiat" : "crypto";
+            object type = ((bool) isTrue(this.safeBool(currency, "is_fiat"))) ? "fiat" : "crypto";
             object networks = new Dictionary<string, object>() {};
-            object chains = this.safeValue(currency, "binding_gateways", new List<object>() {});
+            object chains = this.safeList(currency, "binding_gateways", new List<object>() {});
             object currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, "withdrawal_scale", "scale"));
             object currencyDepositEnabled = null;
             object currencyWithdrawEnabled = null;
@@ -372,8 +321,8 @@ public partial class bigone : Exchange
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "gateway_name");
                 object networkCode = this.networkIdToCode(networkId);
-                object deposit = this.safeValue(chain, "is_deposit_enabled");
-                object withdraw = this.safeValue(chain, "is_withdrawal_enabled");
+                object deposit = this.safeBool(chain, "is_deposit_enabled");
+                object withdraw = this.safeBool(chain, "is_withdrawal_enabled");
                 object isActive = (isTrue(deposit) && isTrue(withdraw));
                 object minDepositAmount = this.safeString(chain, "min_deposit_amount");
                 object minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
@@ -499,13 +448,13 @@ public partial class bigone : Exchange
         //        ...
         //    ]
         //
-        object markets = this.safeValue(response, "data", new List<object>() {});
+        object markets = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
-            object baseAsset = this.safeValue(market, "base_asset", new Dictionary<string, object>() {});
-            object quoteAsset = this.safeValue(market, "quote_asset", new Dictionary<string, object>() {});
+            object baseAsset = this.safeDict(market, "base_asset", new Dictionary<string, object>() {});
+            object quoteAsset = this.safeDict(market, "quote_asset", new Dictionary<string, object>() {});
             object baseId = this.safeString(baseAsset, "symbol");
             object quoteId = this.safeString(quoteAsset, "symbol");
             object bs = this.safeCurrencyCode(baseId);
@@ -571,7 +520,7 @@ public partial class bigone : Exchange
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
-            object inverse = this.safeValue(market, "isInverse");
+            object inverse = this.safeBool(market, "isInverse");
             ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
@@ -587,7 +536,7 @@ public partial class bigone : Exchange
                 { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "active", this.safeValue(market, "enable") },
+                { "active", this.safeBool(market, "enable") },
                 { "contract", true },
                 { "linear", !isTrue(inverse) },
                 { "inverse", inverse },
@@ -676,8 +625,8 @@ public partial class bigone : Exchange
         object marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         object symbol = this.safeSymbol(marketId, market, "-", marketType);
         object close = this.safeString2(ticker, "close", "latestPrice");
-        object bid = this.safeValue(ticker, "bid", new Dictionary<string, object>() {});
-        object ask = this.safeValue(ticker, "ask", new Dictionary<string, object>() {});
+        object bid = this.safeDict(ticker, "bid", new Dictionary<string, object>() {});
+        object ask = this.safeDict(ticker, "ask", new Dictionary<string, object>() {});
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -698,6 +647,8 @@ public partial class bigone : Exchange
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "volume", "volume24h") },
             { "quoteVolume", this.safeString(ticker, "volume24hInUsd") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }
@@ -742,7 +693,7 @@ public partial class bigone : Exchange
             //         }
             //     }
             //
-            object ticker = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object ticker = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseTicker(ticker, market);
         } else
         {
@@ -813,7 +764,7 @@ public partial class bigone : Exchange
             //        ]
             //    }
             //
-            data = this.safeValue(response, "data", new List<object>() {});
+            data = this.safeList(response, "data", new List<object>() {});
         } else
         {
             data = await this.contractPublicGetInstruments(parameters);
@@ -841,7 +792,7 @@ public partial class bigone : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "Timestamp");
         return this.parseToInt(divide(timestamp, 1000000));
     }
@@ -920,7 +871,7 @@ public partial class bigone : Exchange
             //         }
             //     }
             //
-            object orderbook = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "quantity");
         }
     }
@@ -1166,7 +1117,7 @@ public partial class bigone : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1247,7 +1198,7 @@ public partial class bigone : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1258,7 +1209,7 @@ public partial class bigone : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object balances = this.safeValue(response, "data", new List<object>() {});
+        object balances = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
@@ -1357,7 +1308,7 @@ public partial class bigone : Exchange
         {
             triggerPrice = null;
         }
-        object immediateOrCancel = this.safeValue(order, "immediate_or_cancel");
+        object immediateOrCancel = this.safeBool(order, "immediate_or_cancel");
         object timeInForce = null;
         if (isTrue(immediateOrCancel))
         {
@@ -1386,7 +1337,7 @@ public partial class bigone : Exchange
             { "symbol", symbol },
             { "type", type },
             { "timeInForce", timeInForce },
-            { "postOnly", this.safeValue(order, "post_only") },
+            { "postOnly", this.safeBool(order, "post_only") },
             { "side", side },
             { "price", price },
             { "stopPrice", triggerPrice },
@@ -1436,7 +1387,7 @@ public partial class bigone : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -1527,7 +1478,12 @@ public partial class bigone : Exchange
             }
         }
         ((IDictionary<string,object>)request)["type"] = uppercaseType;
-        parameters = this.omit(parameters, new List<object>() {"stop_price", "stopPrice", "triggerPrice", "timeInForce"});
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
+        parameters = this.omit(parameters, new List<object>() {"stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"});
         object response = await this.privatePostOrders(this.extend(request, parameters));
         //
         //    {
@@ -1543,7 +1499,7 @@ public partial class bigone : Exchange
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        object order = this.safeValue(response, "data");
+        object order = this.safeDict(response, "data");
         return this.parseOrder(order, market);
     }
 
@@ -1577,7 +1533,7 @@ public partial class bigone : Exchange
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        object order = this.safeValue(response, "data");
+        object order = this.safeDict(response, "data");
         return this.parseOrder(order);
     }
 
@@ -1611,7 +1567,29 @@ public partial class bigone : Exchange
         //         }
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object cancelled = this.safeList(data, "cancelled", new List<object>() {});
+        object failed = this.safeList(data, "failed", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(cancelled)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(cancelled, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", orderId },
+                { "id", orderId },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(failed, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", orderId },
+                { "id", orderId },
+                { "status", "failed" },
+            }));
+        }
+        return result;
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1621,6 +1599,7 @@ public partial class bigone : Exchange
         * @name bigone#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://open.big.one/docs/spot_orders.html#get-one-order
+        * @param {string} id the order id
         * @param {string} symbol not used by bigone fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1631,7 +1610,7 @@ public partial class bigone : Exchange
             { "id", id },
         };
         object response = await this.privateGetOrdersId(this.extend(request, parameters));
-        object order = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(order);
     }
 
@@ -1683,7 +1662,7 @@ public partial class bigone : Exchange
         //        "page_token":"dxzef",
         //    }
         //
-        object orders = this.safeValue(response, "data", new List<object>() {});
+        object orders = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1749,7 +1728,7 @@ public partial class bigone : Exchange
         //         "page_token":"dxfv"
         //     }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1844,7 +1823,7 @@ public partial class bigone : Exchange
             } else if (isTrue(isEqual(method, "POST")))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
-                body = query;
+                body = this.json(query);
             }
         }
         ((IDictionary<string,object>)headers)["User-Agent"] = add(add(add("ccxt/", this.id), "-"), this.version);
@@ -1894,7 +1873,7 @@ public partial class bigone : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object dataLength = getArrayLength(data);
         if (isTrue(isLessThan(dataLength, 1)))
         {
@@ -1902,7 +1881,7 @@ public partial class bigone : Exchange
         }
         object chainsIndexedById = this.indexBy(data, "chain");
         object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
-        object addressObject = this.safeValue(chainsIndexedById, selectedNetworkId, new Dictionary<string, object>() {});
+        object addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new Dictionary<string, object>() {});
         object address = this.safeString(addressObject, "value");
         object tag = this.safeString(addressObject, "memo");
         this.checkAddress(address);
@@ -1991,7 +1970,7 @@ public partial class bigone : Exchange
         object address = this.safeString(transaction, "target_address");
         object tag = this.safeString(transaction, "memo");
         object type = ((bool) isTrue((inOp(transaction, "customer_id")))) ? "withdrawal" : "deposit";
-        object intern = this.safeValue(transaction, "is_internal");
+        object intern = this.safeBool(transaction, "is_internal");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
@@ -2064,7 +2043,7 @@ public partial class bigone : Exchange
         //         ]
         //     }
         //
-        object deposits = this.safeValue(response, "data", new List<object>() {});
+        object deposits = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(deposits, currency, since, limit);
     }
 
@@ -2116,7 +2095,7 @@ public partial class bigone : Exchange
         //         "page_token":"dxvf"
         //     }
         //
-        object withdrawals = this.safeValue(response, "data", new List<object>() {});
+        object withdrawals = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(withdrawals, currency, since, limit);
     }
 
@@ -2137,7 +2116,7 @@ public partial class bigone : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         object guid = this.safeString(parameters, "guid", this.uuid());
@@ -2156,7 +2135,7 @@ public partial class bigone : Exchange
         //     }
         //
         object transfer = this.parseTransfer(response, currency);
-        object transferOptions = this.safeValue(this.options, "transfer", new Dictionary<string, object>() {});
+        object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(fillResponseFromRequest))
         {
@@ -2176,7 +2155,7 @@ public partial class bigone : Exchange
         //         "data": null
         //     }
         //
-        object code = this.safeNumber(transfer, "code");
+        object code = this.safeString(transfer, "code");
         return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", null },
@@ -2258,7 +2237,7 @@ public partial class bigone : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 

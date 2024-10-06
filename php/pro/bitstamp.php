@@ -19,6 +19,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOHLCV' => false,
                 'watchTicker' => false,
                 'watchTickers' => false,
@@ -68,7 +69,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                     'channel' => $channel,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             return $orderbook->limit ();
         }) ();
@@ -113,7 +114,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             // usually it takes at least 4-5 deltas to resolve
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 6);
             if ($cacheLength === $snapshotDelay) {
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
             }
             $storedOrderBook->cache[] = $delta;
             return;
@@ -184,7 +185,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                     'channel' => $channel,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -563,7 +564,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                 ),
             );
             $subscription['messageHash'] = $messageHash;
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
         }) ();
     }
 }

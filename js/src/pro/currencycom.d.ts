@@ -3,7 +3,7 @@ import type { Int, OrderBook, Trade, Ticker, OHLCV, Balances } from '../base/typ
 import Client from '../base/ws/Client.js';
 export default class currencycom extends currencycomRest {
     describe(): any;
-    ping(client: any): {
+    ping(client: Client): {
         destination: string;
         correlationId: any;
         payload: {};
@@ -26,7 +26,7 @@ export default class currencycom extends currencycomRest {
         cost: number;
         fee: any;
     };
-    handleTrades(client: Client, message: any, subscription: any): void;
+    handleTrades(client: Client, message: any): void;
     findTimeframe(timeframe: any, defaultTimeframes?: any): string;
     handleOHLCV(client: Client, message: any): void;
     requestId(): any;

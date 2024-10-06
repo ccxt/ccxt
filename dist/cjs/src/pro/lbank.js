@@ -18,6 +18,7 @@ class lbank extends lbank$1 {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -172,7 +173,7 @@ class lbank extends lbank$1 {
         //          },
         //          type: 'kbar',
         //          pair: 'btc_usdt',
-        //          TS: '2022-10-02T12:44:15.864'
+        //          TS: '2022-10-02T12:44:15.865'
         //      }
         //
         const marketId = this.safeString(message, 'pair');
@@ -426,7 +427,7 @@ class lbank extends lbank$1 {
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell",
+        //             "direction":"sell", // or "sell_market"
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -466,7 +467,7 @@ class lbank extends lbank$1 {
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell",
+        //        "direction":"sell", // or "sell_market"
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -475,6 +476,8 @@ class lbank extends lbank$1 {
         if (timestamp === undefined) {
             timestamp = this.parse8601(datetime);
         }
+        let side = this.safeString2(trade, 'direction', 3);
+        side = side.replace('_market', '');
         return this.safeTrade({
             'timestamp': timestamp,
             'datetime': datetime,
@@ -483,7 +486,7 @@ class lbank extends lbank$1 {
             'order': undefined,
             'type': undefined,
             'takerOrMaker': undefined,
-            'side': this.safeString2(trade, 'direction', 3),
+            'side': side,
             'price': this.safeString2(trade, 'price', 1),
             'amount': this.safeString2(trade, 'volume', 2),
             'cost': this.safeString(trade, 'amount'),
@@ -495,7 +498,7 @@ class lbank extends lbank$1 {
         /**
          * @method
          * @name lbank#watchOrders
-         * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+         * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
          * @description get the list of trades associated with the user
          * @param {string} [symbol] unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -659,7 +662,7 @@ class lbank extends lbank$1 {
     async fetchOrderBookWs(symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name lbank#watchOrderBook
+         * @name lbank#fetchOrderBookWs
          * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -689,7 +692,6 @@ class lbank extends lbank$1 {
          * @method
          * @name lbank#watchOrderBook
          * @see https://www.lbank.com/en-US/docs/index.html#market-depth
-         * @see https://www.lbank.com/en-US/docs/index.html#market-increment-depth
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -776,11 +778,11 @@ class lbank extends lbank$1 {
         const orderBook = this.safeValue(message, 'depth', message);
         const datetime = this.safeString(message, 'TS');
         const timestamp = this.parse8601(datetime);
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook({});
-            this.orderbooks[symbol] = orderbook;
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
         }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(orderBook, symbol, timestamp, 'bids', 'asks');
         orderbook.reset(snapshot);
         let messageHash = 'orderbook:' + symbol;

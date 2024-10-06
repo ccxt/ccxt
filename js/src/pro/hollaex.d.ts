@@ -17,7 +17,7 @@ export default class hollaex extends hollaexRest {
     watchPrivate(messageHash: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
-    ping(client: any): {
+    ping(client: Client): {
         op: string;
     };
     handlePong(client: Client, message: any): any;

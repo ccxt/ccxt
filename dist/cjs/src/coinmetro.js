@@ -112,6 +112,7 @@ class coinmetro extends coinmetro$1 {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -161,6 +162,7 @@ class coinmetro extends coinmetro$1 {
                 'private': {
                     'get': {
                         'users/balances': 1,
+                        'users/wallets': 1,
                         'users/wallets/history/{since}': 1.67,
                         'exchange/orders/status/{orderID}': 1,
                         'exchange/orders/active': 1,
@@ -203,7 +205,7 @@ class coinmetro extends coinmetro$1 {
                     'maker': this.parseNumber('0'),
                 },
             },
-            'precisionMode': number.DECIMAL_PLACES,
+            'precisionMode': number.TICK_SIZE,
             // exchange-specific options
             'options': {
                 'currenciesByIdForParseMarket': undefined,
@@ -307,7 +309,6 @@ class coinmetro extends coinmetro$1 {
             const deposit = this.safeValue(currency, 'canDeposit');
             const canTrade = this.safeValue(currency, 'canTrade');
             const active = canTrade ? withdraw : true;
-            const precision = this.safeInteger(currency, 'digits');
             const minAmount = this.safeNumber(currency, 'minQty');
             result[code] = this.safeCurrencyStructure({
                 'id': id,
@@ -318,7 +319,7 @@ class coinmetro extends coinmetro$1 {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'digits'))),
                 'limits': {
                     'amount': { 'min': minAmount, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
@@ -349,19 +350,14 @@ class coinmetro extends coinmetro$1 {
         //
         //     [
         //         {
-        //             "pair": "PERPEUR",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
-        //             "pair": "PERPUSD",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
         //             "pair": "YFIEUR",
         //             "precision": 5,
         //             "margin": false
+        //         },
+        //         {
+        //             "pair": "BTCEUR",
+        //             "precision": 2,
+        //             "margin": true
         //         },
         //         ...
         //     ]
@@ -407,9 +403,7 @@ class coinmetro extends coinmetro$1 {
             'optionType': undefined,
             'precision': {
                 'amount': basePrecisionAndLimits['precision'],
-                'price': quotePrecisionAndLimits['precision'],
-                'base': basePrecisionAndLimits['precision'],
-                'quote': quotePrecisionAndLimits['precision'],
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'precision'))),
             },
             'limits': {
                 'leverage': {
@@ -464,12 +458,11 @@ class coinmetro extends coinmetro$1 {
     parseMarketPrecisionAndLimits(currencyId) {
         const currencies = this.safeValue(this.options, 'currenciesByIdForParseMarket', {});
         const currency = this.safeValue(currencies, currencyId, {});
-        const precision = this.safeInteger(currency, 'precision');
         const limits = this.safeValue(currency, 'limits', {});
         const amountLimits = this.safeValue(limits, 'amount', {});
         const minLimit = this.safeNumber(amountLimits, 'min');
         const result = {
-            'precision': precision,
+            'precision': this.safeNumber(currency, 'precision'),
             'minLimit': minLimit,
         };
         return result;
@@ -505,9 +498,9 @@ class coinmetro extends coinmetro$1 {
         else {
             request['from'] = ':from'; // this endpoint doesn't accept empty from and to params (setting them into the value described in the documentation)
         }
-        until = this.safeInteger2(params, 'till', 'until', until);
+        until = this.safeInteger(params, 'until', until);
         if (until !== undefined) {
-            params = this.omit(params, ['till', 'until']);
+            params = this.omit(params, ['until']);
             request['to'] = until;
         }
         else {
@@ -541,7 +534,7 @@ class coinmetro extends coinmetro$1 {
         //         ]
         //     }
         //
-        const candleHistory = this.safeValue(response, 'candleHistory', []);
+        const candleHistory = this.safeList(response, 'candleHistory', []);
         return this.parseOHLCVs(candleHistory, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -607,7 +600,7 @@ class coinmetro extends coinmetro$1 {
         //         ]
         //     }
         //
-        const tickHistory = this.safeValue(response, 'tickHistory', []);
+        const tickHistory = this.safeList(response, 'tickHistory', []);
         return this.parseTrades(tickHistory, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -880,7 +873,7 @@ class coinmetro extends coinmetro$1 {
          */
         await this.loadMarkets();
         const response = await this.publicGetExchangePrices(params);
-        const latestPrices = this.safeValue(response, 'latestPrices', []);
+        const latestPrices = this.safeList(response, 'latestPrices', []);
         return this.parseTickers(latestPrices, symbols);
     }
     parseTicker(ticker, market = undefined) {
@@ -941,49 +934,48 @@ class coinmetro extends coinmetro$1 {
          * @method
          * @name coinmetro#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#698ae067-43dd-4e19-a0ac-d9ba91381816
+         * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#741a1dcc-7307-40d0-acca-28d003d1506a
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
-        const response = await this.privateGetUsersBalances(params);
-        return this.parseBalance(response);
+        const response = await this.privateGetUsersWallets(params);
+        const list = this.safeList(response, 'list', []);
+        return this.parseBalance(list);
     }
-    parseBalance(response) {
+    parseBalance(balances) {
         //
-        //     {
-        //         "USDC": {
-        //             "USDC": 99,
-        //             "EUR": 91.16,
-        //             "BTC": 0.002334
+        //     [
+        //         {
+        //             "xcmLocks": [],
+        //             "xcmLockAmounts": [],
+        //             "refList": [],
+        //             "balanceHistory": [],
+        //             "_id": "5fecd3c998e75c2e4d63f7c3",
+        //             "currency": "BTC",
+        //             "label": "BTC",
+        //             "userId": "5fecd3c97fbfed1521db23bd",
+        //             "__v": 0,
+        //             "balance": 0.5,
+        //             "createdAt": "2020-12-30T19:23:53.646Z",
+        //             "disabled": false,
+        //             "updatedAt": "2020-12-30T19:23:53.653Z",
+        //             "reserved": 0,
+        //             "id": "5fecd3c998e75c2e4d63f7c3"
         //         },
-        //         "XCM": {
-        //             "XCM": 0,
-        //             "EUR": 0,
-        //             "BTC": 0
-        //         },
-        //         "TOTAL": {
-        //             "EUR": 91.16,
-        //             "BTC": 0.002334
-        //         },
-        //         "REF": {
-        //             "XCM": 0,
-        //             "EUR": 0,
-        //             "BTC": 0
-        //         }
-        //     }
+        //         ...
+        //     ]
         //
         const result = {
-            'info': response,
+            'info': balances,
         };
-        const balances = this.omit(response, ['TOTAL', 'REF']);
-        const currencyIds = Object.keys(balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
+        for (let i = 0; i < balances.length; i++) {
+            const balanceEntry = this.safeDict(balances, i, {});
+            const currencyId = this.safeString(balanceEntry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            const currency = this.safeValue(balances, currencyId, {});
-            account['total'] = this.safeString(currency, currencyId);
+            account['total'] = this.safeString(balanceEntry, 'balance');
+            account['used'] = this.safeString(balanceEntry, 'reserved');
             result[code] = account;
         }
         return this.safeBalance(result);
@@ -992,11 +984,11 @@ class coinmetro extends coinmetro$1 {
         /**
          * @method
          * @name coinmetro#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#4e7831f7-a0e7-4c3e-9336-1d0e5dcb15cf
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return (default 200, max 500)
+         * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
@@ -1196,7 +1188,7 @@ class coinmetro extends coinmetro$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount in market orders
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "GTD"

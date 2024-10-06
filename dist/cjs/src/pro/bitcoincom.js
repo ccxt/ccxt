@@ -1,17 +1,16 @@
 'use strict';
 
 var hitbtc = require('./hitbtc.js');
-var bequant = require('../bequant.js');
+var hitbtc$1 = require('../hitbtc.js');
+var bitcoincom$1 = require('../bitcoincom.js');
 
 //  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class bitcoincom extends hitbtc {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new bequant();
-        const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(super.describe(), restDescribe);
-        return this.deepExtend(extended, {
+        const describeExtended = this.getDescribeForExtendedWsExchange(new bitcoincom$1(), new hitbtc$1(), super.describe());
+        return this.deepExtend(describeExtended, {
             'id': 'bitcoincom',
             'name': 'bitcoin.com',
             'countries': ['KN'],
