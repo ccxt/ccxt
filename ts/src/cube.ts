@@ -270,7 +270,7 @@ export default class cube extends Exchange {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetParsedTickers (params);
+        const response = await this.v0PublicGetParsedTickers (params);
         const tickers = this.safeDict (response, 'result', []);
         const ticker = this.filterBySymbol (tickers, symbol);
         if (ticker === undefined) {
@@ -289,7 +289,7 @@ export default class cube extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetParsedTickers (params);
+        const response = await this.v0PublicGetParsedTickers (params);
         //
         // {
         //   "result": [
@@ -357,7 +357,7 @@ export default class cube extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // Add this only if the API supports a limit parameter
         }
-        const response = await this.publicGetParsedBookMarketIdSnapshot (this.extend (request, params));
+        const response = await this.v0PublicGetParsedBookMarketIdSnapshot (this.extend (request, params));
         // Example response:
         // {
         //   "result": {
@@ -426,7 +426,7 @@ export default class cube extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.irGetHistoryKlines (this.extend (request, params));
+        const response = await this.irPublicGetHistoryKlines (this.extend (request, params));
         //
         //     {
         //         "result": [
@@ -876,7 +876,7 @@ export default class cube extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this.osPrivateGetOrders (this.extend (request, params));
         //
         //  {
         //    "result": {
@@ -996,7 +996,7 @@ export default class cube extends Exchange {
             const market = this.market (symbol);
             request['marketId'] = market['id'];
         }
-        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const response = await this.osPrivateDeleteOrders (this.extend (request, params));
         //
         //  {
         //    "result": {
@@ -1028,7 +1028,7 @@ export default class cube extends Exchange {
             const market = this.market (symbol);
             request['marketId'] = market['id'];
         }
-        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const response = await this.osPrivateDeleteOrders (this.extend (request, params));
         //
         //  {
         //    "result": {
@@ -1057,7 +1057,7 @@ export default class cube extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const response = await this.osPrivatePostOrder (this.extend (request, params));
         //
         //     {
         //         "result": {
@@ -1091,7 +1091,7 @@ export default class cube extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePatchOrder (this.extend (request, params));
+        const response = await this.osPrivatePatchOrder (this.extend (request, params));
         //
         //     {
         //         "result": {
