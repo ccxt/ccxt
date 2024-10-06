@@ -184,9 +184,9 @@ export default class cube extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.irPublicGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
-        const markets = this.safeValue (result, 'markets', []);
-        const assets = this.safeValue (result, 'assets', []);
-        const feeTables = this.safeValue (result, 'feeTables', []);
+        const markets = this.safeList (result, 'markets', []);
+        const assets = this.safeList (result, 'assets', []);
+        const feeTables = this.safeList (result, 'feeTables', []);
         this.options['assetsById'] = this.indexBy (assets, 'assetId');
         this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId');
         return this.parseMarkets (markets);
@@ -422,7 +422,7 @@ export default class cube extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['startTime'] = Math.floor(since / 1000); ;
+            request['startTime'] = Math.floor (since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
