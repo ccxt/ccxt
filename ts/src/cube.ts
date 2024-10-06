@@ -184,20 +184,25 @@ export default class cube extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.irPublicGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
-        const markets = this.safeList (result, 'markets', []);
+        // Ensure to retrieve the assets as a list
         const assets = this.safeList (result, 'assets', []);
         const feeTables = this.safeList (result, 'feeTables', []);
-        this.options['assetsById'] = this.indexBy (assets, 'assetId');
-        this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId');
-        return this.parseMarkets (markets);
+        const markets = this.safeList (result, 'markets', []); // Make sure you fetch markets
+        // Index assets and fee tables by their IDs
+        this.options['assetsById'] = this.indexBy (assets, 'assetId'); // Ensure assetId is correctly indexed
+        this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId'); // Ensure feeTableId is correctly indexed
+        // Return parsed markets
+        return this.parseMarkets (markets); // Ensure markets is passed as an argument
     }
 
     parseMarket (market): Market {
         // Access assetsById and feeTablesById from this.options
         const assetsById = this.safeValue (this.options, 'assetsById', {});
         const feeTablesById = this.safeValue (this.options, 'feeTablesById', {});
+        // Accessing base and quote asset using their IDs
         const baseAsset = this.safeValue (assetsById, market['baseAssetId']);
         const quoteAsset = this.safeValue (assetsById, market['quoteAssetId']);
+        // Constructing the market symbol
         const id = this.safeString (market, 'marketId');
         const baseAssetId = this.safeString (market, 'baseAssetId');
         const quoteAssetId = this.safeString (market, 'quoteAssetId');
