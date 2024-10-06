@@ -65,68 +65,78 @@ export default class cube extends Exchange {
             },
             'urls': {
                 'api': {
-                    'public': 'https://api.cube.exchange/md/v0',  // All public endpoints
-                    'ir': 'https://api.cube.exchange/ir/v0',      // Mostly requires auth (except for markets and history klines)
-                    'private': 'https://api.cube.exchange/os/v0', // All private endpoints
+                    'v0': 'https://api.cube.exchange/md/v0',
+                    'ir': 'https://api.cube.exchange/ir/v0', 
+                    'os': 'https://api.cube.exchange/os/v0', 
                 },
                 'www': 'https://www.cube.exchange',
                 'doc': 'https://docs.cube.exchange',
                 'fees': 'https://www.cube.exchange/fees',
             },
             'api': {
-                'public': {
-                    'get': [
-                        'tickers/snapshot',
-                        'parsed/tickers',
-                        'parsed/book/{market_id}/snapshot',
-                        'parsed/book/{market_id}/recent-trades',
-                        'history/klines',
-                        'fetchBookSnapshot',
-                    ],
+                'v0': {
+                    'public': {
+                        'get': [
+                            'tickers/snapshot',
+                            'parsed/tickers',
+                            'parsed/book/{market_id}/snapshot',
+                            'parsed/book/{market_id}/recent-trades',
+                            'history/klines',
+                            'fetchBookSnapshot',
+                        ],
+                    },
                 },
                 'ir': {
-                    'get': [
-                        'markets',
-                        'history/klines',
-                        '/users/check',
-                        '/users/subaccounts',
-                        '/users/subaccount/{subaccount_id}',
-                        '/users/subaccount/{subaccount_id}/positions',
-                        '/users/subaccount/{subaccount_id}/transfers',
-                        '/users/subaccount/{subaccount_id}/deposits',
-                        '/users/subaccount/{subaccount_id}/withdrawals',
-                        '/users/subaccount/{subaccount_id}/orders',
-                        '/users/subaccount/{subaccount_id}/fills',
-                        '/users/address',
-                        '/users/address/settings',
-                    ],
-                    'post': [
-                        '/users/apikeys',
-                        '/users/subaccounts',
-                        '/users/fee-estimates',
-                        '/users/withdraw',
-                    ],
-                    'delete': [
-                        '/users/apikeys/{api_key}',
-                    ],
-                    'patch': [
-                        '/users/subaccount/{subaccount_id}',
-                    ],
+                    'public': {
+                        'get': [
+                            'markets',
+                            'history/klines',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            '/users/check',
+                            '/users/subaccounts',
+                            '/users/subaccount/{subaccount_id}',
+                            '/users/subaccount/{subaccount_id}/positions',
+                            '/users/subaccount/{subaccount_id}/transfers',
+                            '/users/subaccount/{subaccount_id}/deposits',
+                            '/users/subaccount/{subaccount_id}/withdrawals',
+                            '/users/subaccount/{subaccount_id}/orders',
+                            '/users/subaccount/{subaccount_id}/fills',
+                            '/users/address',
+                            '/users/address/settings',
+                        ],
+                        'post': [
+                            '/users/apikeys',
+                            '/users/subaccounts',
+                            '/users/fee-estimates',
+                            '/users/withdraw',
+                        ],
+                        'delete': [
+                            '/users/apikeys/{api_key}',
+                        ],
+                        'patch': [
+                            '/users/subaccount/{subaccount_id}',
+                        ],
+                    },
                 },
-                'private': {
-                    'get': [
-                        'orders',
-                        'positions',
-                    ],
-                    'post': [
-                        'order',
-                    ],
-                    'delete': [
-                        'order',
-                    ],
-                    'patch': [
-                        'order',
-                    ],
+                'os': {
+                    'private': {
+                        'get': [
+                            'orders',
+                            'positions',
+                        ],
+                        'post': [
+                            'order',
+                        ],
+                        'delete': [
+                            'order',
+                        ],
+                        'patch': [
+                            'order',
+                        ],
+                    },
                 },
             },
             'fees': {
@@ -171,7 +181,7 @@ export default class cube extends Exchange {
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.irGetMarkets (params);  // Use the appropriate method for ir
+        const response = await this.irGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
         const markets = this.safeValue (result, 'markets', []);
         const assets = this.safeValue (result, 'assets', []);
@@ -722,21 +732,16 @@ export default class cube extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // Define which paths should be public despite using the private base URL
+        // Define which paths should be public despite using the 'ir' URL
         const publicEndpoints = [ 'markets', 'history/klines' ];
-        // Check if the path is one of the public endpoints (replacing arrow function for PHP compatibility)
-        let isPublicEndpoint = false;
-        for (let i = 0; i < publicEndpoints.length; i++) {
-            if (path.indexOf (publicEndpoints[i]) !== -1) {
-                isPublicEndpoint = true;
-                break;
-            }
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);  // default base URL
+        if (publicEndpoints.includes (path)) {
+            // Use 'ir' URL if path is 'markets' or 'history/klines'
+            url = this.urls['api']['ir'] + '/' + this.implodeParams (path, params);
         }
-        // Use 'private' URL, but treat as public if it's one of the public endpoints
-        let url = this.urls['api']['private'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (isPublicEndpoint) {
-            // Handle public API requests
+        if (publicEndpoints.includes (path)) {
+            // Handle public API requests without authentication
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
