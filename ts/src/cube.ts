@@ -733,14 +733,14 @@ export default class cube extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         // Define which paths should be public despite using the 'ir' URL
-        const publicEndpoints = [ 'markets', 'history/klines' ];
+        const publicEndpoints = { 'markets': true, 'history/klines': true };  // Change to an object
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);  // default base URL
-        if (publicEndpoints.includes (path)) {
+        if (publicEndpoints[path]) {  // Check if path is a key in the object
             // Use 'ir' URL if path is 'markets' or 'history/klines'
             url = this.urls['api']['ir'] + '/' + this.implodeParams (path, params);
         }
         const query = this.omit (params, this.extractParams (path));
-        if (publicEndpoints.includes (path)) {
+        if (publicEndpoints[path]) {  // Check again using the object
             // Handle public API requests without authentication
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
