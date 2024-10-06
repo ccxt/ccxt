@@ -435,7 +435,7 @@ export default class cube extends Exchange {
     parseOHLCV (ohlcv, market = undefined): OHLCV {
         // Adjusting the timestamp to milliseconds and converting volume to a float
         return [
-            this.safeTimestamp (ohlcv, 0) * 1000, // Convert seconds to milliseconds
+            this.safeTimestamp (ohlcv, 0) / 1000, // Convert seconds to milliseconds
             this.safeNumber (ohlcv, 1),            // open
             this.safeNumber (ohlcv, 2),            // high
             this.safeNumber (ohlcv, 3),            // low
