@@ -278,12 +278,6 @@ For users who want more control over their telemetry data or wish to integrate C
    OTEL_EXPORTER_OTLP_HEADERS="header1=value1,header2=value2"
    ```
 
-4. You can also configure the service name used in the telemetry data:
-
-   ```
-   OTEL_SERVICE_NAME=my-ccxt-app
-   ```
-
 By using your own collector, you can process, filter, and route the telemetry data according to your needs, integrate it with your existing monitoring tools, or store it for your own analysis.
 
 We're committed to transparency and giving you control over your data. If you have any questions or concerns about our telemetry practices, please don't hesitate to reach out or open an issue on our GitHub repository.
