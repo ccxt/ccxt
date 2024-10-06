@@ -66,8 +66,8 @@ export default class cube extends Exchange {
             'urls': {
                 'api': {
                     'v0': 'https://api.cube.exchange/md/v0',
-                    'ir': 'https://api.cube.exchange/ir/v0', 
-                    'os': 'https://api.cube.exchange/os/v0', 
+                    'ir': 'https://api.cube.exchange/ir/v0',
+                    'os': 'https://api.cube.exchange/os/v0',
                 },
                 'www': 'https://www.cube.exchange',
                 'doc': 'https://docs.cube.exchange',
