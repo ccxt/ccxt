@@ -132,6 +132,7 @@ export default class cube extends Exchange {
                         ],
                         'delete': [
                             'order',
+                            'orders',
                         ],
                         'patch': [
                             'order',
@@ -402,7 +403,7 @@ export default class cube extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 0, 1);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: number | undefined = undefined, limit: number | undefined = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name cube#fetchOHLCV
@@ -427,29 +428,19 @@ export default class cube extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.irPublicGetHistoryKlines (this.extend (request, params));
-        //
-        //     {
-        //         "result": [
-        //             [1710944100, 17263, 17509, 17247, 17459, "23107"],
-        //             [1710943200, 17203, 17314, 17156, 17260, "55426"]
-        //         ]
-        //     }
-        //
         const data = this.safeValue (response, 'result', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined): OHLCV {
-        //
-        //     [1710944100, 17263, 17509, 17247, 17459, "23107"]
-        //
+        // Adjusting the timestamp to milliseconds and converting volume to a float
         return [
-            this.safeTimestamp (ohlcv, 0),      // timestamp
-            this.safeNumber (ohlcv, 1),         // open
-            this.safeNumber (ohlcv, 2),         // high
-            this.safeNumber (ohlcv, 3),         // low
-            this.safeNumber (ohlcv, 4),         // close
-            this.safeNumber (ohlcv, 5),         // volume
+            this.safeTimestamp (ohlcv, 0) * 1000, // Convert seconds to milliseconds
+            this.safeNumber (ohlcv, 1),            // open
+            this.safeNumber (ohlcv, 2),            // high
+            this.safeNumber (ohlcv, 3),            // low
+            this.safeNumber (ohlcv, 4),            // close
+            parseFloat (ohlcv[5]),                 // volume as float
         ];
     }
 
@@ -461,7 +452,7 @@ export default class cube extends Exchange {
          * @param {object} params extra parameters specific to the cube api endpoint
          * @returns {object[]} an array of subaccount objects
          */
-        const response = await this.irGetUsersSubaccounts (params);
+        const response = await this.irPrivateGetUsersSubaccounts (params);
         //
         //     {
         //         "result": {
@@ -499,7 +490,7 @@ export default class cube extends Exchange {
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
         }
-        const response = await this.irGetUsersSubaccountSubaccountIdTransfers (this.extend (request, params));
+        const response = await this.irPrivateGetUsersSubaccountSubaccountIdTransfers (this.extend (request, params));
         //
         //     {
         //       "result": {
@@ -570,7 +561,7 @@ export default class cube extends Exchange {
         const request = {
             'subaccount_id': subaccountId,
         };
-        const response = await this.irGetUsersSubaccountSubaccountIdDeposits (this.extend (request, params));
+        const response = await this.irPrivateGetUsersSubaccountSubaccountIdDeposits (this.extend (request, params));
         //
         //  {
         //    "result": {
@@ -662,7 +653,7 @@ export default class cube extends Exchange {
             const market = this.market (symbol);
             request['marketIds'] = market['id'];
         }
-        const response = await this.irGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
+        const response = await this.irPrivateGetUsersSubaccountSubaccountIdOrders (this.extend (request, params));
         //
         //  {
         //    "result": {
@@ -731,46 +722,6 @@ export default class cube extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // Define which paths should be public despite using the 'ir' URL
-        const publicEndpoints = { 'markets': true, 'history/klines': true };  // Change to an object
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);  // default base URL
-        if (publicEndpoints[path]) {  // Check if path is a key in the object
-            // Use 'ir' URL if path is 'markets' or 'history/klines'
-            url = this.urls['api']['ir'] + '/' + this.implodeParams (path, params);
-        }
-        const query = this.omit (params, this.extractParams (path));
-        if (publicEndpoints[path]) {  // Check again using the object
-            // Handle public API requests without authentication
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
-            // Handle private API requests (authentication needed)
-            this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ().toString ();  // AscendEX uses milliseconds
-            const payload = timestamp + '+' + path;  // Create payload string
-            const encodedPayload = this.encode (payload);
-            const encodedSecret = this.encode (this.secret);
-            const signature = this.hmac (encodedPayload, encodedSecret, sha256, 'hex');
-            headers = {
-                'Content-Type': 'application/json',
-                'X-Cube-Api-Key': this.apiKey,
-                'X-Cube-Api-Timestamp': timestamp,
-                'X-Cube-Api-Signature': signature,
-            };
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            } else if (method === 'POST') {
-                body = this.json (query);  // Convert params to JSON format for POST requests
-            }
-        }
-        // Return the full request details
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const subaccountId = this.safeInteger (params, 'subaccountId') as Int;
@@ -781,7 +732,7 @@ export default class cube extends Exchange {
         const request = {
             'subaccount_id': subaccountId,
         };
-        const response = await this.irGetUsersSubaccountSubaccountIdPositions (this.extend (request, params));
+        const response = await this.irPrivateGetUsersSubaccountSubaccountIdPositions (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         const subaccountPositions = this.safeValue (result, subaccountId.toString (), {});
         const innerPositions = this.safeValue (subaccountPositions, 'inner', []);
@@ -996,7 +947,7 @@ export default class cube extends Exchange {
             const market = this.market (symbol);
             request['marketId'] = market['id'];
         }
-        const response = await this.osPrivateDeleteOrders (this.extend (request, params));
+        const response = await this.osPrivateDeleteOrder (this.extend (request, params));
         //
         //  {
         //    "result": {
@@ -1122,7 +1073,7 @@ export default class cube extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
             'destination': address,
         };
-        const response = await this.irPostUsersWithdraw (this.extend (request, params));
+        const response = await this.irPrivatePostUsersWithdraw (this.extend (request, params));
         //
         //     {
         //         "result": {
@@ -1133,6 +1084,46 @@ export default class cube extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseTransaction (result, currency);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        // Define which paths should be public despite using the 'ir' URL
+        const publicEndpoints = { 'markets': true, 'history/klines': true };  // Change to an object
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);  // default base URL
+        if (publicEndpoints[path]) {  // Check if path is a key in the object
+            // Use 'ir' URL if path is 'markets' or 'history/klines'
+            url = this.urls['api']['ir'] + '/' + this.implodeParams (path, params);
+        }
+        const query = this.omit (params, this.extractParams (path));
+        if (publicEndpoints[path]) {  // Check again using the object
+            // Handle public API requests without authentication
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            // Handle private API requests (authentication needed)
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ().toString ();  // AscendEX uses milliseconds
+            const payload = timestamp + '+' + path;  // Create payload string
+            const encodedPayload = this.encode (payload);
+            const encodedSecret = this.encode (this.secret);
+            const signature = this.hmac (encodedPayload, encodedSecret, sha256, 'hex');
+            headers = {
+                'Content-Type': 'application/json',
+                'X-Cube-Api-Key': this.apiKey,
+                'X-Cube-Api-Timestamp': timestamp,
+                'X-Cube-Api-Signature': signature,
+            };
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else if (method === 'POST') {
+                body = this.json (query);  // Convert params to JSON format for POST requests
+            }
+        }
+        // Return the full request details
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
