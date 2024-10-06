@@ -418,11 +418,11 @@ export default class cube extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'market_id': market['id'],
+            'marketId': market['id'],
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['startTime'] = Math.floor(since / 1000); ;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
