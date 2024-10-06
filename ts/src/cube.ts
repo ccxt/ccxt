@@ -403,15 +403,15 @@ export default class cube extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 0, 1);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: number | undefined = undefined, limit: number | undefined = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int | undefined = undefined, limit: Int | undefined = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name cube#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {Int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {Int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the cube api endpoint
          * @returns {OHLCV[]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
