@@ -403,7 +403,7 @@ export default class cube extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 0, 1);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int | undefined = undefined, limit: Int | undefined = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name cube#fetchOHLCV
@@ -422,10 +422,10 @@ export default class cube extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['start_time'] = since; 
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; 
+            request['limit'] = limit;
         }
         const response = await this.irPublicGetHistoryKlines (this.extend (request, params));
         const data = this.safeValue (response, 'result', []);
@@ -488,7 +488,7 @@ export default class cube extends Exchange {
             'subaccount_id': subaccountId,
         };
         if (since !== undefined) {
-            request['start_time'] = this.iso8601 (since);
+            request['startTime'] = this.iso8601 (since);
         }
         const response = await this.irPrivateGetUsersSubaccountSubaccountIdTransfers (this.extend (request, params));
         //
@@ -822,7 +822,7 @@ export default class cube extends Exchange {
             request['market_id'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = this.iso8601 (since);
+            request['startTime'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
