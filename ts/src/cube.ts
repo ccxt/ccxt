@@ -184,15 +184,15 @@ export default class cube extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.irPublicGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
-        // Ensure to retrieve the assets as a list
+        // Ensure to retrieve the assets, feeTables, and markets as lists
         const assets = this.safeList (result, 'assets', []);
         const feeTables = this.safeList (result, 'feeTables', []);
-        const markets = this.safeList (result, 'markets', []); // Make sure you fetch markets
-        // Index assets and fee tables by their IDs
-        this.options['assetsById'] = this.indexBy (assets, 'assetId'); // Ensure assetId is correctly indexed
-        this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId'); // Ensure feeTableId is correctly indexed
+        const markets = this.safeList (result, 'markets', []);
+        // Index assets and fee tables by their IDs (ensure no unhashable types are used)
+        this.options['assetsById'] = this.indexBy (assets, 'assetId');
+        this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId');
         // Return parsed markets
-        return this.parseMarkets (markets); // Ensure markets is passed as an argument
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market): Market {
@@ -211,7 +211,8 @@ export default class cube extends Exchange {
         const symbol = base + '/' + quote;
         const feeTableId = this.safeString (market, 'feeTableId');
         const feeTable = this.safeValue (feeTablesById, feeTableId, {});
-        const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
+        const feeTiers = this.safeList (feeTable, 'feeTiers', []);
+        // Convert any unhashable nested lists into tuples
         const firstTier = this.safeValue (feeTiers, 0, {});
         return {
             'id': id,
