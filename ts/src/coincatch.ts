@@ -183,7 +183,7 @@ export default class coincatch extends Exchange {
                 'private': {
                     'get': {
                         'api/spot/v1/wallet/deposit-address': 4, // done
-                        'pi/spot/v1/wallet/withdrawal-list': 1, // nor used
+                        'pi/spot/v1/wallet/withdrawal-list': 1, // not used
                         'api/spot/v1/wallet/withdrawal-list-v2': 1, // done but should be checked
                         'api/spot/v1/wallet/deposit-list': 1, // done
                         'api/spot/v1/account/getInfo': 1,
@@ -2788,20 +2788,24 @@ export default class coincatch extends Exchange {
          * @description fetches information on multiple canceled and closed orders made by the user
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
+         * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
          * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] *swap markets only* the latest time in ms to fetch orders for
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+         * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'fetchCanceledAndClosedOrders';
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketType = market['type'];
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
         params['methodName'] = methodName;
         if (marketType === 'spot') {
             return await this.fetchCanceledAndClosedSpotOrders (symbol, since, limit, params);
@@ -2827,6 +2831,9 @@ export default class coincatch extends Exchange {
          */
         let methodName = 'fetchCanceledAndClosedSpotOrders';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument for spot markets');
+        }
         const maxLimit = 500;
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2896,21 +2903,19 @@ export default class coincatch extends Exchange {
          * @ignore
          * @name coincatch#fetchCanceledAndClosedOrders
          * @description fetches information on multiple canceled and closed orders made by the user on swap markets
-         * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
+         * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
          * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] *swap markets only* the latest time in ms to fetch orders for
+         * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let methodName = 'fetchCanceledAndClosedSwapOrders';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
+        const request: Dict = {};
         if (since !== undefined) {
             request['startTime'] = since;
         } else {
@@ -2926,7 +2931,18 @@ export default class coincatch extends Exchange {
         } else {
             request['endTime'] = this.milliseconds (); // todo check
         }
-        const response = await this.privateGetApiMixV1OrderHistory (this.extend (request, params));
+        let market: Market = undefined;
+        let response = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            response = await this.privateGetApiMixV1OrderHistory (this.extend (request, params));
+        } else {
+            let productType = 'umcbl';
+            productType = this.handleOption (methodName, 'productType', productType);
+            request['productType'] = productType;
+            response = await this.privateGetApiMixV1OrderHistoryProductType (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "00000",
