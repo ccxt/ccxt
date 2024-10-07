@@ -21,6 +21,8 @@ export default class cube extends Exchange {
             'countries': [ 'US' ],
             'version': 'v0',
             'rateLimit': 1000,
+            'timeout': 1000,
+            'verbose': true,
             'pro': false,
             'has': {
                 'CORS': undefined,
