@@ -97,6 +97,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrice': True,
+                'fetchMarkPrices': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': False,
@@ -642,6 +644,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'WAX': 'WAXP',
                 'ALT': 'APTOSLAUNCHTOKEN',
                 'KALT': 'ALT',  # ALTLAYER
+                'FUD': 'FTX Users\' Debt',
             },
             'options': {
                 'hf': False,
@@ -777,7 +780,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'hf': 'trade_hf',
                 },
                 'networks': {
-                    'BTC': 'btc',
+                    'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
                     'ERC20': 'eth',
                     'TRC20': 'trx',
@@ -1343,7 +1346,7 @@ class kucoin(Exchange, ImplicitAPI):
             for j in range(0, chainsLength):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chainId')
-                networkCode = self.network_id_to_code(chainId)
+                networkCode = self.network_id_to_code(chainId, code)
                 chainWithdrawEnabled = self.safe_bool(chain, 'isWithdrawEnabled', False)
                 if isWithdrawEnabled is None:
                     isWithdrawEnabled = chainWithdrawEnabled
@@ -1642,7 +1645,7 @@ class kucoin(Exchange, ImplicitAPI):
         symbol = market['symbol']
         baseVolume = self.safe_string(ticker, 'vol')
         quoteVolume = self.safe_string(ticker, 'volValue')
-        timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
+        timestamp = self.safe_integer_n(ticker, ['time', 'datetime', 'timePoint'])
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1663,6 +1666,7 @@ class kucoin(Exchange, ImplicitAPI):
             'average': self.safe_string(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': self.safe_string(ticker, 'value'),
             'info': ticker,
         }, market)
 
@@ -1717,6 +1721,20 @@ class kucoin(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
+    def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches the mark price for multiple markets
+        :see: https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.publicGetMarkPriceAllSymbols(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_tickers(data)
+
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -1753,6 +1771,24 @@ class kucoin(Exchange, ImplicitAPI):
         #             "makerCoefficient": "1"  # Maker Fee Coefficient
         #         }
         #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_ticker(data, market)
+
+    def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches the mark price for a specific market
+        :see: https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetMarkPriceSymbolCurrent(self.extend(request, params))
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)

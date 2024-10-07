@@ -2662,13 +2662,13 @@ class hitbtc extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetches funding rates for multiple markets
          * @see https://api.hitbtc.com/#futures-info
          * @param {string[]} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $market = null;
@@ -3085,7 +3085,7 @@ class hitbtc extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://api.hitbtc.com/#futures-info
@@ -3120,7 +3120,7 @@ class hitbtc extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3156,6 +3156,7 @@ class hitbtc extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 

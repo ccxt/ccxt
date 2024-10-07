@@ -150,6 +150,7 @@ public partial class cryptocom : Exchange
                             { "public/get-valuations", 1 },
                             { "public/get-expired-settlement-price", divide(10, 3) },
                             { "public/get-insurance", 1 },
+                            { "public/get-risk-parameters", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "public/staking/get-conversion-rate", 2 },

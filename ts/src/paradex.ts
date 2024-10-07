@@ -675,6 +675,7 @@ export default class paradex extends Exchange {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'volume_24h'),
+            'markPrice': this.safeString (ticker, 'mark_price'),
             'info': ticker,
         }, market);
     }

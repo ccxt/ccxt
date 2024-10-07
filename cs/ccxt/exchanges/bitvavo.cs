@@ -244,6 +244,7 @@ public partial class bitvavo : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "BITVAVO-ACCESS-WINDOW", 10000 },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
@@ -255,11 +256,6 @@ public partial class bitvavo : Exchange
                 { "MIOTA", "IOTA" },
             } },
         });
-    }
-
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        return this.decimalToPrecision(fee, 0, getValue(getValue(this.currencies, code), "precision"), DECIMAL_PLACES);
     }
 
     public override object amountToPrecision(object symbol, object amount)

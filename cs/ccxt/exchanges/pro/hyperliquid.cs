@@ -959,7 +959,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
     }
 
@@ -974,7 +974,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.trades, symbol)))
         {
-
+            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
         }
     }
 
@@ -987,7 +987,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-
+            ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, i));
         }
     }
 
@@ -1005,7 +1005,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
             {
-
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
             }
         }
     }

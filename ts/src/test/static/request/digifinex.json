@@ -694,6 +694,16 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://openapi.digifinex.com/swap/v2/public/funding_rate?instrument_id=BTCUSDTPERP",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

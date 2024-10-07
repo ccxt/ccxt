@@ -348,6 +348,9 @@ public struct Ticker
     public double? average;
     public double? baseVolume;
     public double? quoteVolume;
+
+    public double? indexPrice;
+    public double? markPrice;
     public Dictionary<string, object> info;
 
     public Ticker(object ticker2)
@@ -373,6 +376,8 @@ public struct Ticker
         baseVolume = Exchange.SafeFloat(ticker, "baseVolume");
         quoteVolume = Exchange.SafeFloat(ticker, "quoteVolume");
         info = Helper.GetInfo(ticker);
+        indexPrice = Exchange.SafeFloat(ticker, "indexPrice");
+        markPrice = Exchange.SafeFloat(ticker, "markPrice");
     }
 }
 
@@ -999,6 +1004,7 @@ public struct FundingRate
     public double? previousFundingTimestamp;
     public string? previousFundingDatetime;
     public double? previousFundingRate;
+    public string? interval;
 
     public FundingRate(object fundingRateEntry)
     {
@@ -1017,6 +1023,7 @@ public struct FundingRate
         previousFundingTimestamp = Exchange.SafeFloat(fundingRateEntry, "previousFundingTimestamp");
         previousFundingDatetime = Exchange.SafeString(fundingRateEntry, "previousFundingDatetime");
         previousFundingRate = Exchange.SafeFloat(fundingRateEntry, "previousFundingRate");
+        interval = Exchange.SafeString(fundingRateEntry, "interval");
     }
 }
 

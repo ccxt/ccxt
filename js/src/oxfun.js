@@ -70,7 +70,7 @@ export default class oxfun extends Exchange {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -862,6 +862,7 @@ export default class oxfun extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'currencyVolume24h'),
             'quoteVolume': undefined,
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -1004,8 +1005,8 @@ export default class oxfun extends Exchange {
         /**
          * @method
          * @name oxfun#fetchFundingRates
+         * @description fetch the current funding rates for multiple markets
          * @see https://docs.ox.fun/?json#get-v3-funding-estimates
-         * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1041,8 +1042,7 @@ export default class oxfun extends Exchange {
         //         "marketCode": "OX-USD-SWAP-LIN",
         //         "fundingAt": "1715515200000",
         //         "estFundingRate": "0.000200000"
-        //     },
-        //
+        //     }
         //
         const symbol = this.safeString(fundingRate, 'marketCode');
         market = this.market(symbol);
@@ -1065,6 +1065,7 @@ export default class oxfun extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

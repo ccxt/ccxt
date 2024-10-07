@@ -752,28 +752,26 @@ class coinbase(Exchange, ImplicitAPI):
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        fetch all withdrawals made from an account
-        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+        Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+        :see: https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        # fiat only, for crypto transactions use fetchLedger
         return await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        fetch all deposits made to an account
-        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+        Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+        :see: https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        # fiat only, for crypto transactions use fetchLedger
         return await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params)
 
     def parse_transaction_status(self, status: Str):
@@ -2173,8 +2171,8 @@ class coinbase(Exchange, ImplicitAPI):
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
+        Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+        :see: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None

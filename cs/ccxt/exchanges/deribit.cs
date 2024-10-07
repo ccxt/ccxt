@@ -1184,6 +1184,8 @@ public partial class deribit : Exchange
             { "average", null },
             { "baseVolume", null },
             { "quoteVolume", this.safeString(stats, "volume") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }
@@ -3323,6 +3325,7 @@ public partial class deribit : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", "8h" },
         };
     }
 

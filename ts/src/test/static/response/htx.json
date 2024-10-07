@@ -304,6 +304,229 @@
         ],
         "fetchOrder": [
             {
+                "description": "spot order with clientOrderId",
+                "method": "fetchOrder",
+                "input": [
+                  "1168150634634374",
+                  "LTC/USDT"
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": {
+                    "id": "1168150634634374",
+                    "symbol": "ltcusdt",
+                    "account-id": "44234548",
+                    "client-order-id": "101",
+                    "amount": "0.21",
+                    "market-amount": "0",
+                    "ice-amount": "0",
+                    "is-ice": false,
+                    "price": "50",
+                    "created-at": "1727694217201",
+                    "type": "buy-limit",
+                    "field-amount": "0",
+                    "field-cash-amount": "0",
+                    "field-fees": "0",
+                    "finished-at": "0",
+                    "updated-at": "1727694217201",
+                    "source": "spot-api",
+                    "state": "submitted",
+                    "canceled-at": "0",
+                    "canceled-source": null,
+                    "canceled-source-desc": null
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "1168150634634374",
+                    "symbol": "ltcusdt",
+                    "account-id": "44234548",
+                    "client-order-id": "101",
+                    "amount": "0.21",
+                    "market-amount": "0",
+                    "ice-amount": "0",
+                    "is-ice": false,
+                    "price": "50",
+                    "created-at": "1727694217201",
+                    "type": "buy-limit",
+                    "field-amount": "0",
+                    "field-cash-amount": "0",
+                    "field-fees": "0",
+                    "finished-at": "0",
+                    "updated-at": "1727694217201",
+                    "source": "spot-api",
+                    "state": "submitted",
+                    "canceled-at": "0",
+                    "canceled-source": null,
+                    "canceled-source-desc": null
+                  },
+                  "id": "1168150634634374",
+                  "clientOrderId": "101",
+                  "timestamp": 1727694217201,
+                  "datetime": "2024-09-30T11:03:37.201Z",
+                  "lastTradeTimestamp": null,
+                  "symbol": "LTC/USDT",
+                  "type": "limit",
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "side": "buy",
+                  "price": 50,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "average": null,
+                  "cost": 0,
+                  "amount": 0.21,
+                  "filled": 0,
+                  "remaining": 0.21,
+                  "status": "open",
+                  "reduceOnly": null,
+                  "fee": {
+                    "cost": "0",
+                    "currency": "LTC"
+                  },
+                  "trades": [],
+                  "fees": [
+                    {
+                      "cost": 0,
+                      "currency": "LTC"
+                    }
+                  ],
+                  "lastUpdateTimestamp": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            },
+            {
+                "description": "spot order with clientOrderId",
+                "method": "fetchOrder",
+                "input": [
+                  "1290387797828591616",
+                  "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "business_type": "swap",
+                      "contract_type": "swap",
+                      "pair": "LTC-USDT",
+                      "remark2": null,
+                      "symbol": "LTC",
+                      "contract_code": "LTC-USDT",
+                      "volume": "1",
+                      "price": "50",
+                      "order_price_type": "limit",
+                      "order_type": "1",
+                      "direction": "buy",
+                      "offset": "both",
+                      "lever_rate": "1",
+                      "order_id": "1290387797828591616",
+                      "client_order_id": "100",
+                      "created_at": "1727694025243",
+                      "trade_volume": "0",
+                      "trade_turnover": "0",
+                      "fee": "0",
+                      "trade_avg_price": null,
+                      "margin_frozen": "0",
+                      "profit": "0",
+                      "status": "3",
+                      "order_source": "api",
+                      "canceled_source": null,
+                      "order_id_str": "1290387797828591616",
+                      "fee_asset": "USDT",
+                      "fee_amount": "0",
+                      "fee_quote_amount": "0",
+                      "liquidation_type": "0",
+                      "canceled_at": "0",
+                      "margin_asset": "USDT",
+                      "margin_account": "USDT",
+                      "margin_mode": "cross",
+                      "is_tpsl": "0",
+                      "real_profit": "0",
+                      "trade_partition": "USDT",
+                      "reduce_only": "0"
+                    }
+                  ],
+                  "ts": "1727694141838"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "business_type": "swap",
+                    "contract_type": "swap",
+                    "pair": "LTC-USDT",
+                    "remark2": null,
+                    "symbol": "LTC",
+                    "contract_code": "LTC-USDT",
+                    "volume": "1",
+                    "price": "50",
+                    "order_price_type": "limit",
+                    "order_type": "1",
+                    "direction": "buy",
+                    "offset": "both",
+                    "lever_rate": "1",
+                    "order_id": "1290387797828591616",
+                    "client_order_id": "100",
+                    "created_at": "1727694025243",
+                    "trade_volume": "0",
+                    "trade_turnover": "0",
+                    "fee": "0",
+                    "trade_avg_price": null,
+                    "margin_frozen": "0",
+                    "profit": "0",
+                    "status": "3",
+                    "order_source": "api",
+                    "canceled_source": null,
+                    "order_id_str": "1290387797828591616",
+                    "fee_asset": "USDT",
+                    "fee_amount": "0",
+                    "fee_quote_amount": "0",
+                    "liquidation_type": "0",
+                    "canceled_at": "0",
+                    "margin_asset": "USDT",
+                    "margin_account": "USDT",
+                    "margin_mode": "cross",
+                    "is_tpsl": "0",
+                    "real_profit": "0",
+                    "trade_partition": "USDT",
+                    "reduce_only": "0"
+                  },
+                  "id": "1290387797828591616",
+                  "clientOrderId": "100",
+                  "timestamp": 1727694025243,
+                  "datetime": "2024-09-30T11:00:25.243Z",
+                  "lastTradeTimestamp": null,
+                  "symbol": "LTC/USDT:USDT",
+                  "type": "limit",
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "side": "buy",
+                  "price": 50,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "average": null,
+                  "cost": 0,
+                  "amount": 1,
+                  "filled": 0,
+                  "remaining": 1,
+                  "status": "open",
+                  "reduceOnly": false,
+                  "fee": {
+                    "cost": "0",
+                    "currency": "USDT"
+                  },
+                  "trades": [],
+                  "fees": [
+                    {
+                      "cost": 0,
+                      "currency": "USDT"
+                    }
+                  ],
+                  "lastUpdateTimestamp": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            },
+            {
                 "description": "fetch spot order",
                 "disabledPHP": false,
                 "method": "fetchOrder",
@@ -590,6 +813,8 @@
                     "average": 72755.34,
                     "baseVolume": 2314.593946077937,
                     "quoteVolume": 165753938.49546936,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "id": "338582949929",
                         "version": "338582949929",
@@ -650,6 +875,95 @@
                     ]
                 ]
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "spot orders with clientOrderId",
+                "method": "fetchOpenOrders",
+                "input": [
+                  "LTC/USDT",
+                  null,
+                  null,
+                  {
+                    "account-id": "myaccount"
+                  }
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": [
+                    {
+                      "symbol": "ltcusdt",
+                      "source": "api",
+                      "account-id": "44234548",
+                      "amount": "0.210000000000000000",
+                      "price": "50.000000000000000000",
+                      "created-at": "1727777938596",
+                      "ice-amount": "0.0",
+                      "client-order-id": "104",
+                      "filled-amount": "0.0",
+                      "filled-cash-amount": "0.0",
+                      "filled-fees": "0.0",
+                      "id": "1168162320551949",
+                      "state": "submitted",
+                      "type": "buy-limit"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "ltcusdt",
+                      "source": "api",
+                      "account-id": "44234548",
+                      "amount": "0.210000000000000000",
+                      "price": "50.000000000000000000",
+                      "created-at": "1727777938596",
+                      "ice-amount": "0.0",
+                      "client-order-id": "104",
+                      "filled-amount": "0.0",
+                      "filled-cash-amount": "0.0",
+                      "filled-fees": "0.0",
+                      "id": "1168162320551949",
+                      "state": "submitted",
+                      "type": "buy-limit"
+                    },
+                    "id": "1168162320551949",
+                    "clientOrderId": "104",
+                    "timestamp": 1727777938596,
+                    "datetime": "2024-10-01T10:18:58.596Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "LTC/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 50,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 0.21,
+                    "filled": 0,
+                    "remaining": 0.21,
+                    "status": "open",
+                    "reduceOnly": null,
+                    "fee": {
+                      "cost": "0.0",
+                      "currency": "LTC"
+                    },
+                    "trades": [],
+                    "fees": [
+                      {
+                        "cost": 0,
+                        "currency": "LTC"
+                      }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
+                ]
+              }
         ]
     }
 }

@@ -304,6 +304,18 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_post_contract_private_submit_leverage($params = array()) {
         return $this->request('contract/private/submit-leverage', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
+    public function private_post_contract_private_submit_tp_sl_order($params = array()) {
+        return $this->request('contract/private/submit-tp-sl-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_contract_private_modify_plan_order($params = array()) {
+        return $this->request('contract/private/modify-plan-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_contract_private_modify_preset_plan_order($params = array()) {
+        return $this->request('contract/private/modify-preset-plan-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_contract_private_modify_tp_sl_order($params = array()) {
+        return $this->request('contract/private/modify-tp-sl-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
     public function publicGetSystemTime($params = array()) {
         return $this->request('system/time', 'public', 'GET', $params, null, null, array("cost" => 3));
     }
@@ -600,5 +612,17 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privatePostContractPrivateSubmitLeverage($params = array()) {
         return $this->request('contract/private/submit-leverage', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostContractPrivateSubmitTpSlOrder($params = array()) {
+        return $this->request('contract/private/submit-tp-sl-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostContractPrivateModifyPlanOrder($params = array()) {
+        return $this->request('contract/private/modify-plan-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostContractPrivateModifyPresetPlanOrder($params = array()) {
+        return $this->request('contract/private/modify-preset-plan-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostContractPrivateModifyTpSlOrder($params = array()) {
+        return $this->request('contract/private/modify-tp-sl-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
 }

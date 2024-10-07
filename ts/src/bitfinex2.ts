@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ export default class bitfinex2 extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': true,
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -3030,28 +3030,15 @@ export default class bitfinex2 extends Exchange {
         return this.parseLedger (ledgerObjects, currency, since, limit);
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
-         * @name bitfinex2#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
-        return await this.fetchFundingRates ([ symbol ], params) as any;
-    }
-
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#fetchFundingRate
-         * @description fetch the current funding rate
+         * @name bitfinex2#fetchFundingRates
+         * @description fetch the current funding rate for multiple symbols
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
          * @param {string[]} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRates() requires a symbols argument');
@@ -3174,7 +3161,7 @@ export default class bitfinex2 extends Exchange {
         return reversedArray as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -3224,7 +3211,8 @@ export default class bitfinex2 extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     parseFundingRateHistory (contract, market: Market = undefined) {

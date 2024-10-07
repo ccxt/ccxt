@@ -6,7 +6,6 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
  */
 export default class bitvavo extends Exchange {
     describe(): any;
-    currencyToPrecision(code: any, fee: any, networkCode?: any): string;
     amountToPrecision(symbol: any, amount: any): string;
     priceToPrecision(symbol: any, price: any): string;
     fetchTime(params?: {}): Promise<number>;

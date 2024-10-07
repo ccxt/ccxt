@@ -1062,6 +1062,8 @@ class krakenfutures extends krakenfutures$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volume'),
             'quoteVolume': this.safeString(ticker, 'volumeQuote'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
+            'indexPrice': this.safeString(ticker, 'index'),
         });
     }
     handleOrderBookSnapshot(client, message) {

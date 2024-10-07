@@ -963,6 +963,8 @@ class delta extends delta$1 {
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'volume'),
             'quoteVolume': this.safeNumber(ticker, 'turnover'),
+            'markPrice': this.safeNumber(ticker, 'mark_price'),
+            'indexPrice': this.safeNumber(ticker, 'spot_price'),
             'info': ticker,
         }, market);
     }
@@ -2452,7 +2454,7 @@ class delta extends delta$1 {
          * @see https://docs.delta.exchange/#get-tickers-for-products
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2576,6 +2578,7 @@ class delta extends delta$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async addMargin(symbol, amount, params = {}) {

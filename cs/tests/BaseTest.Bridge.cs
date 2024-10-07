@@ -166,6 +166,21 @@ public partial class BaseTest
         return isEqual(a, b);
 
     }
+  
+    public object json(object a)
+    {
+        return Exchange.Json(a);
+    }
+
+    public object DeepEqual(object a, object b)
+    {
+        return isEqual(json(a), json(b));
+    }
+
+    public void AssertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
+    {
+        assert(DeepEqual(a, b), add(add(add(add("two dicts do not match: ", Exchange.Json(a)), " != "), Exchange.Json(b)), method));
+    }
 }
 
 

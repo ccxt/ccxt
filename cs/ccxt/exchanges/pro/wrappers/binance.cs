@@ -487,6 +487,58 @@ public partial class binance
         return new Ticker(res);
     }
     /// <summary>
+    /// watches a mark price for a specific market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.use1sFreq</term>
+    /// <description>
+    /// boolean : *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Ticker> WatchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMarkPrice(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// watches the mark price for all markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.use1sFreq</term>
+    /// <description>
+    /// boolean : *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMarkPrices(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>

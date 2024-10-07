@@ -279,7 +279,7 @@ public partial class currencycom : Exchange
                 { "GM", "General Motors Co" },
                 { "IQ", "iQIYI" },
                 { "OSK", "Oshkosh" },
-                { "PLAY", "Dave & Buster\'s Entertainment" },
+                { "PLAY", "Dave & Buster's Entertainment" },
             } },
         });
     }
@@ -1336,7 +1336,7 @@ public partial class currencycom : Exchange
             accountId = this.safeString(parameters, "accountId", accountId);
             if (isTrue(isEqual(accountId, null)))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires an accountId parameter or an exchange.options[\'accountId\'] option for "), getValue(market, "type")), " markets")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for "), getValue(market, "type")), " markets")) ;
             }
         }
         object newOrderRespType = this.safeValue(getValue(this.options, "newOrderRespType"), type, "RESULT");

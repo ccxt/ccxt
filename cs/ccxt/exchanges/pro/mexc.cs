@@ -704,7 +704,7 @@ public partial class mexc : ccxt.mexc
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
@@ -1414,7 +1414,7 @@ public partial class mexc : ccxt.mexc
             var client = this.client(url);
             ((IDictionary<string,object>)this.options)["listenKey"] = null;
             ((WebSocketClient)client).reject(error);
-
+            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)url);
         }
     }
 
