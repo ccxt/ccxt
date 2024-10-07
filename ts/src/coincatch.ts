@@ -198,12 +198,12 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/order/current': 1, // done
                         'api/mix/v1/order/marginCoinCurrent': 1, // done
                         'api/mix/v1/order/history': 2, // done
-                        'api/mix/v1/order/historyProductType': 4, // todo fetchCanceledAndClosedOrders
+                        'api/mix/v1/order/historyProductType': 4, // done
                         'api/mix/v1/order/detail': 2, // done
                         'api/mix/v1/order/fills': 2, // todo fetchMyTrades
                         'api/mix/v1/order/allFills': 2, // todo fetchMyTrades
-                        'api/mix/v1/plan/currentPlan': 1,
-                        'api/mix/v1/plan/historyPlan': 1,
+                        'api/mix/v1/plan/currentPlan': 1, // todo
+                        'api/mix/v1/plan/historyPlan': 2, // todo
                     },
                     'post': {
                         'api/spot/v1/wallet/transfer-v2': 4, // done
@@ -1392,14 +1392,37 @@ export default class coincatch extends Exchange {
         //         "cTime": "1725915471400"
         //     }
         //
+        // fetchMyTrades swap
+        //     {
+        //         "tradeId": "1225467075440189441",
+        //         "symbol": "ETHUSD_DMCBL",
+        //         "orderId": "1225467075288719360",
+        //         "price": "2362.03",
+        //         "sizeQty": "0.1",
+        //         "fee": "-0.00005996",
+        //         "side": "burst_close_long",
+        //         "fillAmount": "236.203",
+        //         "profit": "-0.0083359",
+        //         "enterPointSource": "SYS",
+        //         "tradeSide": "burst_close_long",
+        //         "holdMode": "double_hold",
+        //         "takerMakerFlag": "taker",
+        //         "cTime": "1727900039539"
+        //     }
+        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarketCustom (marketId, market);
         const timestamp = this.safeIntegerN (trade, [ 'fillTime', 'timestamp', 'cTime' ]);
-        const fees = this.safeString (trade, 'fees');
+        const fees = this.safeString2 (trade, 'fees', 'fee');
         let feeCost: Str = undefined;
         if (fees !== undefined) {
             feeCost = Precise.stringAbs (fees);
         }
+        let feeCurrency = this.safeString (trade, 'feeCcy');
+        if ((feeCurrency === undefined) && (market['settle'] !== undefined)) {
+            feeCurrency = market['settle'];
+        }
+        const side = this.safeStringLower2 (trade, 'tradeSide', 'side');
         return this.safeTrade ({
             'id': this.safeString2 (trade, 'tradeId', 'fillId'),
             'order': this.safeString (trade, 'orderId'),
@@ -1407,14 +1430,14 @@ export default class coincatch extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': this.safeString (trade, 'orderType'),
-            'side': this.safeStringLower (trade, 'side'),
+            'side': this.parseOrderSide (side),
             'takerOrMaker': this.safeString (trade, 'takerMakerFlag'),
             'price': this.safeString2 (trade, 'fillPrice', 'price'),
-            'amount': this.safeString2 (trade, 'fillQuantity', 'size'),
-            'cost': this.safeString (trade, 'fillTotalAmount'),
+            'amount': this.safeStringN (trade, [ 'fillQuantity', 'size', 'sizeQty' ]),
+            'cost': this.safeString2 (trade, 'fillTotalAmount', 'fillAmount'),
             'fee': {
                 'cost': feeCost,
-                'currency': this.safeString (trade, 'feeCcy'),
+                'currency': feeCurrency,
             },
             'info': trade,
         }, market);
@@ -3404,32 +3427,37 @@ export default class coincatch extends Exchange {
          * @description fetch all trades made by the user
          * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
          * @see https://coincatch.github.io/github.io/en/mix/#get-order-fill-detail
+         * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-order-fill-detail
          * @param {string} symbol *is mandatory* unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] *swap markets only* the latest time in ms to fetch trades for, only supports the last 30 days timeframe
+         * @param {string} [params.lastEndId] *swap markets only* query the data after this tradeId
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         let methodName = 'fetchMyTrades';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + methodName + '() requires a symbol argument');
+        let market: Market = undefined;
+        let marketType = 'spot';
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            marketType = market['type'];
+            request['symbol'] = market['id'];
+        } else {
+            [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+            if (marketType === 'spot') {
+                throw new ArgumentsRequired (this.id + methodName + '() requires a symbol argument for spot markets');
+            }
         }
-        const maxLimit = 500;
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        // let until: Int = undefined;
-        // [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
-        const marketType = market['type'];
         let response = undefined;
         let requestLimit = limit;
         if (marketType === 'spot') {
+            const maxSpotLimit = 500;
             if (since !== undefined) {
-                requestLimit = maxLimit;
+                requestLimit = maxSpotLimit;
             }
             if (requestLimit !== undefined) {
                 request['limit'] = requestLimit;
@@ -3460,6 +3488,78 @@ export default class coincatch extends Exchange {
             //     }
             //
             response = await this.privatePostApiSpotV1TradeFills (this.extend (request, params));
+        } else if (marketType === 'swap') {
+            if (since !== undefined) {
+                params['startTime'] = since;
+            } else {
+                params['startTime'] = 0; // mandatory
+            }
+            let until: Int = undefined;
+            [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+            if (until !== undefined) {
+                request['endTime'] = until;
+            } else {
+                request['endTime'] = this.milliseconds (); // mandatory
+            }
+            if (symbol !== undefined) {
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1728306590704,
+                //         "data": [
+                //             {
+                //                 "tradeId": "1221355735285014530",
+                //                 "symbol": "ETHUSDT_UMCBL",
+                //                 "orderId": "1221355728716259329",
+                //                 "price": "2555.12",
+                //                 "sizeQty": "0.01",
+                //                 "fee": "-0.01533072",
+                //                 "side": "open_long",
+                //                 "fillAmount": "25.5512",
+                //                 "profit": "0",
+                //                 "enterPointSource": "API",
+                //                 "tradeSide": "open_long",
+                //                 "holdMode": "double_hold",
+                //                 "takerMakerFlag": "taker",
+                //                 "cTime": "1726919819661"
+                //             }
+                //         ]
+                //     }
+                //
+                response = await this.privateGetApiMixV1OrderFills (this.extend (request, params));
+            } else {
+                let productType = 'umcbl';
+                productType = this.handleOption (methodName, 'productType', productType);
+                request['productType'] = productType;
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1728306372044,
+                //         "data": [
+                //             {
+                //                 "tradeId": "1225467075440189441",
+                //                 "symbol": "ETHUSD_DMCBL",
+                //                 "orderId": "1225467075288719360",
+                //                 "price": "2362.03",
+                //                 "sizeQty": "0.1",
+                //                 "fee": "-0.00005996",
+                //                 "side": "burst_close_long",
+                //                 "fillAmount": "236.203",
+                //                 "profit": "-0.0083359",
+                //                 "enterPointSource": "SYS",
+                //                 "tradeSide": "burst_close_long",
+                //                 "holdMode": "double_hold",
+                //                 "takerMakerFlag": "taker",
+                //                 "cTime": "1727900039539"
+                //             },
+                //             ...
+                //         ]
+                //     }
+                //
+                response = await this.privateGetApiMixV1OrderAllFills (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
