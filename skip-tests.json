@@ -52,8 +52,8 @@
         }
     },
     "binance": {
-        "httpsProxy": "http://5.75.153.75:8911",
-        "wsProxy": "http://5.75.153.75:8911",
+        "httpsProxy": "http://188.34.194.190:8911",
+        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC"
@@ -86,7 +86,7 @@
         }
     },
     "binancecoinm": {
-        "httpsProxy": "http://5.75.153.75:8911",
+        "httpsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": {
                 "expiry": "expiry not set for future markets",
@@ -99,8 +99,8 @@
         }
     },
     "binanceusdm": {
-        "httpsProxy": "http://5.75.153.75:8911",
-        "wsProxy": "http://5.75.153.75:8911",
+        "httpsProxy": "http://188.34.194.190:8911",
+        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
@@ -142,7 +142,7 @@
         }
     },
     "tokocrypto": {
-        "httpsProxy": "http://5.75.153.75:8911",
+        "httpsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "orderBook":{
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195"
@@ -549,8 +549,8 @@
         }
     },
     "bybit": {
-        "httpsProxy": "http://5.75.153.75:8911",
-        "wsProxy": "http://5.75.153.75:8911",
+        "httpsProxy": "http://188.34.194.190:8911",
+        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temp skip"
@@ -1103,7 +1103,7 @@
     },
     "kuna": {
         "skip": "temporary glitches with this exchange: https://app.travis-ci.com/github/ccxt/ccxt/builds/267517440#L2304",
-        "httpsProxy": "http://5.75.153.75:8911",
+        "httpsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
@@ -1124,6 +1124,8 @@
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/271028497#L5338"
             },
             "loadMarkets": {
+                "taker": "temporary, until NFT-TRX appears in https://api.kucoin.com/api/v1/market/allTickers",
+                "maker": "same",
                 "currencyIdAndCode": "messed"
             },
             "ticker": {
@@ -1133,7 +1135,6 @@
         }
     },
     "kucoinfutures": {
-        "skipCSharp": true,
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
@@ -1343,6 +1344,9 @@
         }
     },
     "oxfun": {
+        "skip": "temporarily before new proxy ip",
+        "httpsProxy": "http://5.75.153.75:8911",
+        "wsProxy": "http://5.75.153.75:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
@@ -1533,6 +1537,11 @@
                 "id": "undefined",
                 "marginRatio": "undefined",
                 "collateral": "undefined"
+            },
+            "watchBidsAsks": "newUpdates is true",
+            "watchTickers": {
+                "baseVolume": "PURSE/USDT has weird ticker",
+                "quoteVolume": "PURSE/USDT has weird ticker"
             }
         }
 	},
@@ -1713,8 +1722,8 @@
         }
     },
     "vertex": {
-        "httpsProxy": "http://5.75.153.75:8911",
-        "wsProxy": "http://5.75.153.75:8911",
+        "httpsProxy": "http://188.34.194.190:8911",
+        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "fetchCurrencies": "incomplete",
             "loadMarkets": {

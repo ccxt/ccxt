@@ -70,6 +70,8 @@ export default class woo extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -2813,6 +2815,19 @@ export default class woo extends Exchange {
             'previousFundingDatetime': this.iso8601 (lastFundingRateTimestamp),
             'interval': intervalString + 'h',
         } as FundingRate;
+    }
+
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name woo#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate (symbol, params);
     }
 
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {

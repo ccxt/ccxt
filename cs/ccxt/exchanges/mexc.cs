@@ -68,6 +68,8 @@ public partial class mexc : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", null },
@@ -2463,6 +2465,7 @@ public partial class mexc : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch orders for
         * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -2475,6 +2478,8 @@ public partial class mexc : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, "until");
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
@@ -2490,6 +2495,10 @@ public partial class mexc : Exchange
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
+            }
+            if (isTrue(!isEqual(until, null)))
+            {
+                ((IDictionary<string,object>)request)["endTime"] = until;
             }
             if (isTrue(!isEqual(limit, null)))
             {
@@ -2561,11 +2570,24 @@ public partial class mexc : Exchange
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["start_time"] = since;
-                object end = this.safeInteger(parameters, "end_time");
+                object end = this.safeInteger(parameters, "end_time", until);
                 if (isTrue(isEqual(end, null)))
                 {
                     ((IDictionary<string,object>)request)["end_time"] = this.sum(since, getValue(this.options, "maxTimeTillEnd"));
+                } else
+                {
+                    if (isTrue(isGreaterThan((subtract(end, since)), getValue(this.options, "maxTimeTillEnd"))))
+                    {
+                        throw new BadRequest ((string)add(this.id, " end is invalid, i.e. exceeds allowed 90 days.")) ;
+                    } else
+                    {
+                        ((IDictionary<string,object>)request)["end_time"] = until;
+                    }
                 }
+            } else if (isTrue(!isEqual(until, null)))
+            {
+                ((IDictionary<string,object>)request)["start_time"] = this.sum(until, multiply(getValue(this.options, "maxTimeTillEnd"), -1));
+                ((IDictionary<string,object>)request)["end_time"] = until;
             }
             if (isTrue(!isEqual(limit, null)))
             {
@@ -4114,9 +4136,14 @@ public partial class mexc : Exchange
         object nextFundingRate = this.safeNumber(contract, "fundingRate");
         object nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         object marketId = this.safeString(contract, "symbol");
-        object symbol = this.safeSymbol(marketId, market);
+        object symbol = this.safeSymbol(marketId, market, null, "contract");
         object timestamp = this.safeInteger(contract, "timestamp");
-        object datetime = this.iso8601(timestamp);
+        object interval = this.safeString(contract, "collectCycle");
+        object intervalString = null;
+        if (isTrue(!isEqual(interval, null)))
+        {
+            intervalString = add(interval, "h");
+        }
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -4125,7 +4152,7 @@ public partial class mexc : Exchange
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", timestamp },
-            { "datetime", datetime },
+            { "datetime", this.iso8601(timestamp) },
             { "fundingRate", nextFundingRate },
             { "fundingTimestamp", nextFundingTimestamp },
             { "fundingDatetime", this.iso8601(nextFundingTimestamp) },
@@ -4135,8 +4162,23 @@ public partial class mexc : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
+            { "interval", intervalString },
         };
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)

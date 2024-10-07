@@ -264,6 +264,20 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
     exchange.fetch = fetch
     return exchange
 
+def get_lang():
+    return LANG
+
+def get_ext():
+    return EXT
+
+def get_root_dir():
+    return ROOT_DIR
+
+def get_env_vars():
+    return ENV_VARS
+
+def is_sync():
+    return IS_SYNCHRONOUS
 
 argvExchange = argv.exchange
 argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None

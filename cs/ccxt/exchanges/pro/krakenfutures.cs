@@ -1170,6 +1170,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", this.safeString(ticker, "volumeQuote") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "index") },
         });
     }
 

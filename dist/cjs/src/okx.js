@@ -79,6 +79,8 @@ class okx extends okx$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -95,6 +97,7 @@ class okx extends okx$1 {
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrices': true,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1802,6 +1805,13 @@ class okx extends okx$1 {
     }
     parseTicker(ticker, market = undefined) {
         //
+        //      {
+        //          "instType":"SWAP",
+        //          "instId":"BTC-USDT-SWAP",
+        //          "markPx":"200",
+        //          "ts":"1597026383085"
+        //      }
+        //
         //     {
         //         "instType": "SPOT",
         //         "instId": "ETH-BTC",
@@ -1852,6 +1862,7 @@ class okx extends okx$1 {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'markPx'),
             'info': ticker,
         }, market);
     }
@@ -1956,6 +1967,38 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
+        const tickers = this.safeList(response, 'data', []);
+        return this.parseTickers(tickers, symbols);
+    }
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchMarkPrices
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params, 'swap');
+        const request = {
+            'instType': this.convertToInstrumentType(marketType),
+        };
+        if (marketType === 'option') {
+            const defaultUnderlying = this.safeString(this.options, 'defaultUnderlying', 'BTC-USD');
+            const currencyId = this.safeString2(params, 'uly', 'marketId', defaultUnderlying);
+            if (currencyId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
+            }
+            else {
+                request['uly'] = currencyId;
+            }
+        }
+        const response = await this.publicGetPublicMarkPrice(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
         return this.parseTickers(tickers, symbols);
     }
@@ -6077,6 +6120,18 @@ class okx extends okx$1 {
             '86400000': '24h',
         };
         return this.safeString(intervals, interval, interval);
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**

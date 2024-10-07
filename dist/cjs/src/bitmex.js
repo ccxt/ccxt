@@ -1437,6 +1437,7 @@ class bitmex extends bitmex$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'homeNotional24h'),
             'quoteVolume': this.safeString(ticker, 'foreignNotional24h'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }

@@ -327,6 +327,7 @@ export default class bitrue extends Exchange {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',
                 'hasAlreadyAuthenticatedSuccessfully': false,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'recvWindow': 5 * 1000,
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
@@ -515,15 +516,6 @@ export default class bitrue extends Exchange {
                 },
             },
         });
-    }
-    currencyToPrecision(code, fee, networkCode = undefined) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue(this.currencies[code], 'precision') !== undefined) {
-            return this.decimalToPrecision(fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
-        }
-        else {
-            return this.numberToString(fee);
-        }
     }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];

@@ -65,6 +65,7 @@ export default class mexc extends Exchange {
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
+    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;

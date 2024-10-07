@@ -80,6 +80,8 @@ export default class kucoin extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': true,
+                'fetchMarkPrices': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
@@ -1672,7 +1674,7 @@ export default class kucoin extends Exchange {
         const symbol = market['symbol'];
         const baseVolume = this.safeString (ticker, 'vol');
         const quoteVolume = this.safeString (ticker, 'volValue');
-        const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
+        const timestamp = this.safeIntegerN (ticker, [ 'time', 'datetime', 'timePoint' ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1693,6 +1695,7 @@ export default class kucoin extends Exchange {
             'average': this.safeString (ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString (ticker, 'value'),
             'info': ticker,
         }, market);
     }
@@ -1753,6 +1756,23 @@ export default class kucoin extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
+    async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name kucoin#fetchMarkPrices
+         * @description fetches the mark price for multiple markets
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetMarkPriceAllSymbols (params);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTickers (data);
+    }
+
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -1791,6 +1811,27 @@ export default class kucoin extends Exchange {
         //             "makerCoefficient": "1" // Maker Fee Coefficient
         //         }
         //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTicker (data, market);
+    }
+
+    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name kucoin#fetchMarkPrice
+         * @description fetches the mark price for a specific market
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarkPriceSymbolCurrent (this.extend (request, params));
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);

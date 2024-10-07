@@ -82,6 +82,8 @@ class binance extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => 'emulated',
+                'fetchFundingIntervals' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -103,6 +105,7 @@ class binance extends Exchange {
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
@@ -704,6 +707,7 @@ class binance extends Exchange {
                         'ticker/bookTicker' => array( 'cost' => 2, 'noSymbol' => 5 ),
                         'constituents' => 2,
                         'openInterest' => 1,
+                        'fundingInfo' => 1,
                     ),
                 ),
                 'dapiData' => array(
@@ -1186,6 +1190,9 @@ class binance extends Exchange {
                     ),
                 ),
                 'option' => array(),
+            ),
+            'currencies' => array(
+                'BNFCR' => $this->safe_currency_structure(array( 'id' => 'BNFCR', 'code' => 'BNFCR', 'precision' => $this->parse_number('0.001') )),
             ),
             'commonCurrencies' => array(
                 'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -3766,6 +3773,18 @@ class binance extends Exchange {
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
+        // markPrices
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "markPrice" => "11793.63104562",  // mark price
+        //         "indexPrice" => "11781.80495970", // index price
+        //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts.
+        //         "lastFundingRate" => "0.00038246",  // This is the lastest estimated funding rate
+        //         "nextFundingTime" => 1597392000000,
+        //         "interestRate" => "0.00010000",
+        //         "time" => 1597370495002
+        //     }
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -3869,7 +3888,7 @@ class binance extends Exchange {
         //         "time":"1673899278514"
         //     }
         //
-        $timestamp = $this->safe_integer($ticker, 'closeTime');
+        $timestamp = $this->safe_integer_2($ticker, 'closeTime', 'time');
         $marketType = null;
         if ((is_array($ticker) && array_key_exists('time', $ticker))) {
             $marketType = 'contract';
@@ -3912,6 +3931,8 @@ class binance extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -4153,6 +4174,33 @@ class binance extends Exchange {
             $response = $this->eapiPublicGetTicker ($params);
         } else {
             throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets yet');
+        }
+        return $this->parse_tickers($response, $symbols);
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches mark prices for multiple markets
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] "linear" or "inverse"
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $market = $this->get_market_from_symbols($symbols);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
+        $response = null;
+        if ($this->is_linear($type, $subType)) {
+            $response = $this->fapiPublicGetPremiumIndex ($params);
+        } elseif ($this->is_inverse($type, $subType)) {
+            $response = $this->dapiPublicGetPremiumIndex ($params);
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkPrices() does not support ' . $type . ' markets yet');
         }
         return $this->parse_tickers($response, $symbols);
     }
@@ -9205,16 +9253,28 @@ class binance extends Exchange {
     public function parse_funding_rate($contract, ?array $market = null): array {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
-        //   {
-        //     "symbol" => "BTCUSDT",
-        //     "markPrice" => "45802.81129892",
-        //     "indexPrice" => "45745.47701915",
-        //     "estimatedSettlePrice" => "45133.91753671",
-        //     "lastFundingRate" => "0.00063521",
-        //     "interestRate" => "0.00010000",
-        //     "nextFundingTime" => "1621267200000",
-        //     "time" => "1621252344001"
-        //  }
+        // fetchFundingRate, fetchFundingRates
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "markPrice" => "45802.81129892",
+        //         "indexPrice" => "45745.47701915",
+        //         "estimatedSettlePrice" => "45133.91753671",
+        //         "lastFundingRate" => "0.00063521",
+        //         "interestRate" => "0.00010000",
+        //         "nextFundingTime" => "1621267200000",
+        //         "time" => "1621252344001"
+        //     }
+        //
+        // fetchFundingInterval, fetchFundingIntervals
+        //
+        //     {
+        //         "symbol" => "BLZUSDT",
+        //         "adjustedFundingRateCap" => "0.03000000",
+        //         "adjustedFundingRateFloor" => "-0.03000000",
+        //         "fundingIntervalHours" => 4,
+        //         "disclaimer" => false
+        //     }
         //
         $timestamp = $this->safe_integer($contract, 'time');
         $marketId = $this->safe_string($contract, 'symbol');
@@ -9225,6 +9285,11 @@ class binance extends Exchange {
         $estimatedSettlePrice = $this->safe_number($contract, 'estimatedSettlePrice');
         $fundingRate = $this->safe_number($contract, 'lastFundingRate');
         $fundingTime = $this->safe_integer($contract, 'nextFundingTime');
+        $interval = $this->safe_string($contract, 'fundingIntervalHours');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -9243,7 +9308,7 @@ class binance extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 
@@ -13259,5 +13324,47 @@ class binance extends Exchange {
             'price' => null,
             'fee' => null,
         );
+    }
+
+    public function fetch_funding_intervals(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetch the funding rate interval for multiple markets
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+         * @param {string[]} [$symbols] list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] "linear" or "inverse"
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbols !== null) {
+            $symbols = $this->market_symbols($symbols);
+            $market = $this->market($symbols[0]);
+        }
+        $type = 'swap';
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingIntervals', $market, $params, 'linear');
+        $response = null;
+        if ($this->is_linear($type, $subType)) {
+            $response = $this->fapiPublicGetFundingInfo ($params);
+        } elseif ($this->is_inverse($type, $subType)) {
+            $response = $this->dapiPublicGetFundingInfo ($params);
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingIntervals() supports linear and inverse swap contracts only');
+        }
+        //
+        //     array(
+        //         array(
+        //             "symbol" => "BLZUSDT",
+        //             "adjustedFundingRateCap" => "0.03000000",
+        //             "adjustedFundingRateFloor" => "-0.03000000",
+        //             "fundingIntervalHours" => 4,
+        //             "disclaimer" => false
+        //         ),
+        //     )
+        //
+        $result = $this->parse_funding_rates($response, $market);
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 }

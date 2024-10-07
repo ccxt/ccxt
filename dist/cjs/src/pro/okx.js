@@ -13,6 +13,8 @@ class okx extends okx$1 {
             'has': {
                 'ws': true,
                 'watchTicker': true,
+                'watchMarkPrice': true,
+                'watchMarkPrices': true,
                 'watchTickers': true,
                 'watchBidsAsks': true,
                 'watchOrderBook': true,
@@ -423,6 +425,46 @@ class okx extends okx$1 {
         symbols = this.marketSymbols(symbols, undefined, false);
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'tickers');
+        const newTickers = await this.subscribeMultiple('public', channel, symbols, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    async watchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#watchMarkPrice
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+         * @description watches a mark price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchMarkPrice', 'channel', 'mark-price');
+        params['channel'] = channel;
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const ticker = await this.watchMarkPrices([symbol], params);
+        return ticker[symbol];
+    }
+    async watchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchMarkPrices
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+         * @description watches mark prices
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'channel', 'mark-price');
         const newTickers = await this.subscribeMultiple('public', channel, symbols, params);
         if (this.newUpdates) {
             return newTickers;
@@ -2329,6 +2371,7 @@ class okx extends okx$1 {
                 'books50-l2-tbt': this.handleOrderBook,
                 'books-l2-tbt': this.handleOrderBook,
                 'tickers': this.handleTicker,
+                'mark-price': this.handleTicker,
                 'positions': this.handlePositions,
                 'index-tickers': this.handleTicker,
                 'sprd-tickers': this.handleTicker,

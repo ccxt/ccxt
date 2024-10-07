@@ -724,6 +724,8 @@ class bigone(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'volume', 'volume24h'),
             'quoteVolume': self.safe_string(ticker, 'volume24hInUsd'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
 

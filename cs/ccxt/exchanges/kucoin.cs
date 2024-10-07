@@ -71,6 +71,8 @@ public partial class kucoin : Exchange
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", true },
+                { "fetchMarkPrices", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenInterest", false },
@@ -1518,7 +1520,7 @@ public partial class kucoin : Exchange
         object symbol = getValue(market, "symbol");
         object baseVolume = this.safeString(ticker, "vol");
         object quoteVolume = this.safeString(ticker, "volValue");
-        object timestamp = this.safeInteger2(ticker, "time", "datetime");
+        object timestamp = this.safeIntegerN(ticker, new List<object>() {"time", "datetime", "timePoint"});
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1539,6 +1541,7 @@ public partial class kucoin : Exchange
             { "average", this.safeString(ticker, "averagePrice") },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.safeString(ticker, "value") },
             { "info", ticker },
         }, market);
     }
@@ -1603,6 +1606,25 @@ public partial class kucoin : Exchange
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
+    public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoin#fetchMarkPrices
+        * @description fetches the mark price for multiple markets
+        * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object response = await this.publicGetMarkPriceAllSymbols(parameters);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTickers(data);
+    }
+
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         /**
@@ -1643,6 +1665,29 @@ public partial class kucoin : Exchange
         //             "makerCoefficient": "1" // Maker Fee Coefficient
         //         }
         //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseTicker(data, market);
+    }
+
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoin#fetchMarkPrice
+        * @description fetches the mark price for a specific market
+        * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.publicGetMarkPriceSymbolCurrent(this.extend(request, parameters));
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);

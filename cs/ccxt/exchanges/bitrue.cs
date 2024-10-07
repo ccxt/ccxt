@@ -278,6 +278,7 @@ public partial class bitrue : Exchange
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
                 { "fetchMyTradesMethod", "v2PrivateGetMyTrades" },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "recvWindow", multiply(5, 1000) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
@@ -465,18 +466,6 @@ public partial class bitrue : Exchange
                 } },
             } },
         });
-    }
-
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        // info is available in currencies only if the user has configured his api keys
-        if (isTrue(!isEqual(this.safeValue(getValue(this.currencies, code), "precision"), null)))
-        {
-            return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(this.currencies, code), "precision"), this.precisionMode, this.paddingMode);
-        } else
-        {
-            return this.numberToString(fee);
-        }
     }
 
     public override object nonce()

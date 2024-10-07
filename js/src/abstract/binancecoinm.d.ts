@@ -413,6 +413,7 @@ interface binance {
     dapiPublicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetConstituents(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetOpenInterest(params?: {}): Promise<implicitReturnType>;
+    dapiPublicGetFundingInfo(params?: {}): Promise<implicitReturnType>;
     dapiDataGetDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     dapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     dapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;

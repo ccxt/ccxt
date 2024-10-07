@@ -718,6 +718,8 @@ class bigone extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'volume', 'volume24h'),
             'quoteVolume' => $this->safe_string($ticker, 'volume24hInUsd'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
     }

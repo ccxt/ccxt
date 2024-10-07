@@ -307,6 +307,7 @@ class huobijp extends huobijp$1 {
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'currencyToPrecisionRoundingMode': number.TRUNCATE,
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
@@ -1644,9 +1645,6 @@ class huobijp extends huobijp$1 {
                 'info': data,
             }),
         ];
-    }
-    currencyToPrecision(code, fee, networkCode = undefined) {
-        return this.decimalToPrecision(fee, 0, this.currencies[code]['precision'], this.precisionMode);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //

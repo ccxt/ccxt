@@ -1288,6 +1288,16 @@
             ]
         }
      ],
+    "fetchFundingInterval": [
+      {
+        "description": "linear swap fetch the funding interval",
+        "method": "fetchFundingInterval",
+        "url": "https://api.coinex.com/v2/futures/funding-rate?market=BTCUSDT",
+        "input": [
+          "BTC/USDT:USDT"
+        ]
+      }
+     ],
      "withdraw": [
         {
           "description": "Withdraw USDT on the TRC20 chain",

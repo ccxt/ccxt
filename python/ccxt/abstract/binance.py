@@ -414,6 +414,7 @@ class ImplicitAPI:
     dapipublic_get_ticker_bookticker = dapiPublicGetTickerBookTicker = Entry('ticker/bookTicker', 'dapiPublic', 'GET', {'cost': 2, 'noSymbol': 5})
     dapipublic_get_constituents = dapiPublicGetConstituents = Entry('constituents', 'dapiPublic', 'GET', {'cost': 2})
     dapipublic_get_openinterest = dapiPublicGetOpenInterest = Entry('openInterest', 'dapiPublic', 'GET', {'cost': 1})
+    dapipublic_get_fundinginfo = dapiPublicGetFundingInfo = Entry('fundingInfo', 'dapiPublic', 'GET', {'cost': 1})
     dapidata_get_delivery_price = dapiDataGetDeliveryPrice = Entry('delivery-price', 'dapiData', 'GET', {'cost': 1})
     dapidata_get_openinteresthist = dapiDataGetOpenInterestHist = Entry('openInterestHist', 'dapiData', 'GET', {'cost': 1})
     dapidata_get_toplongshortaccountratio = dapiDataGetTopLongShortAccountRatio = Entry('topLongShortAccountRatio', 'dapiData', 'GET', {'cost': 1})

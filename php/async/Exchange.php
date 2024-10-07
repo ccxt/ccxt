@@ -43,11 +43,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.12';
+$version = '4.4.13';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.12';
+    const VERSION = '4.4.13';
 
     public $browser;
     public $marketsLoading = null;
@@ -466,6 +466,8 @@ class Exchange extends \ccxt\Exchange {
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => null,
                 'fetchFundingRateHistory' => null,
+                'fetchFundingInterval' => null,
+                'fetchFundingIntervals' => null,
                 'fetchFundingRates' => null,
                 'fetchGreeks' => null,
                 'fetchIndexOHLCV' => null,
@@ -526,6 +528,7 @@ class Exchange extends \ccxt\Exchange {
                 'fetchTicker' => true,
                 'fetchTickerWs' => null,
                 'fetchTickers' => null,
+                'fetchMarkPrices' => null,
                 'fetchTickersWs' => null,
                 'fetchTime' => null,
                 'fetchTrades' => true,
@@ -1270,6 +1273,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
+    }
+
+    public function fetch_funding_intervals(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingIntervals() is not supported yet');
     }
 
     public function watch_funding_rate(string $symbol, $params = array ()) {
@@ -2360,6 +2367,8 @@ class Exchange extends \ccxt\Exchange {
             'baseVolume' => $this->parse_number($baseVolume),
             'quoteVolume' => $this->parse_number($quoteVolume),
             'previousClose' => $this->safe_number($ticker, 'previousClose'),
+            'indexPrice' => $this->safe_number($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_number($ticker, 'markPrice'),
         ));
     }
 
@@ -3671,6 +3680,25 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['fetchMarkPrices']) {
+                Async\await($this->load_markets());
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $tickers = Async\await($this->fetch_mark_prices(array( $symbol ), $params));
+                $ticker = $this->safe_dict($tickers, $symbol);
+                if ($ticker === null) {
+                    throw new NullResponse($this->id . ' fetchMarkPrices() could not find a $ticker for ' . $symbol);
+                } else {
+                    return $ticker;
+                }
+            } else {
+                throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
+            }
+        }) ();
+    }
+
     public function fetch_ticker_ws(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             if ($this->has['fetchTickersWs']) {
@@ -3696,6 +3724,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
     }
 
     public function fetch_tickers_ws(?array $symbols = null, $params = array ()) {
@@ -4571,7 +4603,8 @@ class Exchange extends \ccxt\Exchange {
         if ($precision === null) {
             return $this->force_string($fee);
         } else {
-            return $this->decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+            $roundingMode = $this->safe_integer($this->options, 'currencyToPrecisionRoundingMode', ROUND);
+            return $this->decimal_to_precision($fee, $roundingMode, $precision, $this->precisionMode, $this->paddingMode);
         }
     }
 
@@ -5075,6 +5108,28 @@ class Exchange extends \ccxt\Exchange {
                 }
             } else {
                 throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
+            }
+        }) ();
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['fetchFundingIntervals']) {
+                Async\await($this->load_markets());
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                if (!$market['contract']) {
+                    throw new BadSymbol($this->id . ' fetchFundingInterval() supports contract markets only');
+                }
+                $rates = Async\await($this->fetch_funding_intervals(array( $symbol ), $params));
+                $rate = $this->safe_value($rates, $symbol);
+                if ($rate === null) {
+                    throw new NullResponse($this->id . ' fetchFundingInterval() returned no data for ' . $symbol);
+                } else {
+                    return $rate;
+                }
+            } else {
+                throw new NotSupported($this->id . ' fetchFundingInterval() is not supported yet');
             }
         }) ();
     }

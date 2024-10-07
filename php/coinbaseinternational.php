@@ -1487,6 +1487,8 @@ class coinbaseinternational extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'previousClose' => null,
+            'markPrice' => $this->safe_number($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_number($ticker, 'index_price'),
         ));
     }
 

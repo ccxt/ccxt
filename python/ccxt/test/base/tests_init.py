@@ -16,14 +16,26 @@ from ccxt.test.base.test_number import test_number  # noqa E402
 from ccxt.test.base.test_datetime import test_datetime  # noqa E402
 from ccxt.test.base.test_cryptography import test_cryptography  # noqa E402
 from ccxt.test.base.test_extend import test_extend  # noqa E402
-from ccxt.test.base.test_language_specific import test_language_specific  # noqa E402
+from ccxt.test.base.test_deep_extend import test_deep_extend  # noqa E402
+from ccxt.test.base.language_specific.test_language_specific import test_language_specific  # noqa E402
 from ccxt.test.base.test_safe_methods import test_safe_methods  # noqa E402
+from ccxt.test.base.test_sort_by import test_sort_by  # noqa E402
+from ccxt.test.base.test_sum import test_sum  # noqa E402
+from ccxt.test.base.test_omit import test_omit  # noqa E402
+from ccxt.test.base.test_group_by import test_group_by  # noqa E402
+from ccxt.test.base.test_filter_by import test_filter_by  # noqa E402
 
-# import testJson from './test.json.js';
 def base_tests_init():
     test_language_specific()
     test_extend()
+    test_deep_extend()
     test_cryptography()
     test_datetime()
     test_number()
     test_safe_methods()
+    # testJson ();
+    test_sort_by()
+    test_sum()
+    test_omit()
+    test_group_by()
+    test_filter_by()

@@ -1243,6 +1243,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function dapipublic_get_openinterest($params = array()) {
         return $this->request('openInterest', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function dapipublic_get_fundinginfo($params = array()) {
+        return $this->request('fundingInfo', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function dapidata_get_delivery_price($params = array()) {
         return $this->request('delivery-price', 'dapiData', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3387,6 +3390,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function dapiPublicGetOpenInterest($params = array()) {
         return $this->request('openInterest', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function dapiPublicGetFundingInfo($params = array()) {
+        return $this->request('fundingInfo', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function dapiDataGetDeliveryPrice($params = array()) {
         return $this->request('delivery-price', 'dapiData', 'GET', $params, null, null, array("cost" => 1));

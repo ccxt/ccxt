@@ -1747,6 +1747,11 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchOptionChain (code, params)`
 - `fetchConvertQuote (fromCode, toCode, amount, params)`
 - `createConvertTrade (id, fromCode, toCode, amount, params)`
+- `fetchFundingRate (symbol, params)`
+- `fetchFundingRates (symbols, params)`
+- `fetchFundingRateHistory (symbol, since, limit, params)`
+- `fetchFundingRateInterval (symbol, params)`
+- `fetchFundingRateIntervals (symbols, params)`
 - ...
 
 ```text
@@ -1831,7 +1836,7 @@ Recently, CCXT introduced a way to paginate through several results automaticall
 
 Right now, we have three different ways of paginating:
 - **dynamic/time-based**: uses the `until` and `since` parameters to paginate through dynamic results like (trades, orders, transactions, etc). Since we don't know a priori how many entries are available to be fetched, it will perform one request at a time until we reach the end of the data or the maximum amount of pagination calls (configurable through an option)
-- **deterministic**: when we can pre-compute the boundaries of each page, it will perform the requests concurrently for maximum performance. This applies to OHLCV, Funding Rates, and Open Interest and also respects the `maxPaginationCalls` option.
+- **deterministic**: when we can pre-compute the boundaries of each page, it will perform the requests concurrently for maximum performance. This applies to OHLCV, Funding Rates, and Open Interest and also respects the `paginationCalls` option.
 - **cursor-based**: when the exchange provides a cursor inside the response, we extract the cursor and perform the subsequent request until the end of the data or reach the maximum number of pagination calls.
 
 The user cannot select the pagination method used, it will depend from implementation to implementation, considering the exchange API's features.
@@ -3046,7 +3051,43 @@ Parameters
 
 Returns
 
-- a dictionary of [funding rate structures](#funding-rate-structure) indexed by market symbols
+- An array of [funding rate structures](#funding-rate-structure) indexed by market symbols
+
+## Funding Interval
+
+*contract only*
+
+Retrieve the current funding interval using the following methods:
+
+- `fetchFundingInterval (symbol)` for a single market symbol
+- `fetchFundingIntervals ()` for all market symbols
+- `fetchFundingIntervals ([ symbol1, symbol2, ... ])` for multiple market symbols
+
+```javascript
+fetchFundingInterval (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- A [funding rate structure](#funding-rate-structure)
+
+```javascript
+fetchFundingIntervals (symbols = undefined, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [funding rate structures](#funding-rate-structure)
 
 ### Funding Rate Structure
 

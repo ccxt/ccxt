@@ -1,7 +1,6 @@
 import { Exchange } from '../../ccxt.js';
 import { Str } from '../base/types.js';
 declare class testMainClass {
-    isSynchronous: boolean;
     idTests: boolean;
     requestTestsFailed: boolean;
     responseTestsFailed: boolean;
@@ -14,21 +13,18 @@ declare class testMainClass {
     debug: boolean;
     privateTest: boolean;
     privateTestOnly: boolean;
-    private loadKeys;
+    loadKeys: boolean;
     sandbox: boolean;
-    proxyTestFileName: string;
     onlySpecificTests: string[];
     skippedSettingsForExchange: {};
     skippedMethods: {};
     checkedPublicTests: {};
     testFiles: any;
     publicTests: {};
-    newLine: string;
-    rootDir: string;
-    envVars: any;
     ext: string;
     lang: string;
-    parseCliArgs(): void;
+    proxyTestFileName: string;
+    parseCliArgsAndProps(): void;
     init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<void>;
     checkIfSpecificTestIsChosen(methodArgv: any): void;
     importFiles(exchange: Exchange): Promise<void>;
