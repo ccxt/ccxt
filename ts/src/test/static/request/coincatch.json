@@ -285,7 +285,7 @@
                     true,
                     "ETH/USDT:USDT"
                 ],
-                "output": "{\"productType\":\"UMCBL\",\"holdMode\":\"double_hold\"}"
+                "output": "{\"productType\":\"umcbl\",\"holdMode\":\"double_hold\"}"
             }
         ],
         "fetchLeverage": [
