@@ -4,19 +4,16 @@ import ccxt.pro
 from asyncio import run
 
 async def main():
-    exchange = ccxt.pro.coinbasepro()
+    exchange = ccxt.pro.coinbase()
     method = 'watchTrades'
     print('CCXT Pro version', ccxt.pro.__version__)
     if exchange.has[method]:
-        last_id = ''
         while True:
             try:
                 trades = await exchange.watch_trades('BTC/USD')
-                for trade in trades:
-                    if trade['id'] > last_id:
-                        print(exchange.iso8601(exchange.milliseconds()), trade['symbol'], trade['datetime'], trade['price'], trade['amount'])
-                        last_id = trade['id']
-
+                num_trades = len(trades)
+                trade = trades[-1]
+                print(exchange.iso8601(exchange.milliseconds()), trade['symbol'], trade['datetime'], trade['price'], trade['amount'], 'stored', num_trades, 'trades in cache')
             except Exception as e:
                 # stop
                 await exchange.close()
