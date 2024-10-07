@@ -1,10 +1,10 @@
 //  ---------------------------------------------------------------------------
 
 import coincatchRest from '../coincatch.js';
-import type { Dict, Int, Market, OHLCV, Ticker } from '../base/types.js';
+import { NotSupported } from '../base/errors.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-
 
 //  ---------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ export default class coincatch extends coincatchRest {
             'has': {
                 'ws': true,
                 'watchTrades': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOHLCV': true,
                 'watchOrders': false,
                 'watchMyTrades': false,
@@ -248,7 +248,7 @@ export default class coincatch extends coincatchRest {
             const parsed = this.parseWsOHLCV (candle, market);
             stored.append (parsed);
         }
-        const messageHash = 'candle' + klineType + ':' + symbol;
+        const messageHash = channel + ':' + symbol;
         client.resolve (stored, messageHash);
     }
 
@@ -273,14 +273,96 @@ export default class coincatch extends coincatchRest {
         ];
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name coincatch#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return (only 5 or 15 in exchange).
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const instId = market['baseId'] + market['quoteId'];
+        let channel = 'books';
+        if (limit !== undefined) {
+            if (limit !== 5 && limit !== 15) {
+                throw new NotSupported ('The exchange supports only 5 or 15 levels of the order book');
+            } else {
+                channel += limit.toString ();
+            }
+        }
+        const instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'op': 'subscribe',
+            'args': [
+                {
+                    'instType': instType,
+                    'channel': channel,
+                    'instId': instId,
+                },
+            ],
+        };
+        const messageHash = channel + ':' + symbol;
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         action: 'update',
+        //         arg: { instType: 'sp', channel: 'books', instId: 'ETHUSDT' },
+        //         data: [
+        //             {
+        //                 asks: [ [ 2507.07, 0.4248 ] ],
+        //                 bids: [ [ 2507.05, 0.1198 ] ],
+        //                 checksum: -1400923312,
+        //                 ts: '1728339446908'
+        //             }
+        //         ],
+        //         ts: 1728339446908
+        //     }
+        //
+        const arg = this.safeDict (message, 'arg', {});
+        const instType = this.safeStringLower (arg, 'instType');
+        const baseAndQuote = this.parseSpotMarketId (this.safeString (arg, 'instId'));
+        let symbol = this.safeCurrencyCode (baseAndQuote['baseId']) + '/' + this.safeCurrencyCode (baseAndQuote['quoteId']);
+        if (instType !== 'sp') {
+            symbol += '_SPBL';
+        }
+        const channel = this.safeString (arg, 'channel');
+        const messageHash = channel + ':' + symbol;
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
+        }
+        const orderbook = this.orderbooks[symbol];
+        const data = this.safeList (message, 'data', []);
+        const dataEntry = this.safeDict (data, 0);
+        const timestamp = this.safeInteger (dataEntry, 'ts');
+        const snapshot = this.parseOrderBook (dataEntry, symbol, timestamp, 'bids', 'asks');
+        orderbook.reset (snapshot);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const data = this.safeDict (message, 'arg', {});
         const channel = this.safeString (data, 'channel');
+        const timeframe = channel.slice (6);
+        const limitForOrderBook = channel.slice (5);
         if (channel === 'ticker') {
             this.handleTicker (client, message);
         }
-        if (channel === 'candle1m' || channel === 'candle5m' || channel === 'candle15m' || channel === 'candle30m' || channel === 'candle1H' || channel === 'candle4H' || channel === 'candle12H' || channel === 'candle1D' || channel === 'candle1W') {
+        if (channel === 'candle' + timeframe) {
             this.handleOHLCV (client, message);
+        }
+        if (channel === 'books' + limitForOrderBook) {
+            this.handleOrderBook (client, message);
         }
     }
 }
