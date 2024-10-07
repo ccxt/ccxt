@@ -3,7 +3,6 @@
 import coincatchRest from '../coincatch.js';
 import type { Dict, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { time } from 'console';
 
 //  ---------------------------------------------------------------------------
 
