@@ -6,7 +6,7 @@ import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class hashkey extends coincatchRest {
+export default class coincatch extends coincatchRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
