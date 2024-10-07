@@ -1,10 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import coincatchRest from '../coincatch.js';
-import { NotSupported } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Ticker } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -288,12 +287,8 @@ export default class coincatch extends coincatchRest {
         const market = this.market (symbol);
         const instId = market['baseId'] + market['quoteId'];
         let channel = 'books';
-        if (limit !== undefined) {
-            if (limit !== 5 && limit !== 15) {
-                throw new NotSupported ('The exchange supports only 5 or 15 levels of the order book');
-            } else {
-                channel += limit.toString ();
-            }
+        if (limit === 5 || limit === 15) {
+            channel += limit.toString ();
         }
         const instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
         const url = this.urls['api']['ws']['public'];
@@ -350,6 +345,108 @@ export default class coincatch extends coincatchRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name hashkey#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.binary] true or false - default false
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const instId = market['baseId'] + market['quoteId'];
+        const channel = 'trade';
+        const instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'op': 'subscribe',
+            'args': [
+                {
+                    'instType': instType,
+                    'channel': channel,
+                    'instId': instId,
+                },
+            ],
+        };
+        const messageHash = 'trade:' + symbol;
+        const trades = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //     {
+        //         action: 'update',
+        //         arg: { instType: 'sp', channel: 'trade', instId: 'ETHUSDT' },
+        //         data: [ [ '1728341807469', '2421.41', '0.478', 'sell' ] ],
+        //         ts: 1728341807482
+        //     }
+        //
+        const arg = this.safeDict (message, 'arg', {});
+        const instType = this.safeStringLower (arg, 'instType');
+        const baseAndQuote = this.parseSpotMarketId (this.safeString (arg, 'instId'));
+        let symbol = this.safeCurrencyCode (baseAndQuote['baseId']) + '/' + this.safeCurrencyCode (baseAndQuote['quoteId']);
+        if (instType !== 'sp') {
+            symbol += '_SPBL';
+        }
+        const market = this.safeMarket (symbol);
+        if (!(symbol in this.trades)) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.trades[symbol] = new ArrayCache (limit);
+        }
+        const stored = this.trades[symbol];
+        let data = this.safeList (message, 'data', []);
+        data[symbol] = symbol;
+        if (data !== undefined) {
+            data = this.sortBy (data, 0);
+            for (let i = 0; i < data.length; i++) {
+                const trade = this.safeList (data, i);
+                const parsed = this.parseWsTrade (trade, market);
+                stored.append (parsed);
+            }
+        }
+        const messageHash = 'trade:' + symbol;
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsTrade (trade, market = undefined): Trade {
+        //
+        //     [
+        //         '1728341807469',
+        //         '2421.41',
+        //         '0.478',
+        //         'sell'
+        //     ]
+        //
+        const marketId = market['id'];
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 0);
+        return this.safeTrade ({
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'side': this.safeStringLower (trade, 3),
+            'price': this.safeString (trade, 1),
+            'amount': this.safeString (trade, 2),
+            'cost': undefined,
+            'takerOrMaker': undefined,
+            'type': undefined,
+            'order': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
+    }
+
     handleMessage (client: Client, message) {
         const data = this.safeDict (message, 'arg', {});
         const channel = this.safeString (data, 'channel');
@@ -363,6 +460,9 @@ export default class coincatch extends coincatchRest {
         }
         if (channel === 'books' + limitForOrderBook) {
             this.handleOrderBook (client, message);
+        }
+        if (channel === 'trade') {
+            this.handleTrades (client, message);
         }
     }
 }
