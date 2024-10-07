@@ -260,7 +260,7 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isTrue(isEqual(type, "spot")))
         {
-            throw new BadRequest ((string)add(this.id, "watchLiquidationsForSymbols is not supported for swap symbols")) ;
+            throw new BadRequest ((string)add(this.id, "watchLiquidationsForSymbols is not supported for spot symbols")) ;
         }
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
