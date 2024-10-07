@@ -1086,6 +1086,8 @@ export default class krakenfutures extends krakenfuturesRest {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'volumeQuote'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
+            'indexPrice': this.safeString (ticker, 'index'),
         });
     }
 

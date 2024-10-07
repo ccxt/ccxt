@@ -78,6 +78,8 @@ export default class mexc extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
@@ -2150,6 +2152,7 @@ export default class mexc extends Exchange {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.leverage] *contract only* leverage is necessary on isolated margin
@@ -2294,6 +2297,7 @@ export default class mexc extends Exchange {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [params.reduceOnly] indicates if this order is to reduce the size of a position
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.leverage] leverage is necessary on isolated margin
@@ -2374,18 +2378,31 @@ export default class mexc extends Exchange {
             }
         }
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        if (reduceOnly) {
-            request['side'] = (side === 'buy') ? 2 : 4;
+        const hedged = this.safeBool(params, 'hedged', false);
+        let sideInteger = undefined;
+        if (hedged) {
+            if (reduceOnly) {
+                params = this.omit(params, 'reduceOnly'); // hedged mode does not accept this parameter
+                side = (side === 'buy') ? 'sell' : 'buy';
+            }
+            sideInteger = (side === 'buy') ? 1 : 3;
+            request['positionMode'] = 1;
         }
         else {
-            request['side'] = (side === 'buy') ? 1 : 3;
+            if (reduceOnly) {
+                sideInteger = (side === 'buy') ? 2 : 4;
+            }
+            else {
+                sideInteger = (side === 'buy') ? 1 : 3;
+            }
         }
+        request['side'] = sideInteger;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'externalOid');
         if (clientOrderId !== undefined) {
             request['externalOid'] = clientOrderId;
         }
         const stopPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice']);
+        params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
         let response = undefined;
         if (stopPrice) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
@@ -2608,6 +2625,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2618,6 +2636,8 @@ export default class mexc extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
@@ -2626,6 +2646,9 @@ export default class mexc extends Exchange {
             const [marginMode, queryInner] = this.handleMarginModeAndParams('fetchOrders', params);
             if (since !== undefined) {
                 request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -2693,10 +2716,22 @@ export default class mexc extends Exchange {
         else {
             if (since !== undefined) {
                 request['start_time'] = since;
-                const end = this.safeInteger(params, 'end_time');
+                const end = this.safeInteger(params, 'end_time', until);
                 if (end === undefined) {
                     request['end_time'] = this.sum(since, this.options['maxTimeTillEnd']);
                 }
+                else {
+                    if ((end - since) > this.options['maxTimeTillEnd']) {
+                        throw new BadRequest(this.id + ' end is invalid, i.e. exceeds allowed 90 days.');
+                    }
+                    else {
+                        request['end_time'] = until;
+                    }
+                }
+            }
+            else if (until !== undefined) {
+                request['start_time'] = this.sum(until, this.options['maxTimeTillEnd'] * -1);
+                request['end_time'] = until;
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
@@ -4203,9 +4238,13 @@ export default class mexc extends Exchange {
         const nextFundingRate = this.safeNumber(contract, 'fundingRate');
         const nextFundingTimestamp = this.safeInteger(contract, 'nextSettleTime');
         const marketId = this.safeString(contract, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        const symbol = this.safeSymbol(marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger(contract, 'timestamp');
-        const datetime = this.iso8601(timestamp);
+        const interval = this.safeString(contract, 'collectCycle');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -4214,7 +4253,7 @@ export default class mexc extends Exchange {
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601(timestamp),
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': this.iso8601(nextFundingTimestamp),
@@ -4224,8 +4263,20 @@ export default class mexc extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         };
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**
@@ -4508,7 +4559,17 @@ export default class mexc extends Exchange {
         const networkCode = this.safeString(params, 'network');
         let networkId = undefined;
         if (networkCode !== undefined) {
-            networkId = this.networkCodeToId(networkCode, code);
+            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            const networkUnified = this.networkIdToCode(networkCode, code);
+            const networks = this.safeDict(currency, 'networks', {});
+            if (networkUnified in networks) {
+                const network = this.safeDict(networks, networkUnified, {});
+                const networkInfo = this.safeValue(network, 'info', {});
+                networkId = this.safeString(networkInfo, 'network');
+            }
+            else {
+                networkId = this.networkCodeToId(networkCode, code);
+            }
         }
         if (networkId !== undefined) {
             request['network'] = networkId;
@@ -4549,7 +4610,18 @@ export default class mexc extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired(this.id + ' createDepositAddress requires a `network` parameter');
         }
-        const networkId = this.networkCodeToId(networkCode, code);
+        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        let networkId = undefined;
+        const networkUnified = this.networkIdToCode(networkCode, code);
+        const networks = this.safeDict(currency, 'networks', {});
+        if (networkUnified in networks) {
+            const network = this.safeDict(networks, networkUnified, {});
+            const networkInfo = this.safeValue(network, 'info', {});
+            networkId = this.safeString(networkInfo, 'network');
+        }
+        else {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         if (networkId !== undefined) {
             request['network'] = networkId;
         }
@@ -4575,7 +4647,6 @@ export default class mexc extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const network = this.safeString(params, 'network');
-        params = this.omit(params, ['network']);
         const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
         let result = undefined;
         if (network !== undefined) {

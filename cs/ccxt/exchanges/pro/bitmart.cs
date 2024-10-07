@@ -1732,7 +1732,7 @@ public partial class bitmart : ccxt.bitmart
                 ((WebSocketClient)client).reject(e, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             }
             ((WebSocketClient)client).reject(e);

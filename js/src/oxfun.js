@@ -862,6 +862,7 @@ export default class oxfun extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'currencyVolume24h'),
             'quoteVolume': undefined,
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }

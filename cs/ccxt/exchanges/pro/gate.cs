@@ -571,8 +571,8 @@ public partial class gate : ccxt.gate
             this.handleDelta(storedOrderBook, delta);
         } else
         {
-
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (isTrue(checksum))
             {
@@ -1824,12 +1824,12 @@ public partial class gate : ccxt.gate
                 ((WebSocketClient)client).reject(e, messageHash);
                 if (isTrue(isTrue((!isEqual(messageHash, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash)))))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             }
             if (isTrue(isTrue((!isEqual(id, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, id)))))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             }
             return true;
         }
@@ -1859,7 +1859,7 @@ public partial class gate : ccxt.gate
         }
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
         }
     }
 
@@ -1926,7 +1926,7 @@ public partial class gate : ccxt.gate
                 object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
                 object symbol = this.safeString(symbolAndTimeFrame, 0);
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
-
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
             }
         } else if (isTrue(isGreaterThan(symbolsLength, 0)))
         {
@@ -1935,13 +1935,13 @@ public partial class gate : ccxt.gate
                 object symbol = getValue(symbols, i);
                 if (isTrue(((string)topic).EndsWith(((string)"trades"))))
                 {
-
+                    ((IDictionary<string,object>)this.trades).Remove((string)symbol);
                 } else if (isTrue(isEqual(topic, "orderbook")))
                 {
-
+                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 } else if (isTrue(isEqual(topic, "ticker")))
                 {
-
+                    ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
                 }
             }
         } else
@@ -1953,7 +1953,7 @@ public partial class gate : ccxt.gate
                 object keys = new List<object>(((IDictionary<string,object>)this.trades).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
-
+                    ((IDictionary<string,object>)this.trades).Remove((string)getValue(keys, i));
                 }
             }
         }

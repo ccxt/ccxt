@@ -1133,7 +1133,7 @@ public partial class htx : Exchange
                 { "SBTC", "SUPERBITCOIN" },
                 { "SOUL", "SOULSAVER" },
                 { "BIFI", "BITCOINFILE" },
-                { "FUD", "FTX Users\' Debt" },
+                { "FUD", "FTX Users' Debt" },
             } },
         });
     }
@@ -3741,6 +3741,12 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchOrder
         * @description fetches information on an order made by the user
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -4465,7 +4471,7 @@ public partial class htx : Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
                 {
                     object account = getValue(this.accounts, i);
-                    if (isTrue(isEqual(getValue(account, "type"), "spot")))
+                    if (isTrue(isEqual(this.safeString(account, "type"), "spot")))
                     {
                         accountId = this.safeString(account, "id");
                         if (isTrue(!isEqual(accountId, null)))
@@ -5178,7 +5184,7 @@ public partial class htx : Exchange
         } else
         {
             amount = this.safeString2(order, "volume", "amount");
-            cost = this.safeStringN(order, new List<object>() {"filled-cash-amount", "field-cash-amount", "trade_turnover"}); // same typo
+            cost = this.safeStringN(order, new List<object>() {"filled-cash-amount", "field-cash-amount", "trade_turnover"}); // same typo here
         }
         object filled = this.safeStringN(order, new List<object>() {"filled-amount", "field-amount", "trade_volume"}); // typo in their API, filled amount
         object price = this.safeString2(order, "price", "order_price");

@@ -1497,7 +1497,7 @@ public partial class hitbtc : ccxt.hitbtc
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
         return message;
@@ -1536,7 +1536,7 @@ public partial class hitbtc : ccxt.hitbtc
                     ((WebSocketClient)client).reject(e, messageHash);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                     {
-
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                     }
                 } else
                 {

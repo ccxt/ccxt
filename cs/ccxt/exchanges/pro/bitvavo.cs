@@ -581,7 +581,7 @@ public partial class bitvavo : ccxt.bitvavo
         object limit = this.safeInteger(subscription, "limit");
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
     }
@@ -1511,7 +1511,7 @@ public partial class bitvavo : ccxt.bitvavo
             // allows further authentication attempts
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
     }

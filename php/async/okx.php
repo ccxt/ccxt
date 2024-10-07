@@ -86,6 +86,8 @@ class okx extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -102,6 +104,7 @@ class okx extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrices' => true,
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -1818,6 +1821,13 @@ class okx extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
+        //      {
+        //          "instType":"SWAP",
+        //          "instId":"BTC-USDT-SWAP",
+        //          "markPx":"200",
+        //          "ts":"1597026383085"
+        //      }
+        //
         //     {
         //         "instType" => "SPOT",
         //         "instId" => "ETH-BTC",
@@ -1868,6 +1878,7 @@ class okx extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'markPx'),
             'info' => $ticker,
         ), $market);
     }
@@ -1972,6 +1983,38 @@ class okx extends Exchange {
             //         )
             //     }
             //
+            $tickers = $this->safe_list($response, 'data', array());
+            return $this->parse_tickers($tickers, $symbols);
+        }) ();
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $market = $this->get_market_from_symbols($symbols);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+            $request = array(
+                'instType' => $this->convert_to_instrument_type($marketType),
+            );
+            if ($marketType === 'option') {
+                $defaultUnderlying = $this->safe_string($this->options, 'defaultUnderlying', 'BTC-USD');
+                $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
+                if ($currencyId === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
+                } else {
+                    $request['uly'] = $currencyId;
+                }
+            }
+            $response = Async\await($this->publicGetPublicMarkPrice ($this->extend($request, $params)));
             $tickers = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($tickers, $symbols);
         }) ();
@@ -2932,7 +2975,7 @@ class okx extends Exchange {
              * @param {string} [$params->positionSide] if position mode is one-way => set to 'net', if position mode is hedge-mode => set to 'long' or 'short'
              * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
              * @param {string} [$params->tpOrdKind] 'condition' or 'limit', the default is 'condition'
-             * @param {string} [$params->hedged] true/false, to automatically set exchange-specific $params needed when trading in hedge mode
+             * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
@@ -4808,38 +4851,30 @@ class okx extends Exchange {
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
              * @param {string} $code unified currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->network] the $network name for the deposit address
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
+            Async\await($this->load_markets());
             $rawNetwork = $this->safe_string_upper($params, 'network');
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
             $params = $this->omit($params, 'network');
+            $code = $this->safe_currency_code($code);
+            $network = $this->network_id_to_code($rawNetwork, $code);
             $response = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
-            $result = null;
-            if ($network === null) {
-                $result = $this->safe_value($response, $code);
+            if ($network !== null) {
+                $result = $this->safe_dict($response, $network);
                 if ($result === null) {
-                    $alias = $this->safe_string($networks, $code, $code);
-                    $result = $this->safe_value($response, $alias);
-                    if ($result === null) {
-                        $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork', 'ERC20');
-                        $result = $this->safe_value($response, $defaultNetwork);
-                        if ($result === null) {
-                            $values = is_array($response) ? array_values($response) : array();
-                            $result = $this->safe_value($values, 0);
-                            if ($result === null) {
-                                throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find deposit address for ' . $code);
-                            }
-                        }
-                    }
+                    throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
                 }
                 return $result;
             }
-            $result = $this->safe_value($response, $network);
-            if ($result === null) {
-                throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
+            $codeNetwork = $this->network_id_to_code($code, $code);
+            if (is_array($response) && array_key_exists($codeNetwork, $response)) {
+                return $response[$codeNetwork];
             }
-            return $result;
+            // if the $network is not specified, return the $first address
+            $keys = is_array($response) ? array_keys($response) : array();
+            $first = $this->safe_string($keys, 0);
+            return $this->safe_dict($response, $first);
         }) ();
     }
 
@@ -6078,6 +6113,19 @@ class okx extends Exchange {
             '86400000' => '24h',
         );
         return $this->safe_string($intervals, $interval, $interval);
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate interval
+             * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rate($symbol, $params));
+        }) ();
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {

@@ -18,14 +18,14 @@ import ccxt.pro as ccxt  # noqa: E402
 # ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
 async def example_proxy_url():
     my_ex = ccxt.kucoin()
-    my_ex.proxy_url = 'http://5.75.153.75:8090/proxy_url.php?caller=https://ccxt.com&url='
+    my_ex.proxy_url = 'http://188.34.194.190:8090/proxy_url.php?caller=https://ccxt.com&url='
     print(await my_ex.fetch('https://api.ipify.org/'))
 
     await my_ex.close()
 
 async def example_http_proxy():
     my_ex = ccxt.kucoin()
-    my_ex.http_proxy = 'http://5.75.153.75:8911'  # "httpProxy" or "httpsProxy" (depending on your proxy protocol)
+    my_ex.http_proxy = 'http://188.34.194.190:8911'  # "httpProxy" or "httpsProxy" (depending on your proxy protocol)
     print(await my_ex.fetch('https://api.ipify.org/'))
 
     await my_ex.close()
@@ -39,8 +39,8 @@ async def example_socks_proxy():
 
 async def example_web_sockets():
     my_ex = ccxt.kucoin()
-    my_ex.http_proxy = 'http://5.75.153.75:8911'  # even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
-    my_ex.ws_proxy = 'http://5.75.153.75:8911'  # "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
+    my_ex.http_proxy = 'http://188.34.194.190:8911'  # even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
+    my_ex.ws_proxy = 'http://188.34.194.190:8911'  # "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
     await my_ex.load_markets()
     while True:
         ticker = await my_ex.watch_ticker('BTC/USDT')

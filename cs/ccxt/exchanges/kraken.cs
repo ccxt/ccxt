@@ -220,7 +220,7 @@ public partial class kraken : Exchange
                     { "BTC", "Bitcoin" },
                     { "CHZ", add(add("Chiliz", " "), "(CHZ)") },
                     { "COMP", add(add("Compound", " "), "(COMP)") },
-                    { "CQT", add(add("	Covalent Query Token", " "), "(CQT)") },
+                    { "CQT", add(add("\tCovalent Query Token", " "), "(CQT)") },
                     { "CRV", add(add("Curve DAO Token", " "), "(CRV)") },
                     { "CTSI", add(add("Cartesi", " "), "(CTSI)") },
                     { "DAI", "Dai" },
@@ -1938,7 +1938,7 @@ public partial class kraken : Exchange
             }
             object extendedOflags = ((bool) isTrue((!isEqual(flags, null)))) ? add(flags, ",viqc") : "viqc";
             ((IDictionary<string,object>)request)["oflags"] = extendedOflags;
-        } else if (isTrue(isTrue(isLimitOrder) && !isTrue(isTrailingAmountOrder)))
+        } else if (isTrue(isTrue(isTrue(isLimitOrder) && !isTrue(isTrailingAmountOrder)) && !isTrue(isTrailingPercentOrder)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -1973,9 +1973,9 @@ public partial class kraken : Exchange
         } else if (isTrue(isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)))
         {
             object trailingPercentString = null;
-            if (isTrue(isTrailingPercentOrder))
+            if (isTrue(!isEqual(trailingPercent, null)))
             {
-                trailingPercentString = ((bool) isTrue((((string)trailingPercent).EndsWith(((string)"%"))))) ? trailingPercent : add("+", (add(this.numberToString(trailingPercent), "%")));
+                trailingPercentString = ((bool) isTrue((((string)trailingPercent).EndsWith(((string)"%"))))) ? (add("+", trailingPercent)) : (add(add("+", trailingPercent), "%"));
             }
             object trailingAmountString = ((bool) isTrue((!isEqual(trailingAmount, null)))) ? add("+", trailingAmount) : null; // must use + for this
             object offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
@@ -1987,7 +1987,7 @@ public partial class kraken : Exchange
                 ((IDictionary<string,object>)request)["ordertype"] = "trailing-stop-limit";
                 if (isTrue(!isEqual(trailingLimitPercent, null)))
                 {
-                    object trailingLimitPercentString = ((bool) isTrue((((string)trailingLimitPercent).EndsWith(((string)"%"))))) ? trailingLimitPercent : (add(this.numberToString(trailingLimitPercent), "%"));
+                    object trailingLimitPercentString = ((bool) isTrue((((string)trailingLimitPercent).EndsWith(((string)"%"))))) ? (add(offset, trailingLimitPercent)) : (add(add(offset, trailingLimitPercent), "%"));
                     ((IDictionary<string,object>)request)["price"] = trailingPercentString;
                     ((IDictionary<string,object>)request)["price2"] = trailingLimitPercentString;
                 } else if (isTrue(!isEqual(trailingLimitAmount, null)))
@@ -2206,7 +2206,7 @@ public partial class kraken : Exchange
         object tradeIds = new List<object>() {};
         if (isTrue(isEqual(orderTrades, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a \'trades\' param (an array of trade id strings)")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
         } else
         {
             for (object i = 0; isLessThan(i, getArrayLength(orderTrades)); postFixIncrement(ref i))
@@ -3165,7 +3165,7 @@ public partial class kraken : Exchange
             object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             return this.parseTransaction(result, currency);
         }
-        throw new ExchangeError ((string)add(this.id, " withdraw() requires a \'key\' parameter (withdrawal key name, as set up on your account)")) ;
+        throw new ExchangeError ((string)add(this.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)

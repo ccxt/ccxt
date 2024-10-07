@@ -416,6 +416,12 @@ public partial class htx
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

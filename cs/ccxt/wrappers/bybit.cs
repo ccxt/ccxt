@@ -393,7 +393,13 @@ public partial class bybit
     /// <item>
     /// <term>params.positionIdx</term>
     /// <description>
-    /// string : *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
+    /// string : *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *contracts only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
     /// <item>

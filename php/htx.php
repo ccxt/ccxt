@@ -3618,6 +3618,12 @@ class htx extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-$order-detail-of-an-$order-based-on-client-$order-$id
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-$order-detail-of-an-$order
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-$order
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-$order
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-$order
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-$order
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -4265,7 +4271,7 @@ class htx extends Exchange {
                 $this->load_accounts();
                 for ($i = 0; $i < count($this->accounts); $i++) {
                     $account = $this->accounts[$i];
-                    if ($account['type'] === 'spot') {
+                    if ($this->safe_string($account, 'type') === 'spot') {
                         $accountId = $this->safe_string($account, 'id');
                         if ($accountId !== null) {
                             break;
@@ -4941,7 +4947,7 @@ class htx extends Exchange {
             }
         } else {
             $amount = $this->safe_string_2($order, 'volume', 'amount');
-            $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo
+            $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo here
         }
         $filled = $this->safe_string_n($order, array( 'filled-amount', 'field-amount', 'trade_volume' )); // typo in their API, $filled $amount
         $price = $this->safe_string_2($order, 'price', 'order_price');

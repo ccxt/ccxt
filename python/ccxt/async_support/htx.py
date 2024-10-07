@@ -3482,6 +3482,12 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4082,7 +4088,7 @@ class htx(Exchange, ImplicitAPI):
                 await self.load_accounts()
                 for i in range(0, len(self.accounts)):
                     account = self.accounts[i]
-                    if account['type'] == 'spot':
+                    if self.safe_string(account, 'type') == 'spot':
                         accountId = self.safe_string(account, 'id')
                         if accountId is not None:
                             break
@@ -4737,7 +4743,7 @@ class htx(Exchange, ImplicitAPI):
                 cost = self.safe_string(order, 'amount')
         else:
             amount = self.safe_string_2(order, 'volume', 'amount')
-            cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo
+            cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo here
         filled = self.safe_string_n(order, ['filled-amount', 'field-amount', 'trade_volume'])  # typo in their API, filled amount
         price = self.safe_string_2(order, 'price', 'order_price')
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled feeSide

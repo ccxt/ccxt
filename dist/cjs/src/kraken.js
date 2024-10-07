@@ -1823,7 +1823,7 @@ class kraken extends kraken$1 {
             const extendedOflags = (flags !== undefined) ? flags + ',viqc' : 'viqc';
             request['oflags'] = extendedOflags;
         }
-        else if (isLimitOrder && !isTrailingAmountOrder) {
+        else if (isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
@@ -1852,8 +1852,8 @@ class kraken extends kraken$1 {
         }
         else if (isTrailingAmountOrder || isTrailingPercentOrder) {
             let trailingPercentString = undefined;
-            if (isTrailingPercentOrder) {
-                trailingPercentString = (trailingPercent.endsWith('%')) ? trailingPercent : '+' + (this.numberToString(trailingPercent) + '%');
+            if (trailingPercent !== undefined) {
+                trailingPercentString = (trailingPercent.endsWith('%')) ? ('+' + trailingPercent) : ('+' + trailingPercent + '%');
             }
             const trailingAmountString = (trailingAmount !== undefined) ? '+' + trailingAmount : undefined; // must use + for this
             const offset = this.safeString(params, 'offset', '-'); // can use + or - for this
@@ -1863,7 +1863,7 @@ class kraken extends kraken$1 {
             if (isLimitOrder || (trailingLimitAmount !== undefined) || (trailingLimitPercent !== undefined)) {
                 request['ordertype'] = 'trailing-stop-limit';
                 if (trailingLimitPercent !== undefined) {
-                    const trailingLimitPercentString = (trailingLimitPercent.endsWith('%')) ? trailingLimitPercent : (this.numberToString(trailingLimitPercent) + '%');
+                    const trailingLimitPercentString = (trailingLimitPercent.endsWith('%')) ? (offset + trailingLimitPercent) : (offset + trailingLimitPercent + '%');
                     request['price'] = trailingPercentString;
                     request['price2'] = trailingLimitPercentString;
                 }

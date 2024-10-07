@@ -156,6 +156,8 @@
                   "average": 1.254558,
                   "baseVolume": 10705.03736069,
                   "quoteVolume": 13615.501509988173,
+                  "markPrice": null,
+                  "indexPrice": null,
                   "info": {
                     "firstPrice": "1.255473",
                     "lastPrice": "1.253644",

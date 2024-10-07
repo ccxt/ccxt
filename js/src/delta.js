@@ -966,6 +966,8 @@ export default class delta extends Exchange {
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'volume'),
             'quoteVolume': this.safeNumber(ticker, 'turnover'),
+            'markPrice': this.safeNumber(ticker, 'mark_price'),
+            'indexPrice': this.safeNumber(ticker, 'spot_price'),
             'info': ticker,
         }, market);
     }

@@ -1109,7 +1109,7 @@ public partial class cex : ccxt.cex
         object messageHash = add("orderbook:", symbol);
         if (isTrue(!isEqual(incrementalId, add(getValue(storedOrderBook, "nonce"), 1))))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(add(this.id, " watchOrderBook() skipped a message"), messageHash);
         }
         object timestamp = this.safeInteger(data, "time");

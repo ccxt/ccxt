@@ -1407,6 +1407,14 @@
                 ]
             }
         ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetch mark prices",
+                "method": "fetchMarkPrices",
+                "url": "https://www.okx.com/api/v5/public/mark-price?instType=SWAP",
+                "input": []
+              }
+        ],
         "fetchTickers": [
             {
                 "description": "spot tickers",
@@ -1545,6 +1553,16 @@
                 "method": "fetchPositionMode",
                 "url": "https://www.okx.com/api/v5/account/config",
                 "input": []
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USDT-SWAP",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
             }
         ]
     }

@@ -54,6 +54,8 @@ public partial class coinex : Exchange
                 { "fetchDepositWithdrawFee", true },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
@@ -913,6 +915,8 @@ public partial class coinex : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", null },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }
@@ -3661,10 +3665,25 @@ public partial class coinex : Exchange
         return this.parseFundingRate(first, market);
     }
 
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinex#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
+    }
+
     public override object parseFundingRate(object contract, object market = null)
     {
         //
-        // fetchFundingRate, fetchFundingRates
+        // fetchFundingRate, fetchFundingRates, fetchFundingInterval
         //
         //     {
         //         "latest_funding_rate": "0",

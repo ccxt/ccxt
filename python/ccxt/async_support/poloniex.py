@@ -633,6 +633,7 @@ class poloniex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'quantity'),
             'quoteVolume': self.safe_string(ticker, 'amount'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
         }, market)
 

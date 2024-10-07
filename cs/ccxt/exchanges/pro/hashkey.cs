@@ -906,7 +906,7 @@ public partial class hashkey : ccxt.hashkey
             var client = this.client(url);
             ((IDictionary<string,object>)this.options)["listenKey"] = null;
             ((WebSocketClient)client).reject(error);
-
+            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)url);
         }
     }
 
