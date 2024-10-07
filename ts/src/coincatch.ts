@@ -200,8 +200,8 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/order/history': 2, // done
                         'api/mix/v1/order/historyProductType': 4, // done
                         'api/mix/v1/order/detail': 2, // done
-                        'api/mix/v1/order/fills': 2, // todo fetchMyTrades
-                        'api/mix/v1/order/allFills': 2, // todo fetchMyTrades
+                        'api/mix/v1/order/fills': 2, // done
+                        'api/mix/v1/order/allFills': 2, // done
                         'api/mix/v1/plan/currentPlan': 1, // todo
                         'api/mix/v1/plan/historyPlan': 2, // todo
                     },
