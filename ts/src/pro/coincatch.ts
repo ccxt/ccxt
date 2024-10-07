@@ -45,13 +45,12 @@ export default class hashkey extends coincatchRest {
          * @see https://coincatch.github.io/github.io/en/spot/#tickers-channel
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.instType] the type of the instrument to fetch the ticker for, 'SP' for spot markets, 'MC' for futures markets (default is 'SP')
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolFromMarket = market['symbol'];
-        const parts = symbolFromMarket.split ('/');
-        const instId = parts[0] + parts[1];
+        const instId = market['baseId'] + market['quoteId'];
         const channel = 'ticker';
         const instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
         const url = this.urls['api']['ws']['public'];
@@ -65,7 +64,7 @@ export default class hashkey extends coincatchRest {
                 },
             ],
         };
-        const messageHash = channel + '.' + symbol;
+        const messageHash = channel + ':' + symbol;
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
@@ -94,12 +93,19 @@ export default class hashkey extends coincatchRest {
         //     ],
         //     ts: 1728131730688
         //
-        const ticker = this.safeList (message, 'data', []);
-        const marketId = this.safeString (ticker, 'instId');
-        const symbol = this.safeSymbol (marketId);
-        this.tickers[symbol] = this.parseWSTicker (ticker);
-        client.resolve (this.tickers[symbol], 'ticker.' + symbol);
-        client.resolve (this.tickers, 'tickers');
+        const arg = this.safeDict (message, 'arg', {});
+        const instType = this.safeStringLower (arg, 'instType');
+        const baseAndQuote = this.parseSpotMarketId (this.safeString (arg, 'instId'));
+        let symbol = this.safeCurrencyCode (baseAndQuote['baseId']) + '/' + this.safeCurrencyCode (baseAndQuote['quoteId']);
+        if (instType !== 'sp') {
+            symbol += '_SPBL';
+        }
+        const market = this.safeMarket (symbol);
+        const data = this.safeList (message, 'data', []);
+        const ticker = this.parseWSTicker (this.safeDict (data, 0, {}), market);
+        const messageHash = 'ticker:' + symbol;
+        this.tickers[symbol] = ticker;
+        client.resolve (this.tickers[symbol], messageHash);
     }
 
     parseWSTicker (ticker, market = undefined) {
@@ -123,8 +129,9 @@ export default class hashkey extends coincatchRest {
         //     }
         //
         const marketId = this.safeString (ticker, 'instId');
+        const symbol = this.safeSymbol (marketId, market);
         return this.safeTicker ({
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': symbol,
             'timestamp': this.safeInteger (ticker, 'ts'),
             'datetime': this.iso8601 (this.safeInteger (ticker, 'ts')),
             'high': this.safeString (ticker, 'high24h'),
@@ -148,18 +155,10 @@ export default class hashkey extends coincatchRest {
     }
 
     handleMessage (client: Client, message) {
-        const data = this.safeDict (message, 'params');
-        if (data !== undefined) {
-            const channel = this.safeString (data, 'channel');
-            const parts = channel.split ('.');
-            const name = this.safeString (parts, 0);
-            const methods: Dict = {
-                'ticker': this.handleTicker,
-            };
-            const method = this.safeValue (methods, name);
-            if (method !== undefined) {
-                method.call (this, client, message);
-            }
+        const data = this.safeDict (message, 'arg', {});
+        const channel = this.safeString (data, 'channel');
+        if (channel === 'ticker') {
+            this.handleTicker (client, message);
         }
     }
 }
