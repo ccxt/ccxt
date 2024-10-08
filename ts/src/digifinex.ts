@@ -802,6 +802,10 @@ export default class digifinex extends Exchange {
             const account = this.account ();
             const free = this.safeString2 (balance, 'free', 'avail_balance');
             const total = this.safeString2 (balance, 'total', 'equity');
+            const unrealizedPnl = this.safeNumber (balance, 'unrealized_pnl');
+            if (unrealizedPnl !== undefined) {
+                account['unrealizedPnl'] = unrealizedPnl;
+            }
             account['free'] = free;
             account['used'] = Precise.stringSub (total, free);
             account['total'] = total;
