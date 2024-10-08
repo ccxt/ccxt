@@ -198,8 +198,8 @@ export default class cube extends Exchange {
         // Access assetsById and feeTablesById from this.options
         const assetsById = this.safeValue (this.options, 'assetsById', {});
         const feeTablesById = this.safeValue (this.options, 'feeTablesById', {});
-        const baseAsset = this.safeValue (assetsById, market['baseAssetId']);
-        const quoteAsset = this.safeValue (assetsById, market['quoteAssetId']);
+        const baseAsset = this.safeValue (assetsById, market['baseAssetId'], {});
+        const quoteAsset = this.safeValue (assetsById, market['quoteAssetId'], {});
         const id = this.safeString (market, 'marketId');
         const baseAssetId = this.safeString (market, 'baseAssetId');
         const quoteAssetId = this.safeString (market, 'quoteAssetId');
@@ -259,7 +259,7 @@ export default class cube extends Exchange {
                 },
             },
             'created': undefined,
-            'info': this.safeValue (market, 'result'),
+            'info': market,
         };
     }
 
