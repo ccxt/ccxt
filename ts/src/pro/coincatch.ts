@@ -302,6 +302,7 @@ export default class coincatch extends coincatchRest {
         //
         const marketId = this.safeString (ticker, 'instId');
         const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': this.safeInteger (ticker, 'ts'),
@@ -313,9 +314,9 @@ export default class coincatch extends coincatchRest {
             'ask': this.safeString (ticker, 'bestAsk'),
             'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
-            'open': undefined,
-            'close': this.safeString (ticker, 'open24h'),
-            'last': this.safeString (ticker, 'last'),
+            'open': this.safeString (ticker, 'open24h'),
+            'close': last,
+            'last': last,
             'previousClose': undefined,
             'change': this.safeString (ticker, 'chgUTC'),
             'percentage': undefined,
