@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coincatchRest from '../coincatch.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -191,6 +191,48 @@ export default class coincatch extends coincatchRest {
          */
         await this.loadMarkets ();
         return await this.unWatchChannel (symbol, 'ticker', 'ticker', params);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name coincatch#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
+         * @param {string[]} symbols unified symbol of the market to watch the tickers for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const market = this.market (symbols[0]);
+        let instType = undefined;
+        if (market['spot']) {
+            instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
+        } else if (market['futures'] || market['swap']) {
+            instType = 'MC';
+        }
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketInner = this.market (symbol);
+            const instId = marketInner['baseId'] + marketInner['quoteId'];
+            const args: Dict = {
+                'instType': instType,
+                'channel': 'ticker',
+                'instId': instId,
+            };
+            topics.push (args);
+            messageHashes.push ('ticker:' + symbol);
+        }
+        const tickers = await this.watchPublicMultiple (messageHashes, topics, params);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[tickers['symbol']] = tickers;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
