@@ -187,12 +187,14 @@ export default class cube extends Exchange {
         const response = await this.irPublicGetMarkets (params);
         const resultResponse = this.safeValue (response, 'result', {});
         const data = this.safeValue (resultResponse, 'data', []);
-        return data.map ((market) => {
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
             const baseId = this.safeString (market, 'base_ccy');
             const quoteId = this.safeString (market, 'quote_ccy');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            return {
+            const marketData = {
                 'id': this.safeString (market, 'symbol'),
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -250,7 +252,9 @@ export default class cube extends Exchange {
                 },
                 'info': market,
             };
-        });
+            result.push (marketData);
+        }
+        return result;
     }
 
     async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
