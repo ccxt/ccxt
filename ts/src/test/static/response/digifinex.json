@@ -186,12 +186,12 @@
                 },
                 "parsedResponse": {
                     "info": [
-                        { "total": "0", "free": "0", "currency": "BTC" },
-                        { "total": "0", "free": "0", "currency": "LTC" },
-                        { "total": "0", "free": "0", "currency": "ETH" },
-                        { "total": "5.350712e-07", "free": "5.350712e-07", "currency": "USDT" },
-                        { "total": "0", "free": "0", "currency": "TRX" },
-                        { "total": "2", "free": "2", "currency": "POL" }
+                        { "total": 0, "free": 0, "currency": "BTC" },
+                        { "total": 0, "free": 0, "currency": "LTC" },
+                        { "total": 0, "free": 0, "currency": "ETH" },
+                        { "total": 5.350712e-07, "free": 5.350712e-07, "currency": "USDT" },
+                        { "total": 0, "free": 0, "currency": "TRX" },
+                        { "total": 2, "free": 2, "currency": "POL" }
                     ],
                     "BTC": { "free": 0, "used": 0, "total": 0 },
                     "LTC": { "free": 0, "used": 0, "total": 0 },
@@ -249,7 +249,7 @@
                             "avail_balance": "7.000000006",
                             "unrealized_pnl": "0",
                             "isolate_unrealized_pnl": "",
-                            "time_stamp": "1700007524270"
+                            "time_stamp": 1700007524270
                         }
                     ],
                     "USDT": { "free": 7.000000006, "used": 0, "total": 7.000000006, "unrealizedPnl": 0 },
