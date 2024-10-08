@@ -1,6 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coincatchRest from '../coincatch.js';
+import { ChecksumError } from '../base/errors.js';
 import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -550,17 +551,74 @@ export default class coincatch extends coincatchRest {
         }
         const channel = this.safeString (arg, 'channel');
         const messageHash = channel + ':' + symbol;
-        if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ({});
-        }
-        const orderbook = this.orderbooks[symbol];
         const data = this.safeList (message, 'data', []);
-        const dataEntry = this.safeDict (data, 0);
-        const timestamp = this.safeInteger (dataEntry, 'ts');
-        const snapshot = this.parseOrderBook (dataEntry, symbol, timestamp, 'bids', 'asks');
-        orderbook.reset (snapshot);
-        this.orderbooks[symbol] = orderbook;
-        client.resolve (orderbook, messageHash);
+        const rawOrderBook = this.safeDict (data, 0);
+        const timestamp = this.safeInteger (rawOrderBook, 'ts');
+        const incrementalBook = channel;
+        if (incrementalBook) {
+            if (!(symbol in this.orderbooks)) {
+                const ob = this.countedOrderBook ({});
+                ob['symbol'] = symbol;
+                this.orderbooks[symbol] = ob;
+            }
+            const storedOrderBook = this.orderbooks[symbol];
+            const asks = this.safeList (rawOrderBook, 'asks', []);
+            const bids = this.safeList (rawOrderBook, 'bids', []);
+            this.handleDeltas (storedOrderBook['asks'], asks);
+            this.handleDeltas (storedOrderBook['bids'], bids);
+            storedOrderBook['timestamp'] = timestamp;
+            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            const checksum = this.safeBool (this.options, 'checksum', true);
+            const isSnapshot = this.safeString (message, 'action') === 'snapshot';
+            if (!isSnapshot && checksum) {
+                const storedAsks = storedOrderBook['asks'];
+                const storedBids = storedOrderBook['bids'];
+                const asksLength = storedAsks.length;
+                const bidsLength = storedBids.length;
+                const payloadArray = [];
+                for (let i = 0; i < 25; i++) {
+                    if (i < bidsLength) {
+                        payloadArray.push (storedBids[i][2][0]);
+                        payloadArray.push (storedBids[i][2][1]);
+                    }
+                    if (i < asksLength) {
+                        payloadArray.push (storedAsks[i][2][0]);
+                        payloadArray.push (storedAsks[i][2][1]);
+                    }
+                }
+                const payload = payloadArray.join (':');
+                const calculatedChecksum = this.crc32 (payload, true);
+                const responseChecksum = this.safeInteger (rawOrderBook, 'checksum');
+                if (calculatedChecksum !== responseChecksum) {
+                    this.spawn (this.handleCheckSumError, client, symbol, messageHash);
+                    return;
+                }
+            }
+        } else {
+            const orderbook = this.orderBook ({});
+            const parsedOrderbook = this.parseOrderBook (rawOrderBook, symbol, timestamp);
+            orderbook.reset (parsedOrderbook);
+            this.orderbooks[symbol] = orderbook;
+        }
+        client.resolve (this.orderbooks[symbol], messageHash);
+    }
+
+    async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
+        await this.unWatchOrderBook (symbol);
+        const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        client.reject (error, messageHash);
+    }
+
+    handleDelta (bookside, delta) {
+        const bidAsk = this.parseBidAsk (delta, 0, 1);
+        bidAsk.push (delta);
+        bookside.storeArray (bidAsk);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
