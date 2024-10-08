@@ -1766,6 +1766,10 @@ export default class hashkey extends Exchange {
         const positionMargin = this.safeString (balance, 'positionMargin');
         const orderMargin = this.safeString (balance, 'orderMargin');
         account['used'] = Precise.stringAdd (positionMargin, orderMargin);
+        const unrealizedPnl = this.safeNumber (balance, 'crossUnRealizedPnl');
+        if (unrealizedPnl !== undefined) {
+            account['unrealizedPnl'] = unrealizedPnl;
+        }
         const result: Dict = {
             'info': balance,
         };
