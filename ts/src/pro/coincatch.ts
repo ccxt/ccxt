@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coincatchRest from '../coincatch.js';
-import { ChecksumError } from '../base/errors.js';
+import { ArgumentsRequired, ChecksumError } from '../base/errors.js';
 import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -14,13 +14,15 @@ export default class coincatch extends coincatchRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchTrades': false,
+                'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOrders': false,
                 'watchMyTrades': false,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchBalance': false,
             },
             'urls': {
@@ -32,6 +34,8 @@ export default class coincatch extends coincatchRest {
                 },
             },
             'options': {
+                'tradesLimit': 1000,
+                'OHLCVLimit': 200,
                 'timeframesForWs': {
                     '1m': '1m',
                     '5m': '5m',
@@ -625,37 +629,75 @@ export default class coincatch extends coincatchRest {
         /**
          * @method
          * @name hashkey#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name hashkey#watchTrades
          * @description watches information on multiple trades made in a market
          * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.binary] true or false - default false
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const instId = market['baseId'] + market['quoteId'];
-        const channel = 'trade';
-        const instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-        const url = this.urls['api']['ws']['public'];
-        const request: Dict = {
-            'op': 'subscribe',
-            'args': [
-                {
-                    'instType': instType,
-                    'channel': channel,
-                    'instId': instId,
-                },
-            ],
-        };
-        const messageHash = 'trade:' + symbol;
-        const trades = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        symbols = this.marketSymbols (symbols);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const instId = market['baseId'] + market['quoteId'];
+            let instType = undefined;
+            if (market['spot']) {
+                instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
+            } else if (market['futures'] || market['swap']) {
+                instType = 'MC';
+            }
+            const args: Dict = {
+                'instType': instType,
+                'channel': 'trade',
+                'instId': instId,
+            };
+            topics.push (args);
+            messageHashes.push ('trade:' + symbol);
+        }
+        const trades = await this.watchPublicMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name hashkey#unWatchTrades
+         * @description unsubscribe from the trades channel
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         * @param {string} symbol unified symbol of the market to unwatch the trades for
+         * @returns {any} status of the unwatch request
+         */
+        await this.loadMarkets ();
+        return await this.unWatchChannel (symbol, 'trade', 'trade', params);
     }
 
     handleTrades (client: Client, message) {
