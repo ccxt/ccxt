@@ -4,7 +4,7 @@
     "methods": {
         "fetchTime": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "Fetch time",
                 "method": "fetchTime",
                 "input": [],
                 "httpResponse": {
@@ -910,7 +910,7 @@
         ],
         "fetchPosition": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "Fetch position",
                 "method": "fetchPosition",
                 "input": [
                     "ETH/USDT:USDT"
