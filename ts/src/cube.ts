@@ -259,7 +259,7 @@ export default class cube extends Exchange {
                 },
             },
             'created': undefined,
-            'info': market,
+            'info': this.safeValue (market, 'result'),
         };
     }
 
