@@ -1100,6 +1100,8 @@ export default class coincatch extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'baseVol', 'baseVolume'),
             'quoteVolume': this.safeString2 (ticker, 'quoteVol', 'quoteVolume'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'markPrice': undefined,
             'info': ticker,
         }, market);
     }
