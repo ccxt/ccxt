@@ -3613,6 +3613,10 @@ export default class mexc extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (entry, 'availableBalance');
                 account['used'] = this.safeString (entry, 'frozenBalance');
+                const unrealizedPnl = this.safeNumber (entry, 'unrealized');
+                if (unrealizedPnl !== undefined) {
+                    account['unrealizedPnl'] = unrealizedPnl;
+                }
                 result[code] = account;
             }
             return this.safeBalance (result);
