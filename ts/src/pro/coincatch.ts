@@ -3,6 +3,7 @@
 import coincatchRest from '../coincatch.js';
 import type { Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -51,6 +52,35 @@ export default class coincatch extends coincatchRest {
         });
     }
 
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const timestamp = this.seconds ().toString ();
+            const auth = timestamp + 'GET' + '/user/verify';
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
+            const operation = 'login';
+            const request: Dict = {
+                'op': operation,
+                'args': [
+                    {
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'sign': signature,
+                    },
+                ],
+            };
+            const message = this.extend (request, params);
+            this.watch (url, messageHash, message, messageHash);
+        }
+        return await future;
+    }
+
     async watchPublic (messageHash, args, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
@@ -69,6 +99,36 @@ export default class coincatch extends coincatchRest {
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchPrivate (messageHash, subscriptionHash, args, params = {}) {
+        await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const request: Dict = {
+            'op': 'subscribe',
+            'args': [ args ],
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, subscriptionHash);
+    }
+
+    handleAuthenticate (client: Client, message) {
+        //
+        //  { event: "login", code: 0 }
+        //
+        const messageHash = 'authenticated';
+        const future = this.safeValue (client.futures, messageHash);
+        future.resolve (true);
+    }
+
+    async watchPublicMultiple (messageHashes, argsArray, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'op': 'subscribe',
+            'args': argsArray,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, params = {}): Promise<any> {
@@ -348,31 +408,79 @@ export default class coincatch extends coincatchRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name bitget#unWatchOrderBook
+         * @description unsubscribe from the orderbook channel
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [params.limit] orderbook limit, default is undefined
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        let channel = 'books';
+        const limit = this.safeInteger (params, 'limit');
+        if ((limit === 5) || (limit === 15)) {
+            params = this.omit (params, 'limit');
+            channel += limit.toString ();
+        }
+        return await this.unWatchChannel (symbol, channel, channel, params);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name coincatch#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return (only 5 or 15 in exchange).
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const instId = market['baseId'] + market['quoteId'];
+        symbols = this.marketSymbols (symbols);
         let channel = 'books';
-        if (limit === 5 || limit === 15) {
+        let incrementalFeed = true;
+        if ((limit === 5) || (limit === 15)) {
             channel += limit.toString ();
+            incrementalFeed = false;
         }
-        const instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-        const url = this.urls['api']['ws']['public'];
-        const request: Dict = {
-            'args': [
-                {
-                    'instType': instType,
-                    'channel': channel,
-                    'instId': instId,
-                },
-            ],
-        };
-        const messageHash = channel + ':' + symbol;
-        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        return orderbook.limit ();
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const instId = market['baseId'] + market['quoteId'];
+            let instType = undefined;
+            if (market['spot']) {
+                instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
+            } else if (market['futures'] || market['swap']) {
+                instType = 'MC';
+            }
+            const args: Dict = {
+                'instType': instType,
+                'channel': channel,
+                'instId': instId,
+            };
+            topics.push (args);
+            messageHashes.push (channel + ':' + symbol);
+        }
+        const orderbook = await this.watchPublicMultiple (messageHashes, topics, params);
+        if (incrementalFeed) {
+            return orderbook.limit ();
+        } else {
+            return orderbook;
+        }
     }
 
     handleOrderBook (client: Client, message) {
