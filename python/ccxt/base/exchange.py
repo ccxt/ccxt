@@ -333,7 +333,7 @@ class Exchange(object):
     rateLimitMaxTokens = 16
     rateLimitUpdateTime = 0
     enableLastHttpResponse = True
-    enableLastJsonResponse = True
+    enableLastJsonResponse = False
     enableLastResponseHeaders = True
     last_http_response = None
     last_json_response = None

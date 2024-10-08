@@ -291,7 +291,7 @@ export default class Exchange {
         quote?: Num,
     } = undefined
 
-    enableLastJsonResponse: boolean = true
+    enableLastJsonResponse: boolean = false
     enableLastHttpResponse: boolean = true
     enableLastResponseHeaders: boolean = true
     last_http_response    = undefined
