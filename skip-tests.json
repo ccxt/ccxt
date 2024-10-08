@@ -1344,9 +1344,9 @@
         }
     },
     "oxfun": {
-        "skip": "temporarily before new proxy ip",
-        "httpsProxy": "http://5.75.153.75:8911",
-        "wsProxy": "http://5.75.153.75:8911",
+        "skip": "cloudflare captcha block",
+        "httpProxy": "http://188.34.194.190:8911",
+        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
