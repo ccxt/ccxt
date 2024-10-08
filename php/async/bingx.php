@@ -71,6 +71,7 @@ class bingx extends Exchange {
                 'fetchMarginMode' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -464,11 +465,14 @@ class bingx extends Exchange {
                     '100419' => '\\ccxt\\PermissionDenied', // array("code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347)
                     '100437' => '\\ccxt\\BadRequest', // array("code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845)
                     '101204' => '\\ccxt\\InsufficientFunds', // array("code":101204,"msg":"","data":array())
+                    '110425' => '\\ccxt\\InvalidOrder', // array("code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":array())
                 ),
                 'broad' => array(),
             ),
             'commonCurrencies' => array(
                 'SNOW' => 'Snowman', // Snowman vs SnowSwap conflict
+                'OMNI' => 'OmniCat',
+                'NAP' => '$NAP', // NAP on SOL = SNAP
             ),
             'options' => array(
                 'defaultType' => 'spot',
@@ -490,6 +494,9 @@ class bingx extends Exchange {
                     'USDC' => 'ERC20',
                     'BTC' => 'BTC',
                     'LTC' => 'LTC',
+                ),
+                'networks' => array(
+                    'ARB' => 'ARBITRUM',
                 ),
             ),
         ));
@@ -582,17 +589,22 @@ class bingx extends Exchange {
                 $networkList = $this->safe_list($entry, 'networkList');
                 $networks = array();
                 $fee = null;
-                $active = null;
-                $depositEnabled = null;
-                $withdrawEnabled = null;
+                $depositEnabled = false;
+                $withdrawEnabled = false;
                 $defaultLimits = array();
                 for ($j = 0; $j < count($networkList); $j++) {
                     $rawNetwork = $networkList[$j];
                     $network = $this->safe_string($rawNetwork, 'network');
                     $networkCode = $this->network_id_to_code($network);
                     $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
-                    $depositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
-                    $withdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
+                    $networkDepositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
+                    if ($networkDepositEnabled) {
+                        $depositEnabled = true;
+                    }
+                    $networkWithdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
+                    if ($networkWithdrawEnabled) {
+                        $withdrawEnabled = true;
+                    }
                     $limits = array(
                         'withdraw' => array(
                             'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
@@ -601,21 +613,22 @@ class bingx extends Exchange {
                     );
                     if ($isDefault) {
                         $fee = $this->safe_number($rawNetwork, 'withdrawFee');
-                        $active = $depositEnabled || $withdrawEnabled;
                         $defaultLimits = $limits;
                     }
+                    $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
                     $networks[$networkCode] = array(
                         'info' => $rawNetwork,
                         'id' => $network,
                         'network' => $networkCode,
                         'fee' => $fee,
-                        'active' => $active,
-                        'deposit' => $depositEnabled,
-                        'withdraw' => $withdrawEnabled,
+                        'active' => $networkActive,
+                        'deposit' => $networkDepositEnabled,
+                        'withdraw' => $networkWithdrawEnabled,
                         'precision' => null,
                         'limits' => $limits,
                     );
                 }
+                $active = $depositEnabled || $withdrawEnabled;
                 $result[$code] = array(
                     'info' => $entry,
                     'code' => $code,
@@ -652,7 +665,12 @@ class bingx extends Exchange {
             //                    "maxNotional" => 20000,
             //                    "status" => 1,
             //                    "tickSize" => 0.000001,
-            //                    "stepSize" => 1
+            //                    "stepSize" => 1,
+            //                    "apiStateSell" => true,
+            //                    "apiStateBuy" => true,
+            //                    "timeOnline" => 0,
+            //                    "offTime" => 0,
+            //                    "maintainTime" => 0
             //                  ),
             //                  ...
             //              )
@@ -768,7 +786,7 @@ class bingx extends Exchange {
         $isActive = false;
         if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
             $isActive = true; // $swap active
-        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy')) {
+        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy') && ($this->safe_number($market, 'status') === 1)) {
             $isActive = true; // $spot active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
@@ -1339,7 +1357,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -1381,33 +1399,25 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetch the current funding rate
+             * fetch the current funding rate for multiple $symbols
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
-             * @param {string[]} [$symbols] list of unified $market $symbols
+             * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, 'swap', true);
             $response = Async\await($this->swapV2PublicGetQuotePremiumIndex ($this->extend($params)));
             $data = $this->safe_list($response, 'data', array());
-            $filteredResponse = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $item = $data[$i];
-                $marketId = $this->safe_string($item, 'symbol');
-                $market = $this->safe_market($marketId, null, null, 'swap');
-                if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
-                    $filteredResponse[] = $this->parse_funding_rate($item, $market);
-                }
-            }
-            return $filteredResponse;
+            $result = $this->parse_funding_rates($data);
+            return $this->filter_by_array($result, 'symbol', $symbols);
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1437,6 +1447,7 @@ class bingx extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
@@ -1738,7 +1749,76 @@ class bingx extends Exchange {
         }) ();
     }
 
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches mark prices for multiple markets
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbols !== null) {
+                $symbols = $this->market_symbols($symbols);
+                $firstSymbol = $this->safe_string($symbols, 0);
+                if ($firstSymbol !== null) {
+                    $market = $this->market($firstSymbol);
+                }
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrices', $market, $params, 'linear');
+            $response = null;
+            if ($subType === 'inverse') {
+                $response = Async\await($this->cswapV1PublicGetMarketPremiumIndex ($params));
+            } else {
+                $response = Async\await($this->swapV2PublicGetQuotePremiumIndex ($params));
+            }
+            //
+            // spot and swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "timestamp" => 1720647285296,
+            //         "data" => array(
+            //             array(
+            //                 "symbol" => "SOL-USD",
+            //                 "priceChange" => "-2.418",
+            //                 "priceChangePercent" => "-1.6900%",
+            //                 "lastPrice" => "140.574",
+            //                 "lastQty" => "1",
+            //                 "highPrice" => "146.190",
+            //                 "lowPrice" => "138.586",
+            //                 "volume" => "1464648.00",
+            //                 "quoteVolume" => "102928.12",
+            //                 "openPrice" => "142.994",
+            //                 "closeTime" => "1720647284976",
+            //                 "bidPrice" => "140.573",
+            //                 "bidQty" => "372",
+            //                 "askPrice" => "140.577",
+            //                 "askQty" => "58"
+            //             ),
+            //             ...
+            //         )
+            //     }
+            //
+            $tickers = $this->safe_list($response, 'data');
+            return $this->parse_tickers($tickers, $symbols);
+        }) ();
+    }
+
     public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        // mark price
+        // {
+        //     "symbol" => "string",
+        //     "lastFundingRate" => "string",
+        //     "markPrice" => "string",
+        //     "indexPrice" => "string",
+        //     "nextFundingTime" => "int64"
+        // }
         //
         // spot
         //    {
@@ -1826,6 +1906,8 @@ class bingx extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -2559,6 +2641,7 @@ class bingx extends Exchange {
             $positionSide = null;
             $hedged = $this->safe_bool($params, 'hedged', false);
             if ($hedged) {
+                $params = $this->omit($params, 'reduceOnly');
                 if ($reduceOnly) {
                     $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
                 } else {
@@ -2570,7 +2653,7 @@ class bingx extends Exchange {
             $request['positionSide'] = $positionSide;
             $request['quantity'] = ($market['inverse']) ? $amount : $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)); // precision not available for inverse contracts
         }
-        $params = $this->omit($params, array( 'hedged', 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return $this->extend($request, $params);
     }
 
@@ -2602,6 +2685,7 @@ class bingx extends Exchange {
              * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
              * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
              * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
+             * @param {string} [$params->positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
              * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -4436,13 +4520,30 @@ class bingx extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
-        $network = $this->safe_string($depositAddress, 'network');
+        // the exchange API returns deposit addresses without the leading '0x' prefix
+        // however, the exchange API does require the 0x prefix to withdraw
+        // so we append the prefix before returning the $address to the user
+        // that is only if the underlying contract $address has the 0x prefix
+        $networkCode = $this->safe_string($depositAddress, 'network');
+        if ($networkCode !== null) {
+            if (is_array($currency['networks']) && array_key_exists($networkCode, $currency['networks'])) {
+                $network = $currency['networks'][$networkCode];
+                $contractAddress = $this->safe_string($network['info'], 'contractAddress');
+                if ($contractAddress !== null) {
+                    if ($contractAddress[0] === '0' && $contractAddress[1] === 'x') {
+                        if ($address[0] !== '0' || $address[1] !== 'x') {
+                            $address = '0x' . $address;
+                        }
+                    }
+                }
+            }
+        }
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
+            'network' => $networkCode,
             'info' => $depositAddress,
         );
     }

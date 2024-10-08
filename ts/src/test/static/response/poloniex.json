@@ -98,6 +98,8 @@
                     "average": 72762.59,
                     "baseVolume": 2626.111269,
                     "quoteVolume": 188276700.82567152,
+                    "markPrice":  73370.07,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTC_USDT",
                         "open": "72144.71",

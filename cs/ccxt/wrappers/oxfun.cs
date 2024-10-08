@@ -134,7 +134,7 @@ public partial class oxfun
         return new OrderBook(res);
     }
     /// <summary>
-    /// fetch the current funding rates
+    /// fetch the current funding rates for multiple markets
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.ox.fun/?json#get-v3-funding-estimates"/>  <br/>
@@ -148,10 +148,10 @@ public partial class oxfun
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// Fetches the history of funding rates

@@ -963,6 +963,8 @@ class delta extends delta$1 {
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'volume'),
             'quoteVolume': this.safeNumber(ticker, 'turnover'),
+            'markPrice': this.safeNumber(ticker, 'mark_price'),
+            'indexPrice': this.safeNumber(ticker, 'spot_price'),
             'info': ticker,
         }, market);
     }
@@ -2188,11 +2190,11 @@ class delta extends delta$1 {
         /**
          * @method
          * @name delta#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.delta.exchange/#get-wallet-transactions
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -2291,7 +2293,7 @@ class delta extends delta$1 {
         const after = this.safeString(item, 'balance');
         const before = Precise["default"].stringMax('0', Precise["default"].stringSub(after, amount));
         const status = 'ok';
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': id,
             'direction': direction,
@@ -2307,7 +2309,7 @@ class delta extends delta$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fee': undefined,
-        };
+        }, currency);
     }
     async fetchDepositAddress(code, params = {}) {
         /**
@@ -2452,7 +2454,7 @@ class delta extends delta$1 {
          * @see https://docs.delta.exchange/#get-tickers-for-products
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2576,6 +2578,7 @@ class delta extends delta$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async addMargin(symbol, amount, params = {}) {

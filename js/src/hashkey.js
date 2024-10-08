@@ -2230,11 +2230,11 @@ export default class hashkey extends Exchange {
         /**
          * @method
          * @name hashkey#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
-         * @param {string} code unified currency code, default is undefined (not used)
+         * @param {string} [code] unified currency code, default is undefined (not used)
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
@@ -2319,7 +2319,9 @@ export default class hashkey extends Exchange {
         const account = this.safeString(item, 'accountId');
         const timestamp = this.safeInteger(item, 'created');
         const type = this.parseLedgerEntryType(this.safeString(item, 'flowTypeValue'));
-        const code = this.safeCurrencyCode(this.safeString(item, 'coin'), currency);
+        const currencyId = this.safeString(item, 'coin');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const amountString = this.safeString(item, 'change');
         const amount = this.parseNumber(amountString);
         let direction = 'in';
@@ -2329,9 +2331,9 @@ export default class hashkey extends Exchange {
         const afterString = this.safeString(item, 'total');
         const after = this.parseNumber(afterString);
         const status = 'ok';
-        return {
-            'id': id,
+        return this.safeLedgerEntry({
             'info': item,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'account': account,
@@ -2346,7 +2348,7 @@ export default class hashkey extends Exchange {
             'after': after,
             'status': status,
             'fee': undefined,
-        };
+        }, currency);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -3740,7 +3742,7 @@ export default class hashkey extends Exchange {
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -3759,7 +3761,6 @@ export default class hashkey extends Exchange {
     }
     parseFundingRate(contract, market = undefined) {
         //
-        // fetchFundingRates
         //     {
         //         "symbol": "ETHUSDT-PERPETUAL",
         //         "rate": "0.0001",
@@ -3788,6 +3789,7 @@ export default class hashkey extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

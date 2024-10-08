@@ -527,11 +527,11 @@ public partial class bitfinex : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object ids = await this.publicGetSymbols();
+        object idsPromise = this.publicGetSymbols();
         //
         //     [ "btcusd", "ltcusd", "ltcbtc" ]
         //
-        object details = await this.publicGetSymbolsDetails();
+        object detailsPromise = this.publicGetSymbolsDetails();
         //
         //     [
         //         {
@@ -546,6 +546,9 @@ public partial class bitfinex : Exchange
         //         },
         //     ]
         //
+        var idsdetailsVariable = await promiseAll(new List<object>() {idsPromise, detailsPromise});
+        var ids = ((IList<object>) idsdetailsVariable)[0];
+        var details = ((IList<object>) idsdetailsVariable)[1];
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
         {

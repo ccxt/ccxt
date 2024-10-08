@@ -96,6 +96,54 @@
                   }
                 ],
                 "output": "{\"clientOid\":\"5fd0d866-f3c7-439b-b299-dbe09375ea30\",\"side\":\"buy\",\"symbol\":\"ADA-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.3\",\"postOnly\":true}"
+            },
+            {
+                "description": "spot limit with hf:true",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/hf/orders",
+                "input": [
+                  "ETH/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  1000,
+                  {
+                    "hf": true
+                  }
+                ],
+                "output": "{\"clientOid\":\"80190fba-4fc8-4cf2-ad16-fc48ab2749ae\",\"side\":\"buy\",\"symbol\":\"ETH-USDT\",\"type\":\"limit\",\"size\":\"0.0001\",\"price\":\"1000\"}"
+            },
+            {
+                "description": "spot limit with hf:false",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/orders",
+                "input": [
+                  "ETH/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  1000,
+                  {
+                    "hf": false
+                  }
+                ],
+                "output": "{\"clientOid\":\"22c40605-a6f6-4789-ba01-9bdcfaa048a6\",\"side\":\"buy\",\"symbol\":\"ETH-USDT\",\"type\":\"limit\",\"size\":\"0.0001\",\"price\":\"1000\"}"
+            },
+            {
+                "description": "order with hf sync endpoint",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/sync",
+                "input": [
+                  "ADA/USDT",
+                  "limit",
+                  "buy",
+                  20,
+                  0.3,
+                  {
+                    "sync": true
+                  }
+                ],
+                "output": "{\"clientOid\":\"c7908cb9-5b75-41c4-92e9-30f61bf28d4e\",\"side\":\"buy\",\"symbol\":\"ADA-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.3\"}"
             }
         ],
         "createOrders": [
@@ -179,6 +227,32 @@
                 "input": [
                     "LTC/USDT"
                 ]
+            },
+            {
+                "description": "spot with hf:true",
+                "method": "fetchOpenOrders",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/active?status=active&symbol=BTC-USDT&tradeType=TRADE",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "hf": true
+                  }
+                ]
+            },
+            {
+                "description": "spot with hf:false",
+                "method": "fetchOpenOrders",
+                "url": "https://api.kucoin.com/api/v1/orders?status=active&symbol=BTC-USDT&tradeType=TRADE",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "hf": false
+                  }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -188,6 +262,32 @@
                 "url": "https://api.kucoin.com/api/v1/orders?status=done&symbol=LTC-USDT&tradeType=TRADE",
                 "input": [
                     "LTC/USDT"
+                ]
+            },
+            {
+                "description": "spot with hf:true",
+                "method": "fetchClosedOrders",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/done?status=done&symbol=BTC-USDT&tradeType=TRADE",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "hf": true
+                  }
+                ]
+            },
+            {
+                "description": "spot with hf:false",
+                "method": "fetchClosedOrders",
+                "url": "https://api.kucoin.com/api/v1/orders?status=done&symbol=BTC-USDT&tradeType=TRADE",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "hf": false
+                  }
                 ]
             }
         ],
@@ -223,7 +323,7 @@
                 ]
             },
             {
-                "description": "Cancel spot orders - hf order",
+                "description": "spot with hf:true",
                 "method": "cancelAllOrders",
                 "url": "https://api.kucoin.com/api/v1/hf/orders/cancelAll",
                 "input": [
@@ -231,6 +331,17 @@
                     {
                         "hf": true
                     }
+                ]
+            },
+            {
+                "description": "spot with hf:false",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v1/orders?symbol=ETH-USDT",
+                "input": [
+                  "ETH/USDT",
+                  {
+                    "hf": false
+                  }
                 ]
             }
         ],
@@ -279,6 +390,42 @@
                     "hf": true
                   }
                 ]
+            },
+            {
+                "description": "spot with hf:true",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/66d22fac5caf5a0007d9f1bc?symbol=ETH-USDT",
+                "input": [
+                  "66d22fac5caf5a0007d9f1bc",
+                  "ETH/USDT",
+                  {
+                    "hf": true
+                  }
+                ]
+            },
+            {
+                "description": "spot with hf:false",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/orders/66d22f239250290007b795bb",
+                "input": [
+                  "66d22f239250290007b795bb",
+                  "ETH/USDT",
+                  {
+                    "hf": false
+                  }
+                ]
+            },
+            {
+                "description": "cancelOrder with hf sync endpoint",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/sync/66d41123cf24cf00072d3e52?symbol=ADA-USDT",
+                "input": [
+                  "66d41123cf24cf00072d3e52",
+                  "ADA/USDT",
+                  {
+                    "sync": true
+                  }
+                ]
             }
         ],
         "fetchBalance": [
@@ -321,7 +468,27 @@
                     "marginMode": "isolated"
                   }
                 ]
-            }
+            },
+            {
+                "description": "spot with hf:false",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/v1/accounts?type=trade",
+                "input": [
+                  {
+                    "hf": false
+                  }
+                ]
+            },
+            {
+                "description": "spot with hf:true",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/v1/accounts?type=trade_hf",
+                "input": [
+                  {
+                    "hf": true
+                  }
+                ]
+              }
         ],
         "fetchDeposits": [
             {
@@ -337,6 +504,34 @@
                 "method": "fetchWithdrawals",
                 "url": "https://api.kucoin.com/api/v1/withdrawals",
                 "input": []
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "spot with hf:true",
+                "method": "fetchMyTrades",
+                "url": "https://api.kucoin.com/api/v1/hf/fills?symbol=ETH-USDT",
+                "input": [
+                  "ETH/USDT",
+                  null,
+                  null,
+                  {
+                    "hf": true
+                  }
+                ]
+            },
+            {
+                "description": "spot with hf:false",
+                "method": "fetchMyTrades",
+                "url": "https://api.kucoin.com/api/v1/fills?symbol=ETH-USDT",
+                "input": [
+                  "ETH/USDT",
+                  null,
+                  null,
+                  {
+                    "hf": false
+                  }
+                ]
             }
         ],
         "transfer": [
@@ -401,6 +596,32 @@
                     {
                         "hf": true
                     }
+                ]
+            },
+            {
+                "description": "with hf:true",
+                "method": "fetchLedger",
+                "url": "https://api.kucoin.com/api/v1/hf/accounts/ledgers",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "hf": true
+                  }
+                ]
+            },
+            {
+                "description": "with hf:false",
+                "method": "fetchLedger",
+                "url": "https://api.kucoin.com/api/v1/accounts/ledgers",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "hf": false
+                  }
                 ]
             }
         ],

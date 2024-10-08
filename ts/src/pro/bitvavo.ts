@@ -5,7 +5,7 @@ import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -20,6 +20,8 @@ export default class bitvavo extends bitvavoRest {
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTicker': true,
+                'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchOHLCV': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
@@ -82,16 +84,57 @@ export default class bitvavo extends bitvavoRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
+    async watchPublicMultiple (methodName, channelName: string, symbols, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const messageHashes = [ methodName ];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            args.push (market['id']);
+        }
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': channelName,
+                    'markets': args,
+                },
+            ],
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitvavo#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchPublic ('ticker24h', symbol, params);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name bitvavo#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const channel = 'ticker24h';
+        const tickers = await this.watchPublicMultiple (channel, channel, symbols, params);
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
@@ -116,8 +159,10 @@ export default class bitvavo extends bitvavoRest {
         //         ]
         //     }
         //
+        this.handleBidAsk (client, message);
         const event = this.safeString (message, 'event');
         const tickers = this.safeValue (message, 'data', []);
+        const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const marketId = this.safeString (data, 'market');
@@ -126,9 +171,60 @@ export default class bitvavo extends bitvavoRest {
             const ticker = this.parseTicker (data, market);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
+            result.push (ticker);
             client.resolve (ticker, messageHash);
         }
-        return message;
+        client.resolve (result, event);
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name mexc#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const channel = 'ticker24h';
+        const tickers = await this.watchPublicMultiple ('bidask', channel, symbols, params);
+        return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        const event = 'bidask';
+        const tickers = this.safeValue (message, 'data', []);
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const data = tickers[i];
+            const ticker = this.parseWsBidAsk (data);
+            const symbol = ticker['symbol'];
+            this.bidsasks[symbol] = ticker;
+            result.push (ticker);
+            const messageHash = event + ':' + symbol;
+            client.resolve (ticker, messageHash);
+        }
+        client.resolve (result, event);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const marketId = this.safeString (ticker, 'market');
+        market = this.safeMarket (marketId, undefined, '-');
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (ticker, 'ask'),
+            'askVolume': this.safeNumber (ticker, 'askSize'),
+            'bid': this.safeNumber (ticker, 'bid'),
+            'bidVolume': this.safeNumber (ticker, 'bidSize'),
+            'info': ticker,
+        }, market);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {

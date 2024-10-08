@@ -53,6 +53,9 @@ class vertex(ccxt.async_support.vertex):
                     'fetchPositionsSnapshot': True,  # or False
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
+                'ws': {
+                    'inflate': True,
+                },
             },
             'streaming': {
                 # 'ping': self.ping,
@@ -81,6 +84,14 @@ class vertex(ccxt.async_support.vertex):
             'id': requestId,
         }
         request = self.extend(subscribe, message)
+        wsOptions = {
+            'headers': {
+                'Sec-WebSocket-Extensions': 'permessage-deflate',
+            },
+        }
+        self.options['ws'] = {
+            'options': wsOptions,
+        }
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:

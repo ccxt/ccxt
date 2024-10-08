@@ -120,8 +120,8 @@ class onetrading extends Exchange {
             'urls' => array(
                 'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api' => array(
-                    'public' => 'https://api.onetrading.com/public',
-                    'private' => 'https://api.onetrading.com/public',
+                    'public' => 'https://api.onetrading.com/fast',
+                    'private' => 'https://api.onetrading.com/fast',
                 ),
                 'www' => 'https://onetrading.com/',
                 'doc' => array(

@@ -2607,6 +2607,8 @@ public partial class phemex : Exchange
         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
         * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+        * @param {string} [params.posSide] *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+        * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2698,17 +2700,25 @@ public partial class phemex : Exchange
             }
         } else if (isTrue(getValue(market, "swap")))
         {
+            object hedged = this.safeBool(parameters, "hedged", false);
+            parameters = this.omit(parameters, "hedged");
             object posSide = this.safeStringLower(parameters, "posSide");
             if (isTrue(isEqual(posSide, null)))
             {
-                posSide = "Merged";
+                if (isTrue(hedged))
+                {
+                    if (isTrue(reduceOnly))
+                    {
+                        side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+                    }
+                    posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "Long" : "Short";
+                } else
+                {
+                    posSide = "Merged";
+                }
             }
             posSide = this.capitalize(posSide);
             ((IDictionary<string,object>)request)["posSide"] = posSide;
-            if (isTrue(!isEqual(reduceOnly, null)))
-            {
-                ((IDictionary<string,object>)request)["reduceOnly"] = reduceOnly;
-            }
             if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
             {
                 ((IDictionary<string,object>)request)["orderQtyRq"] = amount;
@@ -4353,6 +4363,7 @@ public partial class phemex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

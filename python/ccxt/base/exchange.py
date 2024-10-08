@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.91'
+__version__ = '4.4.15'
 
 # -----------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InvalidProxySettings
+from ccxt.base.errors import UnsubscribeError
 
 # -----------------------------------------------------------------------------
 
@@ -139,6 +140,8 @@ class Exchange(object):
     aiohttp_trust_env = False
     requests_trust_env = False
     session = None  # Session () by default
+    tcp_connector = None  # aiohttp.TCPConnector
+    aiohttp_socks_connector = None
     socks_proxy_sessions = None
     verify = True  # SSL verification
     validateServerSsl = True
@@ -1731,6 +1734,9 @@ class Exchange(object):
     def create_safe_dictionary(self):
         return {}
 
+    def rand_number(self, size):
+        return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
+
     # ########################################################################
     # ########################################################################
     # ########################################################################
@@ -1886,6 +1892,8 @@ class Exchange(object):
                 'fetchFundingHistory': None,
                 'fetchFundingRate': None,
                 'fetchFundingRateHistory': None,
+                'fetchFundingInterval': None,
+                'fetchFundingIntervals': None,
                 'fetchFundingRates': None,
                 'fetchGreeks': None,
                 'fetchIndexOHLCV': None,
@@ -1930,7 +1938,6 @@ class Exchange(object):
                 'fetchOrdersWs': None,
                 'fetchOrderTrades': None,
                 'fetchOrderWs': None,
-                'fetchPermissions': None,
                 'fetchPosition': None,
                 'fetchPositionHistory': None,
                 'fetchPositionsHistory': None,
@@ -1947,6 +1954,7 @@ class Exchange(object):
                 'fetchTicker': True,
                 'fetchTickerWs': None,
                 'fetchTickers': None,
+                'fetchMarkPrices': None,
                 'fetchTickersWs': None,
                 'fetchTime': None,
                 'fetchTrades': True,
@@ -2555,6 +2563,9 @@ class Exchange(object):
     def fetch_funding_rates(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
 
+    def fetch_funding_intervals(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchFundingIntervals() is not supported yet')
+
     def watch_funding_rate(self, symbol: str, params={}):
         raise NotSupported(self.id + ' watchFundingRate() is not supported yet')
 
@@ -2674,6 +2685,7 @@ class Exchange(object):
                 'ETH': {'ERC20': 'ETH'},
                 'TRX': {'TRC20': 'TRX'},
                 'CRO': {'CRC20': 'CRONOS'},
+                'BRC20': {'BRC20': 'BTC'},
             },
         }
 
@@ -2798,6 +2810,10 @@ class Exchange(object):
                     'min': None,
                     'max': None,
                 },
+            },
+            'marginModes': {
+                'cross': None,
+                'isolated': None,
             },
             'created': None,
             'info': None,
@@ -3468,6 +3484,8 @@ class Exchange(object):
             'baseVolume': self.parse_number(baseVolume),
             'quoteVolume': self.parse_number(quoteVolume),
             'previousClose': self.safe_number(ticker, 'previousClose'),
+            'indexPrice': self.safe_number(ticker, 'indexPrice'),
+            'markPrice': self.safe_number(ticker, 'markPrice'),
         })
 
     def fetch_borrow_rate(self, code: str, amount, params={}):
@@ -3691,7 +3709,7 @@ class Exchange(object):
             if currencyCode is None:
                 currencies = list(self.currencies.values())
                 for i in range(0, len(currencies)):
-                    currency = [i]
+                    currency = currencies[i]
                     networks = self.safe_dict(currency, 'networks')
                     network = self.safe_dict(networks, networkCode)
                     networkId = self.safe_string(network, 'id')
@@ -3809,12 +3827,12 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_ohlcvs(self, ohlcvs: List[object], market: Any = None, timeframe: str = '1m', since: Int = None, limit: Int = None):
+    def parse_ohlcvs(self, ohlcvs: List[object], market: Any = None, timeframe: str = '1m', since: Int = None, limit: Int = None, tail: Bool = False):
         results = []
         for i in range(0, len(ohlcvs)):
             results.append(self.parse_ohlcv(ohlcvs[i], market))
         sorted = self.sort_by(results, 0)
-        return self.filter_by_since_limit(sorted, since, limit, 0)
+        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_leverage_tiers(self, response: Any, symbols: List[str] = None, marketIdKey=None):
         # marketIdKey should only be None when response is a dictionary
@@ -4137,9 +4155,6 @@ class Exchange(object):
     def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.cancel_order_ws(id, symbol)
         return self.create_order_ws(symbol, type, side, amount, price, params)
-
-    def fetch_permissions(self, params={}):
-        raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
     def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
@@ -4481,6 +4496,20 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
+    def fetch_mark_price(self, symbol: str, params={}):
+        if self.has['fetchMarkPrices']:
+            self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            tickers = self.fetch_mark_prices([symbol], params)
+            ticker = self.safe_dict(tickers, symbol)
+            if ticker is None:
+                raise NullResponse(self.id + ' fetchMarkPrices() could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchMarkPrices() is not supported yet')
+
     def fetch_ticker_ws(self, symbol: str, params={}):
         if self.has['fetchTickersWs']:
             self.load_markets()
@@ -4500,6 +4529,9 @@ class Exchange(object):
 
     def fetch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
+
+    def fetch_mark_prices(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchMarkPrices() is not supported yet')
 
     def fetch_tickers_ws(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
@@ -5153,7 +5185,8 @@ class Exchange(object):
         if precision is None:
             return self.force_string(fee)
         else:
-            return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+            roundingMode = self.safe_integer(self.options, 'currencyToPrecisionRoundingMode', ROUND)
+            return self.decimal_to_precision(fee, roundingMode, precision, self.precisionMode, self.paddingMode)
 
     def force_string(self, value):
         if not isinstance(value, str):
@@ -5539,6 +5572,22 @@ class Exchange(object):
                 return rate
         else:
             raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
+
+    def fetch_funding_interval(self, symbol: str, params={}):
+        if self.has['fetchFundingIntervals']:
+            self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetchFundingInterval() supports contract markets only')
+            rates = self.fetch_funding_intervals([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise NullResponse(self.id + ' fetchFundingInterval() returned no data for ' + symbol)
+            else:
+                return rate
+        else:
+            raise NotSupported(self.id + ' fetchFundingInterval() is not supported yet')
 
     def fetch_mark_ohlcv(self, symbol, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
@@ -5943,8 +5992,17 @@ class Exchange(object):
                 if responseLength == 0:
                     break
                 result = self.array_concat(result, response)
-                last = self.safe_value(response, responseLength - 1)
-                cursorValue = self.safe_value(last['info'], cursorReceived)
+                last = self.safe_dict(response, responseLength - 1)
+                # cursorValue = self.safe_value(last['info'], cursorReceived)
+                cursorValue = None  # search for the cursor
+                for j in range(0, responseLength):
+                    index = responseLength - j - 1
+                    entry = self.safe_dict(response, index)
+                    info = self.safe_dict(entry, 'info')
+                    cursor = self.safe_value(info, cursorReceived)
+                    if cursor is not None:
+                        cursorValue = cursor
+                        break
                 if cursorValue is None:
                     break
                 lastTimestamp = self.safe_integer(last, 'timestamp')
@@ -6265,3 +6323,50 @@ class Exchange(object):
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
+
+    def clean_unsubscription(self, client, subHash: str, unsubHash: str):
+        if unsubHash in client.subscriptions:
+            del client.subscriptions[unsubHash]
+        if subHash in client.subscriptions:
+            del client.subscriptions[subHash]
+        if subHash in client.futures:
+            error = UnsubscribeError(self.id + ' ' + subHash)
+            client.reject(error, subHash)
+        client.resolve(True, unsubHash)
+
+    def clean_cache(self, subscription: dict):
+        topic = self.safe_string(subscription, 'topic')
+        symbols = self.safe_list(subscription, 'symbols', [])
+        symbolsLength = len(symbols)
+        if topic == 'ohlcv':
+            symbolsAndTimeFrames = self.safe_list(subscription, 'symbolsAndTimeframes', [])
+            for i in range(0, len(symbolsAndTimeFrames)):
+                symbolAndTimeFrame = symbolsAndTimeFrames[i]
+                symbol = self.safe_string(symbolAndTimeFrame, 0)
+                timeframe = self.safe_string(symbolAndTimeFrame, 1)
+                if timeframe in self.ohlcvs[symbol]:
+                    del self.ohlcvs[symbol][timeframe]
+        elif symbolsLength > 0:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                if topic == 'trades':
+                    del self.trades[symbol]
+                elif topic == 'orderbook':
+                    del self.orderbooks[symbol]
+                elif topic == 'ticker':
+                    del self.tickers[symbol]
+        else:
+            if topic == 'myTrades':
+                # don't reset self.myTrades directly here
+                # because in c# we need to use a different object
+                keys = list(self.myTrades.keys())
+                for i in range(0, len(keys)):
+                    del self.myTrades[keys[i]]
+            elif topic == 'orders':
+                orderSymbols = list(self.orders.keys())
+                for i in range(0, len(orderSymbols)):
+                    del self.orders[orderSymbols[i]]
+            elif topic == 'ticker':
+                tickerSymbols = list(self.tickers.keys())
+                for i in range(0, len(tickerSymbols)):
+                    del self.tickers[tickerSymbols[i]]

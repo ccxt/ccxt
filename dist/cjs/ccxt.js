@@ -24,7 +24,6 @@ var binanceusdm = require('./src/binanceusdm.js');
 var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
-var bitbay = require('./src/bitbay.js');
 var bitbns = require('./src/bitbns.js');
 var bitcoincom = require('./src/bitcoincom.js');
 var bitfinex = require('./src/bitfinex.js');
@@ -74,7 +73,6 @@ var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
 var hashkey = require('./src/hashkey.js');
 var hitbtc = require('./src/hitbtc.js');
-var hitbtc3 = require('./src/hitbtc3.js');
 var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
 var huobi = require('./src/huobi.js');
@@ -196,7 +194,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.91';
+const version = '4.4.15';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -211,7 +209,6 @@ const exchanges = {
     'bingx': bingx,
     'bit2c': bit2c,
     'bitbank': bitbank,
-    'bitbay': bitbay,
     'bitbns': bitbns,
     'bitcoincom': bitcoincom,
     'bitfinex': bitfinex,
@@ -261,7 +258,6 @@ const exchanges = {
     'gemini': gemini,
     'hashkey': hashkey,
     'hitbtc': hitbtc,
-    'hitbtc3': hitbtc3,
     'hollaex': hollaex,
     'htx': htx,
     'huobi': huobi,
@@ -445,7 +441,6 @@ exports.binanceusdm = binanceusdm;
 exports.bingx = bingx;
 exports.bit2c = bit2c;
 exports.bitbank = bitbank;
-exports.bitbay = bitbay;
 exports.bitbns = bitbns;
 exports.bitcoincom = bitcoincom;
 exports.bitfinex = bitfinex;
@@ -495,7 +490,6 @@ exports.gateio = gateio;
 exports.gemini = gemini;
 exports.hashkey = hashkey;
 exports.hitbtc = hitbtc;
-exports.hitbtc3 = hitbtc3;
 exports.hollaex = hollaex;
 exports.htx = htx;
 exports.huobi = huobi;

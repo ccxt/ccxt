@@ -150,11 +150,12 @@ class independentreserve extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $baseCurrencies = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
+        $baseCurrenciesPromise = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        $quoteCurrencies = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
+        $quoteCurrenciesPromise = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        $limits = $this->publicGetGetOrderMinimumVolumes ($params);
+        $limitsPromise = $this->publicGetGetOrderMinimumVolumes ($params);
+        list($baseCurrencies, $quoteCurrencies, $limits) = array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise );
         //
         //     {
         //         "Xbt" => 0.0001,

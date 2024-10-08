@@ -565,11 +565,11 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        ids = self.publicGetSymbols()
+        idsPromise = self.publicGetSymbols()
         #
         #     ["btcusd", "ltcusd", "ltcbtc"]
         #
-        details = self.publicGetSymbolsDetails()
+        detailsPromise = self.publicGetSymbolsDetails()
         #
         #     [
         #         {
@@ -584,6 +584,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
+        ids, details = [idsPromise, detailsPromise]
         result = []
         for i in range(0, len(details)):
             market = details[i]

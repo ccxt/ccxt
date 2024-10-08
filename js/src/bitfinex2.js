@@ -66,7 +66,7 @@ export default class bitfinex2 extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': true,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -523,12 +523,13 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        let spotMarketsInfo = await this.publicGetConfPubInfoPair(params);
-        let futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures(params);
-        spotMarketsInfo = this.safeValue(spotMarketsInfo, 0, []);
-        futuresMarketsInfo = this.safeValue(futuresMarketsInfo, 0, []);
+        const spotMarketsInfoPromise = this.publicGetConfPubInfoPair(params);
+        const futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(params);
+        const marginIdsPromise = this.publicGetConfPubListPairMargin(params);
+        let [spotMarketsInfo, futuresMarketsInfo, marginIds] = await Promise.all([spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise]);
+        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, []);
+        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, []);
         const markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        let marginIds = await this.publicGetConfPubListPairMargin(params);
         marginIds = this.safeValue(marginIds, 0, []);
         //
         //    [
@@ -2919,6 +2920,7 @@ export default class bitfinex2 extends Exchange {
         const id = this.safeString(itemList, 0);
         const currencyId = this.safeString(itemList, 1);
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger(itemList, 3);
         const amount = this.safeNumber(itemList, 5);
         const after = this.safeNumber(itemList, 6);
@@ -2928,7 +2930,8 @@ export default class bitfinex2 extends Exchange {
             const first = this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': id,
             'direction': undefined,
             'account': undefined,
@@ -2943,18 +2946,17 @@ export default class bitfinex2 extends Exchange {
             'after': after,
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined max is 2500
+         * @param {int} [limit] max number of ledger entries to return, default is undefined, max is 2500
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -3006,27 +3008,15 @@ export default class bitfinex2 extends Exchange {
         }
         return this.parseLedger(ledgerObjects, currency, since, limit);
     }
-    async fetchFundingRate(symbol, params = {}) {
-        /**
-         * @method
-         * @name bitfinex2#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
-        return await this.fetchFundingRates([symbol], params);
-    }
     async fetchFundingRates(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name bitfinex2#fetchFundingRate
-         * @description fetch the current funding rate
+         * @name bitfinex2#fetchFundingRates
+         * @description fetch the current funding rate for multiple symbols
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
          * @param {string[]} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         if (symbols === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRates() requires a symbols argument');
@@ -3197,6 +3187,7 @@ export default class bitfinex2 extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     parseFundingRateHistory(contract, market = undefined) {

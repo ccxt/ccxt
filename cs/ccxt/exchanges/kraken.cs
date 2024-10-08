@@ -36,6 +36,7 @@ public partial class kraken : Exchange
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "createTrailingAmountOrder", true },
+                { "createTrailingPercentOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
@@ -191,6 +192,8 @@ public partial class kraken : Exchange
                 { "XDG", "DOGE" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "marketsByAltname", new Dictionary<string, object>() {} },
                 { "delistedMarketsById", new Dictionary<string, object>() {} },
                 { "inactiveCurrencies", new List<object>() {"CAD", "USD", "JPY", "GBP"} },
@@ -217,7 +220,7 @@ public partial class kraken : Exchange
                     { "BTC", "Bitcoin" },
                     { "CHZ", add(add("Chiliz", " "), "(CHZ)") },
                     { "COMP", add(add("Compound", " "), "(COMP)") },
-                    { "CQT", add(add("	Covalent Query Token", " "), "(CQT)") },
+                    { "CQT", add(add("\tCovalent Query Token", " "), "(CQT)") },
                     { "CRV", add(add("Curve DAO Token", " "), "(CRV)") },
                     { "CTSI", add(add("Cartesi", " "), "(CTSI)") },
                     { "DAI", "Dai" },
@@ -395,7 +398,9 @@ public partial class kraken : Exchange
                 { "EGeneral:Internal error", typeof(ExchangeNotAvailable) },
                 { "EGeneral:Temporary lockout", typeof(DDoSProtection) },
                 { "EGeneral:Permission denied", typeof(PermissionDenied) },
+                { "EGeneral:Invalid arguments:price", typeof(InvalidOrder) },
                 { "EOrder:Unknown order", typeof(InvalidOrder) },
+                { "EOrder:Invalid price:Invalid price argument", typeof(InvalidOrder) },
                 { "EOrder:Order minimum not met", typeof(InvalidOrder) },
                 { "EGeneral:Invalid arguments", typeof(BadRequest) },
                 { "ESession:Invalid session", typeof(AuthenticationError) },
@@ -425,6 +430,10 @@ public partial class kraken : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object response = await this.publicGetAssetPairs(parameters);
         //
         //     {
@@ -1098,7 +1107,9 @@ public partial class kraken : Exchange
         object referenceId = this.safeString(item, "refid");
         object referenceAccount = null;
         object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "asset"), currency);
+        object currencyId = this.safeString(item, "asset");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeString(item, "amount");
         if (isTrue(Precise.stringLt(amount, "0")))
         {
@@ -1109,7 +1120,7 @@ public partial class kraken : Exchange
             direction = "in";
         }
         object timestamp = this.safeIntegerProduct(item, "time", 1000);
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
             { "direction", direction },
@@ -1128,7 +1139,7 @@ public partial class kraken : Exchange
                 { "cost", this.safeNumber(item, "fee") },
                 { "currency", code },
             } },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -1136,11 +1147,11 @@ public partial class kraken : Exchange
         /**
         * @method
         * @name kraken#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
         * @param {int} [params.end] timestamp in seconds of the latest ledger entry
@@ -1518,8 +1529,8 @@ public partial class kraken : Exchange
         /**
         * @method
         * @name kraken#createOrder
-        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
         * @description create a trade order
+        * @see https://docs.kraken.com/api/docs/rest-api/add-order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -1531,7 +1542,9 @@ public partial class kraken : Exchange
         * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
         * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
         * @param {string} [params.trailingAmount] *margin only* the quote amount to trail away from the current market price
+        * @param {string} [params.trailingPercent] *margin only* the percent to trail away from the current market price
         * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+        * @param {string} [params.trailingLimitPercent] *margin only* the percent away from the trailingAmount
         * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
         * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1903,8 +1916,11 @@ public partial class kraken : Exchange
         object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
         object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
         object trailingAmount = this.safeString(parameters, "trailingAmount");
+        object trailingPercent = this.safeString(parameters, "trailingPercent");
         object trailingLimitAmount = this.safeString(parameters, "trailingLimitAmount");
+        object trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
         object isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object isLimitOrder = ((string)type).EndsWith(((string)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         object isMarketOrder = isEqual(type, "market");
         object cost = this.safeString(parameters, "cost");
@@ -1922,7 +1938,7 @@ public partial class kraken : Exchange
             }
             object extendedOflags = ((bool) isTrue((!isEqual(flags, null)))) ? add(flags, ",viqc") : "viqc";
             ((IDictionary<string,object>)request)["oflags"] = extendedOflags;
-        } else if (isTrue(isTrue(isLimitOrder) && !isTrue(isTrailingAmountOrder)))
+        } else if (isTrue(isTrue(isTrue(isLimitOrder) && !isTrue(isTrailingAmountOrder)) && !isTrue(isTrailingPercentOrder)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -1954,22 +1970,41 @@ public partial class kraken : Exchange
             {
                 ((IDictionary<string,object>)request)["price2"] = this.priceToPrecision(symbol, price);
             }
-        } else if (isTrue(isTrailingAmountOrder))
+        } else if (isTrue(isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)))
         {
-            object trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
-            object trailingAmountString = add("+", trailingAmount);
-            ((IDictionary<string,object>)request)["trigger"] = trailingActivationPriceType;
-            if (isTrue(isTrue(isLimitOrder) || isTrue((!isEqual(trailingLimitAmount, null)))))
+            object trailingPercentString = null;
+            if (isTrue(!isEqual(trailingPercent, null)))
             {
-                object offset = this.safeString(parameters, "offset", "-");
-                object trailingLimitAmountString = add(offset, this.numberToString(trailingLimitAmount));
-                ((IDictionary<string,object>)request)["price"] = trailingAmountString;
-                ((IDictionary<string,object>)request)["price2"] = trailingLimitAmountString;
+                trailingPercentString = ((bool) isTrue((((string)trailingPercent).EndsWith(((string)"%"))))) ? (add("+", trailingPercent)) : (add(add("+", trailingPercent), "%"));
+            }
+            object trailingAmountString = ((bool) isTrue((!isEqual(trailingAmount, null)))) ? add("+", trailingAmount) : null; // must use + for this
+            object offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
+            object trailingLimitAmountString = ((bool) isTrue((!isEqual(trailingLimitAmount, null)))) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
+            object trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
+            ((IDictionary<string,object>)request)["trigger"] = trailingActivationPriceType;
+            if (isTrue(isTrue(isTrue(isLimitOrder) || isTrue((!isEqual(trailingLimitAmount, null)))) || isTrue((!isEqual(trailingLimitPercent, null)))))
+            {
                 ((IDictionary<string,object>)request)["ordertype"] = "trailing-stop-limit";
+                if (isTrue(!isEqual(trailingLimitPercent, null)))
+                {
+                    object trailingLimitPercentString = ((bool) isTrue((((string)trailingLimitPercent).EndsWith(((string)"%"))))) ? (add(offset, trailingLimitPercent)) : (add(add(offset, trailingLimitPercent), "%"));
+                    ((IDictionary<string,object>)request)["price"] = trailingPercentString;
+                    ((IDictionary<string,object>)request)["price2"] = trailingLimitPercentString;
+                } else if (isTrue(!isEqual(trailingLimitAmount, null)))
+                {
+                    ((IDictionary<string,object>)request)["price"] = trailingAmountString;
+                    ((IDictionary<string,object>)request)["price2"] = trailingLimitAmountString;
+                }
             } else
             {
-                ((IDictionary<string,object>)request)["price"] = trailingAmountString;
                 ((IDictionary<string,object>)request)["ordertype"] = "trailing-stop";
+                if (isTrue(!isEqual(trailingPercent, null)))
+                {
+                    ((IDictionary<string,object>)request)["price"] = trailingPercentString;
+                } else
+                {
+                    ((IDictionary<string,object>)request)["price"] = trailingAmountString;
+                }
             }
         }
         if (isTrue(reduceOnly))
@@ -2017,7 +2052,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["oflags"] = flags;
         }
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingLimitAmount", "offset"});
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"});
         return new List<object>() {request, parameters};
     }
 
@@ -2171,7 +2206,7 @@ public partial class kraken : Exchange
         object tradeIds = new List<object>() {};
         if (isTrue(isEqual(orderTrades, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a \'trades\' param (an array of trade id strings)")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
         } else
         {
             for (object i = 0; isLessThan(i, getArrayLength(orderTrades)); postFixIncrement(ref i))
@@ -3130,7 +3165,7 @@ public partial class kraken : Exchange
             object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             return this.parseTransaction(result, currency);
         }
-        throw new ExchangeError ((string)add(this.id, " withdraw() requires a \'key\' parameter (withdrawal key name, as set up on your account)")) ;
+        throw new ExchangeError ((string)add(this.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
     }
 
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -3366,11 +3401,17 @@ public partial class kraken : Exchange
             }
         } else if (isTrue(isEqual(api, "private")))
         {
+            object price = this.safeString(parameters, "price");
+            object isTriggerPercent = false;
+            if (isTrue(!isEqual(price, null)))
+            {
+                isTriggerPercent = ((bool) isTrue((((string)price).EndsWith(((string)"%"))))) ? true : false;
+            }
             object isCancelOrderBatch = (isEqual(path, "CancelOrderBatch"));
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if (isTrue(isCancelOrderBatch))
+            if (isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)))
             {
                 body = this.json(this.extend(new Dictionary<string, object>() {
                     { "nonce", nonce },
@@ -3391,7 +3432,7 @@ public partial class kraken : Exchange
                 { "API-Key", this.apiKey },
                 { "API-Sign", signature },
             };
-            if (isTrue(isCancelOrderBatch))
+            if (isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             } else
@@ -3413,7 +3454,7 @@ public partial class kraken : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

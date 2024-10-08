@@ -20,6 +20,7 @@ public partial class kraken : ccxt.kraken
                 { "watchOrders", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
                 { "createOrderWs", true },
@@ -109,7 +110,7 @@ public partial class kraken : ccxt.kraken
         /**
         * @method
         * @name kraken#createOrderWs
-        * @see https://docs.kraken.com/websockets/#message-addOrder
+        * @see https://docs.kraken.com/api/docs/websocket-v1/addorder
         * @description create a trade order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
@@ -173,7 +174,7 @@ public partial class kraken : ccxt.kraken
         * @method
         * @name kraken#editOrderWs
         * @description edit a trade order
-        * @see https://docs.kraken.com/websockets/#message-editOrder
+        * @see https://docs.kraken.com/api/docs/websocket-v1/editorder
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
@@ -212,7 +213,7 @@ public partial class kraken : ccxt.kraken
         /**
         * @method
         * @name kraken#cancelOrdersWs
-        * @see https://docs.kraken.com/websockets/#message-cancelOrder
+        * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
         * @description cancel multiple orders
         * @param {string[]} ids order ids
         * @param {string} symbol unified market symbol, default is undefined
@@ -239,7 +240,7 @@ public partial class kraken : ccxt.kraken
         /**
         * @method
         * @name kraken#cancelOrderWs
-        * @see https://docs.kraken.com/websockets/#message-cancelOrder
+        * @see https://docs.kraken.com/api/docs/websocket-v1/cancelorder
         * @description cancels an open order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
@@ -282,7 +283,7 @@ public partial class kraken : ccxt.kraken
         /**
         * @method
         * @name kraken#cancelAllOrdersWs
-        * @see https://docs.kraken.com/websockets/#message-cancelAll
+        * @see https://docs.kraken.com/api/docs/websocket-v1/cancelall
         * @description cancel all open orders
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -497,6 +498,7 @@ public partial class kraken : ccxt.kraken
         * @method
         * @name kraken#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://docs.kraken.com/api/docs/websocket-v1/ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -514,6 +516,7 @@ public partial class kraken : ccxt.kraken
         * @method
         * @name kraken#watchTickers
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://docs.kraken.com/api/docs/websocket-v1/ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -531,13 +534,79 @@ public partial class kraken : ccxt.kraken
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kraken#watchBidsAsks
+        * @see https://docs.kraken.com/api/docs/websocket-v1/spread
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object ticker = await this.watchMultiHelper("bidask", "spread", symbols, null, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message, object subscription)
+    {
+        //
+        //     [
+        //         7208974, // channelID
+        //         [
+        //             "63758.60000", // bid
+        //             "63759.10000", // ask
+        //             "1726814731.089778", // timestamp
+        //             "0.00057917", // bid_volume
+        //             "0.15681688" // ask_volume
+        //         ],
+        //         "spread",
+        //         "XBT/USDT"
+        //     ]
+        //
+        object parsedTicker = this.parseWsBidAsk(message);
+        object symbol = getValue(parsedTicker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        object messageHash = this.getMessageHash("bidask", null, symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object data = this.safeList(ticker, 1, new List<object>() {});
+        object marketId = this.safeString(ticker, 3);
+        market = this.safeValue(getValue(this.options, "marketsByWsName"), marketId);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = multiply(this.parseToInt(this.safeInteger(data, 2)), 1000);
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(data, 1) },
+            { "askVolume", this.safeString(data, 4) },
+            { "bid", this.safeString(data, 0) },
+            { "bidVolume", this.safeString(data, 3) },
+            { "info", ticker },
+        }, market);
+    }
+
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
         * @name kraken#watchTrades
         * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.kraken.com/websockets/#message-trade
+        * @see https://docs.kraken.com/api/docs/websocket-v1/trade
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -553,7 +622,7 @@ public partial class kraken : ccxt.kraken
         /**
         * @method
         * @name kraken#watchTradesForSymbols
-        * @see https://docs.kraken.com/websockets/#message-trade
+        * @see https://docs.kraken.com/api/docs/websocket-v1/trade
         * @description get the list of most recent trades for a list of symbols
         * @param {string[]} symbols unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -578,7 +647,7 @@ public partial class kraken : ccxt.kraken
         * @method
         * @name kraken#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.kraken.com/websockets/#message-book
+        * @see https://docs.kraken.com/api/docs/websocket-v1/book
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -594,7 +663,7 @@ public partial class kraken : ccxt.kraken
         * @method
         * @name kraken#watchOrderBookForSymbols
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.kraken.com/websockets/#message-book
+        * @see https://docs.kraken.com/api/docs/websocket-v1/book
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -626,6 +695,7 @@ public partial class kraken : ccxt.kraken
         * @method
         * @name kraken#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://docs.kraken.com/api/docs/websocket-v1/ohlc
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -853,8 +923,8 @@ public partial class kraken : ccxt.kraken
                 if (isTrue(!isEqual(localChecksum, c)))
                 {
                     var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                     ((WebSocketClient)client).reject(error, messageHash);
                     return;
                 }
@@ -981,6 +1051,7 @@ public partial class kraken : ccxt.kraken
         * @method
         * @name kraken#watchMyTrades
         * @description watches information on multiple trades made by the user
+        * @see https://docs.kraken.com/api/docs/websocket-v1/owntrades
         * @param {string} symbol unified market symbol of the market trades were made in
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1160,7 +1231,7 @@ public partial class kraken : ccxt.kraken
         /**
         * @method
         * @name kraken#watchOrders
-        * @see https://docs.kraken.com/websockets/#message-openOrders
+        * @see https://docs.kraken.com/api/docs/websocket-v1/openorders
         * @description watches information on multiple orders made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1298,7 +1369,7 @@ public partial class kraken : ccxt.kraken
                         object first = getValue(stored, 0);
                         if (isTrue(inOp(symbolsByOrderId, getValue(first, "id"))))
                         {
-
+                            ((IDictionary<string,object>)symbolsByOrderId).Remove((string)getValue(first, "id"));
                         }
                     }
                     callDynamically(stored, "append", new object[] {newOrder});
@@ -1653,6 +1724,7 @@ public partial class kraken : ccxt.kraken
                 { "book", this.handleOrderBook },
                 { "ohlc", this.handleOHLCV },
                 { "ticker", this.handleTicker },
+                { "spread", this.handleBidAsk },
                 { "trade", this.handleTrades },
                 { "openOrders", this.handleOrders },
                 { "ownTrades", this.handleMyTrades },

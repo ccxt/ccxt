@@ -67,6 +67,8 @@ class coinex extends Exchange {
                 'fetchDepositWithdrawFee' => true,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -914,6 +916,8 @@ class coinex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
         ), $market);
     }
@@ -1201,7 +1205,10 @@ class coinex extends Exchange {
         //         "side" => "buy",
         //         "order_id" => 136915589622,
         //         "price" => "64376",
-        //         "amount" => "0.0001"
+        //         "amount" => "0.0001",
+        //         "role" => "taker",
+        //         "fee" => "0.0299",
+        //         "fee_ccy" => "USDT"
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'created_at');
@@ -1211,6 +1218,16 @@ class coinex extends Exchange {
         }
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
+        $feeCostString = $this->safe_string($trade, 'fee');
+        $fee = null;
+        if ($feeCostString !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_ccy');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCostString,
+                'currency' => $feeCurrencyCode,
+            );
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1220,11 +1237,11 @@ class coinex extends Exchange {
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => null,
             'side' => $this->safe_string($trade, 'side'),
-            'takerOrMaker' => null,
+            'takerOrMaker' => $this->safe_string($trade, 'role'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'amount'),
             'cost' => $this->safe_string($trade, 'deal_money'),
-            'fee' => null,
+            'fee' => $fee,
         ), $market);
     }
 
@@ -4411,7 +4428,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate
@@ -4451,9 +4468,20 @@ class coinex extends Exchange {
         return $this->parse_funding_rate($first, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function fetch_funding_interval(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate interval
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        return $this->fetch_funding_rate($symbol, $params);
+    }
+
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
-        // fetchFundingRate, fetchFundingRates
+        // fetchFundingRate, fetchFundingRates, fetchFundingInterval
         //
         //     {
         //         "latest_funding_rate" => "0",
@@ -4468,6 +4496,9 @@ class coinex extends Exchange {
         //
         $currentFundingTimestamp = $this->safe_integer($contract, 'latest_funding_time');
         $futureFundingTimestamp = $this->safe_integer($contract, 'next_funding_time');
+        $fundingTimeString = $this->safe_string($contract, 'latest_funding_time');
+        $nextFundingTimeString = $this->safe_string($contract, 'next_funding_time');
+        $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
         $marketId = $this->safe_string($contract, 'market');
         return array(
             'info' => $contract,
@@ -4487,12 +4518,24 @@ class coinex extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => $this->parse_funding_interval($millisecondsInterval),
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function parse_funding_interval($interval) {
+        $intervals = array(
+            '3600000' => '1h',
+            '14400000' => '4h',
+            '28800000' => '8h',
+            '57600000' => '16h',
+            '86400000' => '24h',
+        );
+        return $this->safe_string($intervals, $interval, $interval);
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
-         * fetch the current funding rates
+         * fetch the current funding rates for multiple markets
          * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate
          * @param {string[]} $symbols unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

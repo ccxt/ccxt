@@ -1426,6 +1426,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'baseVolume': None,
             'quoteVolume': None,
             'previousClose': None,
+            'markPrice': self.safe_number(ticker, 'mark_price'),
+            'indexPrice': self.safe_number(ticker, 'index_price'),
         })
 
     async def fetch_balance(self, params={}) -> Balances:

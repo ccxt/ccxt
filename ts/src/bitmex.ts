@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Exchang
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies, int } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ export default class bitmex extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -1107,7 +1107,7 @@ export default class bitmex extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1156,6 +1156,7 @@ export default class bitmex extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         const amountString = this.safeString (item, 'amount');
         let amount = this.convertToRealAmount (code, amountString);
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
@@ -1170,14 +1171,14 @@ export default class bitmex extends Exchange {
             feeCost = this.convertToRealAmount (code, feeCost);
         }
         const fee = {
-            'cost': this.parseNumber (feeCost),
+            'cost': this.parseToNumeric (feeCost),
             'currency': code,
         };
         let after = this.safeString (item, 'walletBalance');
         if (after !== undefined) {
             after = this.convertToRealAmount (code, after);
         }
-        const before = this.parseNumber (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
+        const before = this.parseToNumeric (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
         let direction = undefined;
         if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
@@ -1186,9 +1187,9 @@ export default class bitmex extends Exchange {
             direction = 'in';
         }
         const status = this.parseTransactionStatus (this.safeString (item, 'transactStatus'));
-        return {
-            'id': id,
+        return this.safeLedgerEntry ({
             'info': item,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'direction': direction,
@@ -1197,23 +1198,23 @@ export default class bitmex extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseToNumeric (amount),
             'before': before,
-            'after': this.parseNumber (after),
+            'after': this.parseToNumeric (after),
             'status': status,
             'fee': fee,
-        };
+        }, currency) as LedgerEntry;
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name bitmex#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -1454,6 +1455,7 @@ export default class bitmex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'homeNotional24h'),
             'quoteVolume': this.safeString (ticker, 'foreignNotional24h'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -2501,7 +2503,7 @@ export default class bitmex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name bitmex#fetchFundingRates
@@ -2509,7 +2511,7 @@ export default class bitmex extends Exchange {
          * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.publicGetInstrumentActiveAndIndices (params);
@@ -2529,7 +2531,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');
@@ -2544,7 +2546,7 @@ export default class bitmex extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'fundingRate': this.safeNumber (contract, 'fundingRate'),
-            'fundingTimestamp': this.iso8601 (fundingDatetime),
+            'fundingTimestamp': this.parseToNumeric (this.iso8601 (fundingDatetime)),
             'fundingDatetime': fundingDatetime,
             'nextFundingRate': this.safeNumber (contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': undefined,
@@ -2552,7 +2554,8 @@ export default class bitmex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

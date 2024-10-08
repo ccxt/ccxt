@@ -885,6 +885,9 @@ class indodax extends Exchange {
             } elseif ($type === 'limit') {
                 $priceIsRequired = true;
                 $quantityIsRequired = true;
+                if ($side === 'buy') {
+                    $request[$market['quoteId']] = $this->parse_to_numeric(Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price)));
+                }
             }
             if ($priceIsRequired) {
                 if ($price === null) {

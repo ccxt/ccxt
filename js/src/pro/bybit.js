@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bybitRest from '../bybit.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, UnsubscribeError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -25,6 +25,7 @@ export default class bybit extends bybitRest {
                 'fetchTradesWs': false,
                 'fetchBalanceWs': false,
                 'watchBalance': true,
+                'watchBidsAsks': true,
                 'watchLiquidations': true,
                 'watchLiquidationsForSymbols': false,
                 'watchMyLiquidations': false,
@@ -581,6 +582,52 @@ export default class bybit extends bybitRest {
         const messageHash = 'ticker:' + symbol;
         client.resolve(this.tickers[symbol], messageHash);
     }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const url = await this.getUrlByMarketType(symbols[0], false, 'watchBidsAsks', params);
+        params = this.cleanParams(params);
+        const marketIds = this.marketIds(symbols);
+        const topics = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const topic = 'orderbook.1.' + marketId;
+            topics.push(topic);
+            messageHashes.push('bidask:' + symbols[i]);
+        }
+        const ticker = await this.watchTopics(url, messageHashes, topics, params);
+        if (this.newUpdates) {
+            return ticker;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    parseWsBidAsk(orderbook, market = undefined) {
+        const timestamp = this.safeInteger(orderbook, 'timestamp');
+        const bids = this.sortBy(this.aggregate(orderbook['bids']), 0);
+        const asks = this.sortBy(this.aggregate(orderbook['asks']), 0);
+        const bestBid = this.safeList(bids, 0, []);
+        const bestAsk = this.safeList(asks, 0, []);
+        return this.safeTicker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeNumber(bestAsk, 0),
+            'askVolume': this.safeNumber(bestAsk, 1),
+            'bid': this.safeNumber(bestBid, 0),
+            'bidVolume': this.safeNumber(bestBid, 1),
+            'info': orderbook,
+        }, market);
+    }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -635,6 +682,58 @@ export default class bybit extends bybitRest {
         }
         const filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
+    }
+    async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
+        /**
+         * @method
+         * @name bybit#unWatchOHLCVForSymbols
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        const symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        const marketSymbols = this.marketSymbols(symbols, undefined, false, true, true);
+        const firstSymbol = marketSymbols[0];
+        const url = await this.getUrlByMarketType(firstSymbol, false, 'watchOHLCVForSymbols', params);
+        const rawHashes = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            let symbolString = this.safeString(data, 0);
+            const market = this.market(symbolString);
+            symbolString = market['symbol'];
+            const unfiedTimeframe = this.safeString(data, 1);
+            const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            rawHashes.push('kline.' + timeframeId + '.' + market['id']);
+            subMessageHashes.push('ohlcv::' + symbolString + '::' + unfiedTimeframe);
+            messageHashes.push('unsubscribe::ohlcv::' + symbolString + '::' + unfiedTimeframe);
+        }
+        const subExtension = {
+            'symbolsAndTimeframes': symbolsAndTimeframes,
+        };
+        return await this.unWatchTopics(url, 'ohlcv', symbols, messageHashes, subMessageHashes, rawHashes, params, subExtension);
+    }
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        /**
+         * @method
+         * @name bybit#unWatchOHLCV
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        params['callerMethodName'] = 'watchOHLCV';
+        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
     }
     handleOHLCV(client, message) {
         //
@@ -853,6 +952,8 @@ export default class bybit extends bybitRest {
         //         }
         //     }
         //
+        const topic = this.safeString(message, 'topic');
+        const limit = topic.split('.')[1];
         const isSpot = client.url.indexOf('spot') >= 0;
         const type = this.safeString(message, 'type');
         const isSnapshot = (type === 'snapshot');
@@ -881,6 +982,13 @@ export default class bybit extends bybitRest {
         const messageHash = 'orderbook' + ':' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
+        if (limit === '1') {
+            const bidask = this.parseWsBidAsk(this.orderbooks[symbol], market);
+            const newBidsAsks = {};
+            newBidsAsks[symbol] = bidask;
+            this.bidsasks[symbol] = bidask;
+            client.resolve(newBidsAsks, 'bidask:' + symbol);
+        }
     }
     handleDelta(bookside, delta) {
         const bidAsk = this.parseBidAsk(delta, 0, 1);
@@ -967,7 +1075,7 @@ export default class bybit extends bybitRest {
             messageHashes.push(messageHash);
             subMessageHashes.push('trade:' + symbol);
         }
-        return await this.unWatchTopics(url, 'trade', symbols, messageHashes, subMessageHashes, topics, params);
+        return await this.unWatchTopics(url, 'trades', symbols, messageHashes, subMessageHashes, topics, params);
     }
     async unWatchTrades(symbol, params = {}) {
         /**
@@ -2145,7 +2253,7 @@ export default class bybit extends bybitRest {
         const message = this.extend(request, params);
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
-    async unWatchTopics(url, topic, symbols, messageHashes, subMessageHashes, topics, params = {}) {
+    async unWatchTopics(url, topic, symbols, messageHashes, subMessageHashes, topics, params = {}, subExtension = {}) {
         const reqId = this.requestId();
         const request = {
             'op': 'unsubscribe',
@@ -2160,7 +2268,7 @@ export default class bybit extends bybitRest {
             'symbols': symbols,
         };
         const message = this.extend(request, params);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtension));
     }
     async authenticate(url, params = {}) {
         this.checkRequiredCredentials();
@@ -2434,54 +2542,11 @@ export default class bybit extends bybitRest {
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
-                    if (unsubHash in client.subscriptions) {
-                        delete client.subscriptions[unsubHash];
-                    }
-                    if (subHash in client.subscriptions) {
-                        delete client.subscriptions[subHash];
-                    }
-                    const error = new UnsubscribeError(this.id + ' ' + messageHash);
-                    client.reject(error, subHash);
-                    client.resolve(true, unsubHash);
-                    this.cleanCache(subscription);
+                    this.cleanUnsubscription(client, subHash, unsubHash);
                 }
+                this.cleanCache(subscription);
             }
         }
         return message;
-    }
-    cleanCache(subscription) {
-        const topic = this.safeString(subscription, 'topic');
-        const symbols = this.safeList(subscription, 'symbols', []);
-        const symbolsLength = symbols.length;
-        if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                if (topic === 'trade') {
-                    delete this.trades[symbol];
-                }
-                else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
-                }
-                else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
-                }
-            }
-        }
-        else {
-            if (topic === 'myTrades') {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                const keys = Object.keys(this.myTrades);
-                for (let i = 0; i < keys.length; i++) {
-                    delete this.myTrades[keys[i]];
-                }
-            }
-            else if (topic === 'orders') {
-                const orderSymbols = Object.keys(this.orders);
-                for (let i = 0; i < orderSymbols.length; i++) {
-                    delete this.orders[orderSymbols[i]];
-                }
-            }
-        }
     }
 }

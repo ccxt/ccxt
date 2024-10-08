@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -49,9 +49,9 @@ export default class oceanex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchDepositAddress': false,
-                'fetchDepositAddresses': false,
-                'fetchDepositAddressesByNetwork': false,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarkets': true,
@@ -112,6 +112,11 @@ export default class oceanex extends Exchange {
                         'order/delete',
                         'order/delete/multi',
                         'orders/clear',
+                        '/withdraws/special/new',
+                        '/deposit_address',
+                        '/deposit_addresses',
+                        '/deposit_history',
+                        '/withdraw_history',
                     ],
                 },
             },
@@ -936,6 +941,83 @@ export default class oceanex extends Exchange {
         const response = await this.privatePostOrdersClear (params);
         const data = this.safeList (response, 'data');
         return this.parseOrders (data);
+    }
+
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchDepositAddressesByNetwork
+         * @description fetch the deposit addresses for a currency associated with this account
+         * @see https://api.oceanex.pro/doc/v1/#deposit-addresses-post
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostDepositAddresses (this.extend (request, params));
+        //
+        //    {
+        //        code: '0',
+        //        message: 'Operation successful',
+        //        data: {
+        //          data: {
+        //            currency_id: 'usdt',
+        //            display_name: 'USDT',
+        //            num_of_resources: '3',
+        //            resources: [
+        //              {
+        //                chain_name: 'TRC20',
+        //                currency_id: 'usdt',
+        //                address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        //                memo: '',
+        //                deposit_status: 'enabled'
+        //              },
+        //              ...
+        //            ]
+        //          }
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const data2 = this.safeDict (data, 'data', {});
+        const resources = this.safeList (data2, 'resources', []);
+        const result = {};
+        for (let i = 0; i < resources.length; i++) {
+            const resource = resources[i];
+            const enabled = this.safeString (resource, 'deposit_status');
+            if (enabled === 'enabled') {
+                const parsedAddress = this.parseDepositAddress (resource, currency);
+                result[parsedAddress['currency']] = parsedAddress;
+            }
+        }
+        return result;
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+        //
+        //    {
+        //        chain_name: 'TRC20',
+        //        currency_id: 'usdt',
+        //        address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        //        memo: '',
+        //        deposit_status: 'enabled'
+        //    }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        const currencyId = this.safeString (depositAddress, 'currency_id');
+        const networkId = this.safeString (depositAddress, 'chain_name');
+        return {
+            'info': depositAddress,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': address,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': this.networkIdToCode (networkId),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

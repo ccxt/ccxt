@@ -72,6 +72,8 @@ public partial class okx : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -88,6 +90,7 @@ public partial class okx : Exchange
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMarkPrices", true },
                 { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
@@ -102,7 +105,6 @@ public partial class okx : Exchange
                 { "fetchOrderBooks", false },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
-                { "fetchPermissions", null },
                 { "fetchPosition", true },
                 { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
@@ -253,6 +255,7 @@ public partial class okx : Exchange
                         { "copytrading/public-preference-currency", 4 },
                         { "copytrading/public-current-subpositions", 4 },
                         { "copytrading/public-subpositions-history", 4 },
+                        { "support/announcements-types", 20 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -305,6 +308,7 @@ public partial class okx : Exchange
                         { "account/account-position-risk", 2 },
                         { "account/bills", divide(5, 3) },
                         { "account/bills-archive", divide(5, 3) },
+                        { "account/bills-history-archive", 2 },
                         { "account/config", 4 },
                         { "account/max-size", 1 },
                         { "account/max-avail-size", 1 },
@@ -385,6 +389,7 @@ public partial class okx : Exchange
                         { "broker/fd/if-rebate", 5 },
                         { "affiliate/invitee/detail", 1 },
                         { "users/partner/if-rebate", 1 },
+                        { "support/announcements", 4 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "rfq/create-rfq", 4 },
@@ -447,6 +452,7 @@ public partial class okx : Exchange
                         { "account/fixed-loan/amend-borrowing-order", 5 },
                         { "account/fixed-loan/manual-reborrow", 5 },
                         { "account/fixed-loan/repay-borrowing-order", 5 },
+                        { "account/bills-history-archive", 72000 },
                         { "users/subaccount/modify-apikey", 10 },
                         { "asset/subaccount/transfer", 10 },
                         { "users/subaccount/set-transfer-out", 10 },
@@ -533,6 +539,7 @@ public partial class okx : Exchange
                 { "exact", new Dictionary<string, object>() {
                     { "1", typeof(ExchangeError) },
                     { "2", typeof(ExchangeError) },
+                    { "4088", typeof(ManualInteractionNeeded) },
                     { "50000", typeof(BadRequest) },
                     { "50001", typeof(OnMaintenance) },
                     { "50002", typeof(BadRequest) },
@@ -746,6 +753,9 @@ public partial class okx : Exchange
                     { "52000", typeof(ExchangeError) },
                     { "54000", typeof(ExchangeError) },
                     { "54001", typeof(ExchangeError) },
+                    { "54008", typeof(InvalidOrder) },
+                    { "54009", typeof(InvalidOrder) },
+                    { "54011", typeof(InvalidOrder) },
                     { "55100", typeof(InvalidOrder) },
                     { "55101", typeof(InvalidOrder) },
                     { "55102", typeof(InvalidOrder) },
@@ -1776,6 +1786,13 @@ public partial class okx : Exchange
     public override object parseTicker(object ticker, object market = null)
     {
         //
+        //      {
+        //          "instType":"SWAP",
+        //          "instId":"BTC-USDT-SWAP",
+        //          "markPx":"200",
+        //          "ts":"1597026383085"
+        //      }
+        //
         //     {
         //         "instType": "SPOT",
         //         "instId": "ETH-BTC",
@@ -1826,6 +1843,7 @@ public partial class okx : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.safeString(ticker, "markPx") },
             { "info", ticker },
         }, market);
     }
@@ -1940,6 +1958,45 @@ public partial class okx : Exchange
         //         ]
         //     }
         //
+        object tickers = this.safeList(response, "data", new List<object>() {});
+        return this.parseTickers(tickers, symbols);
+    }
+
+    public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchMarkPrices
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object market = this.getMarketFromSymbols(symbols);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "instType", this.convertToInstrumentType(marketType) },
+        };
+        if (isTrue(isEqual(marketType, "option")))
+        {
+            object defaultUnderlying = this.safeString(this.options, "defaultUnderlying", "BTC-USD");
+            object currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
+            if (isTrue(isEqual(currencyId, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires an underlying uly or marketId parameter for options markets")) ;
+            } else
+            {
+                ((IDictionary<string,object>)request)["uly"] = currencyId;
+            }
+        }
+        object response = await this.publicGetPublicMarkPrice(this.extend(request, parameters));
         object tickers = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(tickers, symbols);
     }
@@ -2810,7 +2867,7 @@ public partial class okx : Exchange
                             }
                         } else if (isTrue(isEqual(notional, null)))
                         {
-                            throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\'createMarketBuyOrderRequiresPrice\'] = false and supply the total cost value in the \'amount\' argument or in the \'cost\' unified extra parameter or in exchange-specific \'sz\' extra parameter (the exchange-specific behaviour)")) ;
+                            throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")) ;
                         }
                     } else
                     {
@@ -3016,7 +3073,7 @@ public partial class okx : Exchange
         * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
         * @param {string} [params.trailingPercent] the percent to trail away from the current market price
         * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
-        * @param {string} [params.hedged] true/false, to automatically set exchange-specific params needed when trading in hedge mode
+        * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4652,13 +4709,13 @@ public partial class okx : Exchange
         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'
         * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4830,14 +4887,9 @@ public partial class okx : Exchange
         //         "ts": "1597026383085"
         //     }
         //
-        object id = this.safeString(item, "billId");
-        object account = null;
-        object referenceId = this.safeString(item, "ordId");
-        object referenceAccount = null;
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "ccy"), currency);
-        object amountString = this.safeString(item, "balChg");
-        object amount = this.parseNumber(amountString);
+        object currencyId = this.safeString(item, "ccy");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "ts");
         object feeCostString = this.safeString(item, "fee");
         object fee = null;
@@ -4848,29 +4900,25 @@ public partial class okx : Exchange
                 { "currency", code },
             };
         }
-        object before = null;
-        object afterString = this.safeString(item, "bal");
-        object after = this.parseNumber(afterString);
-        object status = "ok";
         object marketId = this.safeString(item, "instId");
         object symbol = this.safeSymbol(marketId, null, "-");
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", this.safeString(item, "billId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "account", account },
-            { "referenceId", referenceId },
-            { "referenceAccount", referenceAccount },
-            { "type", type },
+            { "account", null },
+            { "referenceId", this.safeString(item, "ordId") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
             { "currency", code },
             { "symbol", symbol },
-            { "amount", amount },
-            { "before", before },
-            { "after", after },
-            { "status", status },
+            { "amount", this.safeNumber(item, "balChg") },
+            { "before", null },
+            { "after", this.safeNumber(item, "bal") },
+            { "status", "ok" },
             { "fee", fee },
-        };
+        }, currency);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -5028,45 +5076,34 @@ public partial class okx : Exchange
         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.network] the network name for the deposit address
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object rawNetwork = this.safeStringUpper(parameters, "network");
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeString(networks, rawNetwork, rawNetwork);
         parameters = this.omit(parameters, "network");
+        code = this.safeCurrencyCode(code);
+        object network = this.networkIdToCode(rawNetwork, code);
         object response = await this.fetchDepositAddressesByNetwork(code, parameters);
-        object result = null;
-        if (isTrue(isEqual(network, null)))
+        if (isTrue(!isEqual(network, null)))
         {
-            result = this.safeValue(response, code);
+            object result = this.safeDict(response, network);
             if (isTrue(isEqual(result, null)))
             {
-                object alias = this.safeString(networks, code, code);
-                result = this.safeValue(response, alias);
-                if (isTrue(isEqual(result, null)))
-                {
-                    object defaultNetwork = this.safeString(this.options, "defaultNetwork", "ERC20");
-                    result = this.safeValue(response, defaultNetwork);
-                    if (isTrue(isEqual(result, null)))
-                    {
-                        object values = new List<object>(((IDictionary<string,object>)response).Values);
-                        result = this.safeValue(values, 0);
-                        if (isTrue(isEqual(result, null)))
-                        {
-                            throw new InvalidAddress ((string)add(add(this.id, " fetchDepositAddress() cannot find deposit address for "), code)) ;
-                        }
-                    }
-                }
+                throw new InvalidAddress ((string)add(add(add(add(this.id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)) ;
             }
             return result;
         }
-        result = this.safeValue(response, network);
-        if (isTrue(isEqual(result, null)))
+        object codeNetwork = this.networkIdToCode(code, code);
+        if (isTrue(inOp(response, codeNetwork)))
         {
-            throw new InvalidAddress ((string)add(add(add(add(this.id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)) ;
+            return getValue(response, codeNetwork);
         }
-        return result;
+        // if the network is not specified, return the first address
+        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object first = this.safeString(keys, 0);
+        return this.safeDict(response, first);
     }
 
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -6360,6 +6397,9 @@ public partial class okx : Exchange
         object symbol = this.safeSymbol(marketId, market);
         object nextFundingRate = this.safeNumber(contract, "nextFundingRate");
         object fundingTime = this.safeInteger(contract, "fundingTime");
+        object fundingTimeString = this.safeString(contract, "fundingTime");
+        object nextFundingTimeString = this.safeString(contract, "nextFundingRate");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return new Dictionary<string, object>() {
@@ -6380,7 +6420,35 @@ public partial class okx : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)

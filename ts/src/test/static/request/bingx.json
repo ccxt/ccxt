@@ -301,7 +301,7 @@
             {
                 "description": "Swap trailing amount order",
                 "method": "createOrder",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&price=100&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1703311717708&type=TRAILING_STOP_MARKET&signature=af450249b24a125292d4a81bbcda3445ea20a85dd858734e6ddacf36e999cf21",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&price=100&quantity=0.0001&side=SELL&symbol=BTC-USDT&reduceOnly=true&timestamp=1703311717708&type=TRAILING_STOP_MARKET&signature=af450249b24a125292d4a81bbcda3445ea20a85dd858734e6ddacf36e999cf21",
                 "input": [
                     "BTC/USDT:USDT",
                     "market",
@@ -317,7 +317,7 @@
             {
                 "description": "Swap trailing percent order",
                 "method": "createOrder",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&priceRate=0.1&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1703312086044&type=TRAILING_STOP_MARKET&signature=d2f180a1a328e08f679de56f255c452d9ad469f4eb445659397ef297390e6cfe",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&reduceOnly=true&priceRate=0.1&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1703312086044&type=TRAILING_STOP_MARKET&signature=d2f180a1a328e08f679de56f255c452d9ad469f4eb445659397ef297390e6cfe",
                 "input": [
                     "BTC/USDT:USDT",
                     "market",
@@ -528,6 +528,21 @@
                   1,
                   100
                 ]
+            },
+            {
+                "description": "swap reduceOnly order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&quantity=0.1&reduceOnly=true&side=SELL&symbol=LTC-USDT&timestamp=1725185164341&type=MARKET&signature=829da92de2a03fa34f28ab646785466677cb60b9792b8249a35e79225a6b7907",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.1,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ]
             }
         ],
         "createOrders": [
@@ -616,7 +631,7 @@
             {
                 "description": "Swap create a trailing amount order",
                 "method": "createTrailingAmountOrder",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&price=1000&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1704859549691&type=TRAILING_STOP_MARKET&signature=f026f00618ba73fdc6f07d69601e8d6d66f861cfaa0d46d08b6bb7eaaa5eb194",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&reduceOnly=true&price=1000&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1704859549691&type=TRAILING_STOP_MARKET&signature=f026f00618ba73fdc6f07d69601e8d6d66f861cfaa0d46d08b6bb7eaaa5eb194",
                 "input": [
                     "BTC/USDT:USDT",
                     "market",
@@ -636,7 +651,7 @@
             {
                 "description": "Swap create a trailing percent order",
                 "method": "createTrailingPercentOrder",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&priceRate=0.05&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1704859767615&type=TRAILING_STOP_MARKET&signature=682c1e28fea424756445d9c41f4ff1c864293ca1f77b3eec31ca847402afa426",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&reduceOnly=true&priceRate=0.05&quantity=0.0001&side=SELL&symbol=BTC-USDT&timestamp=1704859767615&type=TRAILING_STOP_MARKET&signature=682c1e28fea424756445d9c41f4ff1c864293ca1f77b3eec31ca847402afa426",
                 "input": [
                     "BTC/USDT:USDT",
                     "market",

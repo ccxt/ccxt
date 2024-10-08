@@ -2498,6 +2498,8 @@ export default class phemex extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {string} [params.posSide] *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2599,15 +2601,22 @@ export default class phemex extends Exchange {
             }
         }
         else if (market['swap']) {
+            const hedged = this.safeBool(params, 'hedged', false);
+            params = this.omit(params, 'hedged');
             let posSide = this.safeStringLower(params, 'posSide');
             if (posSide === undefined) {
-                posSide = 'Merged';
+                if (hedged) {
+                    if (reduceOnly) {
+                        side = (side === 'buy') ? 'sell' : 'buy';
+                    }
+                    posSide = (side === 'buy') ? 'Long' : 'Short';
+                }
+                else {
+                    posSide = 'Merged';
+                }
             }
             posSide = this.capitalize(posSide);
             request['posSide'] = posSide;
-            if (reduceOnly !== undefined) {
-                request['reduceOnly'] = reduceOnly;
-            }
             if (market['settle'] === 'USDT') {
                 request['orderQtyRq'] = amount;
             }
@@ -4131,6 +4140,7 @@ export default class phemex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async setMargin(symbol, amount, params = {}) {

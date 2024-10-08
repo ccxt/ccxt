@@ -593,6 +593,8 @@ class gate extends gate$1 {
             },
             // copied from gatev2
             'commonCurrencies': {
+                'ORT': 'XREATORS',
+                'ASS': 'ASSF',
                 '88MPH': 'MPH',
                 'AXIS': 'AXISDEFI',
                 'BIFI': 'BITCOINFILE',
@@ -607,6 +609,7 @@ class gate extends gate$1 {
                 'MPH': 'MORPHER',
                 'POINT': 'GATEPOINT',
                 'RAI': 'RAIREFLEXINDEX',
+                'RED': 'RedLang',
                 'SBTC': 'SUPERBITCOIN',
                 'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',
@@ -626,6 +629,8 @@ class gate extends gate$1 {
                 },
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
+                    'LINEA': 'LINEAETH',
+                    'KON': 'KONET',
                     'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
                     'EOS': 'EOS',
@@ -638,6 +643,9 @@ class gate extends gate$1 {
                     'OPTIMISM': 'OPETH',
                     'POLKADOT': 'DOTSM',
                     'TRC20': 'TRX',
+                    'LUNA': 'LUNC',
+                    'BASE': 'BASEEVM',
+                    'BRC20': 'BTCBRC',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -981,8 +989,9 @@ class gate extends gate$1 {
         return this.arrayConcat(markets, optionMarkets);
     }
     async fetchSpotMarkets(params = {}) {
-        const marginResponse = await this.publicMarginGetCurrencyPairs(params);
-        const spotMarketsResponse = await this.publicSpotGetCurrencyPairs(params);
+        const marginPromise = this.publicMarginGetCurrencyPairs(params);
+        const spotMarketsPromise = this.publicSpotGetCurrencyPairs(params);
+        const [marginResponse, spotMarketsResponse] = await Promise.all([marginPromise, spotMarketsPromise]);
         const marginMarkets = this.indexBy(marginResponse, 'id');
         //
         //  Spot
@@ -1738,7 +1747,7 @@ class gate extends gate$1 {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1842,6 +1851,7 @@ class gate extends gate$1 {
         const fundingRate = this.safeNumber(contract, 'funding_rate');
         const fundingTime = this.safeTimestamp(contract, 'funding_next_apply');
         const fundingRateIndicative = this.safeNumber(contract, 'funding_rate_indicative');
+        const fundingInterval = Precise["default"].stringMul('1000', this.safeString(contract, 'funding_interval'));
         return {
             'info': contract,
             'symbol': symbol,
@@ -1860,7 +1870,18 @@ class gate extends gate$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': this.parseFundingInterval(fundingInterval),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     async fetchNetworkDepositAddress(code, params = {}) {
         await this.loadMarkets();
@@ -2589,6 +2610,8 @@ class gate extends gate$1 {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
         }, market);
     }
@@ -4016,7 +4039,7 @@ class gate extends gate$1 {
                     request['settle'] = market['settleId']; // filled in prepareRequest above
                 }
                 if (isMarketOrder) {
-                    request['price'] = price; // set to 0 for market orders
+                    request['price'] = '0'; // set to 0 for market orders
                 }
                 else {
                     request['price'] = (price === 0) ? '0' : this.priceToPrecision(symbol, price);
@@ -4704,6 +4727,7 @@ class gate extends gate$1 {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4711,11 +4735,40 @@ class gate extends gate$1 {
          * @param {bool} [params.stop] true for fetching stop orders
          * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+         * @param {boolean} [params.historical] *swap only* true for using historical endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        return await this.fetchOrdersByStatus('finished', symbol, since, limit, params);
+        await this.loadMarkets();
+        const until = this.safeInteger(params, 'until');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            symbol = market['symbol'];
+        }
+        const res = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
+        const type = this.safeString(res, 0);
+        let useHistorical = false;
+        [useHistorical, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'historical', false);
+        if (!useHistorical && ((since === undefined && until === undefined) || (type !== 'swap'))) {
+            return await this.fetchOrdersByStatus('finished', symbol, since, limit, params);
+        }
+        params = this.omit(params, 'type');
+        let request = {};
+        [request, params] = this.prepareRequest(market, type, params);
+        if (since !== undefined) {
+            request['from'] = this.parseToInt(since / 1000);
+        }
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['to'] = this.parseToInt(until / 1000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateFuturesGetSettleOrdersTimerange(this.extend(request, params));
+        return this.parseOrders(response, market, since, limit);
     }
-    fetchOrdersByStatusRequest(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    prepareOrdersByStatusRequest(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -4723,9 +4776,11 @@ class gate extends gate$1 {
         }
         const stop = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
-        const [type, query] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
         const spot = (type === 'spot') || (type === 'margin');
-        const [request, requestParams] = spot ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        let request = {};
+        [request, params] = spot ? this.multiOrderSpotPrepareRequest(market, stop, params) : this.prepareRequest(market, type, params);
         if (status === 'closed') {
             status = 'finished';
         }
@@ -4733,10 +4788,17 @@ class gate extends gate$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined && spot) {
-            request['from'] = this.parseToInt(since / 1000);
+        if (spot) {
+            if (since !== undefined) {
+                request['from'] = this.parseToInt(since / 1000);
+            }
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['to'] = this.parseToInt(until / 1000);
+            }
         }
-        const [lastId, finalParams] = this.handleParamString2(requestParams, 'lastId', 'last_id');
+        const [lastId, finalParams] = this.handleParamString2(params, 'lastId', 'last_id');
         if (lastId !== undefined) {
             request['last_id'] = lastId;
         }
@@ -4754,7 +4816,7 @@ class gate extends gate$1 {
         const res = this.handleMarketTypeAndParams('fetchOrdersByStatus', market, params);
         const type = this.safeString(res, 0);
         params['type'] = type;
-        const [request, requestParams] = this.fetchOrdersByStatusRequest(status, symbol, since, limit, params);
+        const [request, requestParams] = this.prepareOrdersByStatusRequest(status, symbol, since, limit, params);
         const spot = (type === 'spot') || (type === 'margin');
         const openSpotOrders = spot && (status === 'open') && !stop;
         let response = undefined;
@@ -6625,12 +6687,12 @@ class gate extends gate$1 {
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] end time in ms
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -6787,6 +6849,7 @@ class gate extends gate$1 {
             direction = 'in';
         }
         const currencyId = this.safeString(item, 'currency');
+        currency = this.safeCurrency(currencyId, currency);
         const type = this.safeString(item, 'type');
         const rawTimestamp = this.safeString(item, 'time');
         let timestamp = undefined;
@@ -6799,7 +6862,8 @@ class gate extends gate$1 {
         const balanceString = this.safeString(item, 'balance');
         const changeString = this.safeString(item, 'change');
         const before = this.parseNumber(Precise["default"].stringSub(balanceString, changeString));
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'id'),
             'direction': direction,
             'account': undefined,
@@ -6814,8 +6878,7 @@ class gate extends gate$1 {
             'after': this.safeNumber(item, 'balance'),
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {

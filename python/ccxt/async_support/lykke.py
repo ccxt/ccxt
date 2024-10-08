@@ -667,9 +667,9 @@ class lykke(Exchange, ImplicitAPI):
             currencyId = self.safe_string(balance, 'assetId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            free = self.safe_string(balance, 'available')
+            total = self.safe_string(balance, 'available')
             used = self.safe_string(balance, 'reserved')
-            account['free'] = free
+            account['total'] = total
             account['used'] = used
             result[code] = account
         return self.safe_balance(result)
