@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, BadSymbol, InvalidOrder, NotSupported } 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -4415,8 +4415,8 @@ export default class coincatch extends Exchange {
         return this.parseLedger (result, currency, since, limit);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
-        // umcbl
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        // spot
         //     {
         //         "billId": "1220289012519190529",
         //         "coinId": 2,
@@ -4429,7 +4429,7 @@ export default class coincatch extends Exchange {
         //         "cTime": "1726665493092"
         //     }
         //
-        // dmcbl
+        // swap
         //     {
         //         "id": "1220288640761122816",
         //         "symbol": null,
@@ -4453,8 +4453,11 @@ export default class coincatch extends Exchange {
             direction = 'out';
             amountString = Precise.stringMul (amountString, '-1');
         }
-        const feeString = Precise.stringAbs (this.safeString2 (item, 'fees', 'fee'));
-        return {
+        const fee = {
+            'cost': Precise.stringAbs (this.safeString2 (item, 'fee', 'fees')),
+            'currency': this.safeString (item, 'feeCoin'),
+        };
+        return this.safeLedgerEntry ({
             'id': this.safeString2 (item, 'billId', 'id'),
             'info': item,
             'timestamp': timestamp,
@@ -4466,12 +4469,12 @@ export default class coincatch extends Exchange {
             'type': this.parseLedgerEntryType (this.safeStringLower2 (item, 'bizType', 'business')),
             'currency': this.safeCurrencyCode (settleId, currency),
             'symbol': market['symbol'],
-            'amount': this.parseNumber (amountString),
+            'amount': amountString,
             'before': undefined,
-            'after': this.safeNumber (item, 'balance'),
+            'after': this.safeString (item, 'balance'),
             'status': 'ok',
-            'fee': this.parseNumber (feeString),
-        };
+            'fee': fee,
+        }, currency);
     }
 
     parseLedgerEntryType (type: string): string {
