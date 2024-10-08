@@ -1230,7 +1230,7 @@ class htx extends htx$1 {
                 'SBTC': 'SUPERBITCOIN',
                 'SOUL': 'SOULSAVER',
                 'BIFI': 'BITCOINFILE',
-                'FUD': 'FTX Users\' Debt',
+                'FUD': 'FTX Users Debt',
             },
         });
     }

@@ -1133,7 +1133,7 @@ public partial class htx : Exchange
                 { "SBTC", "SUPERBITCOIN" },
                 { "SOUL", "SOULSAVER" },
                 { "BIFI", "BITCOINFILE" },
-                { "FUD", "FTX Users' Debt" },
+                { "FUD", "FTX Users Debt" },
             } },
         });
     }

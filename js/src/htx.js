@@ -1233,7 +1233,7 @@ export default class htx extends Exchange {
                 'SBTC': 'SUPERBITCOIN',
                 'SOUL': 'SOULSAVER',
                 'BIFI': 'BITCOINFILE',
-                'FUD': 'FTX Users\' Debt',
+                'FUD': 'FTX Users Debt',
             },
         });
     }
