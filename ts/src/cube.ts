@@ -186,30 +186,26 @@ export default class cube extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.irPublicGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
-        // Ensure to retrieve the assets, feeTables, and markets as arrays
-        const assets = this.safeValue (result, 'assets', []);
-        const feeTables = this.safeValue (result, 'feeTables', []);
-        const markets = this.safeValue (result, 'markets', []); // Ensure markets is fetched
-        // Ensure assetId and feeTableId are cast to strings before indexing
+        const markets = this.safeList (result, 'markets', []);
+        const assets = this.safeList (result, 'assets', []);
+        const feeTables = this.safeList (result, 'feeTables', []);
         this.options['assetsById'] = this.indexBy (assets, 'assetId');
         this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId');
-        // Return parsed markets
-        return this.parseMarkets (markets); // Pass markets for parsing
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market): Market {
         // Access assetsById and feeTablesById from this.options
         const assetsById = this.safeValue (this.options, 'assetsById', {});
         const feeTablesById = this.safeValue (this.options, 'feeTablesById', {});
-        // Ensure baseAssetId and quoteAssetId are correctly retrieved and used as strings
-        const baseAsset = this.safeValue (assetsById, this.safeString (market, 'baseAssetId'));
-        const quoteAsset = this.safeValue (assetsById, this.safeString (market, 'quoteAssetId'));
-        // Construct the market symbol
+        const baseAsset = this.safeValue (assetsById, market['baseAssetId']);
+        const quoteAsset = this.safeValue (assetsById, market['quoteAssetId']);
         const id = this.safeString (market, 'marketId');
+        const baseAssetId = this.safeString (market, 'baseAssetId');
+        const quoteAssetId = this.safeString (market, 'quoteAssetId');
         const base = this.safeCurrencyCode (this.safeString (baseAsset, 'symbol'));
         const quote = this.safeCurrencyCode (this.safeString (quoteAsset, 'symbol'));
         const symbol = base + '/' + quote;
-        // Handle fee table and fee tiers
         const feeTableId = this.safeString (market, 'feeTableId');
         const feeTable = this.safeValue (feeTablesById, feeTableId, {});
         const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
@@ -220,8 +216,8 @@ export default class cube extends Exchange {
             'base': base,
             'quote': quote,
             'settle': undefined,
-            'baseId': this.safeString (market, 'baseAssetId'),
-            'quoteId': this.safeString (market, 'quoteAssetId'),
+            'baseId': baseAssetId,
+            'quoteId': quoteAssetId,
             'settleId': undefined,
             'type': 'spot',
             'spot': true,
@@ -229,7 +225,7 @@ export default class cube extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': this.safeValue (market, 'status') === 1,
+            'active': (this.safeValue (market, 'status') === 1),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
