@@ -41,11 +41,53 @@ export default class coincatch extends coincatchRest {
                     '1d': '1D',
                     '1w': '1W',
                 },
+                'watchOrderBook': {
+                    'checksum': true,
+                },
             },
             'streaming': {
-                'keepAlive': 10000,
+                'ping': this.ping,
             },
         });
+    }
+
+    async watchPublic (messageHash, args, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'op': 'subscribe',
+            'args': [ args ],
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async unWatchPublic (messageHash, args, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'args': [ args ],
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const instId = market['baseId'] + market['quoteId'];
+        let instType = undefined;
+        if (market['spot']) {
+            instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
+        } else if (market['futures'] || market['swap']) {
+            instType = 'MC';
+        }
+        const messageHash = 'unsubscribe:' + messageHashTopic + ':' + instId;
+        const args: Dict = {
+            'instType': instType,
+            'channel': channel,
+            'instId': instId,
+        };
+        return await this.unWatchPublic (messageHash, args, params);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -63,20 +105,32 @@ export default class coincatch extends coincatchRest {
         const market = this.market (symbol);
         const instId = market['baseId'] + market['quoteId'];
         const channel = 'ticker';
-        const instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-        const url = this.urls['api']['ws']['public'];
-        const request: Dict = {
-            'op': 'subscribe',
-            'args': [
-                {
-                    'instType': instType,
-                    'channel': channel,
-                    'instId': instId,
-                },
-            ],
-        };
+        let instType = undefined;
+        if (market['spot']) {
+            instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
+        } else if (market['futures'] || market['swap']) {
+            instType = 'MC';
+        }
         const messageHash = channel + ':' + symbol;
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const args: Dict = {
+            'instType': instType,
+            'channel': channel,
+            'instId': instId,
+        };
+        return await this.watchPublic (messageHash, args, params);
+    }
+
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name coinctach#unWatchTicker
+         * @description unsubscribe from the ticker channel
+         * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
+         * @param {string} symbol unified symbol of the market to unwatch the ticker for
+         * @returns {any} status of the unwatch request
+         */
+        await this.loadMarkets ();
+        return await this.unWatchChannel (symbol, 'ticker', 'ticker', params);
     }
 
     handleTicker (client: Client, message) {
@@ -184,24 +238,39 @@ export default class coincatch extends coincatchRest {
         const instId = market['baseId'] + market['quoteId'];
         const timeframes = this.options['timeframesForWs'];
         const channel = 'candle' + this.safeString (timeframes, timeframe);
-        const instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-        const url = this.urls['api']['ws']['public'];
-        const request: Dict = {
-            'op': 'subscribe',
-            'args': [
-                {
-                    'instType': instType,
-                    'channel': channel,
-                    'instId': instId,
-                },
-            ],
+        let instType = undefined;
+        if (market['spot']) {
+            instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
+        } else if (market['futures'] || market['swap']) {
+            instType = 'MC';
+        }
+        const args: Dict = {
+            'instType': instType,
+            'channel': channel,
+            'instId': instId,
         };
         const messageHash = channel + ':' + symbol;
-        const ohlcv = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const ohlcv = await this.watchPublic (messageHash, args, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        /**
+         * @method
+         * @name coincatch#unWatchOHLCV
+         * @description unsubscribe from the ohlcv channel
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+         * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const timeframes = this.options['timeframesForWs'];
+        const interval = this.safeString (timeframes, timeframe);
+        const channel = 'candle' + interval;
+        return await this.unWatchChannel (symbol, channel, 'candle:' + interval, params);
     }
 
     handleOHLCV (client: Client, message) {
@@ -293,7 +362,6 @@ export default class coincatch extends coincatchRest {
         const instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
-            'op': 'subscribe',
             'args': [
                 {
                     'instType': instType,
