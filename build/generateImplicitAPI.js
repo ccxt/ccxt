@@ -166,13 +166,32 @@ function createImplicitMethodsGo(){
 
         const methods = methodNames.map(method=> {
             return [
-                `${IDEN}func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
-                `${IDEN}${IDEN}parameters := GetArg(args, 0, nil)`,
-                `${IDEN}${IDEN}return this.callEndpoint ("${method}", parameters);`,
-                `${IDEN}}`,
+                `func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+                `   parameters := GetArg(args, 0, nil)`,
+                `   ch := make(chan interface{})`,
+                `   go func() {`,
+                `       defer close(ch)`,
+                `       defer func() {`,
+                `           if r := recover(); r != nil {`,
+                `               ch <- "panic:" + ToString(r)`,
+                `           }`,
+                `       }()`,
+                `       ch <- (<-this.callEndpoint ("${method}", parameters))`,
+                `       PanicOnError(ch)`,
+                `   }()`,
+                `   return ch`,
+                `}`,
                 ``,
             ].join('\n')
+            // return [
+            //     `${IDEN}func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+            //     `${IDEN}${IDEN}parameters := GetArg(args, 0, nil)`,
+            //     `${IDEN}${IDEN}return this.callEndpoint ("${method}", parameters);`,
+            //     `${IDEN}}`,
+            //     ``,
+            // ].join('\n')
         });
+        
        storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
     }
 }

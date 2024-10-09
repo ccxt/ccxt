@@ -816,11 +816,13 @@ class NewTranspiler {
 
         const caseStatements = exchanges.map(exchange => {
             return`    case "${exchange}":
-        return &${exchange}{}, true`;
+        ${exchange}Itf := &${exchange}{}
+        ${exchange}Itf.Init(exchangeArgs)
+        return ${exchange}Itf, true`;
         })
 
         const functionDecl = `
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs interface{}) (IExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (IExchange, bool) {
     switch exchangeId {
 ${caseStatements.join('\n')}
         default:
@@ -930,7 +932,7 @@ ${caseStatements.join('\n')}
         const options = { csharpFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            // await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
         }
 
         // this.transpileExamples(); // disabled for now
@@ -1069,7 +1071,7 @@ ${caseStatements.join('\n')}
         const initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
 	this.Exchange = Exchange{}
-	this.Exchange.Init(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }\n`
         content = this.createGeneratedHeader().join('\n') + '\n' + content + '\n' +  initMethod;
         return goImports + content;
