@@ -198,9 +198,13 @@ class bitmex(Exchange):
         positions = self.privateGetPosition()
         positions_to_return = list()
         for position in positions:
+            market_id = self.safe_string(position, 'symbol')
+            if not market_id or market_id not in self.markets_by_id:
+                continue
             leverage = 0 if position["crossMargin"] else position["leverage"]
             margin_type = "cross" if leverage == 0 else "isolated"
-            result = {'info': position, "symbol": self.find_market(position["symbol"])["symbol"],
+            market = self.markets_by_id[market_id]
+            result = {'info': position, "symbol": market["symbol"],
                       "quantity": position["currentQty"],
                       "leverage": leverage, "margin_type": margin_type,
                       "maintenance_margin": position["maintMargin"] / 100000000,
