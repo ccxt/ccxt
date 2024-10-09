@@ -1764,15 +1764,15 @@ func  (this *testMainClass) RunStaticTests(typeVar interface{}, optionalArgs ...
                 var numberOfTests interface{} = this.GetNumberOfTestsFromExchange(exchange, exchangeData, testName)
                 sum = exchange.Sum(sum, numberOfTests)
                 if IsTrue(IsEqual(typeVar, "request")) {
-                    // AppendToArray(&promises,this.TestExchangeRequestStatically(exchangeName, exchangeData, testName))
-                    <-this.TestExchangeRequestStatically(exchangeName, exchangeData, testName)
+                    AppendToArray(&promises,this.TestExchangeRequestStatically(exchangeName, exchangeData, testName))
+                    // <-this.TestExchangeRequestStatically(exchangeName, exchangeData, testName)
                 } else {
                     AppendToArray(&promises,this.TestExchangeResponseStatically(exchangeName, exchangeData, testName))
                 }
             }
         
-            // retRes610 := (<-promiseAll(promises))
-            // PanicOnError(retRes610)
+            retRes610 := (<-promiseAll(promises))
+            PanicOnError(retRes610)
             if IsTrue(IsTrue(this.RequestTestsFailed) || IsTrue(this.ResponseTestsFailed)) {
                 ExitScript(1)
             } else {
