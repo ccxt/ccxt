@@ -1425,6 +1425,10 @@ public partial class htx
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

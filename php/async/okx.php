@@ -1846,6 +1846,16 @@ class okx extends Exchange {
         //         "sodUtc0" => "0.07872",
         //         "sodUtc8" => "0.07345"
         //     }
+        //     array(
+        //          instId => 'LTC-USDT',
+        //          idxPx => '65.74',
+        //          open24h => '65.37',
+        //          high24h => '66.15',
+        //          low24h => '64.97',
+        //          sodUtc0 => '65.68',
+        //          sodUtc8 => '65.54',
+        //          ts => '1728467346900'
+        //     ),
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
@@ -1879,6 +1889,7 @@ class okx extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'markPrice' => $this->safe_string($ticker, 'markPx'),
+            'indexPrice' => $this->safe_string($ticker, 'idxPx'),
             'info' => $ticker,
         ), $market);
     }

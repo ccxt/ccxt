@@ -7592,6 +7592,10 @@ class htx extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch $data on a single open contract trade $position
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-$query-assets-and-$positions
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-$query-assets-and-$positions
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#$query-assets-and-$positions
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#$query-assets-and-$positions
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~

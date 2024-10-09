@@ -7181,6 +7181,10 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`

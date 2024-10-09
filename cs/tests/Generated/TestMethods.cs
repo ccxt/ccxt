@@ -77,6 +77,7 @@ public partial class testMainClass
             { "symbol", symbolArgv },
             { "method", methodArgv },
             { "isWs", this.wsTests },
+            { "useProxy", getCliArgValue("--useProxy") },
         }, newLine);
         object exchangeArgs = new Dictionary<string, object>() {
             { "verbose", this.verbose },
