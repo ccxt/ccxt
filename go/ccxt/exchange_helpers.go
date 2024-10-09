@@ -1426,7 +1426,18 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 }
 
 func PanicOnError(msg interface{}) {
-	if str, ok := msg.(string); ok && strings.HasPrefix(str, "panic:") {
-		panic(msg)
+	switch v := msg.(type) {
+	case string:
+		if strings.HasPrefix(v, "panic:") {
+			panic(msg)
+		}
+	case []interface{}:
+		for _, item := range v {
+			if str, ok := item.(string); ok && strings.HasPrefix(str, "panic:") {
+				panic(fmt.Sprintf("panic:%v", v))
+			}
+		}
+	default:
+		return
 	}
 }
