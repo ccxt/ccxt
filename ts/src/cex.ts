@@ -64,6 +64,7 @@ export default class cex extends Exchange {
                         'get_server_time': 1,
                         'get_pairs_info': 1,
                         'get_currencies_info': 1,
+                        'get_processing_info': 10,
                     },
                 },
                 'private': {
@@ -97,7 +98,7 @@ export default class cex extends Exchange {
          * @param {dict} [params] extra parameters specific to the exchange API endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicPostGetCurrenciesInfo (params);
+        const promise1 = this.publicPostGetCurrenciesInfo (params);
         //
         //    {
         //        "ok": "ok",
@@ -112,8 +113,34 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeList (response, 'data', []);
-        return this.parseCurrencies (data);
+        const promise2 = this.publicPostGetProcessingInfo (params);
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "ADA": {
+        //                "name": "Cardano",
+        //                "blockchains": {
+        //                    "cardano": {
+        //                        "type": "coin",
+        //                        "deposit": "enabled",
+        //                        "minDeposit": "1",
+        //                        "withdrawal": "enabled",
+        //                        "minWithdrawal": "5",
+        //                        "withdrawalFee": "1",
+        //                        "withdrawalFeePercent": "0",
+        //                        "depositConfirmations": "15"
+        //                    }
+        //                }
+        //            },
+        //            ...
+        //
+        const responses = await Promise.all ([ promise1, promise2 ]);
+        const dataCurrencies = this.safeList (responses[0], 'data', []);
+        const dataNetworks = this.safeDict (responses[1], 'data', {});
+        const currenciesIndexed = this.indexBy (dataCurrencies, 'currency');
+        const data = this.deepExtend (currenciesIndexed, dataNetworks);
+        return this.parseCurrencies (this.values (data));
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
@@ -123,7 +150,38 @@ export default class cex extends Exchange {
         const currencyDepositEnabled = this.safeBool (rawCurrency, 'walletDeposit');
         const currencyWithdrawEnabled = this.safeBool (rawCurrency, 'walletWithdrawal');
         const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
-        return {
+        const networks: Dict = {};
+        const rawNetworks = this.safeDict (rawCurrency, 'blockchains', {});
+        const keys = Object.keys (rawNetworks);
+        for (let j = 0; j < keys.length; j++) {
+            const networkTitle = keys[j];
+            const rawNetwork = rawNetworks[networkTitle];
+            const networkId = this.safeString (rawNetwork, 'type');
+            const networkCode = this.networkIdToCode (networkId);
+            const deposit = this.safeString (rawNetwork, 'deposit') === 'enabled';
+            const withdraw = this.safeString (rawNetwork, 'withdrawal') === 'enabled';
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'margin': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': this.safeNumber (rawNetwork, 'withdrawalFee'),
+                'precision': currencyPrecision,
+                'limits': {
+                    'deposit': {
+                        'min': this.safeNumber (rawNetwork, 'minDeposit'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (rawNetwork, 'minWithdrawal'),
+                        'max': undefined,
+                    },
+                },
+                'info': rawNetwork,
+            };
+        }
+        return this.safeCurrencyStructure ({
             'id': id,
             'code': code,
             'name': undefined,
@@ -143,9 +201,9 @@ export default class cex extends Exchange {
                     'max': undefined,
                 },
             },
-            'networks': undefined,
+            'networks': networks,
             'info': rawCurrency,
-        };
+        });
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
