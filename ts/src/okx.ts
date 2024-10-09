@@ -1838,6 +1838,16 @@ export default class okx extends Exchange {
         //         "sodUtc0": "0.07872",
         //         "sodUtc8": "0.07345"
         //     }
+        //     {
+        //          instId: 'LTC-USDT',
+        //          idxPx: '65.74',
+        //          open24h: '65.37',
+        //          high24h: '66.15',
+        //          low24h: '64.97',
+        //          sodUtc0: '65.68',
+        //          sodUtc8: '65.54',
+        //          ts: '1728467346900'
+        //     },
         //
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
@@ -1871,6 +1881,7 @@ export default class okx extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'markPrice': this.safeString (ticker, 'markPx'),
+            'indexPrice': this.safeString (ticker, 'idxPx'),
             'info': ticker,
         }, market);
     }
