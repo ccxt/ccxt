@@ -444,6 +444,7 @@ class bybit(Exchange):
                         'v5/account/set-margin-mode',
                         'v5/account/mmp-modify',
                         'v5/account/mmp-reset',
+                        'v5/account/info',
                         # asset
                         'v5/asset/transfer/inter-transfer',  # 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/save-transfer-sub-member',  # 1/3/s => cost = 50 / 1/3 = 150
@@ -4651,7 +4652,23 @@ class bybit(Exchange):
             "ip_restrict": not allow_all,
             'unified_account': unified_account,
             'unified_margin': unified_margin,
-            'read_only': read_only
+            'read_only': read_only,
+            'info': result
+        }
+
+    def get_account_info(self):
+        response = self.privateGetV5AccountInfo()
+        result = self.safe_value(response, 'result')
+        result = result[0] if result and type(result) == list else result
+        margin_mode = self.safe_string(result, 'marginMode')
+        margin_mode_mapping = {'ISOLATED_MARGIN': 'isolated', 'REGULAR_MARGIN': 'cross'}
+        is_copy_trading_leader = self.safe_bool(result, 'isMasterTrader')
+        unified_margin_status = self.safe_integer(result, 'unifiedMarginStatus')
+        return {
+            'margin_mode': margin_mode_mapping.get(margin_mode),
+            'is_copy_trading_leader': is_copy_trading_leader,
+            'unified_margin_status': unified_margin_status,
+            'info': result
         }
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
