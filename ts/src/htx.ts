@@ -7545,7 +7545,11 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchPositions
          * @description fetch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] 'linear' or 'inverse'
          * @param {string} [params.type] *inverse only* 'future', or 'swap'
