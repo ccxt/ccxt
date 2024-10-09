@@ -6976,6 +6976,8 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated
          * @param {string} code unified currency code
          * @param {string} symbol unified market symbol when fetch interest in isolated markets
          * @param {int} [since] the earliest time in ms to fetch borrrow interest for
