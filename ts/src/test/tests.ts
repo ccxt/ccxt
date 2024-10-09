@@ -108,7 +108,7 @@ class testMainClass {
             return;
         }
         const newLine = "\n";
-        dump (newLine + '' + newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests }, newLine);
+        dump (newLine + '' + newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests, 'useProxy': getCliArgValue ('--useProxy') }, newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
