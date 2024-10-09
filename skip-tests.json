@@ -1603,6 +1603,7 @@
                 "side": "undefined"
             },
             "ticker": {
+                "askVolume": "weird value https://app.travis-ci.com/github/ccxt/ccxt/builds/272650012#L3904",
                 "baseVolume": "not supported",
                 "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581"
             },
