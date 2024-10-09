@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -29,13 +29,11 @@ export default class cex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'addMargin': false,
                 'fetchTime': true,
+                'fetchMarkets': true,
+                'fetchCurrencies': true,
             },
             'timeframes': {
-                '1m': '1m',
-                '1h': '1h',
-                '1d': '1d',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -64,6 +62,8 @@ export default class cex extends Exchange {
                     },
                     'post': {
                         'get_server_time': 1,
+                        'get_pairs_info': 1,
+                        'get_currencies_info': 1,
                     },
                 },
                 'private': {
@@ -88,7 +88,101 @@ export default class cex extends Exchange {
         });
     }
 
-    
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name cex#fetchMarkets
+         * @description retrieves data on all markets for ace
+         * @see https://trade.cex.io/docs/#rest-public-api-calls-pairs-info
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicPostGetPairsInfo (params);
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": [
+        //            {
+        //                "base": "AI",
+        //                "quote": "USD",
+        //                "baseMin": "30",
+        //                "baseMax": "2516000",
+        //                "baseLotSize": "0.000001",
+        //                "quoteMin": "10",
+        //                "quoteMax": "1000000",
+        //                "quoteLotSize": "0.01000000",
+        //                "basePrecision": "6",
+        //                "quotePrecision": "8",
+        //                "pricePrecision": "4",
+        //                "minPrice": "0.0377",
+        //                "maxPrice": "19.5000"
+        //            },
+        //            ...
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseMarkets (data);
+    }
+
+    parseMarket (market: Dict): Market {
+        const baseId = this.safeString (market, 'base');
+        const base = this.safeCurrencyCode (baseId);
+        const quoteId = this.safeString (market, 'quote');
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        return this.safeMarketStructure ({
+            'id': symbol,
+            'symbol': symbol,
+            'base': base,
+            'baseId': baseId,
+            'quote': quote,
+            'quoteId': quoteId,
+            'settle': undefined,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (market, 'baseMin'),
+                    'max': this.safeNumber (market, 'baseMax'),
+                },
+                'price': {
+                    'min': this.safeNumber (market, 'minPrice'),
+                    'max': this.safeNumber (market, 'maxPrice'),
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'quoteMin'),
+                    'max': this.safeNumber (market, 'quoteMax'),
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'precision': {
+                'amount': this.safeString (market, 'baseLotSize'),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                // 'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteLotSize'))), // buggy, doesn't reflect their documentation
+                'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
+                'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+            },
+            'active': undefined,
+            'created': undefined,
+            'info': market,
+        });
+    }
+
     async fetchTime (params = {}) {
         /**
          * @method
