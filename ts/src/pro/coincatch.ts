@@ -2,7 +2,7 @@
 
 import coincatchRest from '../coincatch.js';
 import { ArgumentsRequired, ChecksumError } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -23,7 +23,7 @@ export default class coincatch extends coincatchRest {
                 'watchMyTrades': false,
                 'watchTicker': true,
                 'watchTickers': true,
-                'watchBalance': false,
+                'watchBalance': true,
             },
             'urls': {
                 'api': {
@@ -302,7 +302,6 @@ export default class coincatch extends coincatchRest {
         //
         const marketId = this.safeString (ticker, 'instId');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': this.safeInteger (ticker, 'ts'),
@@ -314,9 +313,9 @@ export default class coincatch extends coincatchRest {
             'ask': this.safeString (ticker, 'bestAsk'),
             'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open24h'),
-            'close': last,
-            'last': last,
+            'open': undefined,
+            'close': this.safeString (ticker, 'open24h'),
+            'last': this.safeString (ticker, 'last'),
             'previousClose': undefined,
             'change': this.safeString (ticker, 'chgUTC'),
             'percentage': undefined,
@@ -766,22 +765,116 @@ export default class coincatch extends coincatchRest {
         }, market);
     }
 
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name bitget#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://coincatch.github.io/github.io/en/spot/#account-channel
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+         * @param {string} [params.instType] spbl for spot, UMCBL and DMCBL for contract if not provided this.options['defaultInstType'] is used
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        const channel = 'account';
+        const instType = 'spbl';
+        const args: Dict = {
+            'instType': instType,
+            'channel': channel,
+            'instId': 'default',
+        };
+        const messageHash = 'balance:' + instType.toLowerCase ();
+        return await this.watchPrivate (messageHash, messageHash, args, params);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        //     {
+        //         action: 'snapshot',
+        //         arg: { instType: 'spbl', channel: 'account', instId: 'default' },
+        //         data: [
+        //             {
+        //                 coinId: '3',
+        //                 coinName: 'ETH',
+        //                 available: '0.0000832',
+        //                 frozen: '0',
+        //                 lock: '0'
+        //             },
+        //             {
+        //                 coinId: '2',
+        //                 coinName: 'USDT',
+        //                 available: '19.17233843',
+        //                 frozen: '0',
+        //                 lock: '0'
+        //             }
+        //         ],
+        //         ts: 1728464548725
+        //
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const rawBalance = data[i];
+            const currencyId = this.safeString (rawBalance, 'coinName');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = (code in this.balance) ? this.balance[code] : this.account ();
+            account['total'] = this.safeString (rawBalance, 'available');
+            account['used'] = this.safeString (rawBalance, 'frozen');
+            this.balance[code] = account;
+        }
+        this.balance = this.safeBalance (this.balance);
+        const arg = this.safeValue (message, 'arg');
+        const instType = this.safeStringLower (arg, 'instType');
+        const messageHash = 'balance:' + instType;
+        client.resolve (this.balance, messageHash);
+    }
+
     handleMessage (client: Client, message) {
+        const content = this.safeString (message, 'message');
+        if (content === 'pong') {
+            this.handlePong (client, message);
+            return;
+        }
+        if (message === 'pong') {
+            this.handlePong (client, message);
+            return;
+        }
+        const event = this.safeString (message, 'event');
+        if (event === 'login') {
+            this.handleAuthenticate (client, message);
+            return;
+        }
+        if (event === 'subscribe') {
+            this.handleSubscriptionStatus (client, message);
+            return;
+        }
         const data = this.safeDict (message, 'arg', {});
         const channel = this.safeString (data, 'channel');
-        const timeframe = channel.slice (6);
-        const limitForOrderBook = channel.slice (5);
         if (channel === 'ticker') {
             this.handleTicker (client, message);
         }
-        if (channel === 'candle' + timeframe) {
+        if (channel.indexOf ('candle') >= 0) {
             this.handleOHLCV (client, message);
         }
-        if (channel === 'books' + limitForOrderBook) {
+        if (channel.indexOf ('books') >= 0) {
             this.handleOrderBook (client, message);
         }
         if (channel === 'trade') {
             this.handleTrades (client, message);
         }
+        if (channel === 'account') {
+            this.handleBalance (client, message);
+        }
+    }
+
+    ping (client: Client) {
+        return 'ping';
+    }
+
+    handlePong (client: Client, message) {
+        client.lastPong = this.milliseconds ();
+        return message;
+    }
+
+    handleSubscriptionStatus (client: Client, message) {
+        return message;
     }
 }
