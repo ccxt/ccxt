@@ -1199,6 +1199,9 @@
             "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612"
             },
+            "ohlcv": {
+                "1":"https://app.travis-ci.com/github/ccxt/ccxt/builds/272644155#L4669"
+            },
             "watchOHLCV": "some timestamp issues"
         }
     },
@@ -1724,6 +1727,8 @@
     "vertex": {
         "httpsProxy": "http://188.34.194.190:8911",
         "wsProxy": "http://188.34.194.190:8911",
+        "skipPhpAsync": "for some reason it shows invalid headers - https://app.travis-ci.com/github/ccxt/ccxt/builds/272619476#L4519 but cant reproduce locally",
+        "skipCSharp": "same as above",
         "skipMethods": {
             "fetchCurrencies": "incomplete",
             "loadMarkets": {
