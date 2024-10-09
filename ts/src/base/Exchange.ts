@@ -183,34 +183,34 @@ export default class Exchange {
     api = undefined
     certified: boolean = false;
     pro: boolean = false;
-    countries: Str[] = undefined;
+    countries: Strings = undefined;
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy: any; // maintained for backwards compatibility, no-one should use it from now on
-    proxyUrl: string;
-    proxy_url: string;
+    proxyUrl: Str = undefined;
+    proxy_url: Str = undefined;
     proxyUrlCallback: any;
     proxy_url_callback: any;
-    httpProxy: string;
-    http_proxy: string;
+    httpProxy: Str = undefined;
+    http_proxy: Str = undefined;
     httpProxyCallback: any;
     http_proxy_callback: any;
-    httpsProxy: string;
-    https_proxy: string;
+    httpsProxy: Str = undefined;
+    https_proxy: Str = undefined;
     httpsProxyCallback: any;
     https_proxy_callback: any;
-    socksProxy: string;
-    socks_proxy: string;
+    socksProxy: Str = undefined;
+    socks_proxy: Str = undefined;
     socksProxyCallback: any;
     socks_proxy_callback: any;
-    userAgent: { 'User-Agent': string } | false = undefined;
-    user_agent: { 'User-Agent': string } | false = undefined;
-    wsProxy: string;
-    ws_proxy: string;
-    wssProxy: string;
-    wss_proxy: string;
-    wsSocksProxy: string;
-    ws_socks_proxy: string;
+    userAgent: { 'User-Agent': string } | false | undefined = undefined;
+    user_agent: { 'User-Agent': string } | false | undefined = undefined;
+    wsProxy: Str = undefined;
+    ws_proxy: Str = undefined;
+    wssProxy: Str = undefined;
+    wss_proxy: Str = undefined;
+    wsSocksProxy: Str = undefined;
+    ws_socks_proxy: Str = undefined;
     //
     userAgents: any = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -246,15 +246,15 @@ export default class Exchange {
     verbose: boolean  = false
     twofa             = undefined // two-factor authentication (2FA)
 
-    apiKey: string;
-    secret: string;
-    uid: string;
-    accountId: string;
-    login:string;
-    password: string;
-    privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
-    walletAddress: string; // a wallet address "0x"-prefixed hexstring
-    token: string; // reserved for HTTP auth in some cases
+    apiKey: Str;
+    secret: Str;
+    uid: Str;
+    accountId: Str = undefined;
+    login: Str;
+    password: Str;
+    privateKey: Str;// a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: Str; // a wallet address "0x"-prefixed hexstring
+    token: Str; // reserved for HTTP auth in some cases
 
     balance      = {}
     liquidations: Dictionary<Liquidation> = {}
@@ -262,13 +262,13 @@ export default class Exchange {
     tickers: Dictionary<Ticker>  = {}
     fundingRates: Dictionary<FundingRate> = {}
     bidsasks: Dictionary<Ticker>  = {}
-    orders: ArrayCache       = undefined
-    triggerOrders: ArrayCache = undefined
+    orders: ArrayCache | undefined        = undefined
+    triggerOrders: ArrayCache | undefined = undefined
     trades: Dictionary<ArrayCache>
     transactions = {}
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>
     myLiquidations: Dictionary<Liquidation> = {}
-    myTrades: ArrayCache;
+    myTrades: ArrayCache | undefined;
     positions: any;
     urls: {
         logo?: string;
@@ -279,6 +279,15 @@ export default class Exchange {
         api_management?: string;
         fees?: string;
         referral?: string;
+    } = {
+        'logo': undefined,
+        'api': undefined,
+        'test': undefined,
+        'www': undefined,
+        'doc': undefined,
+        'api_management': undefined,
+        'fees': undefined,
+        'referral': undefined,
     };
 
     requiresWeb3: boolean = false
@@ -289,7 +298,13 @@ export default class Exchange {
         cost?: Num,
         base?: Num,
         quote?: Num,
-    } = undefined
+    } = {
+        'amount': undefined,
+        'price': undefined,
+        'cost': undefined,
+        'base': undefined,
+        'quote': undefined,
+    };
 
     enableLastJsonResponse: boolean = true
     enableLastHttpResponse: boolean = true
@@ -304,8 +319,8 @@ export default class Exchange {
 
     id: string = 'Exchange';
 
-    markets: Dictionary<any> = undefined
-    has: Dictionary<boolean | 'emulated'>;
+    markets?: Dictionary<any> = undefined
+    has?: Dictionary<boolean | 'emulated'>;
 
     status: {
         status: Str,
@@ -313,7 +328,13 @@ export default class Exchange {
         eta: Num,
         url: Str,
         info: any,
-    } = undefined;
+    } = {
+        'status': undefined,
+        'updated': undefined,
+        'eta': undefined,
+        'url': undefined,
+        'info': undefined,
+    };
 
     requiredCredentials: {
         apiKey: Bool,
@@ -325,11 +346,21 @@ export default class Exchange {
         privateKey: Bool, // a "0x"-prefixed hexstring private key for a wallet
         walletAddress: Bool, // the wallet address "0x"-prefixed hexstring
         token: Bool, // reserved for HTTP auth in some cases
+    } = {
+        'apiKey': undefined,
+        'secret': undefined,
+        'uid': undefined,
+        'login': undefined,
+        'password': undefined,
+        'twofa': undefined,
+        'privateKey': undefined,
+        'walletAddress': undefined,
+        'token': undefined,
     };
     rateLimit: Num = undefined; // milliseconds
     tokenBucket = undefined
     throttler = undefined
-    enableRateLimit: boolean = undefined;
+    enableRateLimit: Bool = undefined;
 
     httpExceptions = undefined
 
@@ -338,7 +369,12 @@ export default class Exchange {
         cost?: MinMax,
         leverage?: MinMax,
         price?: MinMax,
-    } = undefined;
+    } = {
+        'amount': undefined,
+        'cost': undefined,
+        'leverage': undefined,
+        'price': undefined,
+    };
 
     fees: {
         trading: {
@@ -353,10 +389,23 @@ export default class Exchange {
             withdraw: {},
             deposit: {},
         },
+    } = {
+        'trading': {
+            'tierBased': undefined,
+            'percentage': undefined,
+            'taker': undefined,
+            'maker': undefined,
+        },
+        'funding': {
+            'tierBased': undefined,
+            'percentage': undefined,
+            'withdraw': {},
+            'deposit': {},
+        },
     };
-    markets_by_id: Dictionary<any> = undefined;
-    symbols: string[] = undefined;
-    ids: string[] = undefined;
+    markets_by_id: Dict | undefined = undefined;
+    symbols: Strings = undefined;
+    ids: Strings = undefined;
     currencies: Currencies = {};
 
     baseCurrencies = undefined
@@ -364,13 +413,13 @@ export default class Exchange {
     currencies_by_id = undefined
     codes = undefined
 
-    reloadingMarkets: boolean = undefined
-    marketsLoading: Promise<Dictionary<any>> = undefined
+    reloadingMarkets: Bool = undefined
+    marketsLoading: Promise<Dict> | undefined = undefined
 
     accounts = undefined
     accountsById = undefined
 
-    commonCurrencies: Dictionary<string> = undefined
+    commonCurrencies: Dictionary<string> | undefined = undefined
 
     hostname: Str = undefined;
 
@@ -382,7 +431,7 @@ export default class Exchange {
 
     version: Str = undefined;
 
-    marketsByAltname: Dictionary<any> = undefined
+    marketsByAltname: Dict | undefined = undefined
 
     name:Str = undefined
 
