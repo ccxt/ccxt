@@ -1,15 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"tests/base"
 )
 
 func main() {
-	fmt.Println("Will run base tests!")
+	// fmt.Println("Will run base tests!")
 	// base.BaseTestsInit()
 	tests := base.NewTestMainClass()
-	<-tests.Init("binance", "BTC/USDT", nil)
+	<-tests.Init("binance", nil, nil)
 	// NewTestMainClass()
-	fmt.Println("Base tests passed!")
+	// fmt.Println("Base tests passed!")
 }

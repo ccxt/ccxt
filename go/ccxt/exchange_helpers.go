@@ -684,11 +684,42 @@ func ToString(v interface{}) string {
 	case uint, uint8, uint16, uint32, uint64:
 		return fmt.Sprintf("%d", v)
 	case float32, float64:
+		convertedValue := ToFloat64(v)
+		if convertedValue == math.Trunc(convertedValue) {
+			return fmt.Sprintf("%d", int(convertedValue))
+		}
 		return fmt.Sprintf("%f", v)
 	case bool:
 		return fmt.Sprintf("%t", v)
 	default:
-		return fmt.Sprintf("%v", v)
+		// Handle maps, slices, and functions using reflection
+		val := reflect.ValueOf(v)
+		switch val.Kind() {
+		case reflect.Map:
+			result := "{"
+			for _, key := range val.MapKeys() {
+				result += fmt.Sprintf("%v: %v, ", ToString(key.Interface()), ToString(val.MapIndex(key).Interface()))
+			}
+			if len(result) > 1 {
+				result = result[:len(result)-2] // Remove trailing comma and space
+			}
+			result += "}"
+			return result
+		case reflect.Slice, reflect.Array:
+			result := "["
+			for i := 0; i < val.Len(); i++ {
+				result += fmt.Sprintf("%v, ", ToString(val.Index(i).Interface()))
+			}
+			if len(result) > 1 {
+				result = result[:len(result)-2] // Remove trailing comma and space
+			}
+			result += "]"
+			return result
+		case reflect.Func:
+			return fmt.Sprintf("Function: %v", val.Type().String())
+		default:
+			return fmt.Sprintf("%v", v)
+		}
 	}
 }
 
@@ -1303,6 +1334,15 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 
 	ch := make(chan interface{})
 	go func() {
+
+		// error handling
+		defer func() {
+			if r := recover(); r != nil {
+				// panic(r)
+				ch <- fmt.Sprintf("panic: %v", r)
+			}
+		}()
+
 		for i := 0; i < baseType.NumMethod(); i++ {
 			method := baseType.Method(i)
 			if name == method.Name {
@@ -1354,17 +1394,17 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
 					resultChan := res[0]
 					// Read values from the returned channel and pass them to ch
-					go func() {
-						for {
-							val, ok := resultChan.Recv()
-							if !ok {
-								break // result channel is closed
-							}
-							ch <- val.Interface() // pass the value to the output channel
+					// go func() {
+					for {
+						val, ok := resultChan.Recv()
+						if !ok {
+							break // result channel is closed
 						}
-						close(ch) // close the output channel after all values are received
-					}()
-					// Don't close `ch` yet, as it will be closed after the resultChan is read
+						ch <- val.Interface() // pass the value to the output channel
+					}
+					close(ch) // close the output channel after all values are received
+					// }()
+					// // Don't close `ch` yet, as it will be closed after the resultChan is read
 					return
 				} else if len(res) > 0 {
 					// Directly return the first result if it's not a channel
@@ -1383,4 +1423,10 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 		close(ch)
 	}()
 	return ch
+}
+
+func PanicOnError(msg interface{}) {
+	if str, ok := msg.(string); ok && strings.HasPrefix(str, "panic:") {
+		panic(msg)
+	}
 }

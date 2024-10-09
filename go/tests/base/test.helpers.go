@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -690,7 +691,34 @@ func ToString(v interface{}) string {
 	case bool:
 		return fmt.Sprintf("%t", v)
 	default:
-		return fmt.Sprintf("%v", v)
+		// Handle maps, slices, and functions using reflection
+		val := reflect.ValueOf(v)
+		switch val.Kind() {
+		case reflect.Map:
+			result := "{"
+			for _, key := range val.MapKeys() {
+				result += fmt.Sprintf("%v: %v, ", ToString(key.Interface()), ToString(val.MapIndex(key).Interface()))
+			}
+			if len(result) > 1 {
+				result = result[:len(result)-2] // Remove trailing comma and space
+			}
+			result += "}"
+			return result
+		case reflect.Slice, reflect.Array:
+			result := "["
+			for i := 0; i < val.Len(); i++ {
+				result += fmt.Sprintf("%v, ", ToString(val.Index(i).Interface()))
+			}
+			if len(result) > 1 {
+				result = result[:len(result)-2] // Remove trailing comma and space
+			}
+			result += "]"
+			return result
+		case reflect.Func:
+			return fmt.Sprintf("Function: %v", val.Type().String())
+		default:
+			return fmt.Sprintf("%v", v)
+		}
 	}
 }
 
@@ -887,6 +915,22 @@ func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{}
 
 func IsInstance(value interface{}, typ interface{}) bool {
 	// Get the reflect.Type of the value and the type
+
+	if s, ok := value.(string); ok {
+		isError := strings.HasPrefix(s, "panic")
+		if isError {
+			value := reflect.ValueOf(typ)
+			funcName := ""
+			if value.Kind() == reflect.Func {
+				funcName = runtime.FuncForPC(value.Pointer()).Name()
+				// Extract only the function name by removing the package path
+				parts := strings.Split(funcName, ".")
+				funcName = parts[len(parts)-1]
+			}
+			return strings.Contains(s, funcName)
+		}
+	}
+
 	valueType := reflect.TypeOf(value)
 	typeType := reflect.TypeOf(typ)
 
@@ -1291,6 +1335,15 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 
 	ch := make(chan interface{})
 	go func() {
+
+		// error handling
+		defer func() {
+			if r := recover(); r != nil {
+				// panic(r)
+				ch <- fmt.Sprintf("panic: %v", r)
+			}
+		}()
+
 		for i := 0; i < baseType.NumMethod(); i++ {
 			method := baseType.Method(i)
 			if name == method.Name {
@@ -1348,11 +1401,12 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 							if !ok {
 								break // result channel is closed
 							}
-							ch <- val.Interface() // pass the value to the output channel
+							valInt := val.Interface()
+							ch <- valInt // pass the value to the output channel
 						}
 						close(ch) // close the output channel after all values are received
 					}()
-					// Don't close `ch` yet, as it will be closed after the resultChan is read
+					// // Don't close `ch` yet, as it will be closed after the resultChan is read
 					return
 				} else if len(res) > 0 {
 					// Directly return the first result if it's not a channel
@@ -1371,4 +1425,109 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 		close(ch)
 	}()
 	return ch
+}
+
+// func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-chan interface{} {
+// 	name := Capitalize(name2)
+// 	baseType := reflect.TypeOf(itf)
+
+// 	ch := make(chan interface{})
+// 	go func() {
+// 		// defer close(ch)
+// 		// error handling
+// 		defer func() {
+// 			// fmt.Println("recovering")
+// 			if r := recover(); r != nil {
+// 				// fmt.Println("Recovered in f", r)
+// 				// panic(r)
+// 				ch <- fmt.Sprintf("panic: %v", r)
+// 			}
+// 		}()
+
+// 		for i := 0; i < baseType.NumMethod(); i++ {
+// 			method := baseType.Method(i)
+// 			if name == method.Name {
+// 				methodType := method.Type
+// 				numIn := methodType.NumIn()
+// 				isVariadic := methodType.IsVariadic()
+
+// 				var in []reflect.Value
+// 				if isVariadic {
+// 					// Handle fixed arguments
+// 					for k := 0; k < numIn-1; k++ {
+// 						if k < len(args) {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						} else {
+// 							paramType := methodType.In(k)
+// 							in = append(in, reflect.Zero(paramType))
+// 						}
+// 					}
+
+// 					// Handle variadic arguments
+// 					variadicType := methodType.In(numIn - 1).Elem()
+// 					for k := numIn - 1; k < len(args); k++ {
+// 						if args[k] == nil {
+// 							in = append(in, reflect.Zero(variadicType))
+// 						} else {
+// 							in = append(in, reflect.ValueOf(args[k]))
+// 						}
+// 					}
+// 				} else {
+// 					for k := 0; k < numIn; k++ {
+// 						if k < len(args) {
+// 							if args[k] == nil {
+// 								paramType := methodType.In(k)
+// 								in = append(in, reflect.Zero(paramType))
+// 							} else {
+// 								in = append(in, reflect.ValueOf(args[k]))
+// 							}
+// 						} else {
+// 							paramType := methodType.In(k)
+// 							in = append(in, reflect.Zero(paramType))
+// 						}
+// 					}
+// 				}
+
+// 				// Call the method
+// 				res := reflect.ValueOf(itf).MethodByName(name).Call(in)
+
+// 				// Check if the result is a channel
+// 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
+// 					resultChan := res[0]
+// 					// Read values from the returned channel and pass them to ch
+// 					go func() {
+// 						for {
+// 							val, ok := resultChan.Recv()
+// 							if !ok {
+// 								break // result channel is closed
+// 							}
+// 							ch <- val.Interface() // pass the value to the output channel
+// 						}
+// 						close(ch) // close the output channel after all values are received
+// 					}()
+// 					// Don't close `ch` yet, as it will be closed after the resultChan is read
+// 					return
+// 				} else if len(res) > 0 {
+// 					// Directly return the first result if it's not a channel
+// 					val := res[0].Interface()
+// 					ch <- val
+// 				} else {
+// 					// Return nil if no results
+// 					ch <- nil
+// 				}
+// 				close(ch)
+// 				return
+// 			}
+// 		}
+// 		// If no method is found, return nil
+// 		ch <- nil
+// 		close(ch)
+// 	}()
+// 	return ch
+// }
+
+func PanicOnError(msg interface{}) {
+	if str, ok := msg.(string); ok && strings.HasPrefix(str, "panic:") {
+		panic(msg)
+	}
 }

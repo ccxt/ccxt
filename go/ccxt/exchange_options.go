@@ -382,8 +382,8 @@ func (this *Exchange) initializeProperties(extendedProperties Dict) {
 	subVal := SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true)
 	this.SubstituteCommonCurrencyCodes = subVal != nil && subVal.(bool)
 	this.Name = SafeString(extendedProperties, "name", "").(string)
-	this.HttpsProxy = SafeString(extendedProperties, "httpsProxy", "").(string)
-	this.HttpProxy = SafeString(extendedProperties, "httpProxy", "").(string)
+	this.HttpsProxy = SafeString(extendedProperties, "httpsProxy", nil)
+	this.HttpProxy = SafeString(extendedProperties, "httpProxy", nil)
 	this.NewUpdates = SafeValue(extendedProperties, "newUpdates", true).(bool)
 	this.Accounts = SafeValue(extendedProperties, "accounts", []interface{}{}).([]interface{})
 }

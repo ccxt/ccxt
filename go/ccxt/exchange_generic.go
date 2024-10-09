@@ -176,18 +176,35 @@ func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 	return outObj.(map[string]interface{})
 }
 
-func (this *Exchange) InArray(elem interface{}, list2 interface{}) bool {
-	if list2 == nil {
+// func (this *Exchange) InArray(elem interface{}, list2 interface{}) bool {
+// 	if list2 == nil {
+// 		return false
+// 	}
+// 	if reflect.TypeOf(list2).Kind() == reflect.Slice {
+// 		list := list2.([]interface{})
+// 		for _, v := range list {
+// 			if v == elem {
+// 				return true
+// 			}
+// 		}
+// 	}
+// 	return false
+// }
+
+func (this *Exchange) InArray(elem interface{}, list interface{}) bool {
+	// Ensure the list is not nil and is of a slice type
+	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
 		return false
 	}
-	if reflect.TypeOf(list2).Kind() == reflect.Slice {
-		list := list2.([]interface{})
-		for _, v := range list {
-			if v == elem {
-				return true
-			}
+
+	// Use reflection to iterate over the slice
+	listValue := reflect.ValueOf(list)
+	for i := 0; i < listValue.Len(); i++ {
+		if reflect.DeepEqual(listValue.Index(i).Interface(), elem) {
+			return true
 		}
 	}
+
 	return false
 }
 

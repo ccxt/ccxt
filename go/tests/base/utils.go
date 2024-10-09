@@ -204,7 +204,21 @@ func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interf
 // callExchangeMethodDynamically function to call exchange methods dynamically
 func CallExchangeMethodDynamically(exchange interface{}, methodName2 interface{}, args2 interface{}) <-chan interface{} {
 	arg := args2.([]interface{})
-	return CallInternalMethod(exchange, methodName2.(string), arg...)
+	ch := make(chan interface{})
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				if r != "break" {
+					ch <- "panic:" + ToString(r)
+				}
+			}
+		}()
+		res := <-CallInternalMethod(exchange, methodName2.(string), arg...)
+		PanicOnError(res)
+		ch <- res
+	}()
+	return ch
 }
 
 // callExchangeMethodDynamicallySync function that throws an error

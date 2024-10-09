@@ -212,7 +212,7 @@ func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
 				queryString.Add(fmt.Sprintf("%s[%s]", key, subKey), finalValue)
 			}
 		} else {
-			queryString.Add(key, fmt.Sprintf("%v", value))
+			queryString.Add(key, ToString(value))
 		}
 	}
 	return queryString.Encode()
@@ -223,7 +223,7 @@ func (e *Exchange) Urlencode(parameters2 interface{}) string {
 	var queryString []string
 	for key, value := range parameters {
 		encodedKey := url.QueryEscape(key)
-		finalValue := fmt.Sprintf("%v", value)
+		finalValue := ToString(value)
 		if boolVal, ok := value.(bool); ok {
 			finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
