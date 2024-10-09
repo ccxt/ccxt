@@ -84,6 +84,50 @@ export default class cex extends Exchange {
             },
             'options': {
                 'networks': {
+                    'BTC': 'bitcoin',
+                    'ERC20': 'ERC20',
+                    'BSC20': 'binancesmartchain',
+                    'DOGE': 'dogecoin',
+                    'ALGO': 'algorand',
+                    'XLM': 'stellar',
+                    'ATOM': 'cosmos',
+                    'LTC': 'litecoin',
+                    'XRP': 'ripple',
+                    'FTM': 'fantom',
+                    'MINA': 'mina',
+                    'THETA': 'theta',
+                    'XTZ': 'tezos',
+                    'TIA': 'celestia',
+                    'CRONOS': 'cronos', //
+                    'MATIC': 'polygon',
+                    'TON': 'ton',
+                    'TRC20': 'tron',
+                    'SOLANA': 'solana',
+                    'SGB': 'songbird',
+                    'DYDX': 'dydx',
+                    'DASH': 'dash',
+                    'ZIL': 'zilliqa',
+                    'EOS': 'eos',
+                    'AVALANCHEC': 'avalanche',
+                    'ETHPOW': 'ethereumpow',
+                    'NEAR': 'near',
+                    'ARB': 'arbitrum',
+                    'DOT': 'polkadot',
+                    'OPT': 'optimism',
+                    'INJ': 'injective',
+                    'ADA': 'cardano',
+                    'ONT': 'ontology',
+                    'ICP': 'icp',
+                    'KAVA': 'kava',
+                    'KSM': 'kusama',
+                    'SEI': 'sei',
+                    // 'OSM': 'osmosis',
+                    'NEO': 'neo',
+                    'NEO3': 'neo3',
+                    // 'TERRAOLD': 'terra', // tbd
+                    // 'TERRA': 'terra2', // tbd
+                    // 'EVER': 'everscale', // tbd
+                    'XDC': 'xdc',
                 },
             },
         });
@@ -154,9 +198,8 @@ export default class cex extends Exchange {
         const rawNetworks = this.safeDict (rawCurrency, 'blockchains', {});
         const keys = Object.keys (rawNetworks);
         for (let j = 0; j < keys.length; j++) {
-            const networkTitle = keys[j];
-            const rawNetwork = rawNetworks[networkTitle];
-            const networkId = this.safeString (rawNetwork, 'type');
+            const networkId = keys[j];
+            const rawNetwork = rawNetworks[networkId];
             const networkCode = this.networkIdToCode (networkId);
             const deposit = this.safeString (rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString (rawNetwork, 'withdrawal') === 'enabled';
