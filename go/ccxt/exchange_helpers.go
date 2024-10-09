@@ -1434,7 +1434,10 @@ func PanicOnError(msg interface{}) {
 	case []interface{}:
 		for _, item := range v {
 			if str, ok := item.(string); ok && strings.HasPrefix(str, "panic:") {
-				panic(fmt.Sprintf("panic:%v", v))
+				panic(fmt.Sprintf("panic:%v", str))
+			} else if nestedSlice, ok := item.([]interface{}); ok {
+				// Handle nested []interface{} cases recursively
+				PanicOnError(nestedSlice)
 			}
 		}
 	default:

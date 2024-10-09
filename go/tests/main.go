@@ -8,7 +8,8 @@ func main() {
 	// fmt.Println("Will run base tests!")
 	// base.BaseTestsInit()
 	tests := base.NewTestMainClass()
-	<-tests.Init("binance", nil, nil)
+	res := <-tests.Init("binance", nil, nil)
+	base.PanicOnError(res)
 	// NewTestMainClass()
 	// fmt.Println("Base tests passed!")
 }
