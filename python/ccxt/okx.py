@@ -391,7 +391,7 @@ class okx(Exchange):
                     '50027': PermissionDenied,  # The account is restricted from trading
                     '50028': ExchangeError,  # Unable to take the order, please reach out to support center for details
                     # API Class
-                    '50100': ExchangeError,  # API frozen, please contact customer service
+                    '50100': PermissionDenied,  # API frozen, please contact customer service
                     '50101': AuthenticationError,  # Broker id of APIKey does not match current environment
                     '50102': InvalidNonce,  # Timestamp request expired
                     '50103': AuthenticationError,  # Request header "OK_ACCESS_KEY" can not be empty
