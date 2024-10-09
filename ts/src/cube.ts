@@ -186,16 +186,41 @@ export default class cube extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.irPublicGetMarkets (params);
         const result = this.safeValue (response, 'result', {});
+        // Initialize arrays for markets, assets, and feeTables
         const markets = this.safeList (result, 'markets', []);
         const assets = this.safeList (result, 'assets', []);
         const feeTables = this.safeList (result, 'feeTables', []);
+        // Use for loop to convert nested lists to tuples
+        for (let i = 0; i < markets.length; i++) {
+            markets[i] = this.convertNestedListToTuple (markets[i]);
+        }
         this.options['assetsById'] = this.indexBy (assets, 'assetId');
         this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId');
         return this.parseMarkets (markets);
     }
 
+    convertNestedListToTuple (item: any): any {
+        if (Array.isArray (item)) {
+            // Convert nested lists to tuples using a regular loop
+            const newArray = [];
+            for (let i = 0; i < item.length; i++) {
+                newArray.push (this.convertNestedListToTuple (item[i]));
+            }
+            return newArray;
+        } else if (typeof item === 'object' && item !== null) {
+            // Use Object.keys() to avoid using for..in loop
+            const keys = Object.keys (item);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                if (Object.prototype.hasOwnProperty.call (item, key)) {  // Safe check for property existence
+                    item[key] = this.convertNestedListToTuple (item[key]);
+                }
+            }
+        }
+        return item;
+    }
+
     parseMarket (market): Market {
-        // Access assetsById and feeTablesById from this.options
         const assetsById = this.safeValue (this.options, 'assetsById', {});
         const feeTablesById = this.safeValue (this.options, 'feeTablesById', {});
         const baseAsset = this.safeValue (assetsById, market['baseAssetId'], {});
