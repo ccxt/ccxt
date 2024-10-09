@@ -88,6 +88,30 @@ export default class cex extends Exchange {
         });
     }
 
+    
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicPostGetServerTime (params);
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "timestamp": "1728472063472",
+        //            "ISODate": "2024-10-09T11:07:43.472Z"
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data');
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return timestamp;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
