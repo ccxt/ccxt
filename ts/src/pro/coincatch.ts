@@ -2,6 +2,7 @@
 
 import coincatchRest from '../coincatch.js';
 import { ArgumentsRequired, ChecksumError } from '../base/errors.js';
+import { Precise } from '../base/Precise.js';
 import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -55,6 +56,24 @@ export default class coincatch extends coincatchRest {
                 'ping': this.ping,
             },
         });
+    }
+
+    getMarketFromArg (entry) {
+        const instId = this.safeString (entry, 'instId');
+        const instType = this.safeString (entry, 'instType');
+        const baseAndQuote = this.parseSpotMarketId (instId);
+        const baseId = baseAndQuote['baseId'];
+        const quoteId = baseAndQuote['quoteId'];
+        let suffix = '_SPBL'; // spot suffix
+        if (instType === 'mc') {
+            if (quoteId === 'USD') {
+                suffix = '_DMCBL';
+            } else {
+                suffix = '_UMCBL';
+            }
+        }
+        const marketId = this.safeCurrencyCode (baseId) + this.safeCurrencyCode (quoteId) + suffix;
+        return this.safeMarketCustom (marketId);
     }
 
     async authenticate (params = {}) {
@@ -266,22 +285,32 @@ export default class coincatch extends coincatchRest {
         //     ts: 1728131730688
         //
         const arg = this.safeDict (message, 'arg', {});
-        const instType = this.safeStringLower (arg, 'instType');
-        const baseAndQuote = this.parseSpotMarketId (this.safeString (arg, 'instId'));
-        let symbol = this.safeCurrencyCode (baseAndQuote['baseId']) + '/' + this.safeCurrencyCode (baseAndQuote['quoteId']);
-        if (instType !== 'sp') {
-            symbol += '_SPBL';
+        let market = this.getMarketFromArg (arg);
+        let symbol = market['symbol'];
+        let messageHash = 'ticker:' + symbol;
+        const messageHashes = this.findMessageHashes (client, 'ticker:');
+        if (!(this.inArray (messageHash, messageHashes))) {
+            const marketId = market['id'];
+            const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
+            for (let i = 1; i < marketsWithCurrentId.length; i++) { // skip the first one cuz it is already got in getMarketFromArg
+                const m = marketsWithCurrentId[i];
+                symbol = m['symbol'];
+                messageHash = 'ticker:' + symbol;
+                if (this.inArray (messageHash, messageHashes)) {
+                    market = this.market (symbol);
+                    break;
+                }
+            }
         }
-        const market = this.safeMarket (symbol);
         const data = this.safeList (message, 'data', []);
         const ticker = this.parseWsTicker (this.safeDict (data, 0, {}), market);
-        const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve (this.tickers[symbol], messageHash);
     }
 
     parseWsTicker (ticker, market = undefined) {
         //
+        // spot
         //     {
         //         instId: 'ETHUSDT',
         //         last: '2421.06',
@@ -300,13 +329,38 @@ export default class coincatch extends coincatchRest {
         //         askSz: '0.124'
         //     }
         //
-        const marketId = this.safeString (ticker, 'instId');
-        const symbol = this.safeSymbol (marketId, market);
+        // swap
+        //     {
+        //         instId: 'ETHUSDT',
+        //         last: '2434.47',
+        //         bestAsk: '2434.48',
+        //         bestBid: '2434.47',
+        //         high24h: '2471.68',
+        //         low24h: '2400.01',
+        //         priceChangePercent: '0.00674',
+        //         capitalRate: '0.000082',
+        //         nextSettleTime: 1728489600000,
+        //         systemTime: 1728471993602,
+        //         markPrice: '2434.46',
+        //         indexPrice: '2435.44',
+        //         holding: '171450.25',
+        //         baseVolume: '1699298.91',
+        //         quoteVolume: '4144522832.32',
+        //         openUtc: '2439.67',
+        //         chgUTC: '-0.00213',
+        //         symbolType: 1,
+        //         symbolId: 'ETHUSDT_UMCBL',
+        //         deliveryPrice: '0',
+        //         bidSz: '26.12',
+        //         askSz: '49.6'
+        //     }
+        //
         const last = this.safeString (ticker, 'last');
+        const timestamp = this.safeInteger2 (ticker, 'ts', 'systemTime');
         return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': this.safeInteger (ticker, 'ts'),
-            'datetime': this.iso8601 (this.safeInteger (ticker, 'ts')),
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high24h'),
             'low': this.safeString (ticker, 'low24h'),
             'bid': this.safeString (ticker, 'bestBid'),
@@ -314,15 +368,17 @@ export default class coincatch extends coincatchRest {
             'ask': this.safeString (ticker, 'bestAsk'),
             'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open24h'),
+            'open': this.safeString2 (ticker, 'open24h', 'openUtc'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'chgUTC'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': Precise.stringMul (this.safeString (ticker, 'chgUTC'), '100'),
             'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'baseVolume'),
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -400,16 +456,11 @@ export default class coincatch extends coincatchRest {
         //     }
         //
         const arg = this.safeDict (message, 'arg', {});
-        const instType = this.safeStringLower (arg, 'instType');
-        const baseAndQuote = this.parseSpotMarketId (this.safeString (arg, 'instId'));
-        let symbol = this.safeCurrencyCode (baseAndQuote['baseId']) + '/' + this.safeCurrencyCode (baseAndQuote['quoteId']);
-        if (instType !== 'sp') {
-            symbol += '_SPBL';
-        }
+        const market = this.getMarketFromArg (arg);
+        const symbol = market['symbol'];
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const market = this.safeMarket (symbol);
         const data = this.safeList (message, 'data', []);
         const channel = this.safeString (arg, 'channel');
         const klineType = channel.slice (6);
@@ -466,10 +517,9 @@ export default class coincatch extends coincatchRest {
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         /**
          * @method
-         * @name bitget#unWatchOrderBook
+         * @name coincatch#unWatchOrderBook
          * @description unsubscribe from the orderbook channel
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+         * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [params.limit] orderbook limit, default is undefined
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
@@ -548,12 +598,8 @@ export default class coincatch extends coincatchRest {
         //     }
         //
         const arg = this.safeDict (message, 'arg', {});
-        const instType = this.safeStringLower (arg, 'instType');
-        const baseAndQuote = this.parseSpotMarketId (this.safeString (arg, 'instId'));
-        let symbol = this.safeCurrencyCode (baseAndQuote['baseId']) + '/' + this.safeCurrencyCode (baseAndQuote['quoteId']);
-        if (instType !== 'sp') {
-            symbol += '_SPBL';
-        }
+        const market = this.getMarketFromArg (arg);
+        const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel');
         const messageHash = channel + ':' + symbol;
         const data = this.safeList (message, 'data', []);
@@ -629,9 +675,9 @@ export default class coincatch extends coincatchRest {
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name hashkey#watchTrades
+         * @name coincatch#watchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -644,9 +690,9 @@ export default class coincatch extends coincatchRest {
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name hashkey#watchTrades
+         * @name coincatch#watchTrades
          * @description watches information on multiple trades made in a market
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -691,9 +737,9 @@ export default class coincatch extends coincatchRest {
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
         /**
          * @method
-         * @name hashkey#unWatchTrades
+         * @name coincatch#unWatchTrades
          * @description unsubscribe from the trades channel
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
          * @param {string} symbol unified symbol of the market to unwatch the trades for
          * @returns {any} status of the unwatch request
          */
@@ -711,13 +757,8 @@ export default class coincatch extends coincatchRest {
         //     }
         //
         const arg = this.safeDict (message, 'arg', {});
-        const instType = this.safeStringLower (arg, 'instType');
-        const baseAndQuote = this.parseSpotMarketId (this.safeString (arg, 'instId'));
-        let symbol = this.safeCurrencyCode (baseAndQuote['baseId']) + '/' + this.safeCurrencyCode (baseAndQuote['quoteId']);
-        if (instType !== 'sp') {
-            symbol += '_SPBL';
-        }
-        const market = this.safeMarket (symbol);
+        const market = this.getMarketFromArg (arg);
+        const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);
@@ -829,6 +870,7 @@ export default class coincatch extends coincatchRest {
     }
 
     handleMessage (client: Client, message) {
+        // todo handle with subscribe and unsubscribe
         const content = this.safeString (message, 'message');
         if (content === 'pong') {
             this.handlePong (client, message);
