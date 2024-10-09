@@ -286,26 +286,35 @@ export default class coincatch extends coincatchRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         let market = this.getMarketFromArg (arg);
-        let symbol = market['symbol'];
-        let messageHash = 'ticker:' + symbol;
-        const messageHashes = this.findMessageHashes (client, 'ticker:');
-        if (!(this.inArray (messageHash, messageHashes))) {
-            const marketId = market['id'];
-            const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
-            for (let i = 1; i < marketsWithCurrentId.length; i++) { // skip the first one cuz it is already got in getMarketFromArg
-                const m = marketsWithCurrentId[i];
-                symbol = m['symbol'];
-                messageHash = 'ticker:' + symbol;
-                if (this.inArray (messageHash, messageHashes)) {
-                    market = this.market (symbol);
-                    break;
-                }
-            }
+        const marketId = market['id'];
+        const hash = 'ticker:';
+        if (marketId.indexOf ('_DMCBL') >= 0) {
+            market = this.handleDMCBLMarketByMessageHashes (market, hash, client);
         }
         const data = this.safeList (message, 'data', []);
         const ticker = this.parseWsTicker (this.safeDict (data, 0, {}), market);
+        const symbol = market['symbol'];
         this.tickers[symbol] = ticker;
+        const messageHash = hash + symbol;
         client.resolve (this.tickers[symbol], messageHash);
+    }
+
+    handleDMCBLMarketByMessageHashes (market: Market, hash: string, client: Client) {
+        const marketId = market['id'];
+        const messageHashes = this.findMessageHashes (client, hash);
+        // the exchange counts DMCBL markets as the same market with different quote currencies
+        // for example symbols ETHUSD:ETH and ETH/USD:BTC both have the same marketId ETHUSD_DMCBL
+        // we need to check all markets with the same marketId to find the correct market that is in messageHashes
+        const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
+        for (let i = 0; i < marketsWithCurrentId.length; i++) {
+            market = marketsWithCurrentId[i];
+            const symbol = market['symbol'];
+            const messageHash = hash + symbol;
+            if (this.inArray (messageHash, messageHashes)) {
+                return market;
+            }
+        }
+        return market;
     }
 
     parseWsTicker (ticker, market = undefined) {
