@@ -43,6 +43,7 @@ export default class binance extends Exchange {
         info: any;
     };
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
     fetchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

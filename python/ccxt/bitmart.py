@@ -1292,6 +1292,7 @@ class bitmart(Exchange, ImplicitAPI):
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
         }, market)
 

@@ -100,6 +100,7 @@ public partial class binance : Exchange
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMarkPrice", true },
                 { "fetchMarkPrices", true },
                 { "fetchMyLiquidations", true },
                 { "fetchMySettlementHistory", true },
@@ -4276,6 +4277,51 @@ public partial class binance : Exchange
         return this.parseTickers(response, symbols);
     }
 
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchMarkPrice
+        * @description fetches mark price for the market
+        * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrice", market, parameters, "swap");
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarkPrice", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = null;
+        if (isTrue(this.isLinear(type, subType)))
+        {
+            response = await this.fapiPublicGetPremiumIndex(this.extend(request, parameters));
+        } else if (isTrue(this.isInverse(type, subType)))
+        {
+            response = await this.dapiPublicGetPremiumIndex(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchMarkPrice() does not support "), type), " markets yet")) ;
+        }
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            return this.parseTicker(this.safeDict(response, 0, new Dictionary<string, object>() {}), market);
+        }
+        return this.parseTicker(response, market);
+    }
+
     public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
     {
         /**
@@ -4283,6 +4329,7 @@ public partial class binance : Exchange
         * @name binance#fetchMarkPrices
         * @description fetches mark prices for multiple markets
         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] "linear" or "inverse"
@@ -4293,11 +4340,11 @@ public partial class binance : Exchange
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarkPrices", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;

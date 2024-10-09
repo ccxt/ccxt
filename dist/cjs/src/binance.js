@@ -111,6 +111,7 @@ class binance extends binance$1 {
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrice': true,
                 'fetchMarkPrices': true,
                 'fetchMyLiquidations': true,
                 'fetchMySettlementHistory': true,
@@ -4241,12 +4242,49 @@ class binance extends binance$1 {
         }
         return this.parseTickers(response, symbols);
     }
+    async fetchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMarkPrice
+         * @description fetches mark price for the market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMarkPrice', market, params, 'swap');
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchMarkPrice', market, params, 'linear');
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (this.isLinear(type, subType)) {
+            response = await this.fapiPublicGetPremiumIndex(this.extend(request, params));
+        }
+        else if (this.isInverse(type, subType)) {
+            response = await this.dapiPublicGetPremiumIndex(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMarkPrice() does not support ' + type + ' markets yet');
+        }
+        if (Array.isArray(response)) {
+            return this.parseTicker(this.safeDict(response, 0, {}), market);
+        }
+        return this.parseTicker(response, market);
+    }
     async fetchMarkPrices(symbols = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchMarkPrices
          * @description fetches mark prices for multiple markets
          * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
@@ -4256,9 +4294,9 @@ class binance extends binance$1 {
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params, 'swap');
+        [type, params] = this.handleMarketTypeAndParams('fetchMarkPrices', market, params, 'swap');
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params, 'linear');
+        [subType, params] = this.handleSubTypeAndParams('fetchMarkPrices', market, params, 'linear');
         let response = undefined;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetPremiumIndex(params);
