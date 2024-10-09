@@ -88,6 +88,66 @@ export default class cex extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name cex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
+         * @param {dict} [params] extra parameters specific to the exchange API endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
+        const response = await this.publicPostGetCurrenciesInfo (params);
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": [
+        //            {
+        //                "currency": "ZAP",
+        //                "fiat": false,
+        //                "precision": "8",
+        //                "walletPrecision": "6",
+        //                "walletDeposit": true,
+        //                "walletWithdrawal": true
+        //            },
+        //            ...
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseCurrencies (data);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'currency');
+        const code = this.safeCurrencyCode (id);
+        const type = this.safeBool (rawCurrency, 'fiat') ? 'fiat' : 'crypto';
+        const currencyDepositEnabled = this.safeBool (rawCurrency, 'walletDeposit');
+        const currencyWithdrawEnabled = this.safeBool (rawCurrency, 'walletWithdrawal');
+        const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
+        return {
+            'id': id,
+            'code': code,
+            'name': undefined,
+            'type': type,
+            'active': undefined,
+            'deposit': currencyDepositEnabled,
+            'withdraw': currencyWithdrawEnabled,
+            'fee': undefined,
+            'precision': currencyPrecision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+            'info': rawCurrency,
+        };
+    }
+
     async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
