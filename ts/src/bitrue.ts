@@ -960,6 +960,10 @@ export default class bitrue extends Exchange {
             const currencyId = this.safeString2 (balance, 'asset', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
+            const unrealizedPnl = this.safeNumber (balance, 'unrealizedAmount');
+            if (unrealizedPnl !== undefined) {
+                account['unrealizedPnl'] = unrealizedPnl;
+            }
             account['free'] = this.safeString2 (balance, 'free', 'accountNormal');
             account['used'] = this.safeString2 (balance, 'locked', 'accountLock');
             result[code] = account;

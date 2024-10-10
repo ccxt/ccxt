@@ -145,6 +145,122 @@
                     ]
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch spot balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "list": [
+                        {
+                            "total": 0,
+                            "free": 0,
+                            "currency": "BTC"
+                        },
+                        {
+                            "total": 0,
+                            "free": 0,
+                            "currency": "LTC"
+                        },
+                        {
+                            "total": 0,
+                            "free": 0,
+                            "currency": "ETH"
+                        },
+                        {
+                            "total": 5.350712e-07,
+                            "free": 5.350712e-07,
+                            "currency": "USDT"
+                        },
+                        {
+                            "total": 0,
+                            "free": 0,
+                            "currency": "TRX"
+                        },
+                        {
+                            "total": 2,
+                            "free": 2,
+                            "currency": "POL"
+                        }
+                    ],
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "info": [
+                        { "total": 0, "free": 0, "currency": "BTC" },
+                        { "total": 0, "free": 0, "currency": "LTC" },
+                        { "total": 0, "free": 0, "currency": "ETH" },
+                        { "total": 5.350712e-07, "free": 5.350712e-07, "currency": "USDT" },
+                        { "total": 0, "free": 0, "currency": "TRX" },
+                        { "total": 2, "free": 2, "currency": "POL" }
+                    ],
+                    "BTC": { "free": 0, "used": 0, "total": 0 },
+                    "LTC": { "free": 0, "used": 0, "total": 0 },
+                    "ETH": { "free": 0, "used": 0, "total": 0 },
+                    "USDT": { "free": 5.350712e-7, "used": 0, "total": 5.350712e-7 },
+                    "TRX": { "free": 0, "used": 0, "total": 0 },
+                    "POL": { "free": 2, "used": 0, "total": 2 },
+                    "free": { "BTC": 0, "LTC": 0, "ETH": 0, "USDT": 5.350712e-7, "TRX": 0, "POL": 2 },
+                    "used": { "BTC": 0, "LTC": 0, "ETH": 0, "USDT": 0, "TRX": 0, "POL": 0 },
+                    "total": { "BTC": 0, "LTC": 0, "ETH": 0, "USDT": 5.350712e-7, "TRX": 0, "POL": 2 }
+                }
+            },
+            {
+                "description": "fetch swap balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "data": [
+                        {
+                            "equity": "7.000000006",
+                            "currency": "USDT",
+                            "margin": "0",
+                            "cross_margin": "0",
+                            "isolate_margin": "0",
+                            "isolate_balance": "0",
+                            "frozen_margin": "0",
+                            "frozen_money": "0",
+                            "margin_ratio": "0",
+                            "realized_pnl": "-0.1724",
+                            "avail_balance": "7.000000006",
+                            "unrealized_pnl": "0",
+                            "isolate_unrealized_pnl": "",
+                            "time_stamp": 1700007524270
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "equity": "7.000000006",
+                            "currency": "USDT",
+                            "margin": "0",
+                            "cross_margin": "0",
+                            "isolate_margin": "0",
+                            "isolate_balance": "0",
+                            "frozen_margin": "0",
+                            "frozen_money": "0",
+                            "margin_ratio": "0",
+                            "realized_pnl": "-0.1724",
+                            "avail_balance": "7.000000006",
+                            "unrealized_pnl": "0",
+                            "isolate_unrealized_pnl": "",
+                            "time_stamp": 1700007524270
+                        }
+                    ],
+                    "USDT": { "free": 7.000000006, "used": 0, "total": 7.000000006, "unrealizedPnl": 0 },
+                    "free": { "USDT": 7.000000006 },
+                    "used": { "USDT": 0 },
+                    "total": { "USDT": 7.000000006 },
+                    "unrealizedPnl": { "USDT": 0 }
+                }
+            }
         ]
     }
 }

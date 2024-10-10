@@ -790,6 +790,10 @@ export default class poloniexfutures extends Exchange {
         const account = this.account ();
         account['free'] = this.safeString (data, 'availableBalance');
         account['total'] = this.safeString (data, 'accountEquity');
+        const unrealizedPnl = this.safeNumber (data, 'unrealisedPNL');
+        if (unrealizedPnl !== undefined) {
+            account['unrealizedPnl'] = unrealizedPnl;
+        }
         result[code] = account;
         return this.safeBalance (result);
     }

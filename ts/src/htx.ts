@@ -3590,6 +3590,7 @@ export default class htx extends Exchange {
                         const subBalance: Dict = {
                             'code': currencyCode,
                             'free': this.safeNumber (balance, 'margin_available'),
+                            'unrealizedPnl': this.safeNumber (balance, 'profit_unreal'),
                         };
                         const symbol = this.safeSymbol (marketId);
                         result[symbol] = subBalance;
@@ -3599,6 +3600,10 @@ export default class htx extends Exchange {
                     const account = this.account ();
                     account['free'] = this.safeString (entry, 'margin_static');
                     account['used'] = this.safeString (entry, 'margin_frozen');
+                    const unrealizedPnl = this.safeNumber (entry, 'profit_unreal');
+                    if (unrealizedPnl !== undefined) {
+                        account['unrealizedPnl'] = unrealizedPnl;
+                    }
                     result[currencyCode] = account;
                     result = this.safeBalance (result);
                 }
@@ -3620,6 +3625,10 @@ export default class htx extends Exchange {
                         const account = this.account ();
                         account['free'] = this.safeString (balance, 'margin_balance');
                         account['used'] = this.safeString (balance, 'margin_frozen');
+                        const unrealizedPnl = this.safeNumber (balance, 'profit_unreal');
+                        if (unrealizedPnl !== undefined) {
+                            account['unrealizedPnl'] = unrealizedPnl;
+                        }
                         const accountsByCode: Dict = {};
                         accountsByCode[code] = account;
                         const symbol = market['symbol'];
@@ -3630,6 +3639,10 @@ export default class htx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (first, 'withdraw_available');
                 account['total'] = this.safeString (first, 'margin_balance');
+                const unrealizedPnl = this.safeNumber (first, 'profit_unreal');
+                if (unrealizedPnl !== undefined) {
+                    account['unrealizedPnl'] = unrealizedPnl;
+                }
                 const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
                 const code = this.safeCurrencyCode (currencyId);
                 result[code] = account;
@@ -3643,6 +3656,10 @@ export default class htx extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'margin_available');
                 account['used'] = this.safeString (balance, 'margin_frozen');
+                const unrealizedPnl = this.safeNumber (balance, 'profit_unreal');
+                if (unrealizedPnl !== undefined) {
+                    account['unrealizedPnl'] = unrealizedPnl;
+                }
                 result[code] = account;
             }
             result = this.safeBalance (result);

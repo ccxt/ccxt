@@ -3672,6 +3672,7 @@ export default class bitget extends Exchange {
                 if (contractAccountFree !== undefined) {
                     account['free'] = contractAccountFree;
                     account['total'] = this.safeString (entry, 'accountEquity');
+                    account['unrealizedPnl'] = this.safeNumber (entry, 'unrealizedPL');
                 } else {
                     account['free'] = spotAccountFree;
                     const frozen = this.safeString (entry, 'frozen');
