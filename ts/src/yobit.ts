@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int } from './base/types.js';
+import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -47,6 +47,8 @@ export default class yobit extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1197,12 +1199,12 @@ export default class yobit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name yobit#fetchDepositAddress
-         * @see https://yobit.net/en/api
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://yobit.net/en/api
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1227,30 +1229,12 @@ export default class yobit extends Exchange {
         const address = this.safeString (response['return'], 'address');
         this.checkAddress (address);
         return {
-            'id': undefined,
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': response,
-            'txid': undefined,
-            'type': undefined,
-            'amount': undefined,
-            'status': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'addressFrom': undefined,
-            'addressTo': undefined,
-            'tagFrom': undefined,
-            'tagTo': undefined,
-            'updated': undefined,
-            'comment': undefined,
-            'fee': {
-                'currency': undefined,
-                'cost': undefined,
-                'rate': undefined,
-            },
-        };
+        } as DepositAddress;
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {

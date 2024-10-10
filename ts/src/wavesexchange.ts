@@ -5,7 +5,7 @@ import Exchange from './abstract/wavesexchange.js';
 import { AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -47,6 +47,8 @@ export default class wavesexchange extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': undefined,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -1065,7 +1067,7 @@ export default class wavesexchange extends Exchange {
         ];
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name wavesexchange#fetchDepositAddress
@@ -1151,13 +1153,12 @@ export default class wavesexchange extends Exchange {
                 const responseInner = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
                 const addressInner = this.safeString (response, 'address');
                 return {
-                    'address': addressInner,
-                    'code': code, // kept here for backward-compatibility, but will be removed soon
+                    'info': responseInner,
                     'currency': code,
                     'network': network,
+                    'address': addressInner,
                     'tag': undefined,
-                    'info': responseInner,
-                };
+                } as DepositAddress;
             } else {
                 const request: Dict = {
                     'currency': code,
@@ -1196,13 +1197,12 @@ export default class wavesexchange extends Exchange {
         const addresses = this.safeValue (response, 'deposit_addresses');
         const address = this.safeString (addresses, 0);
         return {
-            'address': address,
-            'code': code, // kept here for backward-compatibility, but will be removed soon
-            'currency': code,
-            'tag': undefined,
-            'network': unifiedNetwork,
             'info': response,
-        };
+            'currency': code,
+            'network': unifiedNetwork,
+            'address': address,
+            'tag': undefined,
+        } as DepositAddress;
     }
 
     async getMatcherPublicKey () {
