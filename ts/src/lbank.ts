@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -52,6 +52,8 @@ export default class lbank extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -1949,7 +1951,7 @@ export default class lbank extends Exchange {
         return network;
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name lbank#fetchDepositAddress
@@ -1971,10 +1973,10 @@ export default class lbank extends Exchange {
         } else {
             response = await this.fetchDepositAddressDefault (code, params);
         }
-        return response;
+        return response as DepositAddress;
     }
 
-    async fetchDepositAddressDefault (code: string, params = {}) {
+    async fetchDepositAddressDefault (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -2006,15 +2008,15 @@ export default class lbank extends Exchange {
         const inverseNetworks = this.safeValue (this.options, 'inverse-networks', {});
         const networkCode = this.safeStringUpper (inverseNetworks, networkId, networkId);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
-    async fetchDepositAddressSupplement (code: string, params = {}) {
+    async fetchDepositAddressSupplement (code: string, params = {}): Promise<DepositAddress> {
         // returns the address for whatever the default network is...
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2047,12 +2049,12 @@ export default class lbank extends Exchange {
         const inverseNetworks = this.safeValue (this.options, 'inverse-networks', {});
         const networkCode = this.safeStringUpper (inverseNetworks, network, network);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode, // will be undefined if not specified in request
             'address': address,
             'tag': tag,
-            'network': networkCode, // will be undefined if not specified in request
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {

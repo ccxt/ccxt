@@ -514,6 +514,14 @@ class LedgerEntry:
     fee: Fee
 
 
+class DepositAddress:
+    info: Any
+    currency: Str
+    network: Optional[Str]
+    address: Str
+    tag: Optional[Str]
+
+
 FundingRates = Dict[Str, FundingRate]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]

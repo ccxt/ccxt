@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,6 +43,8 @@ export default class delta extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
@@ -2337,7 +2339,7 @@ export default class delta extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name delta#fetchDepositAddress
@@ -2379,7 +2381,7 @@ export default class delta extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        "id": 1915615,
@@ -2399,12 +2401,12 @@ export default class delta extends Exchange {
         const networkId = this.safeString (depositAddress, 'network');
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode (marketId, currency),
+            'network': this.networkIdToCode (networkId),
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
-            'network': this.networkIdToCode (networkId),
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {

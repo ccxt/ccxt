@@ -81,6 +81,7 @@ class testMainClass {
                 'symbol' => $symbol_argv,
                 'method' => $method_argv,
                 'isWs' => $this->ws_tests,
+                'useProxy' => get_cli_arg_value('--useProxy'),
             ), $new_line);
             $exchange_args = array(
                 'verbose' => $this->verbose,

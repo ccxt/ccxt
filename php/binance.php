@@ -105,6 +105,7 @@ class binance extends Exchange {
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrice' => true,
                 'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
@@ -4178,10 +4179,44 @@ class binance extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()): array {
+        /**
+         * fetches mark price for the $market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] "linear" or "inverse"
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMarkPrice', $market, $params, 'swap');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrice', $market, $params, 'linear');
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = null;
+        if ($this->is_linear($type, $subType)) {
+            $response = $this->fapiPublicGetPremiumIndex ($this->extend($request, $params));
+        } elseif ($this->is_inverse($type, $subType)) {
+            $response = $this->dapiPublicGetPremiumIndex ($this->extend($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkPrice() does not support ' . $type . ' markets yet');
+        }
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            return $this->parse_ticker($this->safe_dict($response, 0, array()), $market);
+        }
+        return $this->parse_ticker($response, $market);
+    }
+
     public function fetch_mark_prices(?array $symbols = null, $params = array ()): array {
         /**
          * fetches mark prices for multiple markets
          * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
@@ -4191,9 +4226,9 @@ class binance extends Exchange {
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+        list($type, $params) = $this->handle_market_type_and_params('fetchMarkPrices', $market, $params, 'swap');
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrices', $market, $params, 'linear');
         $response = null;
         if ($this->is_linear($type, $subType)) {
             $response = $this->fapiPublicGetPremiumIndex ($params);

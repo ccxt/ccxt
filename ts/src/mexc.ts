@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -4511,7 +4511,7 @@ export default class mexc extends Exchange {
         return tiers;
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        coin: "USDT",
@@ -4525,15 +4525,15 @@ export default class mexc extends Exchange {
         const networkId = this.safeString (depositAddress, 'netWork');
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode (currencyId, currency),
+            'network': this.networkIdToCode (networkId),
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
-            'network': this.networkIdToCode (networkId),
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name mexc#fetchDepositAddressesByNetwork
@@ -4579,7 +4579,7 @@ export default class mexc extends Exchange {
         //    ]
         //
         const addressStructures = this.parseDepositAddresses (response, undefined, false);
-        return this.indexBy (addressStructures, 'network');
+        return this.indexBy (addressStructures, 'network') as DepositAddress[];
     }
 
     async createDepositAddress (code: string, params = {}) {
@@ -4627,7 +4627,7 @@ export default class mexc extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name mexc#fetchDepositAddress
@@ -4639,7 +4639,7 @@ export default class mexc extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const network = this.safeString (params, 'network');
-        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params) as DepositAddress[];
         let result = undefined;
         if (network !== undefined) {
             result = this.safeDict (addressStructures, this.networkIdToCode (network, code));
@@ -4657,7 +4657,7 @@ export default class mexc extends Exchange {
         if (result === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using .createDepositAddress() method or in MEXC website');
         }
-        return result;
+        return result as DepositAddress;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

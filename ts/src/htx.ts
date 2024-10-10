@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6155,7 +6155,7 @@ export default class htx extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
@@ -6186,15 +6186,15 @@ export default class htx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
-        return this.indexBy (parsed, 'network');
+        return this.indexBy (parsed, 'network') as DepositAddress[];
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name htx#fetchDepositAddress
-         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -6204,7 +6204,7 @@ export default class htx extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode];
+        return indexedAddresses[selectedNetworkCode] as DepositAddress;
     }
 
     async fetchWithdrawAddresses (code: string, note = undefined, networkCode = undefined, params = {}) {
@@ -6976,6 +6976,8 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated
          * @param {string} code unified currency code
          * @param {string} symbol unified market symbol when fetch interest in isolated markets
          * @param {int} [since] the earliest time in ms to fetch borrrow interest for
@@ -7545,7 +7547,11 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchPositions
          * @description fetch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
+         * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] 'linear' or 'inverse'
          * @param {string} [params.type] *inverse only* 'future', or 'swap'
@@ -7685,6 +7691,10 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}

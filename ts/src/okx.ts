@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1838,6 +1838,16 @@ export default class okx extends Exchange {
         //         "sodUtc0": "0.07872",
         //         "sodUtc8": "0.07345"
         //     }
+        //     {
+        //          instId: 'LTC-USDT',
+        //          idxPx: '65.74',
+        //          open24h: '65.37',
+        //          high24h: '66.15',
+        //          low24h: '64.97',
+        //          sodUtc0: '65.68',
+        //          sodUtc8: '65.54',
+        //          ts: '1728467346900'
+        //     },
         //
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
@@ -1871,6 +1881,7 @@ export default class okx extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'markPrice': this.safeString (ticker, 'markPx'),
+            'indexPrice': this.safeString (ticker, 'idxPx'),
             'info': ticker,
         }, market);
     }
@@ -4697,7 +4708,7 @@ export default class okx extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "addr": "okbtothemoon",
@@ -4787,15 +4798,15 @@ export default class okx extends Exchange {
         const networkCode = this.networkIdToCode (network, code);
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name okx#fetchDepositAddressesByNetwork
@@ -4835,10 +4846,10 @@ export default class okx extends Exchange {
         const data = this.safeList (response, 'data', []);
         const filtered = this.filterBy (data, 'selected', true);
         const parsed = this.parseDepositAddresses (filtered, [ currency['code'] ], false);
-        return this.indexBy (parsed, 'network');
+        return this.indexBy (parsed, 'network') as DepositAddress[];
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name okx#fetchDepositAddress
@@ -4860,7 +4871,7 @@ export default class okx extends Exchange {
             if (result === undefined) {
                 throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
             }
-            return result;
+            return result as DepositAddress;
         }
         const codeNetwork = this.networkIdToCode (code, code);
         if (codeNetwork in response) {
@@ -4869,7 +4880,7 @@ export default class okx extends Exchange {
         // if the network is not specified, return the first address
         const keys = Object.keys (response);
         const first = this.safeString (keys, 0);
-        return this.safeDict (response, first);
+        return this.safeDict (response, first) as DepositAddress;
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
