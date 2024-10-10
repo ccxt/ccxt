@@ -462,15 +462,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_currencies(data)
 
-    def parse_currencies(self, currencies, params={}):
-        currencies = self.to_array(currencies)
-        result: dict = {}
-        for i in range(0, len(currencies)):
-            currency = self.parse_currency(currencies[i])
-            result[currency['code']] = currency
-        return result
-
-    def parse_currency(self, currency: dict):
+    def parse_currency(self, currency: dict) -> Currency:
         #
         #    {
         #        "code": "BTC",
@@ -494,7 +486,7 @@ class kuna(Exchange, ImplicitAPI):
         currencyId = self.safe_string(currency, 'code')
         precision = self.safe_string(currency, 'precision')
         tradePrecision = self.safe_string(currency, 'tradePrecision')
-        return {
+        return self.safe_currency_structure({
             'info': currency,
             'id': currencyId,
             'code': self.safe_currency_code(currencyId),
@@ -505,7 +497,7 @@ class kuna(Exchange, ImplicitAPI):
             'deposit': None,
             'withdraw': None,
             'fee': None,
-            'precision': Precise.string_min(precision, tradePrecision),
+            'precision': self.parse_number(Precise.string_min(precision, tradePrecision)),
             'limits': {
                 'amount': {
                     'min': None,
@@ -517,7 +509,7 @@ class kuna(Exchange, ImplicitAPI):
                 },
             },
             'networks': {},
-        }
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

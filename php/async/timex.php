@@ -359,12 +359,7 @@ class timex extends Exchange {
             //         ),
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $result[] = $this->parse_currency($currency);
-            }
-            return $this->index_by($result, 'code');
+            return $this->parse_currencies($response);
         }) ();
     }
 
@@ -1324,7 +1319,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_currency(array $currency) {
+    public function parse_currency(array $currency): array {
         //
         //     {
         //         "symbol" => "BTC",
@@ -1388,7 +1383,7 @@ class timex extends Exchange {
                 $fee = $this->parse_number($fraction . $feeString);
             }
         }
-        return array(
+        return $this->safe_currency_structure(array(
             'id' => $code,
             'code' => $code,
             'info' => $currency,
@@ -1404,7 +1399,7 @@ class timex extends Exchange {
                 'amount' => array( 'min' => null, 'max' => null ),
             ),
             'networks' => array(),
-        );
+        ));
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {

@@ -12,7 +12,7 @@ export default class bitvavo extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarkets(markets: any): any[];
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrencies(currencies: any): Dict;
+    parseCurrenciesCustom(currencies: any): Dict;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;

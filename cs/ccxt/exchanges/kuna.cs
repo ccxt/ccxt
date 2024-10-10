@@ -421,20 +421,7 @@ public partial class kuna : Exchange
         return this.parseCurrencies(data);
     }
 
-    public virtual object parseCurrencies(object currencies, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        currencies = this.toArray(currencies);
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
-        {
-            object currency = this.parseCurrency(getValue(currencies, i));
-            ((IDictionary<string,object>)result)[(string)getValue(currency, "code")] = currency;
-        }
-        return result;
-    }
-
-    public virtual object parseCurrency(object currency)
+    public override object parseCurrency(object currency)
     {
         //
         //    {
@@ -459,7 +446,7 @@ public partial class kuna : Exchange
         object currencyId = this.safeString(currency, "code");
         object precision = this.safeString(currency, "precision");
         object tradePrecision = this.safeString(currency, "tradePrecision");
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", currency },
             { "id", currencyId },
             { "code", this.safeCurrencyCode(currencyId) },
@@ -470,7 +457,7 @@ public partial class kuna : Exchange
             { "deposit", null },
             { "withdraw", null },
             { "fee", null },
-            { "precision", Precise.stringMin(precision, tradePrecision) },
+            { "precision", this.parseNumber(Precise.stringMin(precision, tradePrecision)) },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {
                     { "min", null },
@@ -482,7 +469,7 @@ public partial class kuna : Exchange
                 } },
             } },
             { "networks", new Dictionary<string, object>() {} },
-        };
+        });
     }
 
     public async override Task<object> fetchMarkets(object parameters = null)

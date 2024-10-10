@@ -359,11 +359,7 @@ class timex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            currency = response[i]
-            result.append(self.parse_currency(currency))
-        return self.index_by(result, 'code')
+        return self.parse_currencies(response)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -1239,7 +1235,7 @@ class timex(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_currency(self, currency: dict):
+    def parse_currency(self, currency: dict) -> Currency:
         #
         #     {
         #         "symbol": "BTC",
@@ -1300,7 +1296,7 @@ class timex(Exchange, ImplicitAPI):
                 for i in range(0, -dotIndex):
                     fraction += '0'
                 fee = self.parse_number(fraction + feeString)
-        return {
+        return self.safe_currency_structure({
             'id': code,
             'code': code,
             'info': currency,
@@ -1316,7 +1312,7 @@ class timex(Exchange, ImplicitAPI):
                 'amount': {'min': None, 'max': None},
             },
             'networks': {},
-        }
+        })
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #

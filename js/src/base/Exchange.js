@@ -2061,6 +2061,19 @@ export default class Exchange {
     async fetchTradingLimits(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTradingLimits() is not supported yet');
     }
+    parseCurrency(rawCurrency) {
+        throw new NotSupported(this.id + ' parseCurrency() is not supported yet');
+    }
+    parseCurrencies(rawCurrencies) {
+        const result = {};
+        const arr = this.toArray(rawCurrencies);
+        for (let i = 0; i < arr.length; i++) {
+            const parsed = this.parseCurrency(arr[i]);
+            const code = parsed['code'];
+            result[code] = parsed;
+        }
+        return result;
+    }
     parseMarket(market) {
         throw new NotSupported(this.id + ' parseMarket() is not supported yet');
     }

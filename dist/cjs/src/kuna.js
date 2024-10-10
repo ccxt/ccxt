@@ -459,15 +459,6 @@ class kuna extends kuna$1 {
         const data = this.safeValue(response, 'data', []);
         return this.parseCurrencies(data);
     }
-    parseCurrencies(currencies, params = {}) {
-        currencies = this.toArray(currencies);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = this.parseCurrency(currencies[i]);
-            result[currency['code']] = currency;
-        }
-        return result;
-    }
     parseCurrency(currency) {
         //
         //    {
@@ -492,7 +483,7 @@ class kuna extends kuna$1 {
         const currencyId = this.safeString(currency, 'code');
         const precision = this.safeString(currency, 'precision');
         const tradePrecision = this.safeString(currency, 'tradePrecision');
-        return {
+        return this.safeCurrencyStructure({
             'info': currency,
             'id': currencyId,
             'code': this.safeCurrencyCode(currencyId),
@@ -503,7 +494,7 @@ class kuna extends kuna$1 {
             'deposit': undefined,
             'withdraw': undefined,
             'fee': undefined,
-            'precision': Precise["default"].stringMin(precision, tradePrecision),
+            'precision': this.parseNumber(Precise["default"].stringMin(precision, tradePrecision)),
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -515,7 +506,7 @@ class kuna extends kuna$1 {
                 },
             },
             'networks': {},
-        };
+        });
     }
     async fetchMarkets(params = {}) {
         /**

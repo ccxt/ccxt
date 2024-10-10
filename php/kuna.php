@@ -453,17 +453,7 @@ class kuna extends Exchange {
         return $this->parse_currencies($data);
     }
 
-    public function parse_currencies($currencies, $params = array ()) {
-        $currencies = $this->to_array($currencies);
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $this->parse_currency($currencies[$i]);
-            $result[$currency['code']] = $currency;
-        }
-        return $result;
-    }
-
-    public function parse_currency(array $currency) {
+    public function parse_currency(array $currency): array {
         //
         //    {
         //        "code" => "BTC",
@@ -487,7 +477,7 @@ class kuna extends Exchange {
         $currencyId = $this->safe_string($currency, 'code');
         $precision = $this->safe_string($currency, 'precision');
         $tradePrecision = $this->safe_string($currency, 'tradePrecision');
-        return array(
+        return $this->safe_currency_structure(array(
             'info' => $currency,
             'id' => $currencyId,
             'code' => $this->safe_currency_code($currencyId),
@@ -498,7 +488,7 @@ class kuna extends Exchange {
             'deposit' => null,
             'withdraw' => null,
             'fee' => null,
-            'precision' => Precise::string_min($precision, $tradePrecision),
+            'precision' => $this->parse_number(Precise::string_min($precision, $tradePrecision)),
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -510,7 +500,7 @@ class kuna extends Exchange {
                 ),
             ),
             'networks' => array(),
-        );
+        ));
     }
 
     public function fetch_markets($params = array ()): array {

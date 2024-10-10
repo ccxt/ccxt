@@ -31,29 +31,7 @@ export default class timex extends Exchange {
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseMarket(market: Dict): Market;
-    parseCurrency(currency: Dict): {
-        id: string;
-        code: string;
-        info: Dict;
-        type: any;
-        name: string;
-        active: any;
-        deposit: any;
-        withdraw: any;
-        fee: any;
-        precision: number;
-        limits: {
-            withdraw: {
-                min: any;
-                max: any;
-            };
-            amount: {
-                min: any;
-                max: any;
-            };
-        };
-        networks: {};
-    };
+    parseCurrency(currency: Dict): Currency;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseTrade(trade: Dict, market?: Market): Trade;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;

@@ -1370,15 +1370,10 @@ class coinbaseinternational extends Exchange {
         //        ...
         //    )
         //
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $this->parse_currency($currencies[$i]);
-            $result[$currency['code']] = $currency;
-        }
-        return $result;
+        return $this->parse_currencies($currencies);
     }
 
-    public function parse_currency(array $currency) {
+    public function parse_currency(array $currency): array {
         //
         //    {
         //       "asset_id":"1",
@@ -1392,7 +1387,7 @@ class coinbaseinternational extends Exchange {
         $id = $this->safe_string($currency, 'asset_name');
         $code = $this->safe_currency_code($id);
         $statusId = $this->safe_string($currency, 'status');
-        return array(
+        return $this->safe_currency_structure(array(
             'id' => $id,
             'name' => $code,
             'code' => $code,
@@ -1405,7 +1400,7 @@ class coinbaseinternational extends Exchange {
             'fee' => null,
             'fees' => null,
             'limits' => $this->limits,
-        );
+        ));
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
