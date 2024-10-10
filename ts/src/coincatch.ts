@@ -4002,11 +4002,11 @@ export default class coincatch extends Exchange {
             for (let i = 0; i < positions.length; i++) {
                 const position = positions[i];
                 if (position['side'] === side) {
-                    return position;
+                    return position as Position;
                 }
             }
         }
-        return positions[0];
+        return positions[0] as Position;
     }
 
     async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
