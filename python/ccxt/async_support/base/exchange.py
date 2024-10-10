@@ -75,13 +75,8 @@ class Exchange(BaseExchange):
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         super(Exchange, self).__init__(config)
-        self.throttle = None
-        self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
-
-    def init_rest_rate_limiter(self):
-        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
 
     def get_event_loop(self):
         return self.asyncio_loop
@@ -317,6 +312,9 @@ class Exchange(BaseExchange):
 
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
+
+    def init_throttler(self, cost=None):
+        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
 
     async def spawn_async(self, method, *args):
         try:
