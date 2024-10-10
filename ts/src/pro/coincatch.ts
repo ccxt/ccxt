@@ -3,7 +3,7 @@
 import coincatchRest from '../coincatch.js';
 import { ArgumentsRequired, ChecksumError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
-import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -20,6 +20,7 @@ export default class coincatch extends coincatchRest {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': false, // todo
                 'watchOrders': false,
                 'watchMyTrades': false,
                 'watchTicker': true,
@@ -181,6 +182,25 @@ export default class coincatch extends coincatchRest {
         return [ instType, instId ];
     }
 
+    handleDMCBLMarketByMessageHashes (market: Market, hash: string, client: Client, timeframe: Str = undefined) {
+        const marketId = market['id'];
+        const messageHashes = this.findMessageHashes (client, hash);
+        // the exchange counts DMCBL markets as the same market with different quote currencies
+        // for example symbols ETHUSD:ETH and ETH/USD:BTC both have the same marketId ETHUSD_DMCBL
+        // we need to check all markets with the same marketId to find the correct market that is in messageHashes
+        const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
+        const suffix = timeframe ? ':' + timeframe : '';
+        for (let i = 0; i < marketsWithCurrentId.length; i++) {
+            market = marketsWithCurrentId[i];
+            const symbol = market['symbol'];
+            const messageHash = hash + symbol + suffix;
+            if (this.inArray (messageHash, messageHashes)) {
+                return market;
+            }
+        }
+        return market;
+    }
+
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -295,24 +315,6 @@ export default class coincatch extends coincatchRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    handleDMCBLMarketByMessageHashes (market: Market, hash: string, client: Client) {
-        const marketId = market['id'];
-        const messageHashes = this.findMessageHashes (client, hash);
-        // the exchange counts DMCBL markets as the same market with different quote currencies
-        // for example symbols ETHUSD:ETH and ETH/USD:BTC both have the same marketId ETHUSD_DMCBL
-        // we need to check all markets with the same marketId to find the correct market that is in messageHashes
-        const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
-        for (let i = 0; i < marketsWithCurrentId.length; i++) {
-            market = marketsWithCurrentId[i];
-            const symbol = market['symbol'];
-            const messageHash = hash + symbol;
-            if (this.inArray (messageHash, messageHashes)) {
-                return market;
-            }
-        }
-        return market;
-    }
-
     parseWsTicker (ticker, market = undefined) {
         //
         // spot
@@ -404,21 +406,15 @@ export default class coincatch extends coincatchRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const instId = market['baseId'] + market['quoteId'];
         const timeframes = this.options['timeframesForWs'];
         const channel = 'candle' + this.safeString (timeframes, timeframe);
-        let instType = undefined;
-        if (market['spot']) {
-            instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-        } else if (market['futures'] || market['swap']) {
-            instType = 'MC';
-        }
+        const [ instType, instId ] = this.getInstTypeAndId (market);
         const args: Dict = {
             'instType': instType,
             'channel': channel,
             'instId': instId,
         };
-        const messageHash = channel + ':' + symbol;
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         const ohlcv = await this.watchPublic (messageHash, args, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -461,15 +457,20 @@ export default class coincatch extends coincatchRest {
         //     }
         //
         const arg = this.safeDict (message, 'arg', {});
-        const market = this.getMarketFromArg (arg);
-        const symbol = market['symbol'];
-        if (!(symbol in this.ohlcvs)) {
-            this.ohlcvs[symbol] = {};
-        }
+        let market = this.getMarketFromArg (arg);
+        const marketId = market['id'];
+        const hash = 'ohlcv:';
         const data = this.safeList (message, 'data', []);
         const channel = this.safeString (arg, 'channel');
         const klineType = channel.slice (6);
         const timeframe = this.findTimeframe (klineType);
+        if (marketId.indexOf ('_DMCBL') >= 0) {
+            market = this.handleDMCBLMarketByMessageHashes (market, hash, client, timeframe);
+        }
+        const symbol = market['symbol'];
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
@@ -480,7 +481,7 @@ export default class coincatch extends coincatchRest {
             const parsed = this.parseWsOHLCV (candle, market);
             stored.append (parsed);
         }
-        const messageHash = channel + ':' + symbol;
+        const messageHash = hash + symbol + ':' + timeframe;
         client.resolve (stored, messageHash);
     }
 
@@ -546,30 +547,19 @@ export default class coincatch extends coincatchRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return (only 5 or 15 in exchange).
+         * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let channel = 'books';
-        let incrementalFeed = true;
-        if ((limit === 5) || (limit === 15)) {
-            channel += limit.toString ();
-            incrementalFeed = false;
-        }
+        const channel = 'books';
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const instId = market['baseId'] + market['quoteId'];
-            let instType = undefined;
-            if (market['spot']) {
-                instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-            } else if (market['futures'] || market['swap']) {
-                instType = 'MC';
-            }
+            const [ instType, instId ] = this.getInstTypeAndId (market);
             const args: Dict = {
                 'instType': instType,
                 'channel': channel,
@@ -579,11 +569,7 @@ export default class coincatch extends coincatchRest {
             messageHashes.push (channel + ':' + symbol);
         }
         const orderbook = await this.watchPublicMultiple (messageHashes, topics, params);
-        if (incrementalFeed) {
-            return orderbook.limit ();
-        } else {
-            return orderbook;
-        }
+        return orderbook.limit ();
     }
 
     handleOrderBook (client: Client, message) {
@@ -603,10 +589,15 @@ export default class coincatch extends coincatchRest {
         //     }
         //
         const arg = this.safeDict (message, 'arg', {});
-        const market = this.getMarketFromArg (arg);
+        let market = this.getMarketFromArg (arg);
+        const marketId = market['id'];
+        const hash = 'books:';
+        if (marketId.indexOf ('_DMCBL') >= 0) {
+            market = this.handleDMCBLMarketByMessageHashes (market, hash, client);
+        }
         const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel');
-        const messageHash = channel + ':' + symbol;
+        const messageHash = hash + symbol;
         const data = this.safeList (message, 'data', []);
         const rawOrderBook = this.safeDict (data, 0);
         const timestamp = this.safeInteger (rawOrderBook, 'ts');
@@ -715,13 +706,7 @@ export default class coincatch extends coincatchRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const instId = market['baseId'] + market['quoteId'];
-            let instType = undefined;
-            if (market['spot']) {
-                instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-            } else if (market['futures'] || market['swap']) {
-                instType = 'MC';
-            }
+            const [ instType, instId ] = this.getInstTypeAndId (market);
             const args: Dict = {
                 'instType': instType,
                 'channel': 'trade',
@@ -762,7 +747,12 @@ export default class coincatch extends coincatchRest {
         //     }
         //
         const arg = this.safeDict (message, 'arg', {});
-        const market = this.getMarketFromArg (arg);
+        let market = this.getMarketFromArg (arg);
+        const marketId = market['id'];
+        const hash = 'trade:';
+        if (marketId.indexOf ('_DMCBL') >= 0) {
+            market = this.handleDMCBLMarketByMessageHashes (market, hash, client);
+        }
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -779,7 +769,7 @@ export default class coincatch extends coincatchRest {
                 stored.append (parsed);
             }
         }
-        const messageHash = 'trade:' + symbol;
+        const messageHash = hash + symbol;
         client.resolve (stored, messageHash);
     }
 
