@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coincatchRest from '../coincatch.js';
-import { ArgumentsRequired, ChecksumError } from '../base/errors.js';
+import { ArgumentsRequired, ChecksumError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -158,20 +158,27 @@ export default class coincatch extends coincatchRest {
     async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const instId = market['baseId'] + market['quoteId'];
-        let instType = undefined;
-        if (market['spot']) {
-            instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-        } else if (market['futures'] || market['swap']) {
-            instType = 'MC';
-        }
-        const messageHash = 'unsubscribe:' + messageHashTopic + ':' + instId;
+        const [ instType, instId ] = this.getInstTypeAndId (market);
+        const messageHash = 'unsubscribe:' + messageHashTopic + ':' + symbol;
         const args: Dict = {
             'instType': instType,
             'channel': channel,
             'instId': instId,
         };
         return await this.unWatchPublic (messageHash, args, params);
+    }
+
+    getInstTypeAndId (market: Market) {
+        const instId = market['baseId'] + market['quoteId'];
+        let instType = undefined;
+        if (market['spot']) {
+            instType = 'SP';
+        } else if (market['swap']) {
+            instType = 'MC';
+        } else {
+            throw new NotSupported (this.id + ' supports only spot and swap markets');
+        }
+        return [ instType, instId ];
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -187,14 +194,8 @@ export default class coincatch extends coincatchRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const instId = market['baseId'] + market['quoteId'];
+        const [ instType, instId ] = this.getInstTypeAndId (market);
         const channel = 'ticker';
-        let instType = undefined;
-        if (market['spot']) {
-            instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-        } else if (market['futures'] || market['swap']) {
-            instType = 'MC';
-        }
         const messageHash = channel + ':' + symbol;
         const args: Dict = {
             'instType': instType,
@@ -228,20 +229,15 @@ export default class coincatch extends coincatchRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
-        const market = this.market (symbols[0]);
-        let instType = undefined;
-        if (market['spot']) {
-            instType = 'SP'; // SP: Spot public channel; MC: Contract/future channel
-        } else if (market['futures'] || market['swap']) {
-            instType = 'MC';
+        if (symbols === undefined) {
+            symbols = this.symbols;
         }
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const marketInner = this.market (symbol);
-            const instId = marketInner['baseId'] + marketInner['quoteId'];
+            const market = this.market (symbol);
+            const [ instType, instId ] = this.getInstTypeAndId (market);
             const args: Dict = {
                 'instType': instType,
                 'channel': 'ticker',
