@@ -980,18 +980,7 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 type Task func() interface{}
 
 func PromiseAll(tasksInterface interface{}) <-chan []interface{} {
-	ch := make(chan []interface{})
-	go func() {
-		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- []interface{}{"panic:" + ToString(r)}
-			}
-		}()
-		ch <- (<-promiseAll(tasksInterface))
-		PanicOnError(ch)
-	}()
-	return ch
+	return promiseAll(tasksInterface)
 }
 
 func promiseAll(tasksInterface interface{}) <-chan []interface{} {

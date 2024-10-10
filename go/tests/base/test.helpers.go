@@ -2,6 +2,7 @@ package base
 
 import (
 	"ccxt"
+	"fmt"
 	"reflect"
 )
 
@@ -307,4 +308,8 @@ func getCallerName() string {
 
 func setDefaults(p interface{}) {
 	ccxt.SetDefaults(p)
+}
+
+func Print(v ...interface{}) {
+	fmt.Println(v...)
 }
