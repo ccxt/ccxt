@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,6 +54,7 @@ export default class bingx extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -4424,7 +4425,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name bingx#fetchDepositAddressesByNetwork
@@ -4465,10 +4466,10 @@ export default class bingx extends Exchange {
         //
         const data = this.safeList (this.safeDict (response, 'data'), 'data');
         const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
-        return this.indexBy (parsed, 'network');
+        return this.indexBy (parsed, 'network') as DepositAddress[];
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bingx#fetchDepositAddress
@@ -4483,21 +4484,21 @@ export default class bingx extends Exchange {
         params = this.omit (params, [ 'network' ]);
         const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
         if (network !== undefined) {
-            return this.safeDict (addressStructures, network);
+            return this.safeDict (addressStructures, network) as DepositAddress;
         } else {
             const options = this.safeDict (this.options, 'defaultNetworks');
             const defaultNetworkForCurrency = this.safeString (options, code);
             if (defaultNetworkForCurrency !== undefined) {
-                return this.safeDict (addressStructures, defaultNetworkForCurrency);
+                return this.safeDict (addressStructures, defaultNetworkForCurrency) as DepositAddress;
             } else {
                 const keys = Object.keys (addressStructures);
                 const key = this.safeString (keys, 0);
-                return this.safeDict (addressStructures, key);
+                return this.safeDict (addressStructures, key) as DepositAddress;
             }
         }
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coinId": "799",
@@ -4532,12 +4533,12 @@ export default class bingx extends Exchange {
         }
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
