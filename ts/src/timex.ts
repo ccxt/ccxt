@@ -1315,7 +1315,7 @@ export default class timex extends Exchange {
         };
     }
 
-    parseCurrency (currency: Dict) {
+    parseCurrency (currency: Dict): Currency {
         //
         //     {
         //         "symbol": "BTC",
@@ -1379,7 +1379,7 @@ export default class timex extends Exchange {
                 fee = this.parseNumber (fraction + feeString);
             }
         }
-        return {
+        return this.safeCurrencyStructure ({
             'id': code,
             'code': code,
             'info': currency,
@@ -1395,7 +1395,7 @@ export default class timex extends Exchange {
                 'amount': { 'min': undefined, 'max': undefined },
             },
             'networks': {},
-        };
+        });
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
