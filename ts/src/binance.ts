@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -8579,7 +8579,7 @@ export default class binance extends Exchange {
         return this.parseTransfers (rows, currency, since, limit);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name binance#fetchDepositAddress
@@ -8617,8 +8617,28 @@ export default class binance extends Exchange {
         //         }
         //     }
         //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (response, currency: Currency = undefined): DepositAddress {
+        //
+        //     {
+        //         "currency": "XRP",
+        //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //         "tag": "108618262",
+        //         "info": {
+        //             "coin": "XRP",
+        //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //             "tag": "108618262",
+        //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        //         }
+        //     }
+        //
+        const info = this.safeDict (response, 'info', {});
+        const url = this.safeString (info, 'url');
         const address = this.safeString (response, 'address');
-        const url = this.safeString (response, 'url');
+        const currencyId = this.safeString (response, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
         let impliedNetwork = undefined;
         if (url !== undefined) {
             const reverseNetworks = this.safeDict (this.options, 'reverseNetworks', {});
@@ -8646,12 +8666,12 @@ export default class binance extends Exchange {
         }
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': impliedNetwork,
             'address': address,
             'tag': tag,
-            'network': impliedNetwork,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async fetchTransactionFees (codes: Strings = undefined, params = {}) {

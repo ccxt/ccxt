@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, Orde
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1230,7 +1230,7 @@ export default class indodax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name indodax#fetchDepositAddresses
@@ -1306,13 +1306,13 @@ export default class indodax extends Exchange {
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'address': address,
                     'network': network,
+                    'address': address,
                     'tag': undefined,
-                };
+                } as DepositAddress;
             }
         }
-        return result;
+        return result as DepositAddress[];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

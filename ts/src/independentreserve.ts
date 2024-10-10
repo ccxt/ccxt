@@ -5,7 +5,7 @@ import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress } from './base/types.js';
 import { BadRequest } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
@@ -776,7 +776,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name independentreserve#fetchDepositAddress
@@ -803,7 +803,7 @@ export default class independentreserve extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        Tag: '3307446684',
@@ -817,10 +817,10 @@ export default class independentreserve extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeString (currency, 'code'),
+            'network': undefined,
             'address': address,
             'tag': this.safeString (depositAddress, 'Tag'),
-            'network': undefined,
-        };
+        } as DepositAddress;
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {

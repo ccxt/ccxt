@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currency, Dict, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -943,7 +943,7 @@ export default class oceanex extends Exchange {
         return this.parseOrders (data);
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name oceanex#fetchDepositAddressesByNetwork
@@ -994,10 +994,10 @@ export default class oceanex extends Exchange {
                 result[parsedAddress['currency']] = parsedAddress;
             }
         }
-        return result;
+        return result as DepositAddress[];
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        chain_name: 'TRC20',
@@ -1014,10 +1014,10 @@ export default class oceanex extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode (currencyId, currency),
+            'network': this.networkIdToCode (networkId),
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
-            'network': this.networkIdToCode (networkId),
-        };
+        } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

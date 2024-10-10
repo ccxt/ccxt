@@ -6,7 +6,7 @@ import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationE
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -67,6 +67,8 @@ export default class hashkey extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1773,7 +1775,7 @@ export default class hashkey extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name hashkey#fetchDepositAddress
@@ -1810,10 +1812,10 @@ export default class hashkey extends Exchange {
         //
         const depositAddress = this.parseDepositAddress (response, currency);
         depositAddress['network'] = networkCode;
-        return depositAddress;
+        return depositAddress as DepositAddress;
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "canDeposit": true,
@@ -1833,12 +1835,12 @@ export default class hashkey extends Exchange {
             tag = undefined;
         }
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

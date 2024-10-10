@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -60,6 +60,8 @@ export default class xt extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
@@ -3602,7 +3604,7 @@ export default class xt extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name xt#fetchDepositAddress
@@ -3639,7 +3641,7 @@ export default class xt extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3649,12 +3651,12 @@ export default class xt extends Exchange {
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode (undefined, currency),
+            'network': undefined,
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
-            'network': undefined,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

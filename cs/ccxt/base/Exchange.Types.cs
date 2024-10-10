@@ -796,6 +796,25 @@ public struct DepositAddressResponse
     }
 }
 
+public struct DepositAddress
+{
+    public Dictionary<string, object>? info;
+    public string currency;
+    public string? network;
+    public string address;
+    public string? tag;
+
+    public DepositAddress(object depositAddress2)
+    {
+        var depositAddress = (Dictionary<string, object>)depositAddress2;
+        info = Helper.GetInfo(depositAddress);
+        currency = Exchange.SafeString(depositAddress, "currency");
+        network = Exchange.SafeString(depositAddress, "network");
+        address = Exchange.SafeString(depositAddress, "address");
+        tag = Exchange.SafeString(depositAddress, "tag");
+    }
+}
+
 public struct CrossBorrowRate
 {
     public string? currency;

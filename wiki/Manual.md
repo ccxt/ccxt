@@ -5508,11 +5508,11 @@ The address structures returned from `fetchDepositAddress`, `fetchDepositAddress
 
 ```javascript
 {
-    'currency': currency, // currency code
-    'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
-    'address': address,   // address in terms of requested currency
-    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
-    'info': response,     // raw unparsed data as returned from the exchange
+    'info': response,       // raw unparsed data as returned from the exchange
+    'currency': 'USDC',     // currency code
+    'network': 'ERC20',     // a deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
+    'address': '0x',        // blockchain address in terms of the requested currency and network
+    'tag': undefined,       // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
 }
 ```
 

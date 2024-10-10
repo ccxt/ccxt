@@ -83,19 +83,19 @@
                   }
                 ],
                 "parsedResponse": {
-                  "currency": "USDT",
-                  "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
-                  "tag": null,
-                  "network": "ERC20",
-                  "info": {
-                    "coin": "USDT",
-                    "network": "Ethereum(ERC20)",
+                    "info": {
+                        "coin": "USDT",
+                        "network": "Ethereum(ERC20)",
+                        "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
+                        "memo": null,
+                        "chainName": "Ethereum(ERC20)",
+                        "chainDisplayName": "Ethereum(ERC20)",
+                        "netWork": "ETH"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
                     "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
-                    "memo": null,
-                    "chainName": "Ethereum(ERC20)",
-                    "chainDisplayName": "Ethereum(ERC20)",
-                    "netWork": "ETH"
-                  }
+                    "tag": null
                 }
             },
             {
@@ -137,19 +137,19 @@
                   }
                 ],
                 "parsedResponse": {
-                  "currency": "USDT",
-                  "address": "TGKyBGx7m3QGNJcteeF1eEr7eAMJQA33AD",
-                  "tag": null,
-                  "network": "TRC20",
-                  "info": {
-                    "coin": "USDT",
-                    "network": "Tron(TRC20)",
+                    "info": {
+                        "coin": "USDT",
+                        "network": "Tron(TRC20)",
+                        "address": "TGKyBGx7m3QGNJcteeF1eEr7eAMJQA33AD",
+                        "memo": null,
+                        "chainName": "Tron(TRC20)",
+                        "chainDisplayName": "Tron(TRC20)",
+                        "netWork": "TRX"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
                     "address": "TGKyBGx7m3QGNJcteeF1eEr7eAMJQA33AD",
-                    "memo": null,
-                    "chainName": "Tron(TRC20)",
-                    "chainDisplayName": "Tron(TRC20)",
-                    "netWork": "TRX"
-                  }
+                    "tag": null
                 }
             }
         ],
