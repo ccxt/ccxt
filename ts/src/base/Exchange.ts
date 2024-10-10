@@ -958,6 +958,11 @@ export default class Exchange {
         }
     }
 
+    orderbookToDict (orderbook) {
+        // stub for php
+        return orderbook;
+    }
+
     getResponseHeaders (response) {
         const result = {}
         response.headers.forEach ((value, key) => {
