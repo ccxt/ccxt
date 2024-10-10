@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -1339,7 +1340,7 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 		defer func() {
 			if r := recover(); r != nil {
 				// panic(r)
-				ch <- fmt.Sprintf("panic: %v", r)
+				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
 			}
 		}()
 
@@ -1355,7 +1356,11 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 					// Handle fixed arguments
 					for k := 0; k < numIn-1; k++ {
 						if k < len(args) {
-							in = append(in, reflect.ValueOf(args[k]))
+							if args[k] == nil {
+								in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+							} else {
+								in = append(in, reflect.ValueOf(args[k]))
+							}
 						} else {
 							paramType := methodType.In(k)
 							in = append(in, reflect.Zero(paramType))
@@ -1363,10 +1368,10 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 					}
 
 					// Handle variadic arguments
-					variadicType := methodType.In(numIn - 1).Elem()
+					// variadicType := methodType.In(numIn - 1).Elem()
 					for k := numIn - 1; k < len(args); k++ {
 						if args[k] == nil {
-							in = append(in, reflect.Zero(variadicType))
+							in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
 						} else {
 							in = append(in, reflect.ValueOf(args[k]))
 						}
@@ -1394,16 +1399,17 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 				if len(res) > 0 && res[0].Kind() == reflect.Chan {
 					resultChan := res[0]
 					// Read values from the returned channel and pass them to ch
-					// go func() {
-					for {
-						val, ok := resultChan.Recv()
-						if !ok {
-							break // result channel is closed
+					go func() {
+						for {
+							val, ok := resultChan.Recv()
+							if !ok {
+								break // result channel is closed
+							}
+							valInt := val.Interface()
+							ch <- valInt // pass the value to the output channel
 						}
-						ch <- val.Interface() // pass the value to the output channel
-					}
-					close(ch) // close the output channel after all values are received
-					// }()
+						close(ch) // close the output channel after all values are received
+					}()
 					// // Don't close `ch` yet, as it will be closed after the resultChan is read
 					return
 				} else if len(res) > 0 {
@@ -1426,15 +1432,16 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 }
 
 func PanicOnError(msg interface{}) {
+	caller := getCallerName()
 	switch v := msg.(type) {
 	case string:
 		if strings.HasPrefix(v, "panic:") {
-			panic(msg)
+			panic(fmt.Sprintf("panic:%v:%v", caller, msg))
 		}
 	case []interface{}:
 		for _, item := range v {
 			if str, ok := item.(string); ok && strings.HasPrefix(str, "panic:") {
-				panic(fmt.Sprintf("panic:%v", str))
+				panic(fmt.Sprintf("panic:%v:%v", caller, str))
 			} else if nestedSlice, ok := item.([]interface{}); ok {
 				// Handle nested []interface{} cases recursively
 				PanicOnError(nestedSlice)
@@ -1443,4 +1450,19 @@ func PanicOnError(msg interface{}) {
 	default:
 		return
 	}
+}
+
+func getCallerName() string {
+	// Skip 2 levels to get the name of the caller of the function that called this one
+	pc, _, _, ok := runtime.Caller(2)
+	if !ok {
+		return "Unknown"
+	}
+
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		return "Unknown"
+	}
+
+	return fn.Name()
 }
