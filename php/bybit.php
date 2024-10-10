@@ -5555,7 +5555,7 @@ class bybit extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "chainType" => "ERC20",
@@ -5570,15 +5570,15 @@ class bybit extends Exchange {
         $chain = $this->safe_string($depositAddress, 'chain');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $chain,
             'address' => $address,
             'tag' => $tag,
-            'network' => $chain,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -5621,7 +5621,7 @@ class bybit extends Exchange {
         return $this->index_by($parsed, 'network');
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr

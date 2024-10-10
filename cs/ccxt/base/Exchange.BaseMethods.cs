@@ -5614,7 +5614,7 @@ public partial class Exchange
         }
         if (isTrue(indexed))
         {
-            return this.indexBy(result, "currency");
+            result = this.filterByArray(result, "currency", null, indexed);
         }
         return result;
     }

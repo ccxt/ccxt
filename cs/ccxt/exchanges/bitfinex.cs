@@ -29,6 +29,8 @@ public partial class bitfinex : Exchange
                 { "fetchBalance", true },
                 { "fetchClosedOrders", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },

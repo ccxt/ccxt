@@ -8960,8 +8960,29 @@ public partial class binance : Exchange
         //         }
         //     }
         //
+        return this.parseDepositAddress(response, currency);
+    }
+
+    public override object parseDepositAddress(object response, object currency = null)
+    {
+        //
+        //     {
+        //         "currency": "XRP",
+        //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //         "tag": "108618262",
+        //         "info": {
+        //             "coin": "XRP",
+        //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //             "tag": "108618262",
+        //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        //         }
+        //     }
+        //
+        object info = this.safeDict(response, "info", new Dictionary<string, object>() {});
+        object url = this.safeString(info, "url");
         object address = this.safeString(response, "address");
-        object url = this.safeString(response, "url");
+        object currencyId = this.safeString(response, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
         object impliedNetwork = null;
         if (isTrue(!isEqual(url, null)))
         {
@@ -8998,11 +9019,11 @@ public partial class binance : Exchange
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", impliedNetwork },
             { "address", address },
             { "tag", tag },
-            { "network", impliedNetwork },
-            { "info", response },
         };
     }
 

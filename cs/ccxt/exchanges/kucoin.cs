@@ -52,6 +52,7 @@ public partial class kucoin : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", true },
@@ -1871,9 +1872,9 @@ public partial class kucoin : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", code },
+            { "network", this.networkIdToCode(this.safeString(depositAddress, "chain")) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
-            { "network", this.networkIdToCode(this.safeString(depositAddress, "chain")) },
         };
     }
 

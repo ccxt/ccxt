@@ -45,6 +45,8 @@ class phemex extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
@@ -3311,7 +3313,7 @@ class phemex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -3323,9 +3325,9 @@ class phemex extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
+        $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks');
         $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
-        $networks = $this->safe_value($this->options, 'networks', array());
+        $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($params, 'network', $defaultNetwork);
         $network = $this->safe_string($networks, $network, $network);
         if ($network === null) {
@@ -3349,11 +3351,11 @@ class phemex extends Exchange {
         $tag = $this->safe_string($data, 'tag');
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $response,
         );
     }
 

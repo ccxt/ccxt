@@ -33,6 +33,7 @@ class paymium extends paymium$1 {
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -375,9 +376,9 @@ class paymium extends paymium$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
         };
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {

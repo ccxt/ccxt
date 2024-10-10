@@ -109,6 +109,8 @@ export default class gate extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -2001,11 +2003,10 @@ export default class gate extends Exchange {
         this.checkAddress(address);
         return {
             'info': response,
-            'code': code,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import Balances, Bool, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -51,6 +51,8 @@ class bigone(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingRate': False,
                 'fetchMarkets': True,
@@ -1700,7 +1702,7 @@ class bigone(Exchange, ImplicitAPI):
         headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
@@ -1743,11 +1745,11 @@ class bigone(Exchange, ImplicitAPI):
         tag = self.safe_string(addressObject, 'memo')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': self.network_id_to_code(selectedNetworkId),
             'address': address,
             'tag': tag,
-            'network': self.network_id_to_code(selectedNetworkId),
-            'info': response,
         }
 
     def parse_transaction_status(self, status: Str):

@@ -74,6 +74,7 @@ class bitget extends bitget$1 {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -2475,11 +2476,11 @@ class bitget extends bitget$1 {
             network = this.networkIdToCode(networkId, parsedCurrency);
         }
         return {
+            'info': depositAddress,
             'currency': parsedCurrency,
+            'network': network,
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'tag'),
-            'network': network,
-            'info': depositAddress,
         };
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {

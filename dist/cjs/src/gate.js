@@ -106,6 +106,8 @@ class gate extends gate$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -1998,11 +2000,10 @@ class gate extends gate$1 {
         this.checkAddress(address);
         return {
             'info': response,
-            'code': code,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
         };
     }
     async fetchTradingFee(symbol, params = {}) {

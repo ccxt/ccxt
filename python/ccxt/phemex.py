@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -64,6 +64,8 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
@@ -3145,7 +3147,7 @@ class phemex(Exchange, ImplicitAPI):
             data = self.safe_value(data, 'rows', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -3157,9 +3159,9 @@ class phemex(Exchange, ImplicitAPI):
         request: dict = {
             'currency': currency['id'],
         }
-        defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+        defaultNetworks = self.safe_dict(self.options, 'defaultNetworks')
         defaultNetwork = self.safe_string_upper(defaultNetworks, code)
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network', defaultNetwork)
         network = self.safe_string(networks, network, network)
         if network is None:
@@ -3182,11 +3184,11 @@ class phemex(Exchange, ImplicitAPI):
         tag = self.safe_string(data, 'tag')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

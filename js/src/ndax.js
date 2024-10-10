@@ -55,6 +55,8 @@ export default class ndax extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -2046,11 +2048,11 @@ export default class ndax extends Exchange {
         }
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async createDepositAddress(code, params = {}) {

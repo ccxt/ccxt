@@ -2419,12 +2419,13 @@ public partial class hyperliquid : Exchange
         market = this.safeMarket(marketId, null);
         object symbol = getValue(market, "symbol");
         object leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
-        object isIsolated = (isEqual(this.safeString(leverage, "type"), "isolated"));
-        object quantity = this.safeNumber(leverage, "rawUsd");
+        object marginMode = this.safeString(leverage, "type");
+        object isIsolated = (isEqual(marginMode, "isolated"));
+        object size = this.safeNumber(entry, "szi");
         object side = null;
-        if (isTrue(!isEqual(quantity, null)))
+        if (isTrue(!isEqual(size, null)))
         {
-            side = ((bool) isTrue((isGreaterThan(quantity, 0)))) ? "short" : "long";
+            side = ((bool) isTrue((isGreaterThan(size, 0)))) ? "long" : "short";
         }
         object unrealizedPnl = this.safeNumber(entry, "unrealizedPnl");
         object initialMargin = this.safeNumber(entry, "marginUsed");
@@ -2438,20 +2439,20 @@ public partial class hyperliquid : Exchange
             { "isolated", isIsolated },
             { "hedged", null },
             { "side", side },
-            { "contracts", this.safeNumber(entry, "szi") },
+            { "contracts", size },
             { "contractSize", null },
             { "entryPrice", this.safeNumber(entry, "entryPx") },
             { "markPrice", null },
             { "notional", this.safeNumber(entry, "positionValue") },
             { "leverage", this.safeNumber(leverage, "value") },
-            { "collateral", null },
+            { "collateral", this.safeNumber(entry, "marginUsed") },
             { "initialMargin", initialMargin },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
             { "unrealizedPnl", unrealizedPnl },
             { "liquidationPrice", this.safeNumber(entry, "liquidationPx") },
-            { "marginMode", null },
+            { "marginMode", marginMode },
             { "percentage", percentage },
         });
     }

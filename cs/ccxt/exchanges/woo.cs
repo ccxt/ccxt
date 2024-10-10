@@ -58,6 +58,8 @@ public partial class woo : Exchange
                 { "fetchConvertTradeHistory", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", true },
@@ -2184,11 +2186,11 @@ public partial class woo : Exchange
         object address = this.safeString(response, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 

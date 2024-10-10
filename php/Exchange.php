@@ -6674,7 +6674,7 @@ class Exchange {
             $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
         if ($indexed) {
-            return $this->index_by($result, 'currency');
+            $result = $this->filter_by_array($result, 'currency', null, $indexed);
         }
         return $result;
     }

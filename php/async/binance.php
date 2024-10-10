@@ -8580,14 +8580,14 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
-             * fetch the deposit $address for a $currency associated with this account
-             * @see https://developers.binance.com/docs/wallet/capital/deposite-$address
+             * fetch the deposit address for a $currency associated with this account
+             * @see https://developers.binance.com/docs/wallet/capital/deposite-address
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -8617,42 +8617,62 @@ class binance extends Exchange {
             //         }
             //     }
             //
-            $address = $this->safe_string($response, 'address');
-            $url = $this->safe_string($response, 'url');
-            $impliedNetwork = null;
-            if ($url !== null) {
-                $reverseNetworks = $this->safe_dict($this->options, 'reverseNetworks', array());
-                $parts = explode('/', $url);
-                $topLevel = $this->safe_string($parts, 2);
-                if (($topLevel === 'blockchair.com') || ($topLevel === 'viewblock.io')) {
-                    $subLevel = $this->safe_string($parts, 3);
-                    if ($subLevel !== null) {
-                        $topLevel = $topLevel . '/' . $subLevel;
-                    }
-                }
-                $impliedNetwork = $this->safe_string($reverseNetworks, $topLevel);
-                $impliedNetworks = $this->safe_dict($this->options, 'impliedNetworks', array(
-                    'ETH' => array( 'ERC20' => 'ETH' ),
-                    'TRX' => array( 'TRC20' => 'TRX' ),
-                ));
-                if (is_array($impliedNetworks) && array_key_exists($code, $impliedNetworks)) {
-                    $conversion = $this->safe_dict($impliedNetworks, $code, array());
-                    $impliedNetwork = $this->safe_string($conversion, $impliedNetwork, $impliedNetwork);
-                }
-            }
-            $tag = $this->safe_string($response, 'tag', '');
-            if (strlen($tag) === 0) {
-                $tag = null;
-            }
-            $this->check_address($address);
-            return array(
-                'currency' => $code,
-                'address' => $address,
-                'tag' => $tag,
-                'network' => $impliedNetwork,
-                'info' => $response,
-            );
+            return $this->parse_deposit_address($response, $currency);
         }) ();
+    }
+
+    public function parse_deposit_address($response, ?array $currency = null): array {
+        //
+        //     {
+        //         "currency" => "XRP",
+        //         "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //         "tag" => "108618262",
+        //         "info" => {
+        //             "coin" => "XRP",
+        //             "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //             "tag" => "108618262",
+        //             "url" => "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        //         }
+        //     }
+        //
+        $info = $this->safe_dict($response, 'info', array());
+        $url = $this->safe_string($info, 'url');
+        $address = $this->safe_string($response, 'address');
+        $currencyId = $this->safe_string($response, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $impliedNetwork = null;
+        if ($url !== null) {
+            $reverseNetworks = $this->safe_dict($this->options, 'reverseNetworks', array());
+            $parts = explode('/', $url);
+            $topLevel = $this->safe_string($parts, 2);
+            if (($topLevel === 'blockchair.com') || ($topLevel === 'viewblock.io')) {
+                $subLevel = $this->safe_string($parts, 3);
+                if ($subLevel !== null) {
+                    $topLevel = $topLevel . '/' . $subLevel;
+                }
+            }
+            $impliedNetwork = $this->safe_string($reverseNetworks, $topLevel);
+            $impliedNetworks = $this->safe_dict($this->options, 'impliedNetworks', array(
+                'ETH' => array( 'ERC20' => 'ETH' ),
+                'TRX' => array( 'TRC20' => 'TRX' ),
+            ));
+            if (is_array($impliedNetworks) && array_key_exists($code, $impliedNetworks)) {
+                $conversion = $this->safe_dict($impliedNetworks, $code, array());
+                $impliedNetwork = $this->safe_string($conversion, $impliedNetwork, $impliedNetwork);
+            }
+        }
+        $tag = $this->safe_string($response, 'tag', '');
+        if (strlen($tag) === 0) {
+            $tag = null;
+        }
+        $this->check_address($address);
+        return array(
+            'info' => $response,
+            'currency' => $code,
+            'network' => $impliedNetwork,
+            'address' => $address,
+            'tag' => $tag,
+        );
     }
 
     public function fetch_transaction_fees(?array $codes = null, $params = array ()) {

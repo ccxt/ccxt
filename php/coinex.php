@@ -61,8 +61,8 @@ class coinex extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDepositAddressByNetwork' => false,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => true,
                 'fetchDepositWithdrawFees' => false,
@@ -3659,7 +3659,7 @@ class coinex extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address
@@ -3708,7 +3708,7 @@ class coinex extends Exchange {
         return $depositAddress;
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
@@ -3729,9 +3729,9 @@ class coinex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code(null, $currency),
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
         );
     }
 

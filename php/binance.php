@@ -8489,13 +8489,13 @@ class binance extends Exchange {
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
-         * fetch the deposit $address for a $currency associated with this account
-         * @see https://developers.binance.com/docs/wallet/capital/deposite-$address
+         * fetch the deposit address for a $currency associated with this account
+         * @see https://developers.binance.com/docs/wallet/capital/deposite-address
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -8525,8 +8525,28 @@ class binance extends Exchange {
         //         }
         //     }
         //
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function parse_deposit_address($response, ?array $currency = null): array {
+        //
+        //     {
+        //         "currency" => "XRP",
+        //         "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //         "tag" => "108618262",
+        //         "info" => {
+        //             "coin" => "XRP",
+        //             "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //             "tag" => "108618262",
+        //             "url" => "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        //         }
+        //     }
+        //
+        $info = $this->safe_dict($response, 'info', array());
+        $url = $this->safe_string($info, 'url');
         $address = $this->safe_string($response, 'address');
-        $url = $this->safe_string($response, 'url');
+        $currencyId = $this->safe_string($response, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $impliedNetwork = null;
         if ($url !== null) {
             $reverseNetworks = $this->safe_dict($this->options, 'reverseNetworks', array());
@@ -8554,11 +8574,11 @@ class binance extends Exchange {
         }
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => $impliedNetwork,
             'address' => $address,
             'tag' => $tag,
-            'network' => $impliedNetwork,
-            'info' => $response,
         );
     }
 

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.yobit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Balances, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -61,6 +61,8 @@ class yobit(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
@@ -1151,10 +1153,10 @@ class yobit(Exchange, ImplicitAPI):
             'info': response['info'],
         }
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
-        :see: https://yobit.net/en/api
         fetch the deposit address for a currency associated with self account
+        :see: https://yobit.net/en/api
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1177,29 +1179,11 @@ class yobit(Exchange, ImplicitAPI):
         address = self.safe_string(response['return'], 'address')
         self.check_address(address)
         return {
-            'id': None,
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': None,
-            'network': None,
-            'info': response,
-            'txid': None,
-            'type': None,
-            'amount': None,
-            'status': None,
-            'timestamp': None,
-            'datetime': None,
-            'addressFrom': None,
-            'addressTo': None,
-            'tagFrom': None,
-            'tagTo': None,
-            'updated': None,
-            'comment': None,
-            'fee': {
-                'currency': None,
-                'cost': None,
-                'rate': None,
-            },
         }
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):

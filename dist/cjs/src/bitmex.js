@@ -2707,11 +2707,11 @@ class bitmex extends bitmex$1 {
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': response.replace('"', '').replace('"', ''),
             'tag': undefined,
-            'network': networkCode,
-            'info': response,
         };
     }
     parseDepositWithdrawFee(fee, currency = undefined) {

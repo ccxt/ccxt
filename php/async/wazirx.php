@@ -53,6 +53,7 @@ class wazirx extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
@@ -1140,7 +1141,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1170,11 +1171,11 @@ class wazirx extends Exchange {
             //     }
             //
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $this->network_code_to_id($networkCode, $code),
                 'address' => $this->safe_string($response, 'address'),
                 'tag' => null,
-                'network' => $this->network_code_to_id($networkCode, $code),
-                'info' => $response,
             );
         }) ();
     }

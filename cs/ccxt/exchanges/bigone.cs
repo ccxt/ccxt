@@ -34,6 +34,8 @@ public partial class bigone : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingRate", false },
                 { "fetchMarkets", true },
@@ -1886,11 +1888,11 @@ public partial class bigone : Exchange
         object tag = this.safeString(addressObject, "memo");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", this.networkIdToCode(selectedNetworkId) },
             { "address", address },
             { "tag", tag },
-            { "network", this.networkIdToCode(selectedNetworkId) },
-            { "info", response },
         };
     }
 

@@ -65,8 +65,8 @@ class coinex extends coinex$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDepositAddressByNetwork': false,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': false,
@@ -3809,9 +3809,9 @@ class coinex extends coinex$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(undefined, currency),
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
         };
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

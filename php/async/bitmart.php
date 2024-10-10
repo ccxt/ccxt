@@ -3422,7 +3422,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -3466,7 +3466,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, $currency = null): array {
         //
         //    {
         //        $currency => 'ETH',
@@ -3494,9 +3494,9 @@ class bitmart extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_string($currency, 'code'),
+            'network' => $network,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'address_memo'),
-            'network' => $network,
         );
     }
 

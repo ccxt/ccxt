@@ -3511,9 +3511,9 @@ export default class bitmart extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeString(currency, 'code'),
+            'network': network,
             'address': address,
             'tag': this.safeString(depositAddress, 'address_memo'),
-            'network': network,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

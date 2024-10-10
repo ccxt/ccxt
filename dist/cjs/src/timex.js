@@ -1633,9 +1633,9 @@ class timex extends timex$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': undefined,
             'address': this.safeString(depositAddress, 'address'),
             'tag': undefined,
-            'network': undefined,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

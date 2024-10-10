@@ -38,6 +38,7 @@ public partial class bitso : Exchange
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -1385,11 +1386,11 @@ public partial class bitso : Exchange
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

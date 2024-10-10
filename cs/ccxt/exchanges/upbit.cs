@@ -34,6 +34,7 @@ public partial class upbit : Exchange
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -1923,11 +1924,11 @@ public partial class upbit : Exchange
         object networkId = this.safeString(depositAddress, "net_type");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", this.networkIdToCode(networkId) },
             { "address", address },
             { "tag", tag },
-            { "network", this.networkIdToCode(networkId) },
-            { "info", depositAddress },
         };
     }
 

@@ -50,6 +50,8 @@ class lbank extends lbank$1 {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -1991,11 +1993,11 @@ class lbank extends lbank$1 {
         const inverseNetworks = this.safeValue(this.options, 'inverse-networks', {});
         const networkCode = this.safeStringUpper(inverseNetworks, networkId, networkId);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': response,
         };
     }
     async fetchDepositAddressSupplement(code, params = {}) {
@@ -2031,11 +2033,11 @@ class lbank extends lbank$1 {
         const inverseNetworks = this.safeValue(this.options, 'inverse-networks', {});
         const networkCode = this.safeStringUpper(inverseNetworks, network, network);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': response,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -2470,27 +2472,27 @@ class lbank extends lbank$1 {
          * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
          * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
-         * @param {string[]|undefined} codes array of unified currency codes
+         * @param {string[]} [codes] array of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const isAuthorized = this.checkRequiredCredentials(false);
-        const response = undefined;
+        let response = undefined;
         if (isAuthorized === true) {
             const options = this.safeValue(this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateDepositWithdrawFees');
             const method = this.safeString(params, 'method', defaultMethod);
             params = this.omit(params, 'method');
             if (method === 'fetchPublicDepositWithdrawFees') {
-                await this.fetchPublicDepositWithdrawFees(codes, params);
+                response = await this.fetchPublicDepositWithdrawFees(codes, params);
             }
             else {
-                await this.fetchPrivateDepositWithdrawFees(codes, params);
+                response = await this.fetchPrivateDepositWithdrawFees(codes, params);
             }
         }
         else {
-            await this.fetchPublicDepositWithdrawFees(codes, params);
+            response = await this.fetchPublicDepositWithdrawFees(codes, params);
         }
         return response;
     }

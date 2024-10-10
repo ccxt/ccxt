@@ -49,6 +49,7 @@ class zonda extends Exchange {
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => null,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
@@ -1557,7 +1558,7 @@ class zonda extends Exchange {
         return $this->safe_bool($fiatCurrencies, $currency, false);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
@@ -1571,15 +1572,15 @@ class zonda extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => null,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'tag'),
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
@@ -1614,7 +1615,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto

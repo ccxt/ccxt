@@ -49,6 +49,7 @@ class wazirx extends wazirx$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -1145,11 +1146,11 @@ class wazirx extends wazirx$1 {
         //     }
         //
         return {
+            'info': response,
             'currency': code,
+            'network': this.networkCodeToId(networkCode, code),
             'address': this.safeString(response, 'address'),
             'tag': undefined,
-            'network': this.networkCodeToId(networkCode, code),
-            'info': response,
         };
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {

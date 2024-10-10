@@ -59,6 +59,8 @@ export default class kucoinfutures extends kucoin {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
@@ -684,9 +686,9 @@ export default class kucoinfutures extends kucoin {
         return {
             'info': response,
             'currency': currencyId,
+            'network': this.safeString(data, 'chain'),
             'address': address,
             'tag': this.safeString(data, 'memo'),
-            'network': this.safeString(data, 'chain'),
         };
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {

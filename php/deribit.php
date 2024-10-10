@@ -48,6 +48,8 @@ class deribit extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingRate' => true,
@@ -1030,7 +1032,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://docs.deribit.com/#private-get_current_deposit_address
@@ -1065,11 +1067,11 @@ class deribit extends Exchange {
         $address = $this->safe_string($result, 'address');
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => null,
-            'network' => null,
-            'info' => $response,
         );
     }
 

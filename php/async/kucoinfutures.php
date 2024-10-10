@@ -61,6 +61,8 @@ class kucoinfutures extends kucoin {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
@@ -655,7 +657,7 @@ class kucoinfutures extends kucoin {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -689,9 +691,9 @@ class kucoinfutures extends kucoin {
             return array(
                 'info' => $response,
                 'currency' => $currencyId,
+                'network' => $this->safe_string($data, 'chain'),
                 'address' => $address,
                 'tag' => $this->safe_string($data, 'memo'),
-                'network' => $this->safe_string($data, 'chain'),
             );
         }) ();
     }

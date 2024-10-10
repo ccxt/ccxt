@@ -49,6 +49,8 @@ class yobit extends yobit$1 {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -1206,8 +1208,8 @@ class yobit extends yobit$1 {
         /**
          * @method
          * @name yobit#fetchDepositAddress
-         * @see https://yobit.net/en/api
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://yobit.net/en/api
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1232,29 +1234,11 @@ class yobit extends yobit$1 {
         const address = this.safeString(response['return'], 'address');
         this.checkAddress(address);
         return {
-            'id': undefined,
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': response,
-            'txid': undefined,
-            'type': undefined,
-            'amount': undefined,
-            'status': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'addressFrom': undefined,
-            'addressTo': undefined,
-            'tagFrom': undefined,
-            'tagTo': undefined,
-            'updated': undefined,
-            'comment': undefined,
-            'fee': {
-                'currency': undefined,
-                'cost': undefined,
-                'rate': undefined,
-            },
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.onetrading import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -63,6 +63,7 @@ class onetrading(Exchange, ImplicitAPI):
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
@@ -1003,7 +1004,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         code = None
         if currency is not None:
             code = currency['code']
@@ -1011,11 +1012,11 @@ class onetrading(Exchange, ImplicitAPI):
         tag = self.safe_string(depositAddress, 'destination_tag')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': depositAddress,
         }
 
     def create_deposit_address(self, code: str, params={}):
@@ -1041,7 +1042,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code

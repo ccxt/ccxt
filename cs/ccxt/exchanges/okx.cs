@@ -5025,11 +5025,11 @@ public partial class okx : Exchange
         object networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
-            { "network", networkCode },
-            { "info", depositAddress },
         };
     }
 

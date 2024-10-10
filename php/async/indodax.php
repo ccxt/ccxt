@@ -1231,7 +1231,7 @@ class indodax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit $addresses for multiple currencies and chain types
@@ -1306,8 +1306,8 @@ class indodax extends Exchange {
                     $result[$code] = array(
                         'info' => array(),
                         'currency' => $code,
-                        'address' => $address,
                         'network' => $network,
+                        'address' => $address,
                         'tag' => null,
                     );
                 }

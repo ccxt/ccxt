@@ -45,6 +45,7 @@ public partial class bingx : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -4322,11 +4323,11 @@ public partial class bingx : Exchange
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
-            { "network", networkCode },
-            { "info", depositAddress },
         };
     }
 

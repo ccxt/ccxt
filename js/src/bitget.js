@@ -77,6 +77,7 @@ export default class bitget extends Exchange {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -2478,11 +2479,11 @@ export default class bitget extends Exchange {
             network = this.networkIdToCode(networkId, parsedCurrency);
         }
         return {
+            'info': depositAddress,
             'currency': parsedCurrency,
+            'network': network,
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'tag'),
-            'network': network,
-            'info': depositAddress,
         };
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {

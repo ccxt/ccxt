@@ -39,6 +39,8 @@ class blockchaincom extends blockchaincom$1 {
                 'fetchClosedOrders': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -837,13 +839,13 @@ class blockchaincom extends blockchaincom$1 {
             tag = this.safeString(addressParts, 0);
             address = this.safeString(addressParts, 1);
         }
-        const result = { 'info': response };
-        result['currency'] = currency['code'];
-        result['address'] = address;
-        if (tag !== undefined) {
-            result['tag'] = tag;
-        }
-        return result;
+        return {
+            'info': response,
+            'currency': currency['code'],
+            'network': undefined,
+            'address': address,
+            'tag': tag,
+        };
     }
     parseTransactionState(state) {
         const states = {

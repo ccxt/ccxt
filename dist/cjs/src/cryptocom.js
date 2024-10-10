@@ -51,6 +51,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -1785,9 +1786,9 @@ class cryptocom extends cryptocom$1 {
             result[network] = {
                 'info': value,
                 'currency': responseCode,
+                'network': network,
                 'address': address,
                 'tag': tag,
-                'network': network,
             };
         }
         return result;

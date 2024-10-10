@@ -40,6 +40,7 @@ public partial class zonda : Exchange
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", null },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
@@ -1441,11 +1442,11 @@ public partial class zonda : Exchange
         object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", null },
             { "address", address },
             { "tag", this.safeString(depositAddress, "tag") },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 

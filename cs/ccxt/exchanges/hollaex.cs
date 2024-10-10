@@ -43,6 +43,7 @@ public partial class hollaex : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", "emulated" },
                 { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -1407,11 +1408,11 @@ public partial class hollaex : Exchange
         currency = this.safeCurrency(currencyId, currency);
         object network = this.safeString(depositAddress, "network");
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", getValue(currency, "code") },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 

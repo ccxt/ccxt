@@ -239,10 +239,11 @@ export interface Balances extends Dictionary<Balance> {
     datetime?: any;
 }
 export interface DepositAddress {
-    currency: Str;
-    address: string;
-    status: Str;
     info: any;
+    currency: string;
+    network?: string;
+    address: string;
+    tag?: Str;
 }
 export interface WithdrawalResponse {
     info: any;

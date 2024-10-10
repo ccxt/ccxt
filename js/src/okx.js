@@ -4825,11 +4825,11 @@ export default class okx extends Exchange {
         const networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {

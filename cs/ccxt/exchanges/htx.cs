@@ -6585,8 +6585,8 @@ public partial class htx : Exchange
         /**
         * @method
         * @name htx#fetchDepositAddress
-        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}

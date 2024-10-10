@@ -44,6 +44,7 @@ class upbit extends upbit$1 {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1838,11 +1839,11 @@ class upbit extends upbit$1 {
         const networkId = this.safeString(depositAddress, 'net_type');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode(networkId),
-            'info': depositAddress,
         };
     }
     async fetchDepositAddress(code, params = {}) {
