@@ -1415,6 +1415,16 @@
                 "input": []
               }
         ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetch mark price",
+                "method": "fetchMarkPrice",
+                "url": "https://www.okx.com/api/v5/public/mark-price?instId=ETH-USDT-SWAP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+              }
+        ],
         "fetchTickers": [
             {
                 "description": "spot tickers",
