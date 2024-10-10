@@ -1296,6 +1296,8 @@ public partial class htx
     /// fetch the interest owed by the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1388,6 +1390,10 @@ public partial class htx
     /// fetch all open positions
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

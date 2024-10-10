@@ -7001,6 +7001,8 @@ class htx extends Exchange {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated
              * @param {string} $code unified $currency $code
              * @param {string} $symbol unified $market $symbol when fetch $interest in isolated markets
              * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
@@ -7570,7 +7572,11 @@ class htx extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
-             * @param {string[]|null} $symbols list of unified $market $symbols
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-$position-information
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-$position-information
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-$position-information
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-$position-information
+             * @param {string[]} [$symbols] list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] 'linear' or 'inverse'
              * @param {string} [$params->type] *inverse only* 'future', or 'swap'
