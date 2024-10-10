@@ -217,6 +217,7 @@ public partial class mexc : Exchange
                             { "rebate/affiliate/commission/detail", 1 },
                             { "mxDeduct/enable", 1 },
                             { "userDataStream", 1 },
+                            { "selfSymbols", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "order", 1 },
