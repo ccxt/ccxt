@@ -2491,25 +2491,25 @@ export default class lbank extends Exchange {
          * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
          * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
-         * @param {string[]|undefined} codes array of unified currency codes
+         * @param {string[]} [codes] array of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
-        const response = undefined;
+        let response = undefined;
         if (isAuthorized === true) {
             const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
             const method = this.safeString (params, 'method', defaultMethod);
             params = this.omit (params, 'method');
             if (method === 'fetchPublicDepositWithdrawFees') {
-                await this.fetchPublicDepositWithdrawFees (codes, params);
+                response = await this.fetchPublicDepositWithdrawFees (codes, params);
             } else {
-                await this.fetchPrivateDepositWithdrawFees (codes, params);
+                response = await this.fetchPrivateDepositWithdrawFees (codes, params);
             }
         } else {
-            await this.fetchPublicDepositWithdrawFees (codes, params);
+            response = await this.fetchPublicDepositWithdrawFees (codes, params);
         }
         return response;
     }
