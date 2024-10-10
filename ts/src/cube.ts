@@ -184,39 +184,43 @@ export default class cube extends Exchange {
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
+        // Fetch response from Cube API
         const response = await this.irPublicGetMarkets (params);
+        // Extract 'result' safely
         const result = this.safeValue (response, 'result', {});
-        // Initialize arrays for markets, assets, and feeTables
+        // Extract markets, assets, and feeTables arrays
         const markets = this.safeList (result, 'markets', []);
         const assets = this.safeList (result, 'assets', []);
         const feeTables = this.safeList (result, 'feeTables', []);
-        // Use for loop to convert nested lists to tuples
+        // Convert nested lists to tuples in the markets array
         for (let i = 0; i < markets.length; i++) {
             markets[i] = this.convertNestedListToTuple (markets[i]);
         }
+        // Index assets and fee tables by their IDs
         this.options['assetsById'] = this.indexBy (assets, 'assetId');
         this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId');
+        // Parse and return the markets in CCXT's unified structure
         return this.parseMarkets (markets);
     }
 
     convertNestedListToTuple (item: any) {
         if (Array.isArray (item)) {
-            const newArray = []; // Initialize an empty array
+            const newArray = [];
             for (let i = 0; i < item.length; i++) {
-                newArray.push (this.convertNestedListToTuple (item[i])); // Recursively convert each element
+                newArray.push (this.convertNestedListToTuple (item[i]));
             }
             return newArray;
         } else if (item !== undefined && typeof item === 'object') {
-            const newObject = {}; // Initialize an empty object without explicit typing
+            const newObject: any = {};
             const keys = Object.keys (item);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
                 const value = item[key];
-                newObject[key] = this.convertNestedListToTuple (value); // Recursively process each value
+                newObject[key] = this.convertNestedListToTuple (value);
             }
             return newObject;
         }
-        return item; // Return primitive types as-is
+        return item;
     }
 
     parseMarket (market): Market {
