@@ -1418,12 +1418,7 @@ export default class coinbaseinternational extends Exchange {
         //        ...
         //    ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = this.parseCurrency (currencies[i]);
-            result[currency['code']] = currency;
-        }
-        return result;
+        return this.parseCurrencies (currencies);
     }
 
     parseCurrency (currency: Dict): Currency {

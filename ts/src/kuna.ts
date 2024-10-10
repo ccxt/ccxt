@@ -462,16 +462,6 @@ export default class kuna extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrencies (currencies, params = {}) {
-        currencies = this.toArray (currencies);
-        const result: Dict = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = this.parseCurrency (currencies[i]);
-            result[currency['code']] = currency;
-        }
-        return result;
-    }
-
     parseCurrency (currency: Dict): Currency {
         //
         //    {

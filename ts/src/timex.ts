@@ -353,12 +353,7 @@ export default class timex extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            result.push (this.parseCurrency (currency));
-        }
-        return this.indexBy (result, 'code');
+        return this.parseCurrencies (response);
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
