@@ -1744,10 +1744,10 @@ export default class bingx extends Exchange {
     async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
-         * @name bingx#fetchMarkPrices
+         * @name bingx#fetchMarkPrice
          * @description fetches mark prices for the market
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
