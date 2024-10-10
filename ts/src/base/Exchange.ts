@@ -2880,7 +2880,9 @@ export default class Exchange {
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
-                (this.markets_by_id[value['id']] as any).push (value);
+                const marketsByIdArray = (this.markets_by_id[value['id']] as any);
+                marketsByIdArray.push (value);
+                this.markets_by_id[value['id']] = marketsByIdArray;
             } else {
                 this.markets_by_id[value['id']] = [ value ] as any;
             }
@@ -3723,12 +3725,18 @@ export default class Exchange {
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             const ts = ms ? ohlcvs[i][0] : this.parseToInt (ohlcvs[i][0] / 1000);
-            result[timestamp].push (ts);
-            result[open].push (ohlcvs[i][1]);
-            result[high].push (ohlcvs[i][2]);
-            result[low].push (ohlcvs[i][3]);
-            result[close].push (ohlcvs[i][4]);
-            result[volume].push (ohlcvs[i][5]);
+            const resultTimestamp = result[timestamp];
+            resultTimestamp.push (ts);
+            const resultOpen = result[open];
+            resultOpen.push (ohlcvs[i][1]);
+            const resultHigh = result[high];
+            resultHigh.push (ohlcvs[i][2]);
+            const resultLow = result[low];
+            resultLow.push (ohlcvs[i][3]);
+            const resultClose = result[close];
+            resultClose.push (ohlcvs[i][4]);
+            const resultVolume = result[volume];
+            resultVolume.push (ohlcvs[i][5]);
         }
         return result;
     }
@@ -4382,10 +4390,12 @@ export default class Exchange {
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep (retryDelay);
                         }
-                        continue;
+                        // continue; //check this
                     }
                 }
-                throw e;
+                if (i >= retries) {
+                    throw e;
+                }
             }
         }
         return undefined; // this line is never reached, but exists for c# value return requirement
@@ -4792,9 +4802,8 @@ export default class Exchange {
     }
 
     handleOption (methodName: string, optionName: string, defaultValue = undefined) {
-        // eslint-disable-next-line no-unused-vars
-        const [ result, empty ] = this.handleOptionAndParams ({}, methodName, optionName, defaultValue);
-        return result;
+        const res = this.handleOptionAndParams ({}, methodName, optionName, defaultValue);
+        return this.safeValue (res, 0);
     }
 
     handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
@@ -5005,6 +5014,22 @@ export default class Exchange {
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
+    }
+
+    async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
+        throw new NotSupported (this.id + ' createConvertTrade() is not supported yet');
+    }
+
+    async fetchConvertTrade (id: string, code: Str = undefined, params = {}): Promise<Conversion> {
+        throw new NotSupported (this.id + ' fetchConvertTrade() is not supported yet');
+    }
+
+    async fetchConvertTradeHistory (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Conversion[]> {
+        throw new NotSupported (this.id + ' fetchConvertTradeHistory() is not supported yet');
+    }
+
+    async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' fetchPositionMode() is not supported yet');
     }
 
     async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}): Promise<Order> {
