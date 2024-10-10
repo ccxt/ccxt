@@ -201,22 +201,22 @@ export default class cube extends Exchange {
 
     convertNestedListToTuple (item: any) {
         if (Array.isArray (item)) {
-            const newArray: any[] = [];
+            const newArray = []; // Initialize an empty array
             for (let i = 0; i < item.length; i++) {
-                newArray.push (this.convertNestedListToTuple (item[i]));
+                newArray.push (this.convertNestedListToTuple (item[i])); // Recursively convert each element
             }
             return newArray;
-        } else if (item !== undefined && item !== null && typeof item === 'object') {  // Adjusted check
-            const newObject: { [key: string]: any } = {};
+        } else if (item !== undefined && typeof item === 'object') {
+            const newObject = {}; // Initialize an empty object without explicit typing
             const keys = Object.keys (item);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
                 const value = item[key];
-                newObject[key] = this.convertNestedListToTuple (value);
+                newObject[key] = this.convertNestedListToTuple (value); // Recursively process each value
             }
             return newObject;
         }
-        return item;
+        return item; // Return primitive types as-is
     }
 
     parseMarket (market): Market {
