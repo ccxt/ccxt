@@ -1398,8 +1398,9 @@ func CallInternalMethod(itf interface{}, name2 string, args ...interface{}) <-ch
 								in = append(in, reflect.ValueOf(args[k]))
 							}
 						} else {
-							paramType := methodType.In(k)
-							in = append(in, reflect.Zero(paramType))
+							// paramType := methodType.In(k)
+							// in = append(in, reflect.Zero(paramType))
+							in = append(in, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
 						}
 					}
 
@@ -1488,13 +1489,22 @@ func PanicOnError(msg interface{}) {
 	}
 }
 
+func ReturnPanicError(ch chan interface{}) {
+	// https://stackoverflow.com/questions/72651899/why-golang-can-not-recover-from-a-panic-in-a-function-called-by-the-defer-functi
+	if r := recover(); r != nil {
+		if r != "break" {
+			ch <- "panic:" + ToString(r)
+		}
+	}
+}
+
 func GetCallerName() string {
 	return getCallerName()
 }
 
 func getCallerName() string {
 	// Skip 2 levels to get the name of the caller of the function that called this one
-	pc, _, _, ok := runtime.Caller(2)
+	pc, _, _, ok := runtime.Caller(3)
 	if !ok {
 		return "Unknown"
 	}
