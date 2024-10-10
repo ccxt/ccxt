@@ -763,7 +763,6 @@ export default class coincatch extends coincatchRest {
         }
         const stored = this.trades[symbol];
         let data = this.safeList (message, 'data', []);
-        data[symbol] = symbol;
         if (data !== undefined) {
             data = this.sortBy (data, 0);
             for (let i = 0; i < data.length; i++) {
@@ -785,8 +784,6 @@ export default class coincatch extends coincatchRest {
         //         'sell'
         //     ]
         //
-        const marketId = market['id'];
-        market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 0);
         return this.safeTrade ({
             'id': undefined,
