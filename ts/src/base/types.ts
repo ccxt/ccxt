@@ -266,7 +266,7 @@ export interface Balances extends Dictionary<Balance> {
 export interface DepositAddress {
     info: any;
     currency: string;
-    network: string;
+    network?: string;
     address: string;
     tag?: Str;
 }

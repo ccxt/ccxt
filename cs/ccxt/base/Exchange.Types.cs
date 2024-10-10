@@ -800,7 +800,7 @@ public struct DepositAddress
 {
     public Dictionary<string, object>? info;
     public string currency;
-    public string network;
+    public string? network;
     public string address;
     public string? tag;
 

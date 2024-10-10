@@ -517,7 +517,7 @@ class LedgerEntry:
 class DepositAddress:
     info: Any
     currency: Str
-    network: Str
+    network: Optional[Str]
     address: Str
     tag: Optional[Str]
 
