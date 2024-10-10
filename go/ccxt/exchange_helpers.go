@@ -838,6 +838,10 @@ func Pop(slice interface{}) (interface{}, interface{}) {
 	return sliceVal[:len(sliceVal)-1], sliceVal[len(sliceVal)-1]
 }
 
+func CastToSlice(slice interface{}) ([]interface{}, bool) {
+	return castToSlice(slice)
+}
+
 // Helper function to cast interface{} to []interface{}
 func castToSlice(slice interface{}) ([]interface{}, bool) {
 	val := reflect.ValueOf(slice)
@@ -959,6 +963,10 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 
 type Task func() interface{}
 
+func PromiseAll(tasksInterface interface{}) <-chan []interface{} {
+	return promiseAll(tasksInterface)
+}
+
 func promiseAll(tasksInterface interface{}) <-chan []interface{} {
 	ch := make(chan []interface{})
 
@@ -1036,6 +1044,10 @@ func ParseInt(number interface{}) int64 {
 	return 0 // Default value if conversion is not possible
 }
 
+func MathMin(a, b interface{}) interface{} {
+	return mathMin(a, b)
+}
+
 func mathMin(a, b interface{}) interface{} {
 
 	af := ToFloat64(a)
@@ -1073,6 +1085,10 @@ func mathMin(a, b interface{}) interface{} {
 	// default:
 	// 	return nil
 	// }
+}
+
+func MathMax(a, b interface{}) interface{} {
+	return mathMax(a, b)
 }
 
 // mathMax returns the maximum of two values of the same type.
@@ -1450,6 +1466,10 @@ func PanicOnError(msg interface{}) {
 	default:
 		return
 	}
+}
+
+func GetCallerName() string {
+	return getCallerName()
 }
 
 func getCallerName() string {
