@@ -921,6 +921,22 @@ func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{}
 
 func IsInstance(value interface{}, typ interface{}) bool {
 	// Get the reflect.Type of the value and the type
+
+	if s, ok := value.(string); ok {
+		isError := strings.HasPrefix(s, "panic")
+		if isError {
+			value := reflect.ValueOf(typ)
+			funcName := ""
+			if value.Kind() == reflect.Func {
+				funcName = runtime.FuncForPC(value.Pointer()).Name()
+				// Extract only the function name by removing the package path
+				parts := strings.Split(funcName, ".")
+				funcName = parts[len(parts)-1]
+			}
+			return strings.Contains(s, funcName)
+		}
+	}
+
 	valueType := reflect.TypeOf(value)
 	typeType := reflect.TypeOf(typ)
 
@@ -964,7 +980,18 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 type Task func() interface{}
 
 func PromiseAll(tasksInterface interface{}) <-chan []interface{} {
-	return promiseAll(tasksInterface)
+	ch := make(chan []interface{})
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- []interface{}{"panic:" + ToString(r)}
+			}
+		}()
+		ch <- (<-promiseAll(tasksInterface))
+		PanicOnError(ch)
+	}()
+	return ch
 }
 
 func promiseAll(tasksInterface interface{}) <-chan []interface{} {
@@ -1316,6 +1343,10 @@ func Capitalize(s string) string {
 	firstLetter := strings.ToUpper(string(s[0]))
 	// Combine the uppercase first letter with the rest of the string
 	return firstLetter + s[1:]
+}
+
+func SetDefaults(p interface{}) {
+	setDefaults(p)
 }
 
 func setDefaults(p interface{}) {
