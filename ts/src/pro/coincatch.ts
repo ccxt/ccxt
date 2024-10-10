@@ -189,7 +189,10 @@ export default class coincatch extends coincatchRest {
         // for example symbols ETHUSD:ETH and ETH/USD:BTC both have the same marketId ETHUSD_DMCBL
         // we need to check all markets with the same marketId to find the correct market that is in messageHashes
         const marketsWithCurrentId = this.safeList (this.markets_by_id, marketId, []);
-        const suffix = timeframe ? ':' + timeframe : '';
+        let suffix = '';
+        if (timeframe !== undefined) {
+            suffix = ':' + timeframe;
+        }
         for (let i = 0; i < marketsWithCurrentId.length; i++) {
             market = marketsWithCurrentId[i];
             const symbol = market['symbol'];
