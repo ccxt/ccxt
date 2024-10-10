@@ -1091,12 +1091,12 @@ export default class coincatch extends Exchange {
             'ask': this.safeString2 (ticker, 'sellOne', 'bestAsk'),
             'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
-            'open': undefined, // todo check
+            'open': this.safeString2 (ticker, 'openUtc0', 'openUtc'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined, // todo check
-            'percentage': this.safeString2 (ticker, 'change', 'priceChangePercent'),
+            'change': undefined,
+            'percentage': Precise.stringMul (this.safeString2 (ticker, 'changeUtc', 'chgUtc'), '100'),
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'baseVol', 'baseVolume'),
             'quoteVolume': this.safeString2 (ticker, 'quoteVol', 'quoteVolume'),
