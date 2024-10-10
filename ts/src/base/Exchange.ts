@@ -2441,20 +2441,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseMarket() is not supported yet');
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
-        throw new NotSupported (this.id + ' parseCurrency() is not supported yet');
-    }
-
-    parseCurrencies (rawCurrencies): Currencies {
-        const result = {};
-        for (let i = 0; i < rawCurrencies.length; i++) {
-            const parsed = this.parseCurrency (rawCurrencies[i]);
-            const code = parsed['code'];
-            result[code] = parsed;
-        }
-        return result;
-    }
-
     parseMarkets (markets): Market[] {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
