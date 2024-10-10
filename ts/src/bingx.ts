@@ -68,6 +68,7 @@ export default class bingx extends Exchange {
                 'fetchMarginMode': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrice': true,
                 'fetchMarkPrices': true,
                 'fetchMyLiquidations': true,
                 'fetchOHLCV': true,
@@ -1738,6 +1739,66 @@ export default class bingx extends Exchange {
         //
         const tickers = this.safeList (response, 'data');
         return this.parseTickers (tickers, symbols);
+    }
+
+    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name bingx#fetchMarkPrices
+         * @description fetches mark prices for the market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkPrice', market, params, 'swap');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrice', market, params, 'linear');
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.cswapV1PublicGetMarketPremiumIndex (this.extend (request, params));
+            //
+            // {
+            //     "code": 0,
+            //     "msg": "",
+            //     "timestamp": 1728577213289,
+            //     "data": [
+            //         {
+            //             "symbol": "ETH-USD",
+            //             "lastFundingRate": "0.0001",
+            //             "markPrice": "2402.68",
+            //             "indexPrice": "2404.92",
+            //             "nextFundingTime": 1728604800000
+            //         }
+            //     ]
+            // }
+            //
+        } else {
+            response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, params));
+            //
+            // {
+            //     "code": 0,
+            //     "msg": "",
+            //     "data": {
+            //         "symbol": "ETH-USDT",
+            //         "markPrice": "2408.40",
+            //         "indexPrice": "2409.62",
+            //         "lastFundingRate": "0.00009900",
+            //         "nextFundingTime": 1728604800000
+            //     }
+            // }
+            //
+        }
+        if (Array.isArray (response['data'])) {
+            return this.parseTicker (this.safeDict (response['data'], 0, {}), market);
+        }
+        return this.parseTicker (response['data'], market);
     }
 
     async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
