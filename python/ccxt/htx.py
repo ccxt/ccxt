@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -5778,7 +5778,7 @@ class htx(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         fetch a dictionary of addresses for a currency, indexed by network
@@ -5809,10 +5809,10 @@ class htx(Exchange, ImplicitAPI):
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
-        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         fetch the deposit address for a currency associated with self account
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -6531,6 +6531,8 @@ class htx(Exchange, ImplicitAPI):
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated
         :param str code: unified currency code
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param int [since]: the earliest time in ms to fetch borrrow interest for
@@ -7050,7 +7052,11 @@ class htx(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :param str[]|None symbols: list of unified market symbols
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
+        :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: 'linear' or 'inverse'
         :param str [params.type]: *inverse only* 'future', or 'swap'
@@ -7180,6 +7186,10 @@ class htx(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, LeverageTier, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -1813,6 +1813,16 @@ class okx(Exchange, ImplicitAPI):
         #         "sodUtc0": "0.07872",
         #         "sodUtc8": "0.07345"
         #     }
+        #     {
+        #          instId: 'LTC-USDT',
+        #          idxPx: '65.74',
+        #          open24h: '65.37',
+        #          high24h: '66.15',
+        #          low24h: '64.97',
+        #          sodUtc0: '65.68',
+        #          sodUtc8: '65.54',
+        #          ts: '1728467346900'
+        #     },
         #
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
@@ -1846,6 +1856,7 @@ class okx(Exchange, ImplicitAPI):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'markPrice': self.safe_string(ticker, 'markPx'),
+            'indexPrice': self.safe_string(ticker, 'idxPx'),
             'info': ticker,
         }, market)
 
@@ -4424,7 +4435,7 @@ class okx(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "addr": "okbtothemoon",
@@ -4512,14 +4523,14 @@ class okx(Exchange, ImplicitAPI):
         networkCode = self.network_id_to_code(network, code)
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
@@ -4559,7 +4570,7 @@ class okx(Exchange, ImplicitAPI):
         parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address

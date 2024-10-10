@@ -33,6 +33,8 @@ public partial class delta : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", null },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", null },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", true },
@@ -2398,11 +2400,11 @@ public partial class delta : Exchange
         object networkId = this.safeString(depositAddress, "network");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", this.safeCurrencyCode(marketId, currency) },
+            { "network", this.networkIdToCode(networkId) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
-            { "network", this.networkIdToCode(networkId) },
-            { "info", depositAddress },
         };
     }
 

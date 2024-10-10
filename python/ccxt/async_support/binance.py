@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -135,6 +135,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMarkPrice': True,
                 'fetchMarkPrices': True,
                 'fetchMyLiquidations': True,
                 'fetchMySettlementHistory': True,
@@ -4109,10 +4110,41 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets yet')
         return self.parse_tickers(response, symbols)
 
+    async def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches mark price for the market
+        :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: "linear" or "inverse"
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMarkPrice', market, params, 'swap')
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchMarkPrice', market, params, 'linear')
+        request = {
+            'symbol': market['id'],
+        }
+        response = None
+        if self.is_linear(type, subType):
+            response = await self.fapiPublicGetPremiumIndex(self.extend(request, params))
+        elif self.is_inverse(type, subType):
+            response = await self.dapiPublicGetPremiumIndex(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchMarkPrice() does not support ' + type + ' markets yet')
+        if isinstance(response, list):
+            return self.parse_ticker(self.safe_dict(response, 0, {}), market)
+        return self.parse_ticker(response, market)
+
     async def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches mark prices for multiple markets
         :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -4122,9 +4154,9 @@ class binance(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
         type = None
-        type, params = self.handle_market_type_and_params('fetchTickers', market, params, 'swap')
+        type, params = self.handle_market_type_and_params('fetchMarkPrices', market, params, 'swap')
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchMarkPrices', market, params, 'linear')
         response = None
         if self.is_linear(type, subType):
             response = await self.fapiPublicGetPremiumIndex(params)
@@ -8079,7 +8111,7 @@ class binance(Exchange, ImplicitAPI):
         rows = self.safe_list_2(response, 'rows', 'data', [])
         return self.parse_transfers(rows, currency, since, limit)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://developers.binance.com/docs/wallet/capital/deposite-address
@@ -8114,8 +8146,27 @@ class binance(Exchange, ImplicitAPI):
         #         }
         #     }
         #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, response, currency: Currency = None) -> DepositAddress:
+        #
+        #     {
+        #         "currency": "XRP",
+        #         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        #         "tag": "108618262",
+        #         "info": {
+        #             "coin": "XRP",
+        #             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        #             "tag": "108618262",
+        #             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        #         }
+        #     }
+        #
+        info = self.safe_dict(response, 'info', {})
+        url = self.safe_string(info, 'url')
         address = self.safe_string(response, 'address')
-        url = self.safe_string(response, 'url')
+        currencyId = self.safe_string(response, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         impliedNetwork = None
         if url is not None:
             reverseNetworks = self.safe_dict(self.options, 'reverseNetworks', {})
@@ -8138,11 +8189,11 @@ class binance(Exchange, ImplicitAPI):
             tag = None
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': impliedNetwork,
             'address': address,
             'tag': tag,
-            'network': impliedNetwork,
-            'info': response,
         }
 
     async def fetch_transaction_fees(self, codes: Strings = None, params={}):

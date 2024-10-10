@@ -285,6 +285,15 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "fetchDepositWithdrawFees public",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.lbank.info/v2/supplement/user_info.do",
+                "input": [],
+                "output": "api_key=d39718d3-2918-48af-8d99-9e4daff14812&sign=f4d731dc3c21269d9b827cbdd070ec90bb4081d46de40d06473f1aeb49611bfb"
+            }
         ]
     }
 }

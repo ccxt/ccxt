@@ -42,6 +42,8 @@ public partial class kuna : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },

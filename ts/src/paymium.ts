@@ -6,7 +6,7 @@ import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ export default class paymium extends Exchange {
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -323,7 +324,7 @@ export default class paymium extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name paymium#fetchDepositAddress
@@ -349,7 +350,7 @@ export default class paymium extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name paymium#fetchDepositAddresses
@@ -374,7 +375,7 @@ export default class paymium extends Exchange {
         return this.parseDepositAddresses (response, codes);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -388,10 +389,10 @@ export default class paymium extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode (currencyId, currency),
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-        };
+        } as DepositAddress;
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

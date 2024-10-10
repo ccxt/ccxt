@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress } from './base/types.js';
 /**
  * @class phemex
  * @augments Exchange
@@ -47,13 +47,7 @@ export default class phemex extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: Str): string;

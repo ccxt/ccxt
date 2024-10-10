@@ -4534,11 +4534,11 @@ export default class mexc extends Exchange {
         const networkId = this.safeString(depositAddress, 'netWork');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(networkId),
-            'info': depositAddress,
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {

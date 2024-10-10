@@ -1846,6 +1846,16 @@ class okx extends Exchange {
         //         "sodUtc0" => "0.07872",
         //         "sodUtc8" => "0.07345"
         //     }
+        //     array(
+        //          instId => 'LTC-USDT',
+        //          idxPx => '65.74',
+        //          open24h => '65.37',
+        //          high24h => '66.15',
+        //          low24h => '64.97',
+        //          sodUtc0 => '65.68',
+        //          sodUtc8 => '65.54',
+        //          ts => '1728467346900'
+        //     ),
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
@@ -1879,6 +1889,7 @@ class okx extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'markPrice' => $this->safe_string($ticker, 'markPx'),
+            'indexPrice' => $this->safe_string($ticker, 'idxPx'),
             'info' => $ticker,
         ), $market);
     }
@@ -4703,7 +4714,7 @@ class okx extends Exchange {
         ), $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "addr" => "okbtothemoon",
@@ -4793,15 +4804,15 @@ class okx extends Exchange {
         $networkCode = $this->network_id_to_code($network, $code);
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $networkCode,
             'address' => $address,
             'tag' => $tag,
-            'network' => $networkCode,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network
@@ -4844,7 +4855,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account

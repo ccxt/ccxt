@@ -2264,11 +2264,12 @@ export default class hyperliquid extends Exchange {
         market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
         const leverage = this.safeDict (entry, 'leverage', {});
-        const isIsolated = (this.safeString (leverage, 'type') === 'isolated');
-        const quantity = this.safeNumber (leverage, 'rawUsd');
+        const marginMode = this.safeString (leverage, 'type');
+        const isIsolated = (marginMode === 'isolated');
+        const size = this.safeNumber (entry, 'szi');
         let side = undefined;
-        if (quantity !== undefined) {
-            side = (quantity > 0) ? 'short' : 'long';
+        if (size !== undefined) {
+            side = (size > 0) ? 'long' : 'short';
         }
         const unrealizedPnl = this.safeNumber (entry, 'unrealizedPnl');
         const initialMargin = this.safeNumber (entry, 'marginUsed');
@@ -2282,20 +2283,20 @@ export default class hyperliquid extends Exchange {
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
-            'contracts': this.safeNumber (entry, 'szi'),
+            'contracts': size,
             'contractSize': undefined,
             'entryPrice': this.safeNumber (entry, 'entryPx'),
             'markPrice': undefined,
             'notional': this.safeNumber (entry, 'positionValue'),
             'leverage': this.safeNumber (leverage, 'value'),
-            'collateral': undefined,
+            'collateral': this.safeNumber (entry, 'marginUsed'),
             'initialMargin': initialMargin,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': unrealizedPnl,
             'liquidationPrice': this.safeNumber (entry, 'liquidationPx'),
-            'marginMode': undefined,
+            'marginMode': marginMode,
             'percentage': percentage,
         });
     }

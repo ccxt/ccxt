@@ -104,6 +104,8 @@ class gate extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
@@ -1918,7 +1920,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-$currency-deposit-$address
@@ -1990,11 +1992,10 @@ class gate extends Exchange {
         $this->check_address($address);
         return array(
             'info' => $response,
-            'code' => $code, // kept here for backward-compatibility, but will be removed soon
             'currency' => $code,
+            'network' => $network,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
         );
     }
 

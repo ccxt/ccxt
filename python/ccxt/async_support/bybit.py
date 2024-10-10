@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -5248,7 +5248,7 @@ class bybit(Exchange, ImplicitAPI):
         trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "chainType": "ERC20",
@@ -5263,14 +5263,14 @@ class bybit(Exchange, ImplicitAPI):
         chain = self.safe_string(depositAddress, 'chain')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': chain,
             'address': address,
             'tag': tag,
-            'network': chain,
-            'info': depositAddress,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -5312,7 +5312,7 @@ class bybit(Exchange, ImplicitAPI):
         })
         return self.index_by(parsed, 'network')
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr

@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, Bad
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -36,6 +36,8 @@ export default class bitbns extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1134,7 +1136,7 @@ export default class bitbns extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bitbns#fetchDepositAddress
@@ -1164,12 +1166,12 @@ export default class bitbns extends Exchange {
         const tag = this.safeString (data, 'tag');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     nonce () {

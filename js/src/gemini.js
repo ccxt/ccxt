@@ -50,6 +50,7 @@ export default class gemini extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,

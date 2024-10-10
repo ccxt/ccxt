@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,6 +54,8 @@ export default class deribit extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
@@ -1050,7 +1052,7 @@ export default class deribit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name deribit#fetchDepositAddress
@@ -1087,12 +1089,12 @@ export default class deribit extends Exchange {
         const address = this.safeString (result, 'address');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {

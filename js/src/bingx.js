@@ -55,6 +55,7 @@ export default class bingx extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -4548,11 +4549,11 @@ export default class bingx extends Exchange {
         }
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': depositAddress,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

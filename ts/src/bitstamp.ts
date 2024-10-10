@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -49,6 +49,8 @@ export default class bitstamp extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -2124,7 +2126,7 @@ export default class bitstamp extends Exchange {
         return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bitstamp#fetchDepositAddress
@@ -2144,12 +2146,12 @@ export default class bitstamp extends Exchange {
         const tag = this.safeString2 (response, 'memo_id', 'destination_tag');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {

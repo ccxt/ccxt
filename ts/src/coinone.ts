@@ -6,7 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -47,7 +47,9 @@ export default class coinone extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': false,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1080,7 +1082,7 @@ export default class coinone extends Exchange {
         return this.safeOrder (response);
     }
 
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name coinone#fetchDepositAddresses
@@ -1121,11 +1123,12 @@ export default class coinone extends Exchange {
             let depositAddress = this.safeValue (result, code);
             if (depositAddress === undefined) {
                 depositAddress = {
+                    'info': value,
                     'currency': code,
+                    'network': undefined,
                     'address': undefined,
                     'tag': undefined,
-                    'info': value,
-                };
+                } as DepositAddress;
             }
             const address = this.safeString (depositAddress, 'address', value);
             this.checkAddress (address);
@@ -1137,7 +1140,7 @@ export default class coinone extends Exchange {
             }
             result[code] = depositAddress;
         }
-        return result;
+        return result as DepositAddress[];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

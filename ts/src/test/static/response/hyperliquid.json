@@ -641,24 +641,147 @@
                         "datetime": null,
                         "isolated": false,
                         "hedged": null,
-                        "side": null,
+                        "side": "long",
                         "contracts": 3.34,
                         "contractSize": 1,
                         "entryPrice": 112.0945,
                         "markPrice": null,
                         "notional": 463.9594,
                         "leverage": 20,
-                        "collateral": null,
+                        "collateral": 23.19797,
                         "initialMargin": 23.19797,
                         "maintenanceMargin": null,
                         "initialMarginPercentage": null,
                         "maintenanceMarginPercentage": null,
                         "unrealizedPnl": 89.563507,
                         "liquidationPrice": null,
-                        "marginMode": null,
+                        "marginMode": "cross",
                         "percentage": 386.0833814338065
                     }
                 ]
+            },
+            {
+              "description": "short position",
+              "method": "fetchPositions",
+              "input": [
+                [
+                  "SOL/USDC:USDC"
+                ]
+              ],
+              "httpResponse": {
+                "marginSummary": {
+                  "accountValue": "11524.216934",
+                  "totalNtlPos": "3888.18",
+                  "totalRawUsd": "7773.996934",
+                  "totalMarginUsed": "194.409"
+                },
+                "crossMarginSummary": {
+                  "accountValue": "11524.216934",
+                  "totalNtlPos": "3888.18",
+                  "totalRawUsd": "7773.996934",
+                  "totalMarginUsed": "194.409"
+                },
+                "crossMaintenanceMarginUsed": "38.8818",
+                "withdrawable": "11292.922399",
+                "assetPositions": [
+                  {
+                    "type": "oneWay",
+                    "position": {
+                      "coin": "SOL",
+                      "szi": "-0.5",
+                      "leverage": {
+                        "type": "cross",
+                        "value": "20"
+                      },
+                      "entryPx": "138.76",
+                      "positionValue": "68.98",
+                      "unrealizedPnl": "0.4",
+                      "returnOnEquity": "0.115307",
+                      "liquidationPx": "22881.19788911",
+                      "marginUsed": "3.449",
+                      "maxLeverage": "50",
+                      "cumFunding": {
+                        "allTime": "-92.116334",
+                        "sinceOpen": "0.0",
+                        "sinceChange": "0.0"
+                      }
+                    }
+                  },
+                  {
+                    "type": "oneWay",
+                    "position": {
+                      "coin": "ETH",
+                      "szi": "1.6",
+                      "leverage": {
+                        "type": "cross",
+                        "value": "20"
+                      },
+                      "entryPx": "1100.0",
+                      "positionValue": "3819.2",
+                      "unrealizedPnl": "2059.2",
+                      "returnOnEquity": "23.4",
+                      "liquidationPx": null,
+                      "marginUsed": "190.96",
+                      "maxLeverage": "50",
+                      "cumFunding": {
+                        "allTime": "3855.422147",
+                        "sinceOpen": "3855.422147",
+                        "sinceChange": "1282.684137"
+                      }
+                    }
+                  }
+                ],
+                "time": "1728568314070"
+              },
+              "parsedResponse": [
+                {
+                  "info": {
+                    "type": "oneWay",
+                    "position": {
+                      "coin": "SOL",
+                      "szi": "-0.5",
+                      "leverage": {
+                        "type": "cross",
+                        "value": "20"
+                      },
+                      "entryPx": "138.76",
+                      "positionValue": "68.98",
+                      "unrealizedPnl": "0.4",
+                      "returnOnEquity": "0.115307",
+                      "liquidationPx": "22881.19788911",
+                      "marginUsed": "3.449",
+                      "maxLeverage": "50",
+                      "cumFunding": {
+                        "allTime": "-92.116334",
+                        "sinceOpen": "0.0",
+                        "sinceChange": "0.0"
+                      }
+                    }
+                  },
+                  "id": null,
+                  "symbol": "SOL/USDC:USDC",
+                  "timestamp": null,
+                  "datetime": null,
+                  "isolated": false,
+                  "hedged": null,
+                  "side": "short",
+                  "contracts": -0.5,
+                  "contractSize": 1,
+                  "entryPrice": 138.76,
+                  "markPrice": null,
+                  "notional": 68.98,
+                  "leverage": 20,
+                  "collateral": 3.449,
+                  "initialMargin": 3.449,
+                  "maintenanceMargin": null,
+                  "initialMarginPercentage": null,
+                  "maintenanceMarginPercentage": null,
+                  "unrealizedPnl": 0.4,
+                  "liquidationPrice": 22881.19788911,
+                  "marginMode": "cross",
+                  "percentage": 11.597564511452596
+                }
+              ]
             }
         ],
         "fetchOHLCV": [

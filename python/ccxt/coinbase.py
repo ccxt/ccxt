@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, Int, LedgerEntry, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3714,7 +3714,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
@@ -3786,7 +3786,7 @@ class coinbase(Exchange, ImplicitAPI):
         addressStructures = self.parse_deposit_addresses(data, None, False)
         return self.index_by(addressStructures, 'network')
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -3841,9 +3841,9 @@ class coinbase(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(marketId, currency),
+            'network': self.network_id_to_code(networkId, code),
             'address': address,
             'tag': self.safe_string(addressInfo, 'destination_tag'),
-            'network': self.network_id_to_code(networkId, code),
         }
 
     def deposit(self, code: str, amount: float, id: str, params={}):

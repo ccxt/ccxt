@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -50,6 +50,8 @@ export default class phemex extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
@@ -3354,7 +3356,7 @@ export default class phemex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name phemex#fetchDepositAddress
@@ -3368,9 +3370,9 @@ export default class phemex extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network', defaultNetwork);
         network = this.safeString (networks, network, network);
         if (network === undefined) {
@@ -3394,12 +3396,12 @@ export default class phemex extends Exchange {
         const tag = this.safeString (data, 'tag');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

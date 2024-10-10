@@ -65,7 +65,7 @@ class oxfun extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
@@ -1795,7 +1795,7 @@ class oxfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1826,18 +1826,18 @@ class oxfun extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     array("address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8")
         //
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $currency['code'],
+            'network' => null,
             'address' => $address,
             'tag' => null,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 

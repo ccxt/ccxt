@@ -50,6 +50,8 @@ public partial class kucoinfutures : kucoin
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
@@ -662,9 +664,9 @@ public partial class kucoinfutures : kucoin
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", currencyId },
+            { "network", this.safeString(data, "chain") },
             { "address", address },
             { "tag", this.safeString(data, "memo") },
-            { "network", this.safeString(data, "chain") },
         };
     }
 

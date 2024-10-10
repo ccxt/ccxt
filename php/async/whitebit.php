@@ -55,6 +55,8 @@ class whitebit extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -1892,7 +1894,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this $account
@@ -1959,11 +1961,11 @@ class whitebit extends Exchange {
             $tag = $this->safe_string($account, 'memo');
             $this->check_address($address);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => null,
                 'address' => $address,
                 'tag' => $tag,
-                'network' => null,
-                'info' => $response,
             );
         }) ();
     }

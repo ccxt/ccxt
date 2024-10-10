@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.15'
+__version__ = '4.4.16'
 
 # -----------------------------------------------------------------------------
 
@@ -5423,7 +5423,7 @@ class Exchange(object):
         if codes is not None:
             result = self.filter_by_array(result, 'currency', codes, False)
         if indexed:
-            return self.index_by(result, 'currency')
+            result = self.filter_by_array(result, 'currency', None, indexed)
         return result
 
     def parse_borrow_interests(self, response, market: Market = None):

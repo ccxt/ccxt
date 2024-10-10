@@ -1609,7 +1609,7 @@ class timex extends Exchange {
         ), $market);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account, does not accept $params["network"]
@@ -1646,7 +1646,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        symbol => 'BTC',
@@ -1665,9 +1665,9 @@ class timex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => null,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => null,
-            'network' => null,
         );
     }
 

@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -46,20 +46,8 @@ export default class delta extends Exchange {
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
-        info: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
-        info: any;
-    };
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;

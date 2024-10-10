@@ -67,6 +67,7 @@ public partial class bitget : Exchange
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -2540,11 +2541,11 @@ public partial class bitget : Exchange
             network = this.networkIdToCode(networkId, parsedCurrency);
         }
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", parsedCurrency },
+            { "network", network },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "tag") },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 

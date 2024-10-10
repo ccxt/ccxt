@@ -1651,9 +1651,9 @@ public partial class timex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", null },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", null },
-            { "network", null },
         };
     }
 

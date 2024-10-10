@@ -8,7 +8,7 @@ from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -68,6 +68,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -4171,7 +4172,7 @@ class bingx(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch the deposit addresses for a currency associated with self account
         :see: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
@@ -4212,7 +4213,7 @@ class bingx(Exchange, ImplicitAPI):
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
@@ -4236,7 +4237,7 @@ class bingx(Exchange, ImplicitAPI):
                 key = self.safe_string(keys, 0)
                 return self.safe_dict(addressStructures, key)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "coinId": "799",
@@ -4266,11 +4267,11 @@ class bingx(Exchange, ImplicitAPI):
                             address = '0x' + address
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': depositAddress,
         }
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

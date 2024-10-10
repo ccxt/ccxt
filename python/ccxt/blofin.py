@@ -543,6 +543,8 @@ class blofin(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
         }, market)
 
@@ -560,6 +562,25 @@ class blofin(Exchange, ImplicitAPI):
             'instId': market['id'],
         }
         response = self.publicGetMarketTickers(self.extend(request, params))
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        return self.parse_ticker(first, market)
+
+    def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches mark price for the market
+        :see: https://docs.blofin.com/index.html#get-mark-price
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: "linear" or "inverse"
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetMarketMarkPrice(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0, {})
         return self.parse_ticker(first, market)

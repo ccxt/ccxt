@@ -45,6 +45,8 @@ class poloniex extends Exchange {
                 'fetchClosedOrder' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -1815,7 +1817,7 @@ class poloniex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1857,11 +1859,11 @@ class poloniex extends Exchange {
                 }
             }
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $network,
                 'address' => $address,
                 'tag' => $tag,
-                'network' => $network,
-                'info' => $response,
             );
         }) ();
     }

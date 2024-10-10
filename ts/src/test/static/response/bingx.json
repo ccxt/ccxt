@@ -1308,56 +1308,56 @@
                 },
                 "parsedResponse": {
                     "TRC20": {
-                        "currency": "USDT",
-                        "address": "ADD1",
-                        "tag": null,
-                        "network": "TRC20",
                         "info": {
                             "coinId": "780",
                             "coin": "USDT",
                             "network": "TRC20",
                             "address": "ADD1",
                             "tag": ""
-                        }
+                        },
+                        "currency": "USDT",
+                        "network": "TRC20",
+                        "address": "ADD1",
+                        "tag": null
                     },
                     "BEP20": {
-                        "currency": "USDT",
-                        "address": "ADD2",
-                        "tag": null,
-                        "network": "BEP20",
                         "info": {
                             "coinId": "799",
                             "coin": "USDT",
                             "network": "BEP20",
                             "address": "ADD2",
                             "tag": ""
-                        }
+                        },
+                        "currency": "USDT",
+                        "network": "BEP20",
+                        "address": "ADD2",
+                        "tag": null
                     },
                     "SOL": {
-                        "currency": "USDT",
-                        "address": "ADD3",
-                        "tag": null,
-                        "network": "SOL",
                         "info": {
                             "coinId": "857",
                             "coin": "USDT",
                             "network": "SOL",
                             "address": "ADD3",
                             "tag": ""
-                        }
+                        },
+                        "currency": "USDT",
+                        "network": "SOL",
+                        "address": "ADD3",
+                        "tag": null
                     },
                     "POLYGON": {
-                        "currency": "USDT",
-                        "address": "ADD2",
-                        "tag": null,
-                        "network": "POLYGON",
                         "info": {
                             "coinId": "1192",
                             "coin": "USDT",
                             "network": "POLYGON",
                             "address": "ADD2",
                             "tag": ""
-                        }
+                        },
+                        "currency": "USDT",
+                        "network": "POLYGON",
+                        "address": "ADD2",
+                        "tag": null
                     }
                 }
             }

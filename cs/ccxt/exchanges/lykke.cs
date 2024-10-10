@@ -35,6 +35,8 @@ public partial class lykke : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
@@ -1197,11 +1199,11 @@ public partial class lykke : Exchange
         object tag = this.safeString(response, "addressExtension");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

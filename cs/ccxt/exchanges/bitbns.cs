@@ -26,6 +26,8 @@ public partial class bitbns : Exchange
                 { "createOrder", true },
                 { "fetchBalance", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -1176,11 +1178,11 @@ public partial class bitbns : Exchange
         object tag = this.safeString(data, "tag");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

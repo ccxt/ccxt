@@ -54,6 +54,8 @@ export default class kuna extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,

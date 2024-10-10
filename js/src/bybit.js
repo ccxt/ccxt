@@ -5673,11 +5673,11 @@ export default class bybit extends Exchange {
         const chain = this.safeString(depositAddress, 'chain');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': chain,
             'address': address,
             'tag': tag,
-            'network': chain,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {

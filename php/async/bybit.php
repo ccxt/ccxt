@@ -5655,7 +5655,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "chainType" => "ERC20",
@@ -5670,15 +5670,15 @@ class bybit extends Exchange {
         $chain = $this->safe_string($depositAddress, 'chain');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $chain,
             'address' => $address,
             'tag' => $tag,
-            'network' => $chain,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network
@@ -5723,7 +5723,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account

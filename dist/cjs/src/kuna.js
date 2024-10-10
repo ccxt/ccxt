@@ -51,6 +51,8 @@ class kuna extends kuna$1 {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,

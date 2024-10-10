@@ -49,6 +49,7 @@ export default class cex extends Exchange {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1638,11 +1639,11 @@ export default class cex extends Exchange {
         const address = this.safeString2(addressObject, 'address', 'destination');
         this.checkAddress(address);
         return {
+            'info': data,
             'currency': code,
+            'network': this.networkIdToCode(selectedNetworkId),
             'address': address,
             'tag': this.safeString2(addressObject, 'destinationTag', 'memo'),
-            'network': this.networkIdToCode(selectedNetworkId),
-            'info': data,
         };
     }
     nonce() {

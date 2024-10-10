@@ -4366,9 +4366,9 @@ public partial class coinbase : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(marketId, currency) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "tag", this.safeString(addressInfo, "destination_tag") },
-            { "network", this.networkIdToCode(networkId, code) },
         };
     }
 

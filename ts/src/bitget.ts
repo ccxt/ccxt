@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -76,6 +76,7 @@ export default class bitget extends Exchange {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -2414,7 +2415,7 @@ export default class bitget extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bitget#fetchDepositAddress
@@ -2457,7 +2458,7 @@ export default class bitget extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "BTC",
@@ -2475,12 +2476,12 @@ export default class bitget extends Exchange {
             network = this.networkIdToCode (networkId, parsedCurrency);
         }
         return {
+            'info': depositAddress,
             'currency': parsedCurrency,
+            'network': network,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'tag'),
-            'network': network,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {

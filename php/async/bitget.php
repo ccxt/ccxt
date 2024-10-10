@@ -81,6 +81,7 @@ class bitget extends Exchange {
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -2419,7 +2420,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -2462,7 +2463,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin" => "BTC",
@@ -2480,11 +2481,11 @@ class bitget extends Exchange {
             $network = $this->network_id_to_code($networkId, $parsedCurrency);
         }
         return array(
+            'info' => $depositAddress,
             'currency' => $parsedCurrency,
+            'network' => $network,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => $this->safe_string($depositAddress, 'tag'),
-            'network' => $network,
-            'info' => $depositAddress,
         );
     }
 

@@ -1,5 +1,5 @@
 import Exchange from './abstract/kuna.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class kuna
  * @augments Exchange
@@ -57,27 +57,9 @@ export default class kuna extends Exchange {
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        info: string;
-        currency: string;
-        network: any;
-        address: string;
-        tag: any;
-    }>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        info: string;
-        currency: string;
-        network: any;
-        address: string;
-        tag: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        info: string;
-        currency: string;
-        network: any;
-        address: string;
-        tag: any;
-    };
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     parseTransactionStatus(status: Str): string;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;

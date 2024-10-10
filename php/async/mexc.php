@@ -4525,7 +4525,7 @@ class mexc extends Exchange {
         return $tiers;
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        coin => "USDT",
@@ -4539,15 +4539,15 @@ class mexc extends Exchange {
         $networkId = $this->safe_string($depositAddress, 'netWork');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
-            'network' => $this->network_id_to_code($networkId),
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by $network
@@ -4641,7 +4641,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account

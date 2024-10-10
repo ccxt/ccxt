@@ -62,6 +62,7 @@ export default class kucoin extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
@@ -1983,9 +1984,9 @@ export default class kucoin extends Exchange {
         return {
             'info': depositAddress,
             'currency': code,
+            'network': this.networkIdToCode(this.safeString(depositAddress, 'chain')),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(this.safeString(depositAddress, 'chain')),
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {

@@ -51,6 +51,8 @@ export default class phemex extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
@@ -3400,9 +3402,9 @@ export default class phemex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const defaultNetworks = this.safeValue(this.options, 'defaultNetworks');
+        const defaultNetworks = this.safeDict(this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(params, 'network', defaultNetwork);
         network = this.safeString(networks, network, network);
         if (network === undefined) {
@@ -3427,11 +3429,11 @@ export default class phemex extends Exchange {
         const tag = this.safeString(data, 'tag');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

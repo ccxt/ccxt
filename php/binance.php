@@ -105,6 +105,7 @@ class binance extends Exchange {
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrice' => true,
                 'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
@@ -4178,10 +4179,44 @@ class binance extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()): array {
+        /**
+         * fetches mark price for the $market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] "linear" or "inverse"
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMarkPrice', $market, $params, 'swap');
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrice', $market, $params, 'linear');
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = null;
+        if ($this->is_linear($type, $subType)) {
+            $response = $this->fapiPublicGetPremiumIndex ($this->extend($request, $params));
+        } elseif ($this->is_inverse($type, $subType)) {
+            $response = $this->dapiPublicGetPremiumIndex ($this->extend($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkPrice() does not support ' . $type . ' markets yet');
+        }
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            return $this->parse_ticker($this->safe_dict($response, 0, array()), $market);
+        }
+        return $this->parse_ticker($response, $market);
+    }
+
     public function fetch_mark_prices(?array $symbols = null, $params = array ()): array {
         /**
          * fetches mark prices for multiple markets
          * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
@@ -4191,9 +4226,9 @@ class binance extends Exchange {
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+        list($type, $params) = $this->handle_market_type_and_params('fetchMarkPrices', $market, $params, 'swap');
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params, 'linear');
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrices', $market, $params, 'linear');
         $response = null;
         if ($this->is_linear($type, $subType)) {
             $response = $this->fapiPublicGetPremiumIndex ($params);
@@ -8454,13 +8489,13 @@ class binance extends Exchange {
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
-         * fetch the deposit $address for a $currency associated with this account
-         * @see https://developers.binance.com/docs/wallet/capital/deposite-$address
+         * fetch the deposit address for a $currency associated with this account
+         * @see https://developers.binance.com/docs/wallet/capital/deposite-address
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -8490,8 +8525,28 @@ class binance extends Exchange {
         //         }
         //     }
         //
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function parse_deposit_address($response, ?array $currency = null): array {
+        //
+        //     {
+        //         "currency" => "XRP",
+        //         "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //         "tag" => "108618262",
+        //         "info" => {
+        //             "coin" => "XRP",
+        //             "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //             "tag" => "108618262",
+        //             "url" => "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        //         }
+        //     }
+        //
+        $info = $this->safe_dict($response, 'info', array());
+        $url = $this->safe_string($info, 'url');
         $address = $this->safe_string($response, 'address');
-        $url = $this->safe_string($response, 'url');
+        $currencyId = $this->safe_string($response, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $impliedNetwork = null;
         if ($url !== null) {
             $reverseNetworks = $this->safe_dict($this->options, 'reverseNetworks', array());
@@ -8519,11 +8574,11 @@ class binance extends Exchange {
         }
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => $impliedNetwork,
             'address' => $address,
             'tag' => $tag,
-            'network' => $impliedNetwork,
-            'info' => $response,
         );
     }
 

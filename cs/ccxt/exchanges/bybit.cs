@@ -6070,11 +6070,11 @@ public partial class bybit : Exchange
         object chain = this.safeString(depositAddress, "chain");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", chain },
             { "address", address },
             { "tag", tag },
-            { "network", chain },
-            { "info", depositAddress },
         };
     }
 

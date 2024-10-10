@@ -58,6 +58,8 @@ class bitfinex2 extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => 'emulated', // emulated in exchange
@@ -2181,7 +2183,7 @@ class bitfinex2 extends Exchange {
         return $this->fetch_deposit_address($code, $this->extend($request, $params));
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://docs.bitfinex.com/reference/rest-auth-deposit-$address

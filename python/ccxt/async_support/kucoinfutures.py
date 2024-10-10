@@ -5,7 +5,7 @@
 
 from ccxt.async_support.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -69,6 +69,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
@@ -640,7 +642,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
@@ -672,9 +674,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
         return {
             'info': response,
             'currency': currencyId,
+            'network': self.safe_string(data, 'chain'),
             'address': address,
             'tag': self.safe_string(data, 'memo'),
-            'network': self.safe_string(data, 'chain'),
         }
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -53,6 +53,7 @@ class bitso(Exchange, ImplicitAPI):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -1247,7 +1248,7 @@ class bitso(Exchange, ImplicitAPI):
         transactions = self.safe_list(response, 'payload', [])
         return self.parse_transactions(transactions, currency, since, limit, params)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1268,11 +1269,11 @@ class bitso(Exchange, ImplicitAPI):
             tag = self.safe_string(parts, 1)
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     async def fetch_transaction_fees(self, codes: Strings = None, params={}):

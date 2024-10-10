@@ -5482,7 +5482,7 @@ export default class Exchange {
             result = this.filterByArray(result, 'currency', codes, false);
         }
         if (indexed) {
-            return this.indexBy(result, 'currency');
+            result = this.filterByArray(result, 'currency', undefined, indexed);
         }
         return result;
     }

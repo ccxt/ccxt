@@ -28,10 +28,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "currency": "USDT",
-                    "address": "ZXXfdfd",
-                    "tag": null,
-                    "network": "TRC20",
                     "info": {
                         "code": "0",
                         "data": {
@@ -45,7 +41,11 @@
                                 }
                             ]
                         }
-                    }
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "ZXXfdfd",
+                    "tag": null
                 }
             }
         ],

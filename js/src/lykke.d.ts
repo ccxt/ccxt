@@ -1,5 +1,5 @@
 import Exchange from './abstract/lykke.js';
-import type { IndexType, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress } from './base/types.js';
 /**
  * @class lykke
  * @augments Exchange
@@ -26,13 +26,7 @@ export default class lykke extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): number[];
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;

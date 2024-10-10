@@ -47,6 +47,8 @@ class bitvavo extends bitvavo$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -1041,11 +1043,11 @@ class bitvavo extends bitvavo$1 {
         const tag = this.safeString(response, 'paymentId');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {

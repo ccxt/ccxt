@@ -45,6 +45,7 @@ public partial class cryptocom : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
@@ -1920,9 +1921,9 @@ public partial class cryptocom : Exchange
             ((IDictionary<string,object>)result)[(string)network] = new Dictionary<string, object>() {
                 { "info", value },
                 { "currency", responseCode },
+                { "network", network },
                 { "address", address },
                 { "tag", tag },
-                { "network", network },
             };
         }
         return result;

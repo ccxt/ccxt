@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2246,7 +2246,7 @@ class ascendex(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
@@ -2268,14 +2268,14 @@ class ascendex(Exchange, ImplicitAPI):
         chainName = self.safe_string(depositAddress, 'blockchain')
         network = self.network_id_to_code(chainName, code)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses

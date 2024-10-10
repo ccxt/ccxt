@@ -41,6 +41,8 @@ public partial class phemex : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", true },
@@ -3570,9 +3572,9 @@ public partial class phemex : Exchange
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
+        object defaultNetworks = this.safeDict(this.options, "defaultNetworks");
         object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network", defaultNetwork);
         network = this.safeString(networks, network, network);
         if (isTrue(isEqual(network, null)))
@@ -3598,11 +3600,11 @@ public partial class phemex : Exchange
         object tag = this.safeString(data, "tag");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

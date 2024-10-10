@@ -100,6 +100,8 @@ public partial class gate : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -2018,11 +2020,10 @@ public partial class gate : Exchange
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", response },
-            { "code", code },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
         };
     }
 

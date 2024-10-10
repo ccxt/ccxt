@@ -41,6 +41,8 @@ public partial class hitbtc : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -818,11 +820,10 @@ public partial class hitbtc : Exchange
         object parsedCode = this.safeCurrencyCode(currencyId);
         return new Dictionary<string, object>() {
             { "info", response },
-            { "address", address },
-            { "tag", tag },
-            { "code", parsedCode },
             { "currency", parsedCode },
             { "network", null },
+            { "address", address },
+            { "tag", tag },
         };
     }
 

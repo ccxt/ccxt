@@ -2924,11 +2924,11 @@ public partial class bitmex : Exchange
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", ((string)((string)response).Replace((string)"\"", (string)"")).Replace((string)"\"", (string)"") },
             { "tag", null },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 

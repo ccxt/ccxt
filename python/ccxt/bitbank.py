@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -46,6 +46,8 @@ class bitbank(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -785,7 +787,7 @@ class bitbank(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-withdrawal-accounts
@@ -805,11 +807,11 @@ class bitbank(Exchange, ImplicitAPI):
         firstAccount = self.safe_value(accounts, 0, {})
         address = self.safe_string(firstAccount, 'address')
         return {
+            'info': response,
             'currency': currency,
+            'network': None,
             'address': address,
             'tag': None,
-            'network': None,
-            'info': response,
         }
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
