@@ -184,111 +184,71 @@ export default class cube extends Exchange {
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
-        // Fetch response from Cube API
         const response = await this.irPublicGetMarkets (params);
-        // Extract 'result' safely
-        const result = this.safeValue (response, 'result', {});
-        // Extract markets, assets, and feeTables arrays
-        const markets = this.safeList (result, 'markets', []);
-        const assets = this.safeList (result, 'assets', []);
-        const feeTables = this.safeList (result, 'feeTables', []);
-        // Convert nested lists to tuples in the markets array
+        const assets = response.result.assets;
+        const markets = response.result.markets;
+        const assetMap = {};
+        for (let i = 0; i < assets.length; i++) {
+            const asset = assets[i];
+            assetMap[asset.assetId] = asset.symbol;
+        }
+        const parsedMarkets = [];
         for (let i = 0; i < markets.length; i++) {
-            markets[i] = this.convertNestedListToTuple (markets[i]);
+            const market = markets[i];
+            const parsedMarket: Market = {
+                'id': market.marketId,
+                'symbol': assetMap[market.baseAssetId] + '/' + assetMap[market.quoteAssetId],
+                'base': assetMap[market.baseAssetId],
+                'quote': assetMap[market.quoteAssetId],
+                'settle': undefined,
+                'baseId': market.baseAssetId,
+                'quoteId': market.quoteAssetId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (market.status === '1'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': undefined,
+                'maker': undefined,
+                'contractSize': undefined,
+                'precision': {
+                    'amount': parseFloat (market.quantityTickSize),
+                    'price': parseFloat (market.priceTickSize),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': parseFloat (market.minOrderQty),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'info': market,
+            };
+            parsedMarkets.push (parsedMarket);
         }
-        // Index assets and fee tables by their IDs
-        this.options['assetsById'] = this.indexBy (assets, 'assetId');
-        this.options['feeTablesById'] = this.indexBy (feeTables, 'feeTableId');
-        // Parse and return the markets in CCXT's unified structure
-        return this.parseMarkets (markets);
-    }
-
-    convertNestedListToTuple (item: any) {
-        if (Array.isArray (item)) {
-            const newArray = [];
-            for (let i = 0; i < item.length; i++) {
-                newArray.push (this.convertNestedListToTuple (item[i]));
-            }
-            return newArray;
-        } else if (item !== undefined && typeof item === 'object') {
-            const newObject: any = {};
-            const keys = Object.keys (item);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                const value = item[key];
-                newObject[key] = this.convertNestedListToTuple (value);
-            }
-            return newObject;
-        }
-        return item;
-    }
-
-    parseMarket (market): Market {
-        const assetsById = this.safeValue (this.options, 'assetsById', {});
-        const feeTablesById = this.safeValue (this.options, 'feeTablesById', {});
-        const baseAsset = this.safeValue (assetsById, market['baseAssetId'], {});
-        const quoteAsset = this.safeValue (assetsById, market['quoteAssetId'], {});
-        const id = this.safeString (market, 'marketId');
-        const baseAssetId = this.safeString (market, 'baseAssetId');
-        const quoteAssetId = this.safeString (market, 'quoteAssetId');
-        const base = this.safeCurrencyCode (this.safeString (baseAsset, 'symbol'));
-        const quote = this.safeCurrencyCode (this.safeString (quoteAsset, 'symbol'));
-        const symbol = base + '/' + quote;
-        const feeTableId = this.safeString (market, 'feeTableId');
-        const feeTable = this.safeValue (feeTablesById, feeTableId, {});
-        const feeTiers = this.safeValue (feeTable, 'feeTiers', []);
-        const firstTier = this.safeValue (feeTiers, 0, {});
-        return {
-            'id': id,
-            'symbol': symbol,
-            'base': base,
-            'quote': quote,
-            'settle': undefined,
-            'baseId': baseAssetId,
-            'quoteId': quoteAssetId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
-            'margin': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'active': (this.safeValue (market, 'status') === 1),
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'taker': this.safeNumber (firstTier, 'takerFeeRatio'),
-            'maker': this.safeNumber (firstTier, 'makerFeeRatio'),
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
-            'precision': {
-                'amount': this.safeNumber (market, 'quantityTickSize'),
-                'price': this.safeNumber (market, 'priceTickSize'),
-            },
-            'limits': {
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'amount': {
-                    'min': this.safeNumber (market, 'minOrderQty'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'created': undefined,
-            'info': market,
-        };
+        return parsedMarkets;
     }
 
     async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {
