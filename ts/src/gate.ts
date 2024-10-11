@@ -2711,7 +2711,9 @@ export default class gate extends Exchange {
             request['currency_pair'] = market['id'];
         }
         let response = undefined;
-        if (type === 'spot') {
+        if (isUnified) {
+            response = await this.privateUnifiedGetAccounts (this.extend (request, params));
+        } else if (type === 'spot') {
             if (marginMode === 'spot') {
                 response = await this.privateSpotGetAccounts (this.extend (request, requestQuery));
             } else if (marginMode === 'margin') {
@@ -2729,8 +2731,6 @@ export default class gate extends Exchange {
             response = await this.privateDeliveryGetSettleAccounts (this.extend (request, requestQuery));
         } else if (type === 'option') {
             response = await this.privateOptionsGetAccounts (this.extend (request, requestQuery));
-        } else if (isUnified) {
-            response = await this.privateUnifiedGetAccounts (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchBalance() not support this market type');
         }
