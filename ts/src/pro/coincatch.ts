@@ -1,12 +1,13 @@
 //  ---------------------------------------------------------------------------
 
 import coincatchRest from '../coincatch.js';
-import { ArgumentsRequired, ChecksumError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ChecksumError, ExchangeError, NotSupported, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { p } from '../static_dependencies/noble-curves/pasta.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -21,7 +22,7 @@ export default class coincatch extends coincatchRest {
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false, // todo
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchMyTrades': false,
                 'watchTicker': true,
                 'watchTickers': true,
@@ -55,6 +56,25 @@ export default class coincatch extends coincatchRest {
             },
             'streaming': {
                 'ping': this.ping,
+            },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        '30001': BadRequest, // Channel does not exist
+                        '30002': AuthenticationError, // illegal request
+                        '30003': BadRequest, // invalid op
+                        '30004': AuthenticationError, // User needs to log in
+                        '30005': AuthenticationError, // login failed
+                        '30006': RateLimitExceeded, // request too many
+                        '30007': RateLimitExceeded, // request over limit,connection close
+                        '30011': AuthenticationError, // invalid ACCESS_KEY
+                        '30012': AuthenticationError, // invalid ACCESS_PASSPHRASE
+                        '30013': AuthenticationError, // invalid ACCESS_TIMESTAMP
+                        '30014': BadRequest, // Request timestamp expired
+                        '30015': AuthenticationError, // { event: 'error', code: 30015, msg: 'Invalid sign' }
+                    },
+                    'broad': {},
+                },
             },
         });
     }
@@ -1081,7 +1101,7 @@ export default class coincatch extends coincatchRest {
             'lastTradeTimestamp': this.safeInteger (order, 'uTime'),
             'type': type,
             'timeInForce': this.safeStringUpper (order, 'force'),
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'triggerPrice': undefined,
@@ -1107,8 +1127,40 @@ export default class coincatch extends coincatchRest {
         return this.safeString (statuses, status, status);
     }
 
+    handleErrorMessage (client: Client, message) {
+        //
+        //    { event: "error", code: 30001, msg: "Channel does not exist" }
+        //
+        const event = this.safeString (message, 'event');
+        try {
+            if (event === 'error') {
+                const code = this.safeString (message, 'code');
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
+                const msg = this.safeString (message, 'msg', '');
+                this.throwBroadlyMatchedException (this.exceptions['ws']['broad'], msg, feedback);
+                throw new ExchangeError (feedback);
+            }
+            return false;
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
+            } else {
+                client.reject (e);
+            }
+            return true;
+        }
+    }
+
     handleMessage (client: Client, message) {
         // todo handle with subscribe and unsubscribe
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
         const content = this.safeString (message, 'message');
         if (content === 'pong') {
             this.handlePong (client, message);
