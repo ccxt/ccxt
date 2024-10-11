@@ -109,6 +109,12 @@ public partial class bitso : Exchange
                     { "TUSD", 0.01 },
                 } },
                 { "defaultPrecision", 1e-8 },
+                { "networks", new Dictionary<string, object>() {
+                    { "TRC20", "trx" },
+                    { "ERC20", "erc20" },
+                    { "BEP20", "bsc" },
+                    { "BEP2", "bep2" },
+                } },
             } },
             { "timeframes", new Dictionary<string, object>() {
                 { "1m", "60" },
@@ -1705,22 +1711,6 @@ public partial class bitso : Exchange
         return this.parseTransaction(first, currency);
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        if (isTrue(isEqual(networkId, null)))
-        {
-            return null;
-        }
-        networkId = ((string)networkId).ToUpper();
-        object networksById = new Dictionary<string, object>() {
-            { "trx", "TRC20" },
-            { "erc20", "ERC20" },
-            { "bsc", "BEP20" },
-            { "bep2", "BEP2" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
@@ -1768,12 +1758,14 @@ public partial class bitso : Exchange
         object networkId = this.safeString2(transaction, "network", "method");
         object status = this.safeString(transaction, "status");
         object withdrawId = this.safeString(transaction, "wid");
+        object networkCode = this.networkIdToCode(networkId);
+        object networkCodeUpper = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
         return new Dictionary<string, object>() {
             { "id", this.safeString2(transaction, "wid", "fid") },
             { "txid", this.safeString(details, "tx_hash") },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
-            { "network", this.safeNetwork(networkId) },
+            { "network", networkCodeUpper },
             { "addressFrom", receivingAddress },
             { "address", ((bool) isTrue((!isEqual(withdrawalAddress, null)))) ? withdrawalAddress : receivingAddress },
             { "addressTo", withdrawalAddress },
