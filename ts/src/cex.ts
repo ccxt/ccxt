@@ -36,8 +36,7 @@ export default class cex extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchOrderBook': true,
-            },
-            'timeframes': {
+                'fetchOHLCV': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -72,6 +71,7 @@ export default class cex extends Exchange {
                         'get_ticker': 1,
                         'get_trade_history': 1,
                         'get_order_book': 1,
+                        'get_candles': 1,
                     },
                 },
                 'private': {
@@ -88,6 +88,16 @@ export default class cex extends Exchange {
                 'exact': {},
                 'broad': {
                 },
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '1d': '1d',
             },
             'options': {
                 'networks': {
@@ -581,6 +591,70 @@ export default class cex extends Exchange {
         const orderBook = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (orderBook, 'timestamp');
         return this.parseOrderBook (orderBook, market['symbol'], timestamp);
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name cex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const dataType = this.safeString (params, 'dataType');
+        if (dataType === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'pair': market['id'],
+            'resolution': this.timeframes[timeframe],
+        };
+        if (since !== undefined) {
+            request['fromISO'] = this.iso8601 (since);
+        }
+        let until = undefined;
+        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request['toISO'] = this.iso8601 (until);
+        } else if (since === undefined) {
+            // exchange still requires that we provide one of them
+            request['toISO'] = this.iso8601 (this.milliseconds ());
+        }
+        if (since !== undefined && until !== undefined && limit !== undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV does not support fetching candles with both a limit and since/until');
+        } else if ((since !== undefined || until !== undefined) && limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a limit parameter when fetching candles with since or until');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicPostGetCandles (this.extend (request, params));
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": [
+        //            {
+        //                "timestamp": "1728643320000",
+        //                "open": "61061",
+        //                "high": "61095.1",
+        //                "low": "61048.5",
+        //                "close": "61087.8",
+        //                "volume": "0",
+        //                "resolution": "1m",
+        //                "isClosed": true,
+        //                "timestampISO": "2024-10-11T10:42:00.000Z"
+        //            },
+        //            ...
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOHLCVsBy (data, since, limit, false, [ 'timestamp', 'open', 'high', 'low', 'close', 'volume' ]);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
