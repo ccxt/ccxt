@@ -3,10 +3,10 @@
 import coincatchRest from '../coincatch.js';
 import { ArgumentsRequired, ChecksumError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
-import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -887,6 +887,226 @@ export default class coincatch extends coincatchRest {
         client.resolve (this.balance, messageHash);
     }
 
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name coincatch#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @see https://coincatch.github.io/github.io/en/spot/#order-channel
+         * @see https://coincatch.github.io/github.io/en/mix/#order-channel
+         * @see https://coincatch.github.io/github.io/en/mix/#plan-order-channel
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot', 'swap'
+         * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        let marketId = undefined;
+        const messageHash = 'order';
+        let subscriptionHash = 'order:trades';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            marketId = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        if ((type === 'spot') && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
+        }
+        const instType = 'spbl';
+        const instId = (type === 'spot') ? marketId : 'default'; // swap orders require 'default' instId
+        const channel = 'orders';
+        subscriptionHash = subscriptionHash + ':' + instType;
+        const args: Dict = {
+            'instType': instType,
+            'channel': channel,
+            'instId': instId,
+        };
+        const orders = await this.watchPrivate (messageHash, subscriptionHash, args, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        // spot
+        //
+        //     {
+        //         action: 'snapshot',
+        //         arg: { instType: 'spbl', channel: 'orders', instId: 'ETHUSDT_SPBL' },
+        //         data: [
+        //         {
+        //             instId: 'ETHUSDT_SPBL',
+        //             ordId: '1228627925964996608',
+        //             clOrdId: 'f0cccf74-c535-4523-a53d-dbe3b9958559',
+        //             px: '2000',
+        //             sz: '0.001',
+        //             notional: '2',
+        //             ordType: 'limit',
+        //             force: 'normal',
+        //             side: 'buy',
+        //             accFillSz: '0',
+        //             avgPx: '0',
+        //             status: 'new',
+        //             cTime: 1728653645030,
+        //             uTime: 1728653645030,
+        //             orderFee: [],
+        //             eps: 'API'
+        //         }
+        //         ],
+        //         ts: 1728653645046
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         action: 'snapshot',
+        //         arg: { instType: 'umcbl', channel: 'orders', instId: 'default' },
+        //         data: [
+        //         {
+        //             accFillSz: '0',
+        //             cTime: 1728653796976,
+        //             clOrdId: '1228628563272753152',
+        //             eps: 'API',
+        //             force: 'normal',
+        //             hM: 'single_hold',
+        //             instId: 'ETHUSDT_UMCBL',
+        //             lever: '5',
+        //             low: false,
+        //             notionalUsd: '20',
+        //             ordId: '1228628563188867072',
+        //             ordType: 'limit',
+        //             orderFee: [Array],
+        //             posSide: 'net',
+        //             px: '2000',
+        //             side: 'buy',
+        //             status: 'new',
+        //             sz: '0.01',
+        //             tS: 'buy_single',
+        //             tdMode: 'cross',
+        //             tgtCcy: 'USDT',
+        //             uTime: 1728653796976
+        //         }
+        //         ],
+        //         ts: 1728653797002
+        //     }
+        //
+        //
+        const arg = this.safeDict (message, 'arg', {});
+        const instType = this.safeString (arg, 'instType');
+        const argInstId = this.safeString (arg, 'instId');
+        let marketType = undefined;
+        if (instType === 'spbl') {
+            marketType = 'spot';
+        } else {
+            marketType = 'swap';
+        }
+        const data = this.safeList (message, 'data', []);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
+        const messageHash = 'order';
+        for (let i = 0; i < data.length; i++) {
+            const order = data[i];
+            const marketId = this.safeString (order, 'instId', argInstId);
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
+            const parsed = this.parseWsOrder (order, market);
+            stored.append (parsed);
+        }
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        // spot
+        //     {
+        //         instId: 'ETHUSDT_SPBL',
+        //         ordId: '1228627925964996608',
+        //         clOrdId: 'f0cccf74-c535-4523-a53d-dbe3b9958559',
+        //         px: '2000',
+        //         sz: '0.001',
+        //         notional: '2',
+        //         ordType: 'limit',
+        //         force: 'normal',
+        //         side: 'buy',
+        //         accFillSz: '0',
+        //         avgPx: '0',
+        //         status: 'new',
+        //         cTime: 1728653645030,
+        //         uTime: 1728653645030,
+        //         orderFee: [],
+        //         eps: 'API'
+        //     }
+        //
+        const marketId = this.safeString (order, 'instId');
+        market = this.safeMarketCustom (marketId, market);
+        const timestamp = this.safeInteger (order, 'cTime');
+        const symbol = market['symbol'];
+        const rawStatus = this.safeString (order, 'status');
+        const orderFee = this.safeList (order, 'orderFee', []);
+        const fee = this.safeValue (orderFee, 0);
+        const feeAmount = this.safeString (fee, 'fee');
+        let feeObject = undefined;
+        if (feeAmount !== undefined) {
+            const feeCurrency = this.safeString (fee, 'feeCoin');
+            feeObject = {
+                'cost': this.parseNumber (Precise.stringAbs (feeAmount)),
+                'currency': this.safeCurrencyCode (feeCurrency),
+            };
+        }
+        let price = this.omitZero (this.safeString (order, 'px'));
+        const priceAvg = this.omitZero (this.safeString (order, 'avgPx'));
+        if (price === undefined) {
+            price = priceAvg;
+        }
+        const amount = this.safeString (order, 'sz');
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'ordType');
+        return this.safeOrder ({
+            'info': order,
+            'symbol': symbol,
+            'id': this.safeString (order, 'ordId'),
+            'clientOrderId': this.safeString (order, 'clOrdId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': this.safeInteger (order, 'uTime'),
+            'type': type,
+            'timeInForce': this.safeStringUpper (order, 'force'),
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'triggerPrice': undefined,
+            'amount': amount,
+            'cost': this.safeString (order, 'notional'),
+            'average': this.safeString (order, 'avgPx'),
+            'filled': this.safeString (order, 'accFillSz'),
+            'remaining': undefined,
+            'status': this.parseWsOrderStatus (rawStatus),
+            'fee': feeObject,
+            'trades': undefined,
+        }, market);
+    }
+
+    parseWsOrderStatus (status) {
+        const statuses: Dict = {
+            'init': 'open',
+            'new': 'open',
+            'partially_filled': 'open',
+            'full_fill': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     handleMessage (client: Client, message) {
         // todo handle with subscribe and unsubscribe
         const content = this.safeString (message, 'message');
@@ -924,7 +1144,7 @@ export default class coincatch extends coincatchRest {
         if (channel === 'account') {
             this.handleBalance (client, message);
         }
-        if (channel.indexOf ('orders') >= 0) {
+        if (channel === 'orders') {
             this.handleOrder (client, message);
         }
     }
