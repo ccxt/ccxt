@@ -2663,11 +2663,16 @@ class binance(Exchange, ImplicitAPI):
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
             return None
-        promises = [self.sapiGetCapitalConfigGetall(params), self.sapiGetMarginAllAssets(params)]
+        promises = [self.sapiGetCapitalConfigGetall(params)]
+        fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
+        if fetchMargins:
+            promises.append(self.sapiGetMarginAllPairs(params))
         results = await asyncio.gather(*promises)
         responseCurrencies = results[0]
-        responseMarginables = results[1]
-        marginablesById = self.index_by(responseMarginables, 'assetName')
+        marginablesById = None
+        if fetchMargins:
+            responseMarginables = results[1]
+            marginablesById = self.index_by(responseMarginables, 'assetName')
         result: dict = {}
         for i in range(0, len(responseCurrencies)):
             #
@@ -4115,7 +4120,7 @@ class binance(Exchange, ImplicitAPI):
         fetches mark price for the market
         :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
         :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
-        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`

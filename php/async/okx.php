@@ -104,6 +104,7 @@ class okx extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrice' => true,
                 'fetchMarkPrices' => true,
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
@@ -1999,6 +2000,40 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches mark price for the $market
+             * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-mark-price
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instId' => $market['id'],
+            );
+            $response = Async\await($this->publicGetPublicMarkPrice ($this->extend($request, $params)));
+            //
+            // {
+            //     "code" => "0",
+            //     "data" => array(
+            //         {
+            //             "instId" => "ETH-USDT",
+            //             "instType" => "MARGIN",
+            //             "markPx" => "2403.98",
+            //             "ts" => "1728578500703"
+            //         }
+            //     ),
+            //     "msg" => ""
+            // }
+            //
+            $data = $this->safe_list($response, 'data');
+            return $this->parse_ticker($this->safe_dict($data, 0), $market);
+        }) ();
+    }
+
     public function fetch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
@@ -2020,7 +2055,7 @@ class okx extends Exchange {
                 $defaultUnderlying = $this->safe_string($this->options, 'defaultUnderlying', 'BTC-USD');
                 $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
                 if ($currencyId === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
+                    throw new ArgumentsRequired($this->id . ' fetchMarkPrices() requires an underlying uly or marketId parameter for options markets');
                 } else {
                     $request['uly'] = $currencyId;
                 }

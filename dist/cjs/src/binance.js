@@ -2673,11 +2673,18 @@ class binance extends binance$1 {
         if (apiBackup !== undefined) {
             return undefined;
         }
-        const promises = [this.sapiGetCapitalConfigGetall(params), this.sapiGetMarginAllAssets(params)];
+        const promises = [this.sapiGetCapitalConfigGetall(params)];
+        const fetchMargins = this.safeBool(this.options, 'fetchMargins', false);
+        if (fetchMargins) {
+            promises.push(this.sapiGetMarginAllPairs(params));
+        }
         const results = await Promise.all(promises);
         const responseCurrencies = results[0];
-        const responseMarginables = results[1];
-        const marginablesById = this.indexBy(responseMarginables, 'assetName');
+        let marginablesById = undefined;
+        if (fetchMargins) {
+            const responseMarginables = results[1];
+            marginablesById = this.indexBy(responseMarginables, 'assetName');
+        }
         const result = {};
         for (let i = 0; i < responseCurrencies.length; i++) {
             //
@@ -4249,7 +4256,7 @@ class binance extends binance$1 {
          * @description fetches mark price for the market
          * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
          * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}

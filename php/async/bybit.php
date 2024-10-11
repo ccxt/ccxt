@@ -4865,7 +4865,7 @@ class bybit extends Exchange {
             $length = count($result);
             if ($length === 0) {
                 $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
-                $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+                $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
             if ($length > 1) {
@@ -4882,7 +4882,7 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/v5/order/order-list
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params] $extra parameters specific to the exchange API endpoint
              * @param {array} [$params->acknowledged] to suppress the warning, set to true
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
@@ -4962,6 +4962,10 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             $innerList = $this->safe_list($result, 'list', array());
+            if (strlen($innerList) === 0) {
+                $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional $order, you might try setting $params["trigger"] = true';
+                throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
+            }
             $order = $this->safe_dict($innerList, 0, array());
             return $this->parse_order($order, $market);
         }) ();
@@ -5130,7 +5134,7 @@ class bybit extends Exchange {
             $length = count($result);
             if ($length === 0) {
                 $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
-                $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+                $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
             if ($length > 1) {
@@ -5164,7 +5168,7 @@ class bybit extends Exchange {
             $length = count($result);
             if ($length === 0) {
                 $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
-                $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+                $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
             if ($length > 1) {

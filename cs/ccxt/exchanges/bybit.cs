@@ -5166,7 +5166,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(length, 0)))
         {
             object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
-            object extra = ((bool) isTrue(isTrigger)) ? "" : "If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -5277,6 +5277,11 @@ public partial class bybit : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object innerList = this.safeList(result, "list", new List<object>() {});
+        if (isTrue(isEqual(getArrayLength(innerList), 0)))
+        {
+            object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
+        }
         object order = this.safeDict(innerList, 0, new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
@@ -5467,7 +5472,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(length, 0)))
         {
             object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
-            object extra = ((bool) isTrue(isTrigger)) ? "" : "If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -5505,7 +5510,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(length, 0)))
         {
             object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
-            object extra = ((bool) isTrue(isTrigger)) ? "" : "If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))

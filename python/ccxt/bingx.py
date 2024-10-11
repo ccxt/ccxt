@@ -81,6 +81,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchMarginMode': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMarkPrice': True,
                 'fetchMarkPrices': True,
                 'fetchMyLiquidations': True,
                 'fetchOHLCV': True,
@@ -1655,6 +1656,59 @@ class bingx(Exchange, ImplicitAPI):
         #
         tickers = self.safe_list(response, 'data')
         return self.parse_tickers(tickers, symbols)
+
+    def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches mark prices for the market
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchMarkPrice', market, params, 'linear')
+        request = {
+            'symbol': market['id'],
+        }
+        response = None
+        if subType == 'inverse':
+            response = self.cswapV1PublicGetMarketPremiumIndex(self.extend(request, params))
+            #
+            # {
+            #     "code": 0,
+            #     "msg": "",
+            #     "timestamp": 1728577213289,
+            #     "data": [
+            #         {
+            #             "symbol": "ETH-USD",
+            #             "lastFundingRate": "0.0001",
+            #             "markPrice": "2402.68",
+            #             "indexPrice": "2404.92",
+            #             "nextFundingTime": 1728604800000
+            #         }
+            #     ]
+            # }
+            #
+        else:
+            response = self.swapV2PublicGetQuotePremiumIndex(self.extend(request, params))
+            #
+            # {
+            #     "code": 0,
+            #     "msg": "",
+            #     "data": {
+            #         "symbol": "ETH-USDT",
+            #         "markPrice": "2408.40",
+            #         "indexPrice": "2409.62",
+            #         "lastFundingRate": "0.00009900",
+            #         "nextFundingTime": 1728604800000
+            #     }
+            # }
+            #
+        if isinstance(response['data'], list):
+            return self.parse_ticker(self.safe_dict(response['data'], 0, {}), market)
+        return self.parse_ticker(response['data'], market)
 
     def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
         """

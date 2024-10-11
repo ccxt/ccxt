@@ -2662,11 +2662,18 @@ class binance extends Exchange {
         if ($apiBackup !== null) {
             return null;
         }
-        $promises = array( $this->sapiGetCapitalConfigGetall ($params), $this->sapiGetMarginAllAssets ($params) );
+        $promises = array( $this->sapiGetCapitalConfigGetall ($params) );
+        $fetchMargins = $this->safe_bool($this->options, 'fetchMargins', false);
+        if ($fetchMargins) {
+            $promises[] = $this->sapiGetMarginAllPairs ($params);
+        }
         $results = $promises;
         $responseCurrencies = $results[0];
-        $responseMarginables = $results[1];
-        $marginablesById = $this->index_by($responseMarginables, 'assetName');
+        $marginablesById = null;
+        if ($fetchMargins) {
+            $responseMarginables = $results[1];
+            $marginablesById = $this->index_by($responseMarginables, 'assetName');
+        }
         $result = array();
         for ($i = 0; $i < count($responseCurrencies); $i++) {
             //
@@ -4184,7 +4191,7 @@ class binance extends Exchange {
          * fetches mark price for the $market
          * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
          * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~

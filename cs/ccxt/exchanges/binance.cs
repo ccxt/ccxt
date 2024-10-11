@@ -2622,11 +2622,20 @@ public partial class binance : Exchange
         {
             return null;
         }
-        object promises = new List<object> {this.sapiGetCapitalConfigGetall(parameters), this.sapiGetMarginAllAssets(parameters)};
+        object promises = new List<object> {this.sapiGetCapitalConfigGetall(parameters)};
+        object fetchMargins = this.safeBool(this.options, "fetchMargins", false);
+        if (isTrue(fetchMargins))
+        {
+            ((IList<object>)promises).Add(this.sapiGetMarginAllPairs(parameters));
+        }
         object results = await promiseAll(promises);
         object responseCurrencies = getValue(results, 0);
-        object responseMarginables = getValue(results, 1);
-        object marginablesById = this.indexBy(responseMarginables, "assetName");
+        object marginablesById = null;
+        if (isTrue(fetchMargins))
+        {
+            object responseMarginables = getValue(results, 1);
+            marginablesById = this.indexBy(responseMarginables, "assetName");
+        }
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(responseCurrencies)); postFixIncrement(ref i))
         {
@@ -4285,7 +4294,7 @@ public partial class binance : Exchange
         * @description fetches mark price for the market
         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
-        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
