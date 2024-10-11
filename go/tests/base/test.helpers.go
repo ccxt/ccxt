@@ -313,3 +313,7 @@ func setDefaults(p interface{}) {
 func Print(v ...interface{}) {
 	fmt.Println(v...)
 }
+
+func ReturnPanicError(ch chan interface{}) {
+	ccxt.ReturnPanicError(ch)
+}
