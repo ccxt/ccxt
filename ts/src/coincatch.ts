@@ -2086,7 +2086,7 @@ export default class coincatch extends Exchange {
         const methodName = 'createMarketBuyOrderWithCost';
         const market = this.market (symbol);
         if (!market['spot']) {
-            throw new NotSupported (this.id + methodName + '() supports spot orders only');
+            throw new NotSupported (this.id + ' ' + methodName + '() supports spot orders only');
         }
         params['methodName'] = methodName;
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2211,7 +2211,7 @@ export default class coincatch extends Exchange {
         if (triggerPrice === undefined) {
             const isMarketBuy = isMarketOrder && (side === 'buy');
             if ((!isMarketBuy) && (cost !== undefined)) {
-                throw new NotSupported (this.id + methodName + ' supports cost parameter for market buy non-trigger and market buy and sell trigger orders only');
+                throw new NotSupported (this.id + ' ' + methodName + ' supports cost parameter for market buy non-trigger and market buy and sell trigger orders only');
             }
             if (isMarketBuy) {
                 const costAndParams = this.handleRequiresPriceAndCost (methodName, params, price, amount, cost);
@@ -2224,7 +2224,7 @@ export default class coincatch extends Exchange {
             request['force'] = timeInForce ? timeInForce : 'normal'; // the exchange requres force but accepts any value
         } else {
             if ((!isMarketOrder) && (cost !== undefined)) {
-                throw new NotSupported (this.id + methodName + ' supports cost parameter for market buy non-trigger and market buy and sell trigger orders only');
+                throw new NotSupported (this.id + ' ' + methodName + ' supports cost parameter for market buy non-trigger and market buy and sell trigger orders only');
             }
             request['triggerPrice'] = triggerPrice; // spot markets have no precision
             if (timeInForce !== undefined) {
@@ -2270,7 +2270,7 @@ export default class coincatch extends Exchange {
         if (requiresPrice) {
             if ((price === undefined) && (cost === undefined)) {
                 const insertion = isTrigger ? 'trigger ' : '';
-                throw new InvalidOrder (this.id + methodName + '() requires the price argument for market ' + side + ' ' + insertion + ' orders to calculate the total cost to spend (amount * price), alternatively set the ' + optionName + ' option or param to false and pass the cost to spend in the amount argument');
+                throw new InvalidOrder (this.id + ' ' + methodName + '() requires the price argument for market ' + side + ' ' + insertion + ' orders to calculate the total cost to spend (amount * price), alternatively set the ' + optionName + ' option or param to false and pass the cost to spend in the amount argument');
             } else if (cost === undefined) {
                 cost = Precise.stringMul (amountString, priceString);
             }
@@ -2449,7 +2449,7 @@ export default class coincatch extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new NotSupported (this.id + methodName + '() is supported for swap markets only');
+            throw new NotSupported (this.id + ' ' + methodName + '() is supported for swap markets only');
         }
         params['methodName'] = methodName;
         return super.createOrderWithTakeProfitAndStopLoss (symbol, type, side, amount, price, takeProfit, stopLoss, params);
@@ -2554,7 +2554,7 @@ export default class coincatch extends Exchange {
             //
             propertyName = 'orderInfo';
         } else {
-            throw new NotSupported (this.id + methodName + '() is not supported for ' + marketType + ' type of markets');
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
         const data = this.safeDict (response, 'data', {});
         responseOrders = this.safeList (data, propertyName, []);
@@ -2570,7 +2570,7 @@ export default class coincatch extends Exchange {
         } else if (market['swap']) {
             return this.createSwapOrderRequest (symbol, type, side, amount, price, params);
         } else {
-            throw new NotSupported (this.id + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
     }
 
@@ -2928,13 +2928,15 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchCanceledAndClosedOrders
          * @description fetches information on multiple canceled and closed orders made by the user
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+         * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
          * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] *swap markets only* the latest time in ms to fetch orders for
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
          * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
          * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2964,16 +2966,20 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchCanceledAndClosedSpotOrders
          * @description fetches information on multiple canceled and closed orders made by the user on spot markets
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-history
+         * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] *for trigger orders only* the latest time in ms to fetch orders for
+         * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+         * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let methodName = 'fetchCanceledAndClosedSpotOrders';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument for spot markets');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a symbol argument for spot markets');
         }
         const maxLimit = 500;
         await this.loadMarkets ();
@@ -2982,67 +2988,126 @@ export default class coincatch extends Exchange {
             'symbol': market['id'],
         };
         let requestLimit = limit;
-        if (since !== undefined) {
-            request['after'] = since;
-            requestLimit = maxLimit;
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+        let result = undefined;
+        if (isTrigger) {
+            let until: Int = undefined;
+            [ until, params ] = this.handleOptionAndParams (params, methodName, 'until', until);
+            // const now = this.milliseconds ();
+            let requestSince = since;
+            const interval = 90 * 24 * 60 * 60 * 1000; // startTime and endTime interval cannot be greater than 90 days
+            const now = this.milliseconds ();
+            // both since and until are required for trigger orders
+            if ((until === undefined) && (requestSince === undefined)) {
+                requestSince = now - interval;
+                until = now;
+            } else if (until !== undefined) {
+                requestSince = until - interval;
+            } else { // if since is defined
+                until = since + interval;
+            }
+            request['startTime'] = requestSince;
+            request['endTime'] = until;
+            if (requestLimit === undefined) {
+                requestLimit = maxLimit;
+            }
+            request['pageSize'] = requestLimit;
+            const response = await this.privatePostApiSpotV1PlanHistoryPlan (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1728668998002,
+            //         "data": {
+            //             "nextFlag": false,
+            //             "endId": 1228669617606991872,
+            //             "orderList": [
+            //                 {
+            //                     "orderId": "1228669617606991872",
+            //                     "clientOid": "1228669617573437440",
+            //                     "symbol": "ETHUSDT_SPBL",
+            //                     "size": "50",
+            //                     "executePrice": "0",
+            //                     "triggerPrice": "4000",
+            //                     "status": "cancel",
+            //                     "orderType": "market",
+            //                     "side": "sell",
+            //                     "triggerType": "fill_price",
+            //                     "enterPointSource": "API",
+            //                     "placeType": null,
+            //                     "cTime": "1728663585092",
+            //                     "uTime": "1728666719223"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {});
+            result = this.safeList (data, 'orderList', []);
+        } else {
+            if (since !== undefined) {
+                request['after'] = since;
+                requestLimit = maxLimit;
+            }
+            if (requestLimit !== undefined) {
+                request['limit'] = requestLimit;
+            }
+            const response = await this.privatePostApiSpotV1TradeHistory (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725963777690,
+            //         "data": [
+            //             {
+            //                 "accountId": "1002820815393",
+            //                 "symbol": "ETHUSDT_SPBL",
+            //                 "orderId": "1217143186968068096",
+            //                 "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262",
+            //                 "price": "0",
+            //                 "quantity": "10.0000000000000000",
+            //                 "orderType": "market",
+            //                 "side": "buy",
+            //                 "status": "full_fill",
+            //                 "fillPrice": "2340.5500000000000000",
+            //                 "fillQuantity": "0.0042000000000000",
+            //                 "fillTotalAmount": "9.8303100000000000",
+            //                 "enterPointSource": "API",
+            //                 "feeDetail": "{
+            //                     \"ETH\": {
+            //                         \"deduction\": false,
+            //                         \"feeCoinCode\": \"ETH\",
+            //                         \"totalDeductionFee\": 0,
+            //                         \"totalFee\": -0.0000042000000000
+            //                     },
+            //                     \"newFees\": {
+            //                         \"c\": 0,
+            //                         \"d\": 0,
+            //                         \"deduction\": false,
+            //                         \"r\": -0.0000042,
+            //                         \"t\": -0.0000042,
+            //                         \"totalDeductionFee\": 0
+            //                     }
+            //                 }",
+            //                 "orderSource": "market",
+            //                 "cTime": "1725915469877"
+            //             },
+            //             ...
+            //         ]
+            //     }
+            //
+            const parsedResponse = JSON.parse (response); // the response is not a standard JSON
+            result = this.safeList (parsedResponse, 'data', []);
         }
-        if (requestLimit !== undefined) {
-            request['limit'] = requestLimit;
-        }
-        const response = await this.privatePostApiSpotV1TradeHistory (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1725963777690,
-        //         "data": [
-        //             {
-        //                 "accountId": "1002820815393",
-        //                 "symbol": "ETHUSDT_SPBL",
-        //                 "orderId": "1217143186968068096",
-        //                 "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262",
-        //                 "price": "0",
-        //                 "quantity": "10.0000000000000000",
-        //                 "orderType": "market",
-        //                 "side": "buy",
-        //                 "status": "full_fill",
-        //                 "fillPrice": "2340.5500000000000000",
-        //                 "fillQuantity": "0.0042000000000000",
-        //                 "fillTotalAmount": "9.8303100000000000",
-        //                 "enterPointSource": "API",
-        //                 "feeDetail": "{
-        //                     \"ETH\": {
-        //                         \"deduction\": false,
-        //                         \"feeCoinCode\": \"ETH\",
-        //                         \"totalDeductionFee\": 0,
-        //                         \"totalFee\": -0.0000042000000000
-        //                     },
-        //                     \"newFees\": {
-        //                         \"c\": 0,
-        //                         \"d\": 0,
-        //                         \"deduction\": false,
-        //                         \"r\": -0.0000042,
-        //                         \"t\": -0.0000042,
-        //                         \"totalDeductionFee\": 0
-        //                     }
-        //                 }",
-        //                 "orderSource": "market",
-        //                 "cTime": "1725915469877"
-        //             },
-        //             ...
-        //         ]
-        //     }
-        //
-        const parsedResponse = JSON.parse (response); // the response is not a standard JSON
-        const data = this.safeList (parsedResponse, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchCanceledAndClosedSwapOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @ignore
-         * @name coincatch#fetchCanceledAndClosedOrders
+         * @name coincatch#fetchCanceledAndClosedSwapOrders
          * @description fetches information on multiple canceled and closed orders made by the user on swap markets
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
@@ -3148,7 +3213,7 @@ export default class coincatch extends Exchange {
          */
         const methodName = 'cancelOrder';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3156,7 +3221,7 @@ export default class coincatch extends Exchange {
         let clientOrderId: Str = undefined;
         [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
         if ((id === undefined) && (clientOrderId === undefined)) {
-            throw new ArgumentsRequired (this.id + methodName + ' () requires an id argument or clientOrderId parameter');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires an id argument or clientOrderId parameter');
         }
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
@@ -3165,7 +3230,7 @@ export default class coincatch extends Exchange {
         }
         const marketType = market['type'];
         let trigger = false;
-        [ trigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', trigger);
+        [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', trigger);
         let response = undefined;
         if (!trigger || (marketType !== 'spot')) {
             request['symbol'] = market['id'];
@@ -3205,7 +3270,7 @@ export default class coincatch extends Exchange {
          */
         const methodName = 'cancelAllOrders';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3218,7 +3283,7 @@ export default class coincatch extends Exchange {
         let response = undefined;
         if (marketType === 'spot') {
             if (trigger) {
-                throw new NotSupported (this.id + methodName + '() does not support trigger orders for ' + marketType + ' type of markets');
+                throw new NotSupported (this.id + ' ' + methodName + '() does not support trigger orders for ' + marketType + ' type of markets');
             }
             //
             //     {
@@ -3231,7 +3296,7 @@ export default class coincatch extends Exchange {
             response = await this.privatePostApiSpotV1TradeCancelSymbolOrder (this.extend (request, params));
         } else {
             // add swap
-            throw new NotSupported (this.id + methodName + '() is not supported for ' + marketType + ' type of markets');
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
         const order = this.safeOrder (response);
         order['info'] = response;
@@ -3252,7 +3317,7 @@ export default class coincatch extends Exchange {
          */
         const methodName = 'cancelOrders';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + methodName + '() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3265,7 +3330,7 @@ export default class coincatch extends Exchange {
             request['clientOids'] = clientOrderIds;
             params = this.omit (params, 'clientOrderIds');
         } else if (ids === undefined) {
-            throw new ArgumentsRequired (this.id + methodName + '() requires either ids argument or clientOrderIds parameter');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires either ids argument or clientOrderIds parameter');
         } else {
             request['orderIds'] = ids;
         }
@@ -3408,7 +3473,7 @@ export default class coincatch extends Exchange {
         //         "cTime": "1725964219072"
         //     }
         //
-        // privatePostApiSpotV1PlanCurrentPlan
+        // privatePostApiSpotV1PlanCurrentPlan, privatePostApiSpotV1PlanHistoryPlan
         //     {
         //         "orderId": "1228669617606991872",
         //         "clientOid": "1228669617573437440",
@@ -3501,6 +3566,7 @@ export default class coincatch extends Exchange {
             'partially_filled': 'open',
             'full_fill': 'closed',
             'filled': 'closed',
+            'cancel': 'canceled',
             'canceled': 'canceled',
             'cancelled': 'canceled',
         };
@@ -3589,7 +3655,7 @@ export default class coincatch extends Exchange {
         } else {
             [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
             if (marketType === 'spot') {
-                throw new ArgumentsRequired (this.id + methodName + '() requires a symbol argument for spot markets');
+                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for spot markets');
             }
         }
         let response = undefined;
@@ -3722,7 +3788,7 @@ export default class coincatch extends Exchange {
          */
         const methodName = 'fetchOrderTrades';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a symbol argument');
         }
         const request: Dict = {
             'orderId': id,
@@ -3953,7 +4019,7 @@ export default class coincatch extends Exchange {
          */
         const methodName = 'setLeverage';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + methodName + '() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4227,7 +4293,7 @@ export default class coincatch extends Exchange {
             productTypes = this.unique (productTypes);
             const arrayLength = productTypes.length;
             if (arrayLength > 1) {
-                throw new BadSymbol (this.id + methodName + '() requires all symbols to belong to the same product type (umcbl or dmcbl)');
+                throw new BadSymbol (this.id + ' ' + methodName + '() requires all symbols to belong to the same product type (umcbl or dmcbl)');
             } else {
                 productType = productTypes[0];
             }
@@ -4550,7 +4616,7 @@ export default class coincatch extends Exchange {
             const data = this.safeDict (response, 'data', {});
             result = this.safeList (data, 'result', []);
         } else {
-            throw new NotSupported (this.id + methodName + '() does not support market type ' + marketType);
+            throw new NotSupported (this.id + ' ' + methodName + '() does not support market type ' + marketType);
         }
         return this.parseLedger (result, currency, since, limit);
     }
