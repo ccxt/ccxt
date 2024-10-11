@@ -3,7 +3,7 @@
 import coincatchRest from '../coincatch.js';
 import { ArgumentsRequired, ChecksumError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
-import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -818,7 +818,7 @@ export default class coincatch extends coincatchRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let instType = 'spbl'; // must be lower case for spot
         if (type === 'swap') {
-            [ instType, params ] = this.handleOptionAndParams (params, 'watchBalance', 'instType', 'umcbl');
+            instType = 'umcbl';
         }
         const channel = 'account';
         [ instType, params ] = this.handleOptionAndParams (params, 'watchBalance', 'instType', instType);
@@ -923,6 +923,9 @@ export default class coincatch extends coincatchRest {
         }
         if (channel === 'account') {
             this.handleBalance (client, message);
+        }
+        if (channel.indexOf ('orders') >= 0) {
+            this.handleOrder (client, message);
         }
     }
 
