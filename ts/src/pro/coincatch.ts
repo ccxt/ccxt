@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import coincatchRest from '../coincatch.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ChecksumError, ExchangeError, NotSupported, RateLimitExceeded } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ChecksumError, ExchangeError, NotSupported, RateLimitExceeded, UnsubscribeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -26,6 +26,7 @@ export default class coincatch extends coincatchRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchBalance': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -457,7 +458,7 @@ export default class coincatch extends coincatchRest {
         const timeframes = this.options['timeframesForWs'];
         const interval = this.safeString (timeframes, timeframe);
         const channel = 'candle' + interval;
-        return await this.unWatchChannel (symbol, channel, 'candle:' + interval, params);
+        return await this.unWatchChannel (symbol, channel, 'ohlcv:' + interval, params);
     }
 
     handleOHLCV (client: Client, message) {
@@ -739,7 +740,7 @@ export default class coincatch extends coincatchRest {
         }
         const trades = await this.watchPublicMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -900,7 +901,7 @@ export default class coincatch extends coincatchRest {
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
-        const arg = this.safeValue (message, 'arg');
+        const arg = this.safeDict (message, 'arg');
         const instType = this.safeStringLower (arg, 'instType');
         const messageHash = 'balance:' + instType;
         client.resolve (this.balance, messageHash);
@@ -1072,7 +1073,7 @@ export default class coincatch extends coincatchRest {
         const symbol = market['symbol'];
         const rawStatus = this.safeString (order, 'status');
         const orderFee = this.safeList (order, 'orderFee', []);
-        const fee = this.safeValue (orderFee, 0);
+        const fee = this.safeDict (orderFee, 0);
         const feeAmount = this.safeString (fee, 'fee');
         let feeObject = undefined;
         if (feeAmount !== undefined) {
@@ -1178,6 +1179,10 @@ export default class coincatch extends coincatchRest {
             this.handleSubscriptionStatus (client, message);
             return;
         }
+        if (event === 'unsubscribe') {
+            this.handleUnSubscriptionStatus (client, message);
+            return;
+        }
         const data = this.safeDict (message, 'arg', {});
         const channel = this.safeString (data, 'channel');
         if (channel === 'ticker') {
@@ -1211,5 +1216,116 @@ export default class coincatch extends coincatchRest {
 
     handleSubscriptionStatus (client: Client, message) {
         return message;
+    }
+
+    handleUnSubscriptionStatus (client: Client, message) {
+        let argsList = this.safeList (message, 'args');
+        if (argsList === undefined) {
+            argsList = [ this.safeDict (message, 'arg', {}) ];
+        }
+        for (let i = 0; i < argsList.length; i++) {
+            const arg = argsList[i];
+            const channel = this.safeString (arg, 'channel');
+            if (channel === 'books') {
+                this.handleOrderBookUnSubscription (client, message);
+            } else if (channel === 'trade') {
+                this.handleTradesUnSubscription (client, message);
+            } else if (channel === 'ticker') {
+                this.handleTickerUnSubscription (client, message);
+            } else if (channel.startsWith ('candle')) {
+                this.handleOHLCVUnSubscription (client, message);
+            }
+        }
+        return message;
+    }
+
+    handleOrderBookUnSubscription (client: Client, message) {
+        const arg = this.safeDict (message, 'arg', {});
+        const instType = this.safeStringLower (arg, 'instType');
+        const type = (instType === 'sp') ? 'spot' : 'swap';
+        const instId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (instId, undefined, undefined, type);
+        const symbol = market['symbol'];
+        const messageHash = 'unsubscribe:orderbook:' + market['symbol'];
+        const subMessageHash = 'orderbook:' + symbol;
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        const error = new UnsubscribeError (this.id + 'orderbook ' + symbol);
+        client.reject (error, subMessageHash);
+        client.resolve (true, messageHash);
+    }
+
+    handleTradesUnSubscription (client: Client, message) {
+        const arg = this.safeDict (message, 'arg', {});
+        const instType = this.safeStringLower (arg, 'instType');
+        const type = (instType === 'sp') ? 'spot' : 'swap';
+        const instId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (instId, undefined, undefined, type);
+        const symbol = market['symbol'];
+        const messageHash = 'unsubscribe:trade:' + market['symbol'];
+        const subMessageHash = 'trade:' + symbol;
+        if (symbol in this.trades) {
+            delete this.trades[symbol];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        const error = new UnsubscribeError (this.id + 'trades ' + symbol);
+        client.reject (error, subMessageHash);
+        client.resolve (true, messageHash);
+    }
+
+    handleTickerUnSubscription (client: Client, message) {
+        const arg = this.safeDict (message, 'arg', {});
+        const instType = this.safeStringLower (arg, 'instType');
+        const type = (instType === 'sp') ? 'spot' : 'swap';
+        const instId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (instId, undefined, undefined, type);
+        const symbol = market['symbol'];
+        const messageHash = 'unsubscribe:ticker:' + market['symbol'];
+        const subMessageHash = 'ticker:' + symbol;
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        const error = new UnsubscribeError (this.id + 'ticker ' + symbol);
+        client.reject (error, subMessageHash);
+        client.resolve (true, messageHash);
+    }
+
+    handleOHLCVUnSubscription (client: Client, message) {
+        const arg = this.safeDict (message, 'arg', {});
+        const instType = this.safeStringLower (arg, 'instType');
+        const type = (instType === 'sp') ? 'spot' : 'contract';
+        const instId = this.safeString (arg, 'instId');
+        const channel = this.safeString (arg, 'channel');
+        const interval = channel.replace ('candle', '');
+        const timeframes = this.safeDict (this.options, 'timeframesForWs');
+        const timeframe = this.findTimeframe (interval, timeframes);
+        const market = this.safeMarket (instId, undefined, undefined, type);
+        const symbol = market['symbol'];
+        const messageHash = 'unsubscribe:ohlcv:' + timeframe + ':' + market['symbol'];
+        const subMessageHash = 'ohlcv:' + timeframe + ':' + symbol;
+        if (symbol in this.ohlcvs) {
+            if (timeframe in this.ohlcvs[symbol]) {
+                delete this.ohlcvs[symbol][timeframe];
+            }
+        }
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
     }
 }
