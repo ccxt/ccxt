@@ -805,16 +805,23 @@ export default class coincatch extends coincatchRest {
     async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name bitget#watchBalance
+         * @name coincatch#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://coincatch.github.io/github.io/en/spot/#account-channel
+         * @see https://coincatch.github.io/github.io/en/mix/#account-channel
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @param {string} [params.instType] spbl for spot, UMCBL and DMCBL for contract if not provided this.options['defaultInstType'] is used
+         * @param {str} [params.type] 'spot' or 'swap' (default is 'spot')
+         * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        let instType = 'spbl'; // must be lower case for spot
+        if (type === 'swap') {
+            [ instType, params ] = this.handleOptionAndParams (params, 'watchBalance', 'instType', 'umcbl');
+        }
         const channel = 'account';
-        const instType = 'spbl';
+        [ instType, params ] = this.handleOptionAndParams (params, 'watchBalance', 'instType', instType);
         const args: Dict = {
             'instType': instType,
             'channel': channel,
@@ -826,6 +833,7 @@ export default class coincatch extends coincatchRest {
 
     handleBalance (client: Client, message) {
         //
+        //  spot
         //     {
         //         action: 'snapshot',
         //         arg: { instType: 'spbl', channel: 'account', instId: 'default' },
@@ -836,24 +844,39 @@ export default class coincatch extends coincatchRest {
         //                 available: '0.0000832',
         //                 frozen: '0',
         //                 lock: '0'
-        //             },
-        //             {
-        //                 coinId: '2',
-        //                 coinName: 'USDT',
-        //                 available: '19.17233843',
-        //                 frozen: '0',
-        //                 lock: '0'
         //             }
         //         ],
         //         ts: 1728464548725
+        //     }
+        //
+        // //  swap
+        //     {
+        //         action: 'snapshot',
+        //         arg: { instType: 'dmcbl', channel: 'account', instId: 'default' },
+        //         data: [
+        //             {
+        //                 marginCoin: 'ETH',
+        //                 locked: '0.00000000',
+        //                 available: '0.00001203',
+        //                 maxOpenPosAvailable: '0.00001203',
+        //                 maxTransferOut: '0.00001203',
+        //                 equity: '0.00001203',
+        //                 usdtEquity: '0.029092328738',
+        //                 coinDisplayName: 'ETH'
+        //             }
+        //         ],
+        //         ts: 1728650777643
+        //     }
         //
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
-            const currencyId = this.safeString (rawBalance, 'coinName');
+            const currencyId = this.safeString2 (rawBalance, 'coinName', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in this.balance) ? this.balance[code] : this.account ();
-            account['total'] = this.safeString (rawBalance, 'available');
+            const freeQuery = ('maxTransferOut' in rawBalance) ? 'maxTransferOut' : 'available';
+            account['free'] = this.safeString (rawBalance, freeQuery);
+            account['total'] = this.safeString (rawBalance, 'equity');
             account['used'] = this.safeString (rawBalance, 'frozen');
             this.balance[code] = account;
         }
