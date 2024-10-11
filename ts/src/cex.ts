@@ -34,6 +34,7 @@ export default class cex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
             },
             'timeframes': {
             },
@@ -68,6 +69,7 @@ export default class cex extends Exchange {
                         'get_currencies_info': 1,
                         'get_processing_info': 10,
                         'get_ticker': 1,
+                        'get_trade_history': 1,
                     },
                 },
                 'private': {
@@ -458,12 +460,100 @@ export default class cex extends Exchange {
         }, market);
     }
 
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name cex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://trade.cex.io/docs/#rest-public-api-calls-trade-history
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'pair': market['id'],
+        };
+        if (since !== undefined) {
+            request['fromDateISO'] = this.iso8601 (since);
+        }
+        let until = undefined;
+        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request['toDateISO'] = this.iso8601 (until);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = Math.min (limit, 10000); // has a bug, still returns more trades
+        }
+        const response = await this.publicPostGetTradeHistory (this.extend (request, params));
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "pageSize": "10",
+        //            "trades": [
+        //                {
+        //                    "tradeId": "1728630559823-0",
+        //                    "dateISO": "2024-10-11T07:09:19.823Z",
+        //                    "side": "SELL",
+        //                    "price": "60879.5",
+        //                    "amount": "0.00165962"
+        //                },
+        //                ... followed by older trades
+        //
+        const data = this.safeDict (response, 'data', {});
+        const trades = this.safeList (data, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // public fetchTrades
+        //
+        //                {
+        //                    "tradeId": "1728630559823-0",
+        //                    "dateISO": "2024-10-11T07:09:19.823Z",
+        //                    "side": "SELL",
+        //                    "price": "60879.5",
+        //                    "amount": "0.00165962"
+        //                },
+        //
+        const dateStr = this.safeString (trade, 'dateISO');
+        const timestamp = this.parse8601 (dateStr);
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': this.safeString (trade, 'tradeId'),
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': this.safeStringLower (trade, 'side'),
+            'price': this.safeString (trade, 'price'),
+            'amount' : this.safeString (trade, 'amount'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                body = this.json (query);
+                headers = {
+                    'Content-Type': 'application/json',
+                };
             }
         } else {
             // this.checkRequiredCredentials ();
