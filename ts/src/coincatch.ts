@@ -202,7 +202,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/order/detail': 2, // done
                         'api/mix/v1/order/fills': 2, // done
                         'api/mix/v1/order/allFills': 2, // done
-                        'api/mix/v1/plan/currentPlan': 1, // todo
+                        'api/mix/v1/plan/currentPlan': 1, // done
                         'api/mix/v1/plan/historyPlan': 2, // todo
                     },
                     'post': {
@@ -2237,7 +2237,7 @@ export default class coincatch extends Exchange {
             }
             if (isMarketOrder) {
                 const costAndParams = this.handleRequiresPriceAndCost (methodName, params, price, amount, cost, side, true);
-                cost = costAndParams['cost'];
+                cost = costAndParams['cost']; // spot trigger orders requires const (not amount) for both sell and buy
                 params = costAndParams['params'];
             } else {
                 request['executePrice'] = price; // spot markets have no precision
@@ -2710,12 +2710,14 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+         * @see https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
          * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
          * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
          * @param {string} [params.marginCoin] *swap only* the margin coin of the market to fetch entries for
@@ -2746,10 +2748,13 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchOpenSpotOrders
          * @description fetch all unfilled currently open orders for spot markets
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+         * @see https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+         * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2761,37 +2766,81 @@ export default class coincatch extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privatePostApiSpotV1TradeOpenOrders (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1725965783430,
-        //         "data": [
-        //             {
-        //                 "accountId": "1002820815393",
-        //                 "symbol": "ETHUSDT_SPBL",
-        //                 "orderId": "1217347655911653376",
-        //                 "clientOrderId": "c57c07d1-bd00-4167-95e2-9b22a55fbc28",
-        //                 "price": "2000.0000000000000000",
-        //                 "quantity": "0.0010000000000000",
-        //                 "orderType": "limit",
-        //                 "side": "buy",
-        //                 "status": "new",
-        //                 "fillPrice": "0",
-        //                 "fillQuantity": "0.0000000000000000",
-        //                 "fillTotalAmount": "0.0000000000000000",
-        //                 "enterPointSource": "API",
-        //                 "feeDetail": "",
-        //                 "orderSource": "normal",
-        //                 "cTime": "1725964219072"
-        //             },
-        //             ...
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+        let result = undefined;
+        if (isTrigger) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for trigger orders');
+            }
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
+            const response = await this.privatePostApiSpotV1PlanCurrentPlan (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1728664710749,
+            //         "data": {
+            //             "nextFlag": false,
+            //             "endId": 1228661660806787072,
+            //             "orderList": [
+            //                 {
+            //                     "orderId": "1228669617606991872",
+            //                     "clientOid": "1228669617573437440",
+            //                     "symbol": "ETHUSDT_SPBL",
+            //                     "size": "50",
+            //                     "executePrice": "0",
+            //                     "triggerPrice": "4000",
+            //                     "status": "not_trigger",
+            //                     "orderType": "market",
+            //                     "side": "sell",
+            //                     "triggerType": "fill_price",
+            //                     "enterPointSource": "API",
+            //                     "placeType": null,
+            //                     "cTime": "1728663585092",
+            //                     "uTime": null
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {});
+            result = this.safeList (data, 'orderList', []);
+        } else {
+            const response = await this.privatePostApiSpotV1TradeOpenOrders (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725965783430,
+            //         "data": [
+            //             {
+            //                 "accountId": "1002820815393",
+            //                 "symbol": "ETHUSDT_SPBL",
+            //                 "orderId": "1217347655911653376",
+            //                 "clientOrderId": "c57c07d1-bd00-4167-95e2-9b22a55fbc28",
+            //                 "price": "2000.0000000000000000",
+            //                 "quantity": "0.0010000000000000",
+            //                 "orderType": "limit",
+            //                 "side": "buy",
+            //                 "status": "new",
+            //                 "fillPrice": "0",
+            //                 "fillQuantity": "0.0000000000000000",
+            //                 "fillTotalAmount": "0.0000000000000000",
+            //                 "enterPointSource": "API",
+            //                 "feeDetail": "",
+            //                 "orderSource": "normal",
+            //                 "cTime": "1725964219072"
+            //             },
+            //             ...
+            //         ]
+            //     }
+            //
+            result = this.safeList (response, 'data', []);
+        }
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchOpenSwapOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -3359,11 +3408,29 @@ export default class coincatch extends Exchange {
         //         "cTime": "1725964219072"
         //     }
         //
+        // privatePostApiSpotV1PlanCurrentPlan
+        //     {
+        //         "orderId": "1228669617606991872",
+        //         "clientOid": "1228669617573437440",
+        //         "symbol": "ETHUSDT_SPBL",
+        //         "size": "50",
+        //         "executePrice": "0",
+        //         "triggerPrice": "4000",
+        //         "status": "not_trigger",
+        //         "orderType": "market",
+        //         "side": "sell",
+        //         "triggerType": "fill_price",
+        //         "enterPointSource": "API",
+        //         "placeType": null,
+        //         "cTime": "1728663585092",
+        //         "uTime": null
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         const marginCoin = this.safeString (order, 'marginCoin');
         market = this.safeMarketCustom (marketId, market, marginCoin);
         const timestamp = this.safeInteger (order, 'cTime');
-        let price = this.omitZero (this.safeString (order, 'price')); // price is zero for market orders
+        let price = this.omitZero (this.safeString2 (order, 'price', 'executePrice')); // price is zero for market orders
         const priceAvg = this.omitZero (this.safeString (order, 'priceAvg'));
         if (price === undefined) {
             price = priceAvg;
@@ -3371,8 +3438,10 @@ export default class coincatch extends Exchange {
         const type = this.safeString (order, 'orderType');
         const side = this.safeString (order, 'side');
         let amount = this.safeString2 (order, 'quantity', 'size');
-        if ((market['spot']) && (type === 'market') && (side === 'buy')) {
-            amount = undefined; // cost is returned instead of amount for market buy orders on spot markets
+        if ((market['spot']) && (type === 'market')) {
+            if ((side === 'buy') || (this.safeString (order, 'triggerType') !== undefined)) { // if market buy non-trigger or market trigger order
+                amount = undefined; // cost is returned instead of amount for market buy non-trigger or market trigger orders on spot markets
+            }
         }
         const status = this.safeString2 (order, 'status', 'state');
         const feeDetailString = this.safeString (order, 'feeDetail');
@@ -3408,7 +3477,7 @@ export default class coincatch extends Exchange {
             'filled': this.safeString2 (order, 'fillQuantity', 'filledQty'),
             'remaining': undefined,
             'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'triggerPrice': this.omitZero (this.safeString (order, 'triggerPrice')),
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'cost': this.safeString2 (order, 'fillTotalAmount', 'filledAmount'),
@@ -3426,6 +3495,7 @@ export default class coincatch extends Exchange {
 
     parseOrderStatus (status: Str): Str {
         const satuses = {
+            'not_trigger': 'open',
             'init': 'open',
             'new': 'open',
             'partially_filled': 'open',
