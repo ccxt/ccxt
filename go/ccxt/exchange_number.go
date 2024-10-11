@@ -222,8 +222,8 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 	if paddingMode == nil {
 		paddingMode = NO_PADDING
 	}
-	countMode := countmode2.(int)
-	roundingMode := roundingMode2.(int)
+	countMode := int(ParseInt(countmode2))
+	roundingMode := int(ParseInt(roundingMode2))
 	numPrecisionDigits := ToFloat64(numPrecisionDigits2)
 
 	if countMode == TICK_SIZE && numPrecisionDigits < 0 {

@@ -21,12 +21,38 @@ func Add(a interface{}, b interface{}) interface{} {
 		if bType, ok := b.(int); ok {
 			return aType + bType // Add as integers
 		}
+		aFloat := ToFloat64(a)
+		bFloat := ToFloat64(b)
+
+		res := aFloat + bFloat
+
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
+		return res
+	case int64:
+		if bType, ok := b.(int64); ok {
+			return aType + bType // Add as integers
+		}
+		aFloat := ToFloat64(a)
+		bFloat := ToFloat64(b)
+
+		res := aFloat + bFloat
+
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
+		return res
+
 	case float64:
 		bType := ToFloat64(b)
 		if bType == math.NaN() {
 			return nil
 		}
-		return aType + bType
+		res := aType + bType
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
 	case string:
 		if bType, ok := b.(string); ok {
 			return aType + bType // Concatenate as strings
@@ -69,13 +95,35 @@ func EvalTruthy(val interface{}) bool {
 	return true // Consider non-nil complex types as truthy
 }
 
+// func IsInteger(value interface{}) bool {
+// 	switch value.(type) {
+// 	case int, int8, int16, int32, int64:
+// 		return true
+// 	case uint, uint8, uint16, uint32, uint64:
+// 		return true
+// 	default:
+// 		return false
+// 	}
+// }
+
 func IsInteger(value interface{}) bool {
-	switch value.(type) {
+	switch v := value.(type) {
 	case int, int8, int16, int32, int64:
 		return true
 	case uint, uint8, uint16, uint32, uint64:
 		return true
+	case float32, float64:
+		// Check if the float has no fractional part
+		return v == math.Trunc(v.(float64))
 	default:
+		// Handle other numeric types, including when value is a pointer to an int type
+		val := reflect.ValueOf(value)
+		if val.Kind() == reflect.Ptr {
+			elem := val.Elem()
+			if elem.IsValid() && elem.Kind() >= reflect.Int && elem.Kind() <= reflect.Float64 {
+				return float64(elem.Float()) == math.Trunc(elem.Float())
+			}
+		}
 		return false
 	}
 }
@@ -137,6 +185,11 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 }
 
 func Multiply(a, b interface{}) interface{} {
+
+	if (a == nil) || (b == nil) {
+		return nil
+	}
+
 	aVal := reflect.ValueOf(a)
 	bVal := reflect.ValueOf(b)
 
@@ -155,13 +208,24 @@ func Multiply(a, b interface{}) interface{} {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return aValConverted.Uint() * bVal.Uint()
 	case reflect.Float32, reflect.Float64:
-		return aValConverted.Float() * bVal.Float()
+		aFloat := ToFloat64(a)
+		bFloat := ToFloat64(b)
+		res := aFloat * bFloat
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
+		return res
 	default:
 		return nil
 	}
 }
 
 func Divide(a, b interface{}) interface{} {
+
+	if a == nil || b == nil {
+		return nil
+	}
+
 	aVal := reflect.ValueOf(a)
 	bVal := reflect.ValueOf(b)
 
@@ -183,16 +247,27 @@ func Divide(a, b interface{}) interface{} {
 		}
 		return aValConverted.Uint() / bVal.Uint()
 	case reflect.Float32, reflect.Float64:
-		if bVal.Float() == 0.0 {
+		aFloat := ToFloat64(a)
+		bFloat := ToFloat64(b)
+		if bFloat == 0.0 {
 			return nil // Avoid division by zero
 		}
-		return aValConverted.Float() / bVal.Float()
+		res := aFloat / bFloat
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
+		return res
 	default:
 		return nil
 	}
 }
 
 func Subtract(a, b interface{}) interface{} {
+
+	if a == nil || b == nil {
+		return nil
+	}
+
 	aVal := reflect.ValueOf(a)
 	bVal := reflect.ValueOf(b)
 
@@ -208,7 +283,13 @@ func Subtract(a, b interface{}) interface{} {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return aValConverted.Uint() - bVal.Uint()
 	case reflect.Float32, reflect.Float64:
-		return aValConverted.Float() - bVal.Float()
+		aFloat := ToFloat64(a)
+		bFloat := ToFloat64(b)
+		res := aFloat - bFloat
+		if IsInteger(res) {
+			return ParseInt(res)
+		}
+		return res
 	default:
 		return nil
 	}
