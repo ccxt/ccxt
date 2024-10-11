@@ -60,7 +60,7 @@ export default class coincatch extends Exchange {
                 'createTakeProfitOrder': false,
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
-                'createTriggerOrder': false,
+                'createTriggerOrder': true, // spot only
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': true,
@@ -221,7 +221,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/trade/open-orders': 1, // done
                         'api/spot/v1/trade/history': 1, // done
                         'api/spot/v1/trade/fills': 1, // done
-                        'api/spot/v1/plan/placePlan': 1,
+                        'api/spot/v1/plan/placePlan': 1, // done
                         'api/spot/v1/plan/modifyPlan': 1,
                         'api/spot/v1/plan/cancelPlan': 1, // done
                         'api/spot/v1/plan/currentPlan': 1,
@@ -263,7 +263,8 @@ export default class coincatch extends Exchange {
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'createMarketBuyOrderRequiresPrice': true, // for spot orders only
+                'createMarketSellOrderRequiresPrice': true, // for spot trigger orders only
                 'timeframes': {
                     'spot': {
                         '1m': '1min',
@@ -2075,6 +2076,7 @@ export default class coincatch extends Exchange {
          * @name coincatch#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
          * @see https://coincatch.github.io/github.io/en/spot/#place-order
+         * @see
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2097,6 +2099,7 @@ export default class coincatch extends Exchange {
          * @name coincatch#createOrder
          * @description create a trade order
          * @see https://coincatch.github.io/github.io/en/spot/#place-order
+         * @see https://coincatch.github.io/github.io/en/spot/#place-plan-order
          * @see https://coincatch.github.io/github.io/en/mix/#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
@@ -2104,7 +2107,8 @@ export default class coincatch extends Exchange {
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount
+         * @param {float} [params.cost] *spot only* the quote quantity that can be used as an alternative for the amount
+         * @param {float} [params.triggerPrice] the price that the order is to be triggered
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
@@ -2128,13 +2132,15 @@ export default class coincatch extends Exchange {
          * @name coincatch#createSpotOrder
          * @description create a trade order on spot market
          * @see https://coincatch.github.io/github.io/en/spot/#place-order
+         * @see https://coincatch.github.io/github.io/en/spot/#place-plan-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {float} [params.cost] *market buy only for non-trigger orders and market only for trigger orders* the quote quantity that can be used as an alternative for the amount
+         * @param {float} [params.triggerPrice] the price that the order is to be triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [params.clientOrderId] a unique id for the order (max length 40)
@@ -2143,18 +2149,24 @@ export default class coincatch extends Exchange {
         await this.loadMarkets ();
         params['methodName'] = this.safeString (params, 'methodName', 'createSpotOrder');
         const request: Dict = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
-        const response = await this.privatePostApiSpotV1TradeOrders (request);
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1725915469815,
-        //         "data": {
-        //             "orderId": "1217143186968068096",
-        //             "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262"
-        //         }
-        //     }
-        //
+        const isPlanOrer = this.safeString (request, 'triggerPrice') !== undefined;
+        let response = undefined;
+        if (isPlanOrer) {
+            response = await this.privatePostApiSpotV1PlanPlacePlan (request);
+        } else {
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725915469815,
+            //         "data": {
+            //             "orderId": "1217143186968068096",
+            //             "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262"
+            //         }
+            //     }
+            //
+            response = await this.privatePostApiSpotV1TradeOrders (request);
+        }
         const data = this.safeDict (response, 'data', {});
         const market = this.market (symbol);
         return this.parseOrder (data, market);
@@ -2172,7 +2184,8 @@ export default class coincatch extends Exchange {
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {float} [params.triggerPrice] the price that the order is to be triggered at
+         * @param {float} [params.cost] *market buy only for non-trigger orders and market only for trigger orders* the quote quantity that can be used as an alternative for the amount
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO' (default 'GTC')
          * @param {string} [params.clientOrderId] a unique id for the order (max length 40)
@@ -2188,7 +2201,64 @@ export default class coincatch extends Exchange {
             'orderType': type,
         };
         const isMarketOrder = (type === 'market');
-        const isMarketBuy = isMarketOrder && (side === 'buy');
+        const timeInForceAndParams = this.handleTimeInForceAndPostOnly (methodName, params, isMarketOrder);
+        params = timeInForceAndParams['params'];
+        const timeInForce = timeInForceAndParams['timeInForce'];
+        let cost: Str = undefined;
+        [ cost, params ] = this.handleParamString (params, 'cost');
+        let triggerPrice: Str = undefined;
+        [ triggerPrice, params ] = this.handleParamString (params, 'triggerPrice');
+        if (triggerPrice === undefined) {
+            const isMarketBuy = isMarketOrder && (side === 'buy');
+            if ((!isMarketBuy) && (cost !== undefined)) {
+                throw new NotSupported (this.id + methodName + ' supports cost parameter for market buy non-trigger and market buy and sell trigger orders only');
+            }
+            if (isMarketBuy) {
+                const costAndParams = this.handleRequiresPriceAndCost (methodName, params, price, amount, cost);
+                cost = costAndParams['cost'];
+                params = costAndParams['params'];
+            } else if (type === 'limit') {
+                request['price'] = price; // spot markets have no precision
+            }
+            request['quantity'] = isMarketBuy ? cost : amount.toString (); // spot markets have no precision
+            request['force'] = timeInForce ? timeInForce : 'normal'; // the exchange requres force but accepts any value
+        } else {
+            if ((!isMarketOrder) && (cost !== undefined)) {
+                throw new NotSupported (this.id + methodName + ' supports cost parameter for market buy non-trigger and market buy and sell trigger orders only');
+            }
+            request['triggerPrice'] = triggerPrice; // spot markets have no precision
+            if (timeInForce !== undefined) {
+                request['timeInForceValue'] = timeInForce;
+            }
+            let clientOrderId: Str = undefined;
+            [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                request['clientOid'] = clientOrderId;
+            }
+            if (isMarketOrder) {
+                const costAndParams = this.handleRequiresPriceAndCost (methodName, params, price, amount, cost, side, true);
+                cost = costAndParams['cost'];
+                params = costAndParams['params'];
+            } else {
+                request['executePrice'] = price; // spot markets have no precision
+            }
+            let triggerType: Str = undefined;
+            if (isMarketOrder) {
+                triggerType = 'market_price';
+            } else {
+                triggerType = 'fill_price';
+            }
+            request['triggerType'] = triggerType;
+            // tood check placeType
+            request['size'] = isMarketOrder ? cost : amount.toString (); // spot markets have no precision
+        }
+        return this.extend (request, params);
+    }
+
+    handleRequiresPriceAndCost (methodName: string, params: Dict = {}, price: Num = undefined, amount: Num = undefined, cost: Str = undefined, side: string = 'buy', isTrigger: Bool = false) {
+        const optionName = 'createMarket' + this.capitalize (side) + 'OrderRequiresPrice';
+        let requiresPrice = true;
+        [ requiresPrice, params ] = this.handleOptionAndParams (params, methodName, optionName, true);
         let amountString: Str = undefined;
         if (amount !== undefined) {
             amountString = amount.toString ();
@@ -2197,36 +2267,37 @@ export default class coincatch extends Exchange {
         if (price !== undefined) {
             priceString = price.toString ();
         }
-        let cost: Str = undefined;
-        [ cost, params ] = this.handleParamString (params, 'cost');
-        if ((!isMarketBuy) && (cost !== undefined)) {
-            throw new NotSupported (this.id + methodName + ' supports cost parameter for market buy orders only');
-        }
-        if (isMarketBuy) {
-            let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-            if (createMarketBuyOrderRequiresPrice) {
-                if ((price === undefined) && (cost === undefined)) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
-                } else if (cost === undefined) {
-                    cost = Precise.stringMul (amountString, priceString);
-                }
-            } else {
-                cost = cost ? cost : amountString;
+        if (requiresPrice) {
+            if ((price === undefined) && (cost === undefined)) {
+                const insertion = isTrigger ? 'trigger ' : '';
+                throw new InvalidOrder (this.id + methodName + '() requires the price argument for market ' + side + ' ' + insertion + ' orders to calculate the total cost to spend (amount * price), alternatively set the ' + optionName + ' option or param to false and pass the cost to spend in the amount argument');
+            } else if (cost === undefined) {
+                cost = Precise.stringMul (amountString, priceString);
             }
-        } else if (type === 'limit') {
-            request['price'] = priceString;
+        } else {
+            cost = cost ? cost : amountString;
         }
-        request['quantity'] = isMarketBuy ? cost : amountString;
-        let timeInForce = 'GTC';
-        [ timeInForce, params ] = this.handleOptionAndParams (params, methodName, 'timeInForce', timeInForce);
+        const result: Dict = {
+            'cost': cost,
+            'params': params,
+        };
+        return result;
+    }
+
+    handleTimeInForceAndPostOnly (methodName: string, params: Dict = {}, isMarketOrder: Bool = false) {
+        let timeInForce: Str = undefined;
+        [ timeInForce, params ] = this.handleOptionAndParams (params, methodName, 'timeInForce');
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'post_only', params);
         if (postOnly) {
             timeInForce = 'PO';
         }
-        request['force'] = this.encodeTimeInForce (timeInForce); // the exchange requres force but accepts any value
-        return this.extend (request, params);
+        timeInForce = this.encodeTimeInForce (timeInForce);
+        const result: Dict = {
+            'timeInForce': timeInForce,
+            'params': params,
+        };
+        return result;
     }
 
     async createSwapOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -2314,15 +2385,11 @@ export default class coincatch extends Exchange {
         }
         [ request, params ] = this.handleOptionParamsAndRequest (params, methodName, 'clientOrderId', request, 'clientOid');
         const isMarketOrder = (type === 'market');
-        let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, methodName, 'timeInForce', timeInForce);
-        let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'post_only', params);
-        if (postOnly) {
-            timeInForce = 'PO';
-        }
+        const timeInForceAndParams = this.handleTimeInForceAndPostOnly (methodName, params, isMarketOrder);
+        params = timeInForceAndParams['params'];
+        const timeInForce = timeInForceAndParams['timeInForce'];
         if (timeInForce !== undefined) {
-            request['timeInForceValue'] = this.encodeTimeInForce (timeInForce);
+            request['timeInForceValue'] = timeInForce;
         }
         let stopLossPrice = this.safeString (params, 'stopLossPrice');
         let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
@@ -3291,6 +3358,7 @@ export default class coincatch extends Exchange {
         //         "orderSource": "normal",
         //         "cTime": "1725964219072"
         //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         const marginCoin = this.safeString (order, 'marginCoin');
         market = this.safeMarketCustom (marketId, market, marginCoin);
