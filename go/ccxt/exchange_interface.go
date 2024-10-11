@@ -32,7 +32,7 @@ type IExchange interface {
 	IndexBy(array interface{}, key interface{}) map[string]interface{}
 	CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{}
 	Sum(args ...interface{}) interface{}
-	NumberToString(num interface{}) string
+	NumberToString(num interface{}) interface{}
 	ParseToNumeric(value interface{}) interface{}
 	LoadMarkets(params ...interface{}) <-chan interface{}
 	SafeDict(dictionary interface{}, key interface{}, defaultValue ...interface{}) interface{}
