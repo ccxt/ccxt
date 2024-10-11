@@ -35,6 +35,7 @@ export default class cex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchOrderBook': true,
             },
             'timeframes': {
             },
@@ -70,6 +71,7 @@ export default class cex extends Exchange {
                         'get_processing_info': 10,
                         'get_ticker': 1,
                         'get_trade_history': 1,
+                        'get_order_book': 1,
                     },
                 },
                 'private': {
@@ -535,10 +537,50 @@ export default class cex extends Exchange {
             'takerOrMaker': undefined,
             'side': this.safeStringLower (trade, 'side'),
             'price': this.safeString (trade, 'price'),
-            'amount' : this.safeString (trade, 'amount'),
+            'amount': this.safeString (trade, 'amount'),
             'cost': undefined,
             'fee': undefined,
         }, market);
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name cex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://trade.cex.io/docs/#rest-public-api-calls-order-book
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'pair': market['id'],
+        };
+        const response = await this.publicPostGetOrderBook (this.extend (request, params));
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "timestamp": "1728636922648",
+        //            "currency1": "BTC",
+        //            "currency2": "USDT",
+        //            "bids": [
+        //                [
+        //                    "60694.1",
+        //                    "13.12849761"
+        //                ],
+        //                [
+        //                    "60694.0",
+        //                    "0.71829244"
+        //                ],
+        //                ...
+        //
+        const orderBook = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (orderBook, 'timestamp');
+        return this.parseOrderBook (orderBook, market['symbol'], timestamp);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
