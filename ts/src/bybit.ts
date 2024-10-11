@@ -4848,7 +4848,7 @@ export default class bybit extends Exchange {
         const length = result.length;
         if (length === 0) {
             const isTrigger = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
-            const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
         if (length > 1) {
@@ -4945,6 +4945,10 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const innerList = this.safeList (result, 'list', []);
+        if (innerList.length === 0) {
+            const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
+        }
         const order = this.safeDict (innerList, 0, {});
         return this.parseOrder (order, market);
     }
@@ -5113,7 +5117,7 @@ export default class bybit extends Exchange {
         const length = result.length;
         if (length === 0) {
             const isTrigger = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
-            const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
         if (length > 1) {
@@ -5147,7 +5151,7 @@ export default class bybit extends Exchange {
         const length = result.length;
         if (length === 0) {
             const isTrigger = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
-            const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
         if (length > 1) {
