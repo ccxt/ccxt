@@ -1101,7 +1101,7 @@ export default class coincatch extends coincatchRest {
             'lastTradeTimestamp': this.safeInteger (order, 'uTime'),
             'type': type,
             'timeInForce': this.safeStringUpper (order, 'force'),
-            'postOnly': postOnly,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'triggerPrice': undefined,
