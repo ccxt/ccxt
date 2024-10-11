@@ -33,6 +33,10 @@ var precisionConstants = map[string]int{
 }
 
 func (this *Exchange) NumberToString(x interface{}) string {
+	return NumberToString(x)
+}
+
+func NumberToString(x interface{}) string {
 	switch v := x.(type) {
 	case nil:
 		return ""

@@ -223,7 +223,12 @@ func (e *Exchange) Urlencode(parameters2 interface{}) string {
 	var queryString []string
 	for key, value := range parameters {
 		encodedKey := url.QueryEscape(key)
-		finalValue := ToString(value)
+		finalValue := ""
+		if IsNumber(value) {
+			finalValue = NumberToString(value)
+		} else {
+			finalValue = ToString(value)
+		}
 		if boolVal, ok := value.(bool); ok {
 			finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
