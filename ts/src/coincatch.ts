@@ -224,9 +224,9 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/plan/placePlan': 1, // done
                         'api/spot/v1/plan/modifyPlan': 1,
                         'api/spot/v1/plan/cancelPlan': 1, // done
-                        'api/spot/v1/plan/currentPlan': 1,
-                        'api/spot/v1/plan/historyPlan': 1,
-                        'api/spot/v1/plan/batchCancelPlan': 1,
+                        'api/spot/v1/plan/currentPlan': 1, // done
+                        'api/spot/v1/plan/historyPlan': 1, // done
+                        'api/spot/v1/plan/batchCancelPlan': 2,
                         'api/mix/v1/account/open-count': 1,
                         'api/mix/v1/account/setLeverage': 4, // done
                         'api/mix/v1/account/setMargin': 4, // done
@@ -2767,7 +2767,7 @@ export default class coincatch extends Exchange {
             request['symbol'] = market['id'];
         }
         let isTrigger = false;
-        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', isTrigger);
         let result = undefined;
         if (isTrigger) {
             if (symbol === undefined) {
@@ -2989,7 +2989,7 @@ export default class coincatch extends Exchange {
         };
         let requestLimit = limit;
         let isTrigger = false;
-        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', isTrigger);
         let result = undefined;
         if (isTrigger) {
             let until: Int = undefined;
@@ -3230,7 +3230,7 @@ export default class coincatch extends Exchange {
         }
         const marketType = market['type'];
         let trigger = false;
-        [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', trigger);
+        [ trigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', trigger);
         let response = undefined;
         if (!trigger || (marketType !== 'spot')) {
             request['symbol'] = market['id'];
@@ -3262,38 +3262,61 @@ export default class coincatch extends Exchange {
          * @name coincatch#cancelAllOrders
          * @description cancels all open orders for a specific market
          * @see https://coincatch.github.io/github.io/en/spot/#cancel-all-orders
+         * @see https://coincatch.github.io/github.io/en/spot/#batch-cancel-plan-orders
          * @param {string} [symbol] unified symbol of the market the orders were made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to cancel orders for (default 'spot')
          * @param {bool} [params.trigger] true for canceling a trigger orders (default false)
-         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
          * @returns {object} response from the exchange
          */
         const methodName = 'cancelAllOrders';
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        const marketType = market['type'];
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request: Dict = {};
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
         let trigger = false;
         [ trigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', trigger);
         let response = undefined;
         if (marketType === 'spot') {
             if (trigger) {
-                throw new NotSupported (this.id + ' ' + methodName + '() does not support trigger orders for ' + marketType + ' type of markets');
+                if (symbol !== undefined) {
+                    request['symbols'] = [ market['id'] ];
+                }
+                response = await this.privatePostApiSpotV1PlanBatchCancelPlan (this.extend (request, params));
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1728670464735,
+                //         "data": [
+                //             {
+                //                 "orderId": "1228661660806787072",
+                //                 "clientOid": "1228661660752261120",
+                //                 "result": true
+                //             }
+                //         ]
+                //     }
+                //
+                const data = this.safeList (response, 'data', []);
+                return this.parseOrders (data, market);
+            } else {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a symbol argument for spot non-trigger orders');
+                }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1725989560461,
+                //         "data": "ETHUSDT_SPBL"
+                //     }
+                //
+                response = await this.privatePostApiSpotV1TradeCancelSymbolOrder (this.extend (request, params));
             }
-            //
-            //     {
-            //         "code": "00000",
-            //         "msg": "success",
-            //         "requestTime": 1725989560461,
-            //         "data": "ETHUSDT_SPBL"
-            //     }
-            //
-            response = await this.privatePostApiSpotV1TradeCancelSymbolOrder (this.extend (request, params));
         } else {
             // add swap
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
