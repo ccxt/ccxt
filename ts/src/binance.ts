@@ -2674,11 +2674,18 @@ export default class binance extends Exchange {
         if (apiBackup !== undefined) {
             return undefined;
         }
-        const promises = [ this.sapiGetCapitalConfigGetall (params), this.sapiGetMarginAllAssets (params) ];
+        const promises = [ this.sapiGetCapitalConfigGetall (params) ];
+        const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);
+        if (fetchMargins) {
+            promises.push (this.sapiGetMarginAllPairs (params));
+        }
         const results = await Promise.all (promises);
         const responseCurrencies = results[0];
-        const responseMarginables = results[1];
-        const marginablesById = this.indexBy (responseMarginables, 'assetName');
+        let marginablesById = undefined;
+        if (fetchMargins) {
+            const responseMarginables = results[1];
+            marginablesById = this.indexBy (responseMarginables, 'assetName');
+        }
         const result: Dict = {};
         for (let i = 0; i < responseCurrencies.length; i++) {
             //
