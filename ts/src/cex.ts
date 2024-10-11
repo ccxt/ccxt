@@ -32,6 +32,8 @@ export default class cex extends Exchange {
                 'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
             },
             'timeframes': {
             },
@@ -65,6 +67,7 @@ export default class cex extends Exchange {
                         'get_pairs_info': 1,
                         'get_currencies_info': 1,
                         'get_processing_info': 10,
+                        'get_ticker': 1,
                     },
                 },
                 'private': {
@@ -289,9 +292,10 @@ export default class cex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quoteId = this.safeString (market, 'quote');
         const quote = this.safeCurrencyCode (quoteId);
+        const id = base + '-' + quote; // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         const symbol = base + '/' + quote;
         return this.safeMarketStructure ({
-            'id': symbol,
+            'id': id,
             'symbol': symbol,
             'base': base,
             'baseId': baseId,
@@ -365,6 +369,93 @@ export default class cex extends Exchange {
         const data = this.safeDict (response, 'data');
         const timestamp = this.safeInteger (data, 'timestamp');
         return timestamp;
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name cex#fetchTicker
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.fetchTickers ([ symbol ], params);
+        return this.safeDict (response, symbol, {}) as Ticker;
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name cex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        if (symbols !== undefined) {
+            request['pairs'] = this.marketIds (symbols);
+        }
+        const response = await this.publicPostGetTicker (this.extend (request, params));
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "AI-USD": {
+        //                "bestBid": "0.3917",
+        //                "bestAsk": "0.3949",
+        //                "bestBidChange": "0.0035",
+        //                "bestBidChangePercentage": "0.90",
+        //                "bestAskChange": "0.0038",
+        //                "bestAskChangePercentage": "0.97",
+        //                "low": "0.3787",
+        //                "high": "0.3925",
+        //                "volume30d": "2945.722277",
+        //                "lastTradeDateISO": "2024-10-11T06:18:42.077Z",
+        //                "volume": "120.736000",
+        //                "quoteVolume": "46.65654070",
+        //                "lastTradeVolume": "67.914000",
+        //                "volumeUSD": "46.65",
+        //                "last": "0.3949",
+        //                "lastTradePrice": "0.3925",
+        //                "priceChange": "0.0038",
+        //                "priceChangePercentage": "0.97"
+        //            },
+        //            ...
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTickers (data, symbols);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'id');
+        const symbol = this.safeSymbol (marketId, market);
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bestBid'),
+            'bidVolume': undefined,
+            'ask': this.safeNumber (ticker, 'bestAsk'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': this.safeString (ticker, 'lastTradePrice'),
+            'previousClose': undefined,
+            'change': this.safeNumber (ticker, 'priceChange'),
+            'percentage': this.safeNumber (ticker, 'priceChangePercentage'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
