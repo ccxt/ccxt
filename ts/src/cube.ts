@@ -13,6 +13,27 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
  * @class cube
  * @augments Exchange
  */
+
+interface MarketAsset {
+    assetId: string;
+    symbol: string;
+}
+interface MarketInfo {
+    marketId: string;
+    baseAssetId: string;
+    quoteAssetId: string;
+    status: string;
+    quantityTickSize: string;
+    priceTickSize: string;
+    minOrderQty: string;
+}
+interface CubeMarketsResponse {
+    result: {
+        assets: MarketAsset[];
+        markets: MarketInfo[];
+    };
+}
+
 export default class cube extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -184,9 +205,9 @@ export default class cube extends Exchange {
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.irPublicGetMarkets (params);
-        const assets = response.result.assets;
-        const markets = response.result.markets;
+        const response = await this.irPublicGetMarkets (params) as CubeMarketsResponse;
+        const assets = response.result.assets || [];
+        const markets = response.result.markets || [];
         const assetMap = {};
         for (let i = 0; i < assets.length; i++) {
             const asset = assets[i];
@@ -194,7 +215,7 @@ export default class cube extends Exchange {
         }
         const parsedMarkets = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+            const market = markets[i] as MarketInfo;
             const parsedMarket: Market = {
                 'id': market.marketId,
                 'symbol': assetMap[market.baseAssetId] + '/' + assetMap[market.quoteAssetId],
