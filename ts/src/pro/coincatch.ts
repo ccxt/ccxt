@@ -3,7 +3,7 @@
 import coincatchRest from '../coincatch.js';
 import { ArgumentsRequired, ChecksumError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
