@@ -1287,7 +1287,7 @@ class bitmart(Exchange, ImplicitAPI):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,

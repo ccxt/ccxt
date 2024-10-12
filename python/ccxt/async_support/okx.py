@@ -6828,6 +6828,7 @@ class okx(Exchange, ImplicitAPI):
         #         "instType": "OPTION",
         #         "oi": "300",
         #         "oiCcy": "3",
+        #         "oiUsd": "3",
         #         "ts": "1684551166251"
         #     }
         #
@@ -6850,7 +6851,7 @@ class okx(Exchange, ImplicitAPI):
         else:
             baseVolume = self.safe_number(interest, 'oiCcy')
             openInterestAmount = self.safe_number(interest, 'oi')
-            openInterestValue = self.safe_number(interest, 'oiCcy')
+            openInterestValue = self.safe_number(interest, 'oiUsd')
         return self.safe_open_interest({
             'symbol': self.safe_symbol(id),
             'baseVolume': baseVolume,  # deprecated

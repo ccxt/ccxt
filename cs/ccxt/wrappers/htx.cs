@@ -1107,6 +1107,7 @@ public partial class htx
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-for-existed-withdraws-and-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1198,6 +1199,7 @@ public partial class htx
     /// fetch the borrow interest rates of all currencies
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1258,6 +1260,8 @@ public partial class htx
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1277,6 +1281,8 @@ public partial class htx
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

@@ -1287,7 +1287,7 @@ class bitmart extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
             'average' => $average,
             'baseVolume' => $baseVolume,

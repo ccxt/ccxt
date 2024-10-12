@@ -7318,6 +7318,7 @@ class okx extends okx$1 {
         //         "instType": "OPTION",
         //         "oi": "300",
         //         "oiCcy": "3",
+        //         "oiUsd": "3",
         //         "ts": "1684551166251"
         //     }
         //
@@ -7343,7 +7344,7 @@ class okx extends okx$1 {
         else {
             baseVolume = this.safeNumber(interest, 'oiCcy');
             openInterestAmount = this.safeNumber(interest, 'oi');
-            openInterestValue = this.safeNumber(interest, 'oiCcy');
+            openInterestValue = this.safeNumber(interest, 'oiUsd');
         }
         return this.safeOpenInterest({
             'symbol': this.safeSymbol(id),
