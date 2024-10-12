@@ -2791,6 +2791,46 @@
                     }
                 }
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "linear oi",
+                "method": "fetchOpenInterest",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "instId": "BTC-USDT-SWAP",
+                      "instType": "SWAP",
+                      "oi": "2663107.29999999861",
+                      "oiCcy": "26631.0729999999861",
+                      "oiUsd": "1676426045.349999124995",
+                      "ts": "1728728314766"
+                    }
+                  ],
+                  "msg": ""
+                },
+                "parsedResponse": {
+                  "symbol": "BTC/USDT:USDT",
+                  "baseVolume": 26631.072999999986,
+                  "quoteVolume": null,
+                  "openInterestAmount": 2663107.2999999984,
+                  "openInterestValue": 1676426045.3499992,
+                  "timestamp": 1728728314766,
+                  "datetime": "2024-10-12T10:18:34.766Z",
+                  "info": {
+                    "instId": "BTC-USDT-SWAP",
+                    "instType": "SWAP",
+                    "oi": "2663107.29999999861",
+                    "oiCcy": "26631.0729999999861",
+                    "oiUsd": "1676426045.349999124995",
+                    "ts": "1728728314766"
+                  }
+                }
+            }
         ]
     }
 }
