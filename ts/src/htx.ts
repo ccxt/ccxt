@@ -6207,7 +6207,18 @@ export default class htx extends Exchange {
         return indexedAddresses[selectedNetworkCode] as DepositAddress;
     }
 
-    async fetchWithdrawAddresses (code: string, note = undefined, networkCode = undefined, params = {}) {
+    async fetchWithdrawAddresses (code: string, tag = undefined, network = undefined, params = {}) {
+        /**
+         * @method
+         * @name htx#fetchWithdrawAddresses
+         * @description fetch the withdrawal addresses for a currency associated with this account
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#query-withdraw-address
+         * @param {string} code unified currency code
+         * @param {string} tag
+         * @param {string} network unified network code for deposit chain
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {[object]} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -6233,8 +6244,8 @@ export default class htx extends Exchange {
         const addresses = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];
-            const noteMatch = (note === undefined) || (address['note'] === note);
-            const networkMatch = (networkCode === undefined) || (address['network'] === networkCode);
+            const noteMatch = (tag === undefined) || (address['note'] === tag);
+            const networkMatch = (network === undefined) || (address['network'] === network);
             if (noteMatch && networkMatch) {
                 addresses.push (address);
             }
