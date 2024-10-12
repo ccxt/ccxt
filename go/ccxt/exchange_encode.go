@@ -179,6 +179,9 @@ func (e *Exchange) Rawencode(parameters2 interface{}) string {
 		if boolVal, ok := value.(bool); ok {
 			value = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
+		if IsNumber(value) {
+			value = NumberToString(value)
+		}
 		outList = append(outList, fmt.Sprintf("%s=%v", key, value))
 	}
 	return strings.Join(outList, "&")

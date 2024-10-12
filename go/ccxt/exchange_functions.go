@@ -46,9 +46,13 @@ func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{}
 }
 
 // omitMap removes specified keys from a map.
-func (this *Exchange) OmitMap(aa interface{}, k interface{}) map[string]interface{} {
+func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 	if reflect.TypeOf(aa).Kind() == reflect.Slice {
-		return aa.(map[string]interface{})
+		return aa
+		//  if ok {
+		// 	 return res
+		//  }
+		//  return
 	}
 
 	var keys []interface{}
@@ -73,11 +77,13 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) map[string]interfac
 
 // omitN removes specified keys from a map.
 func (this *Exchange) OmitN(aa interface{}, keys []interface{}) map[string]interface{} {
-	a := aa.(map[string]interface{})
 	outDict := make(map[string]interface{})
-	for key, value := range a {
-		if !this.Contains(keys, key) {
-			outDict[key] = value
+	a, ok := aa.(map[string]interface{})
+	if ok {
+		for key, value := range a {
+			if !this.Contains(keys, key) {
+				outDict[key] = value
+			}
 		}
 	}
 	return outDict
