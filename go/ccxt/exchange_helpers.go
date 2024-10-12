@@ -1138,7 +1138,7 @@ func ParseInt(number interface{}) int64 {
 			return i
 		}
 	}
-	return 0 // Default value if conversion is not possible
+	return math.MinInt64 // Default value if conversion is not possible
 }
 
 func MathMin(a, b interface{}) interface{} {

@@ -1,9 +1,8 @@
 package ccxt
 
 import (
-	"fmt"
+	"math"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -69,14 +68,28 @@ func (this *Exchange) ParseDate(datetime2 interface{}) interface{} {
 }
 
 // Iso8601 converts a timestamp to an ISO 8601 formatted string.
-func Iso8601(ts interface{}) interface{} {
-	if ts == nil {
+func Iso8601(ts2 interface{}) interface{} {
+	if ts2 == nil {
 		return nil
 	}
-	startdatetime, err := strconv.ParseInt(fmt.Sprintf("%v", ts), 10, 64)
-	if err != nil || startdatetime < 0 {
+
+	// if IsNumber(ts) {
+	ts := ParseInt(ts2)
+
+	if ts == math.MinInt64 {
 		return nil
 	}
+	// }
+	// startdatetime, err := strconv.ParseInt(fmt.Sprintf("%v", ts), 10, 64)
+	// if err != nil || startdatetime < 0 {
+	// 	return nil
+	// }
+	startdatetime := ts
+
+	if startdatetime < 0 {
+		return nil
+	}
+
 	// Convert timestamp to time and set to UTC
 	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
 	return date.Format("2006-01-02T15:04:05.000Z")
