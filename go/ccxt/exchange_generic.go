@@ -200,13 +200,45 @@ func (this *Exchange) InArray(elem interface{}, list interface{}) bool {
 	// Use reflection to iterate over the slice
 	listValue := reflect.ValueOf(list)
 	for i := 0; i < listValue.Len(); i++ {
-		if reflect.DeepEqual(listValue.Index(i).Interface(), elem) {
-			return true
+		listElem := listValue.Index(i).Interface()
+
+		// Handle number comparison
+		switch e := elem.(type) {
+		case int, int8, int16, int32, int64, float32, float64:
+			switch l := listElem.(type) {
+			case int, int8, int16, int32, int64, float32, float64:
+				// Convert both to float64 for comparison
+				if ToFloat64(e) == ToFloat64(l) {
+					return true
+				}
+			}
+		default:
+			// For non-numeric values, use DeepEqual
+			if reflect.DeepEqual(listElem, elem) {
+				return true
+			}
 		}
 	}
 
 	return false
 }
+
+// func (this *Exchange) InArray(elem interface{}, list interface{}) bool {
+// 	// Ensure the list is not nil and is of a slice type
+// 	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
+// 		return false
+// 	}
+
+// 	// Use reflection to iterate over the slice
+// 	listValue := reflect.ValueOf(list)
+// 	for i := 0; i < listValue.Len(); i++ {
+// 		if reflect.DeepEqual(listValue.Index(i).Interface(), elem) {
+// 			return true
+// 		}
+// 	}
+
+// 	return false
+// }
 
 func (this *Exchange) IsArray(a interface{}) bool {
 	return reflect.TypeOf(a).Kind() == reflect.Slice
