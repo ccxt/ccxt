@@ -2270,7 +2270,9 @@ export default class woo extends Exchange {
         const request: Dict = {
             'type': 'BALANCE',
         };
-        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        const currencyRows = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        const currency = this.safeValue (currencyRows, 0);
+        const rows = this.safeList (currencyRows, 1);
         //
         //     {
         //         "rows":[],
