@@ -1311,7 +1311,7 @@ export default class coincatch extends coincatchRest {
     handleOHLCVUnSubscription (client: Client, message) {
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeStringLower (arg, 'instType');
-        const type = (instType === 'sp') ? 'spot' : 'contract';
+        const type = (instType === 'sp') ? 'spot' : 'swap';
         const instId = this.safeString (arg, 'instId');
         const channel = this.safeString (arg, 'channel');
         const interval = channel.replace ('candle', '');
