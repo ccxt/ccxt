@@ -2643,7 +2643,11 @@ export default class bingx extends Exchange {
                 positionSide = 'BOTH';
             }
             request['positionSide'] = positionSide;
-            request['quantity'] = (market['inverse']) ? amount : this.parseToNumeric (this.amountToPrecision (symbol, amount)); // precision not available for inverse contracts
+            let amountReq = amount;
+            if (!market['inverse']) {
+                amountReq = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+            }
+            request['quantity'] = amountReq; // precision not available for inverse contracts
         }
         params = this.omit (params, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
         return this.extend (request, params);

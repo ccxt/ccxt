@@ -5777,11 +5777,17 @@ export default class Exchange {
     }
 
     costToPrecision (symbol: string, cost) {
+        if (cost === undefined) {
+            return undefined;
+        }
         const market = this.market (symbol);
         return this.decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
     priceToPrecision (symbol: string, price): string {
+        if (price === undefined) {
+            return undefined;
+        }
         const market = this.market (symbol);
         const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
@@ -5791,6 +5797,9 @@ export default class Exchange {
     }
 
     amountToPrecision (symbol: string, amount) {
+        if (amount === undefined) {
+            return undefined;
+        }
         const market = this.market (symbol);
         const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
@@ -5800,6 +5809,9 @@ export default class Exchange {
     }
 
     feeToPrecision (symbol: string, fee) {
+        if (fee === undefined) {
+            return undefined;
+        }
         const market = this.market (symbol);
         return this.decimalToPrecision (fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
