@@ -3706,7 +3706,7 @@ export default class gate extends Exchange {
         //         "id":"w64413318",
         //         "currency":"usdt",
         //         "amount":"10150",
-        //         "address":"0x0ab991497116f7f5532a4c2f4f7b1784488628e1",
+        //         "address":"0x0ab891497116f7f5532a4c2f4f7b1784488628e1",
         //         "memo":null,
         //         "status":"REQUEST",
         //         "chain":"eth",
@@ -3741,7 +3741,7 @@ export default class gate extends Exchange {
         //
         //     {
         //         "currency":"usdt",
-        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "address":"0x01c0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
         //         "amount":"1880",
         //         "chain":"eth"
         //     }
