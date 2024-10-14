@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account } from './base/types.js';
+import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -39,6 +39,7 @@ export default class cex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchTradingFees': true,
                 'fetchAccounts': true,
+                'fetchBalance': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -779,6 +780,77 @@ export default class cex extends Exchange {
             'code': undefined,
             'info': account,
         };
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name cex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.method] 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
+         * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        let accountName = undefined;
+        [ accountName, params ] = this.handleParamString (params, 'account', ''); // default is empty string
+        let method = undefined;
+        [ method, params ] = this.handleParamString (params, 'method', 'privatePostGetMyWalletBalance');
+        let accountBalance = undefined;
+        if (method === 'privatePostGetMyAccountStatusV3') {
+            const response = await this.privatePostGetMyAccountStatusV3 (params);
+            //
+            //    {
+            //        "ok": "ok",
+            //        "data": {
+            //            "convertedCurrency": "USD",
+            //            "balancesPerAccounts": {
+            //                "": {
+            //                    "AI": {
+            //                        "balance": "0.000000",
+            //                        "balanceOnHold": "0.000000"
+            //                    },
+            //                    ....
+            //
+            const data = this.safeDict (response, 'data', {});
+            const balances = this.safeDict (data, 'balancesPerAccounts', {});
+            accountBalance = this.safeDict (balances, accountName, {});
+        } else {
+            const response = await this.privatePostGetMyWalletBalance (params);
+            //
+            //    {
+            //        "ok": "ok",
+            //        "data": {
+            //            "AI": {
+            //                "balance": "25.606429"
+            //            },
+            //            "USDT": {
+            //                "balance": "7.935449"
+            //            },
+            //            ...
+            //
+            accountBalance = this.safeDict (response, 'data', {});
+        }
+        return this.parseBalance (accountBalance);
+    }
+
+    parseBalance (response): Balances {
+        const result: Dict = {
+            'info': response,
+        };
+        const keys = this.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const balance = this.safeDict (response, key, {});
+            const code = this.safeCurrencyCode (key);
+            const account: Dict = {
+                'used': this.safeString (balance, 'balanceOnHold'),
+                'free': this.safeString (balance, 'balance'),
+            };
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
