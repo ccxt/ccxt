@@ -1,0 +1,103 @@
+{
+  "name": "@watchable/unpromise",
+  "version": "1.0.2",
+  "description": "Promise with unsubscribe feature that minimises memory leaks",
+  "keywords": [
+    "Promise.race",
+    "Promise.any",
+    "oom",
+    "memory leak",
+    "subscription",
+    "unsubscription",
+    "subscribe",
+    "unsubscribe"
+  ],
+  "homepage": "https://github.com/cefn/watchable/tree/main/packages/unpromise#readme",
+  "bugs": {
+    "url": "https://github.com/cefn/watchable/issues?q=is%3Aissue+is%3Aopen+label%3Aunpromise",
+    "email": "watchable@cefn.com"
+  },
+  "repository": {
+    "url": "https://github.com/cefn/watchable.git",
+    "directory": "packages/unpromise"
+  },
+  "license": "MIT",
+  "author": "Cefn Hoile <github.com@cefn.com> (https://cefn.com)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "README.md",
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "wireit",
+    "lint": "wireit",
+    "test": "wireit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "expose-gc": "^1.0.0",
+    "typescript": "^5.4.5",
+    "wireit": "^0.14.4",
+    "vite": "^5.2.11",
+    "vitest": "^1.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "wireit": {
+    "test": {
+      "dependencies": [
+        "build"
+      ],
+      "command": "vitest run --reporter verbose",
+      "files": [
+        "src/**/*",
+        "test/**/*",
+        "tsconfig.json",
+        "tsconfig.test.json",
+        "vite.config.ts"
+      ],
+      "output": [
+        "./coverage"
+      ]
+    },
+    "build": {
+      "command": "tsc --build && vite build",
+      "files": [
+        "src/**/*",
+        "tsconfig.json",
+        "vite.config.ts",
+        "README.md"
+      ],
+      "output": [
+        "./dist"
+      ]
+    },
+    "lint": {
+      "command": "eslint .",
+      "files": [
+        "**/*.js",
+        "**/*.jsx",
+        "**/*.ts",
+        "**/*.jsx",
+        "!dist/**/*",
+        "!coverage/**/*"
+      ],
+      "output": [],
+      "dependencies": [
+        "build"
+      ]
+    }
+  },
+  "sideEffects": false
+}
