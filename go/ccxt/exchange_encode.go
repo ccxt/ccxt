@@ -196,6 +196,9 @@ func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 interface{}) string {
 				outList = append(outList, fmt.Sprintf("%s=%v", key, item))
 			}
 		} else {
+			if IsNumber(value) {
+				value = NumberToString(value)
+			}
 			outList = append(outList, fmt.Sprintf("%s=%v", key, value))
 		}
 	}

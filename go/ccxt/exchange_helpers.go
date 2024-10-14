@@ -268,31 +268,39 @@ func Subtract(a, b interface{}) interface{} {
 		return nil
 	}
 
-	aVal := reflect.ValueOf(a)
-	bVal := reflect.ValueOf(b)
+	// aVal := reflect.ValueOf(a)
+	// bVal := reflect.ValueOf(b)
 
-	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
-		return nil
+	aFloat := ToFloat64(a)
+	bFloat := ToFloat64(b)
+	res := aFloat - bFloat
+	if IsInteger(res) {
+		return ParseInt(res)
 	}
+	return res
 
-	aValConverted := aVal.Convert(bVal.Type())
+	// if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
+	// 	return nil
+	// }
 
-	switch bVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return aValConverted.Int() - bVal.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return aValConverted.Uint() - bVal.Uint()
-	case reflect.Float32, reflect.Float64:
-		aFloat := ToFloat64(a)
-		bFloat := ToFloat64(b)
-		res := aFloat - bFloat
-		if IsInteger(res) {
-			return ParseInt(res)
-		}
-		return res
-	default:
-		return nil
-	}
+	// aValConverted := aVal.Convert(bVal.Type())
+
+	// switch bVal.Kind() {
+	// case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	// 	return aValConverted.Int() - bVal.Int()
+	// case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	// 	return aValConverted.Uint() - bVal.Uint()
+	// case reflect.Float32, reflect.Float64:
+	// 	aFloat := ToFloat64(a)
+	// 	bFloat := ToFloat64(b)
+	// 	res := aFloat - bFloat
+	// 	if IsInteger(res) {
+	// 		return ParseInt(res)
+	// 	}
+	// 	return res
+	// default:
+	// 	return nil
+	// }
 }
 
 type Dict map[string]interface{}
@@ -1030,13 +1038,14 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 		return ""
 	}
 	str := str2.(string)
-	start := -1
+	var start int64 = -1
 	if idx1 != nil {
-		start = idx1.(int)
+		start = ParseInt(idx1)
 	}
+	var lenStr int64 = int64(len(str))
 	if idx2 == nil {
 		if start < 0 {
-			innerStart := len(str) + start
+			innerStart := lenStr + start
 			if innerStart < 0 {
 				innerStart = 0
 			}
@@ -1044,15 +1053,15 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 		}
 		return str[start:]
 	} else {
-		end := idx2.(int)
+		end := ParseInt(idx2)
 		if start < 0 {
-			start = len(str) + start
+			start = lenStr + start
 		}
 		if end < 0 {
-			end = len(str) + end
+			end = lenStr + end
 		}
-		if end > len(str) {
-			end = len(str)
+		if end > lenStr {
+			end = lenStr
 		}
 		return str[start:end]
 	}

@@ -30,9 +30,17 @@ func (this *Exchange) ImplodeParams(path interface{}, parameter interface{}) int
 		if value.IsNil() {
 			continue
 		}
+
+		valueStr := ""
+		valueInterface := value.Interface()
+		if IsNumber(valueInterface) {
+			valueStr = NumberToString(valueInterface)
+		} else {
+			valueStr = fmt.Sprintf("%v", value)
+		}
 		if value.Kind() != reflect.Slice {
 			placeholder := "{" + key.String() + "}"
-			pathStr = strings.ReplaceAll(pathStr, placeholder, fmt.Sprintf("%v", value))
+			pathStr = strings.ReplaceAll(pathStr, placeholder, valueStr)
 		}
 	}
 	return pathStr

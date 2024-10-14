@@ -190,7 +190,7 @@ func (p *PreciseStruct) Reduce() *PreciseStruct {
 	if difference == 0 {
 		return p
 	}
-	p.Decimals = p.Decimals.(int) - difference
+	p.Decimals = int(ParseInt(p.Decimals)) - difference
 	p.integer = new(big.Int)
 	p.integer.SetString(str[:i+1], 10)
 	return p
@@ -362,6 +362,58 @@ func StringMod(a, b interface{}) string {
 		return ""
 	}
 	return NewPrecise(a.(string)).Mod(NewPrecise(b.(string))).String()
+}
+
+func (p *PreciseStruct) ToString() string {
+	p.Reduce() // Call the reduce method if any
+
+	// Determine the sign and absolute value
+	var sign string
+	abs := new(big.Int)
+	if p.integer.Sign() < 0 {
+		sign = "-"
+		abs.Neg(p.integer) // Negate the integer to get the absolute value
+	} else {
+		sign = ""
+		abs.Set(p.integer) // Copy the positive value of the integer
+	}
+
+	intPDecimals := ParseInt(p.Decimals)
+
+	// Convert the absolute value to a string
+	// integerStr := fmt.Sprintf("%0*d", intPDecimals+ParseInt(len(abs.String())), abs)
+	// integerArray := strings.Split(integerStr, "")
+	// // Calculate the index to insert the decimal point
+	var item string
+
+	absParsed := abs.String()
+	padSize := 0
+	if intPDecimals > 0 {
+		padSize = int(intPDecimals)
+	}
+	absParsed = fmt.Sprintf("%0*s", len(absParsed)+padSize, absParsed)
+	integerArray := strings.Split(absParsed, "")
+	// index := len(integerArray) - intPDecimals
+	index := ParseInt(len(integerArray)) - intPDecimals
+
+	// Handle cases based on the value of decimals
+	if index == 0 {
+		item = "0."
+	} else if intPDecimals < 0 {
+		item = strings.Repeat("0", -int(intPDecimals))
+	} else if intPDecimals == 0 {
+		item = ""
+	} else {
+		item = "."
+	}
+
+	arrayIndex := index
+	arrayLength := ParseInt(len(integerArray))
+	if index > arrayLength {
+		arrayIndex = arrayLength
+	}
+	integerArray = append(integerArray[:arrayIndex], append([]string{item}, integerArray[arrayIndex:]...)...)
+	return sign + strings.Join(integerArray, "")
 }
 
 // wrappers
