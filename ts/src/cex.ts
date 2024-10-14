@@ -20,12 +20,12 @@ export default class cex extends Exchange {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
-            'rateLimit': 1500,
+            'rateLimit': 1666,
             'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': false, // has but not through api
+                'margin': false, // has, but not through api
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -43,7 +43,7 @@ export default class cex extends Exchange {
                 'api': {
                     // 'rest': 'https://cex.io/api',
                     'public': 'https://trade.cex.io/api/spot/rest-public',
-                    // 'private': 'https://trade.cex.io/api/spot/rest-public',
+                    'private': 'https://trade.cex.io/api/spot/rest',
                 },
                 'www': 'https://cex.io',
                 'doc': 'https://trade.cex.io/docs/',
@@ -52,11 +52,6 @@ export default class cex extends Exchange {
                     'https://cex.io/limits-commissions',
                 ],
                 'referral': 'https://cex.io/r/0/up105393824/0/',
-            },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'uid': true,
             },
             'api': {
                 'public': {
@@ -79,7 +74,7 @@ export default class cex extends Exchange {
 
                     },
                     'post': {
-
+                        'get_my_current_fee': 1,
                     },
                 },
             },
@@ -683,18 +678,17 @@ export default class cex extends Exchange {
                 };
             }
         } else {
-            // this.checkRequiredCredentials ();
-            // const nonce = this.nonce ().toString ();
-            // const auth = nonce + this.uid + this.apiKey;
-            // const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            // body = this.json (this.extend ({
-            //     'key': this.apiKey,
-            //     'signature': signature.toUpperCase (),
-            //     'nonce': nonce,
-            // }, query));
-            // headers = {
-            //     'Content-Type': 'application/json',
-            // };
+            this.checkRequiredCredentials ();
+            const seconds = this.seconds ().toString ();
+            body = this.json (query);
+            const auth = path + seconds + body;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
+            headers = {
+                'Content-Type': 'application/json',
+                'X-AGGR-KEY': this.apiKey,
+                'X-AGGR-TIMESTAMP': seconds,
+                'X-AGGR-SIGNATURE': signature,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
