@@ -45,6 +45,7 @@ export default class cex extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'fetchLedger': true,
+                'fetchDepositsWithdrawals': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -908,7 +909,7 @@ export default class cex extends Exchange {
         //            {
         //                "orderId": "1313003",
         //                "clientOrderId": "037F0AFEB93A",
-        //                "clientId": "up132245425",
+        //                "clientId": "up421445425",
         //                "accountId": null,
         //                "status": "FILLED",
         //                "statusIsFinal": true,
@@ -983,7 +984,7 @@ export default class cex extends Exchange {
         //
         //                "orderId": "1313003",
         //                "clientOrderId": "037F0AFEB93A",
-        //                "clientId": "up132245425",
+        //                "clientId": "up421445425",
         //                "accountId": null,
         //                "status": "FILLED",
         //                "statusIsFinal": true,
@@ -1155,7 +1156,7 @@ export default class cex extends Exchange {
         //                "accountId": "",
         //                "type": "withdraw",
         //                "amount": "-12.39060600",
-        //                "details": "Withdraw fundingId=1235039 clientId=up132245425 walletTxId=76337154166",
+        //                "details": "Withdraw fundingId=1235039 clientId=up421445425 walletTxId=76337154166",
         //                "currency": "USDT"
         //            },
         //            ...
@@ -1183,7 +1184,7 @@ export default class cex extends Exchange {
             'info': item,
             'id': this.safeString (item, 'transactionId'),
             'direction': direction,
-            'account': this.safeString (item, 'accountId'),
+            'account': this.safeString (item, 'accountId', ''),
             'referenceAccount': undefined,
             'referenceId': undefined,
             'type': this.parseLedgerEntryType (type),
@@ -1205,6 +1206,99 @@ export default class cex extends Exchange {
             'commission': 'fee',
         };
         return this.safeString (ledgerType, type, type);
+    }
+
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name ცეხ#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-funding-history
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['dateFrom'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request['dateTo'] = this.iso8601 (until);
+        }
+        const response = await this.privatePostGetMyFundingHistory (this.extend (request, params));
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": [
+        //            {
+        //                "clientId": "up421445425",
+        //                "accountId": "",
+        //                "currency": "USDT",
+        //                "direction": "withdraw",
+        //                "amount": "12.39060600",
+        //                "commissionAmount": "0.00000000",
+        //                "status": "approved",
+        //                "updatedAt": "2024-10-14T14:08:50.013Z",
+        //                "txId": "30367718",
+        //                "details": {}
+        //            },
+        //            ...
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        const currencyId = this.safeString (transaction, 'currency');
+        const direction = this.safeString (transaction, 'direction');
+        const type = (direction === 'withdraw') ? 'withdrawal' : 'deposit';
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const updatedAt = this.safeString (transaction, 'updatedAt');
+        const timestamp = this.parse8601 (updatedAt);
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'txId'),
+            'txid': undefined,
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': code,
+                'cost': this.safeNumber (transaction, 'commissionAmount'),
+            },
+            'internal': undefined,
+        };
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            'approved': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
