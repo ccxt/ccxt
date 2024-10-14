@@ -40,6 +40,8 @@ export default class cex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -851,6 +853,203 @@ export default class cex extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchOrdersByStatus (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name cex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const isClosedOrders = (status === 'closed');
+        if (isClosedOrders) {
+            request['archived'] = true;
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['serverCreateTimestampFrom'] = since;
+        } else if (isClosedOrders) {
+            // exchange requires a `since` parameter for closed orders, so set default to allowed 365
+            request['serverCreateTimestampFrom'] = this.milliseconds () - 364 * 24 * 60 * 60 * 1000;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request['serverCreateTimestampTo'] = until;
+        }
+        const response = await this.privatePostGetMyOrders (this.extend (request, params));
+        //
+        // if called without `pair`
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": [
+        //            {
+        //                "orderId": "1313003",
+        //                "clientOrderId": "037F0AFEB93A",
+        //                "clientId": "up132245425",
+        //                "accountId": null,
+        //                "status": "FILLED",
+        //                "statusIsFinal": true,
+        //                "currency1": "AI",
+        //                "currency2": "USDT",
+        //                "side": "BUY",
+        //                "orderType": "Market",
+        //                "timeInForce": "IOC",
+        //                "comment": null,
+        //                "rejectCode": null,
+        //                "rejectReason": null,
+        //                "initialOnHoldAmountCcy1": null,
+        //                "initialOnHoldAmountCcy2": "10.23456700",
+        //                "executedAmountCcy1": "25.606429",
+        //                "executedAmountCcy2": "10.20904439",
+        //                "requestedAmountCcy1": null,
+        //                "requestedAmountCcy2": "10.20904439",
+        //                "originalAmountCcy2": "10.23456700",
+        //                "feeAmount": "0.02552261",
+        //                "feeCurrency": "USDT",
+        //                "price": null,
+        //                "averagePrice": "0.3986",
+        //                "clientCreateTimestamp": "1728474625320",
+        //                "serverCreateTimestamp": "1728474624956",
+        //                "lastUpdateTimestamp": "1728474628015",
+        //                "expireTime": null,
+        //                "effectiveTime": null
+        //            },
+        //            ...
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchClosedOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+         * @param {int} [limit] max number of orders to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOpenOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+         * @param {int} [limit] max number of orders to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+        };
+        return this.safeString (statuses, status, undefined);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //                "orderId": "1313003",
+        //                "clientOrderId": "037F0AFEB93A",
+        //                "clientId": "up132245425",
+        //                "accountId": null,
+        //                "status": "FILLED",
+        //                "statusIsFinal": true,
+        //                "currency1": "AI",
+        //                "currency2": "USDT",
+        //                "side": "BUY",
+        //                "orderType": "Market",
+        //                "timeInForce": "IOC",
+        //                "comment": null,
+        //                "rejectCode": null,
+        //                "rejectReason": null,
+        //                "initialOnHoldAmountCcy1": null,
+        //                "initialOnHoldAmountCcy2": "10.23456700",
+        //                "executedAmountCcy1": "25.606429",
+        //                "executedAmountCcy2": "10.20904439",
+        //                "requestedAmountCcy1": null,
+        //                "requestedAmountCcy2": "10.20904439",
+        //                "originalAmountCcy2": "10.23456700",
+        //                "feeAmount": "0.02552261",
+        //                "feeCurrency": "USDT",
+        //                "price": null,
+        //                "averagePrice": "0.3986",
+        //                "clientCreateTimestamp": "1728474625320",
+        //                "serverCreateTimestamp": "1728474624956",
+        //                "lastUpdateTimestamp": "1728474628015",
+        //                "expireTime": null,
+        //                "effectiveTime": null
+        //
+        const currency1 = this.safeString (order, 'currency1');
+        const currency2 = this.safeString (order, 'currency2');
+        const marketId = currency1 + '-' + currency2;
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const fee = {};
+        const feeAmount = this.safeNumber (order, 'feeAmount');
+        if (feeAmount !== undefined) {
+            const currencyId = this.safeString (order, 'feeCurrency');
+            const feeCode = this.safeCurrencyCode (currencyId);
+            fee['currency'] = feeCode;
+            fee['fee'] = feeAmount;
+        }
+        const timestamp = this.safeInteger (order, 'serverCreateTimestamp');
+        const requestedBase = this.safeNumber (order, 'requestedAmountCcy1');
+        const executedBase = this.safeNumber (order, 'executedAmountCcy1');
+        // const requestedQuote = this.safeNumber (order, 'requestedAmountCcy2');
+        const executedQuote = this.safeNumber (order, 'executedAmountCcy2');
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': this.safeInteger (order, 'lastUpdateTimestamp'),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': this.safeStringLower (order, 'orderType'),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': undefined,
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.safeNumber (order, 'price'),
+            'stopPrice': undefined,
+            'amount': requestedBase,
+            'cost': executedQuote,
+            'average': this.safeNumber (order, 'averagePrice'),
+            'filled': executedBase,
+            'remaining': undefined,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+            'info': order,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
