@@ -609,10 +609,11 @@ export default class bingx extends Exchange {
                         'max': this.safeNumber(rawNetwork, 'withdrawMax'),
                     },
                 };
+                fee = this.safeNumber(rawNetwork, 'withdrawFee');
                 if (isDefault) {
-                    fee = this.safeNumber(rawNetwork, 'withdrawFee');
                     defaultLimits = limits;
                 }
+                const precision = this.safeNumber(rawNetwork, 'withdrawPrecision');
                 const networkActive = networkDepositEnabled || networkWithdrawEnabled;
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -622,7 +623,7 @@ export default class bingx extends Exchange {
                     'active': networkActive,
                     'deposit': networkDepositEnabled,
                     'withdraw': networkWithdrawEnabled,
-                    'precision': undefined,
+                    'precision': precision,
                     'limits': limits,
                 };
             }

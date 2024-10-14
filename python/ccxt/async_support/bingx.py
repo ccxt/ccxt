@@ -614,9 +614,10 @@ class bingx(Exchange, ImplicitAPI):
                         'max': self.safe_number(rawNetwork, 'withdrawMax'),
                     },
                 }
+                fee = self.safe_number(rawNetwork, 'withdrawFee')
                 if isDefault:
-                    fee = self.safe_number(rawNetwork, 'withdrawFee')
                     defaultLimits = limits
+                precision = self.safe_number(rawNetwork, 'withdrawPrecision')
                 networkActive = networkDepositEnabled or networkWithdrawEnabled
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -626,7 +627,7 @@ class bingx(Exchange, ImplicitAPI):
                     'active': networkActive,
                     'deposit': networkDepositEnabled,
                     'withdraw': networkWithdrawEnabled,
-                    'precision': None,
+                    'precision': precision,
                     'limits': limits,
                 }
             active = depositEnabled or withdrawEnabled
