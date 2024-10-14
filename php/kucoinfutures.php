@@ -37,6 +37,7 @@ class kucoinfutures extends kucoin {
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopLossOrder' => true,
@@ -240,6 +241,7 @@ class kucoinfutures extends kucoin {
                     '400100' => '\\ccxt\\BadRequest', // Parameter Error -- You tried to access the resource with invalid parameters
                     '411100' => '\\ccxt\\AccountSuspended', // User is frozen -- Please contact us via support center
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
+                    '300009' => '\\ccxt\\InvalidOrder', // array("msg":"No open positions to close.","code":"300009")
                 ),
                 'broad' => array(
                     'Position does not exist' => '\\ccxt\\OrderNotFound', // array( "code":"200000", "msg":"Position does not exist" )
@@ -1400,12 +1402,15 @@ class kucoinfutures extends kucoin {
         /**
          * Create an order on the exchange
          * @see https://docs.kucoin.com/futures/#place-an-order
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $type 'limit' or 'market'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
@@ -1427,12 +1432,17 @@ class kucoinfutures extends kucoin {
         $market = $this->market($symbol);
         $testOrder = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
+        $isTpAndSlOrder = ($this->safe_value($params, 'stopLoss') !== null) || ($this->safe_value($params, 'takeProfit') !== null);
         $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($testOrder) {
             $response = $this->futuresPrivatePostOrdersTest ($orderRequest);
         } else {
-            $response = $this->futuresPrivatePostOrders ($orderRequest);
+            if ($isTpAndSlOrder) {
+                $response = $this->futuresPrivatePostStOrders ($orderRequest);
+            } else {
+                $response = $this->futuresPrivatePostOrders ($orderRequest);
+            }
         }
         //
         //    {
@@ -1512,6 +1522,9 @@ class kucoinfutures extends kucoin {
             'leverage' => 1,
         );
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        // $isTpAndSl = $stopLossPrice && $takeProfitPrice;
         $triggerPriceTypes = array(
             'mark' => 'MP',
             'last' => 'TP',
@@ -1519,11 +1532,24 @@ class kucoinfutures extends kucoin {
         );
         $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'mark');
         $triggerPriceTypeValue = $this->safe_string($triggerPriceTypes, $triggerPriceType, $triggerPriceType);
-        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
+        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'takeProfit', 'stopLoss' ));
         if ($triggerPrice) {
             $request['stop'] = ($side === 'buy') ? 'up' : 'down';
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['stopPriceType'] = $triggerPriceTypeValue;
+        } elseif ($stopLoss !== null || $takeProfit !== null) {
+            $priceType = $triggerPriceTypeValue;
+            if ($stopLoss !== null) {
+                $slPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
+                $request['triggerStopDownPrice'] = $this->price_to_precision($symbol, $slPrice);
+                $priceType = $this->safe_string($stopLoss, 'triggerPriceType', $triggerPriceTypeValue);
+            }
+            if ($takeProfit !== null) {
+                $tpPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'takeProfitPrice');
+                $request['triggerStopUpPrice'] = $this->price_to_precision($symbol, $tpPrice);
+                $priceType = $this->safe_string($stopLoss, 'triggerPriceType', $triggerPriceTypeValue);
+            }
+            $request['stopPriceType'] = $priceType;
         } elseif ($stopLossPrice || $takeProfitPrice) {
             if ($stopLossPrice) {
                 $request['stop'] = ($side === 'buy') ? 'up' : 'down';
