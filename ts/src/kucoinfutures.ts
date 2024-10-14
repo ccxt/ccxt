@@ -40,6 +40,7 @@ export default class kucoinfutures extends kucoin {
                 'closePositions': false,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -244,6 +245,7 @@ export default class kucoinfutures extends kucoin {
                     '400100': BadRequest, // Parameter Error -- You tried to access the resource with invalid parameters
                     '411100': AccountSuspended, // User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                    '300009': InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
                 },
                 'broad': {
                     'Position does not exist': OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
@@ -1434,12 +1436,15 @@ export default class kucoinfutures extends kucoin {
          * @name kucoinfutures#createOrder
          * @description Create an order on the exchange
          * @see https://docs.kucoin.com/futures/#place-an-order
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
@@ -1461,12 +1466,17 @@ export default class kucoinfutures extends kucoin {
         const market = this.market (symbol);
         const testOrder = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
+        const isTpAndSlOrder = (this.safeValue (params, 'stopLoss') !== undefined) || (this.safeValue (params, 'takeProfit') !== undefined);
         const orderRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (testOrder) {
             response = await this.futuresPrivatePostOrdersTest (orderRequest);
         } else {
-            response = await this.futuresPrivatePostOrders (orderRequest);
+            if (isTpAndSlOrder) {
+                response = await this.futuresPrivatePostStOrders (orderRequest);
+            } else {
+                response = await this.futuresPrivatePostOrders (orderRequest);
+            }
         }
         //
         //    {
@@ -1548,6 +1558,9 @@ export default class kucoinfutures extends kucoin {
             'leverage': 1,
         };
         const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
+        // const isTpAndSl = stopLossPrice && takeProfitPrice;
         const triggerPriceTypes: Dict = {
             'mark': 'MP',
             'last': 'TP',
@@ -1555,11 +1568,24 @@ export default class kucoinfutures extends kucoin {
         };
         const triggerPriceType = this.safeString (params, 'triggerPriceType', 'mark');
         const triggerPriceTypeValue = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
-        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'takeProfit', 'stopLoss' ]);
         if (triggerPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             request['stopPriceType'] = triggerPriceTypeValue;
+        } else if (stopLoss !== undefined || takeProfit !== undefined) {
+            let priceType = triggerPriceTypeValue;
+            if (stopLoss !== undefined) {
+                const slPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice');
+                request['triggerStopDownPrice'] = this.priceToPrecision (symbol, slPrice);
+                priceType = this.safeString (stopLoss, 'triggerPriceType', triggerPriceTypeValue);
+            }
+            if (takeProfit !== undefined) {
+                const tpPrice = this.safeString2 (takeProfit, 'triggerPrice', 'takeProfitPrice');
+                request['triggerStopUpPrice'] = this.priceToPrecision (symbol, tpPrice);
+                priceType = this.safeString (stopLoss, 'triggerPriceType', triggerPriceTypeValue);
+            }
+            request['stopPriceType'] = priceType;
         } else if (stopLossPrice || takeProfitPrice) {
             if (stopLossPrice) {
                 request['stop'] = (side === 'buy') ? 'up' : 'down';
