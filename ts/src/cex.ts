@@ -43,6 +43,7 @@ export default class cex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'cancelOrder': true,
+                'cancelAllOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -1076,6 +1077,38 @@ export default class cex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
+    }
+
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
+         * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostDoCancelAllOrders (params);
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "clientOrderIds": [
+        //                "3AF77B67109F"
+        //            ]
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const ids = this.safeList (data, 'clientOrderIds', []);
+        const orders = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            orders.push ({ 'clientOrderId': id });
+        }
+        return this.parseOrders (orders);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
