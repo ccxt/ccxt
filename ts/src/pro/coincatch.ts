@@ -179,7 +179,7 @@ export default class coincatch extends coincatchRest {
     async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ instType, instId ] = this.getInstTypeAndId (market);
+        const [ instType, instId ] = this.getPublicInstTypeAndId (market);
         const messageHash = 'unsubscribe:' + messageHashTopic + ':' + symbol;
         const args: Dict = {
             'instType': instType,
@@ -189,7 +189,7 @@ export default class coincatch extends coincatchRest {
         return await this.unWatchPublic (messageHash, args, params);
     }
 
-    getInstTypeAndId (market: Market) {
+    getPublicInstTypeAndId (market: Market) {
         const instId = market['baseId'] + market['quoteId'];
         let instType = undefined;
         if (market['spot']) {
@@ -237,7 +237,7 @@ export default class coincatch extends coincatchRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ instType, instId ] = this.getInstTypeAndId (market);
+        const [ instType, instId ] = this.getPublicInstTypeAndId (market);
         const channel = 'ticker';
         const messageHash = channel + ':' + symbol;
         const args: Dict = {
@@ -280,7 +280,7 @@ export default class coincatch extends coincatchRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const [ instType, instId ] = this.getInstTypeAndId (market);
+            const [ instType, instId ] = this.getPublicInstTypeAndId (market);
             const args: Dict = {
                 'instType': instType,
                 'channel': 'ticker',
@@ -431,7 +431,7 @@ export default class coincatch extends coincatchRest {
         const market = this.market (symbol);
         const timeframes = this.options['timeframesForWs'];
         const channel = 'candle' + this.safeString (timeframes, timeframe);
-        const [ instType, instId ] = this.getInstTypeAndId (market);
+        const [ instType, instId ] = this.getPublicInstTypeAndId (market);
         const args: Dict = {
             'instType': instType,
             'channel': channel,
@@ -582,7 +582,7 @@ export default class coincatch extends coincatchRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const [ instType, instId ] = this.getInstTypeAndId (market);
+            const [ instType, instId ] = this.getPublicInstTypeAndId (market);
             const args: Dict = {
                 'instType': instType,
                 'channel': channel,
@@ -729,7 +729,7 @@ export default class coincatch extends coincatchRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const [ instType, instId ] = this.getInstTypeAndId (market);
+            const [ instType, instId ] = this.getPublicInstTypeAndId (market);
             const args: Dict = {
                 'instType': instType,
                 'channel': 'trade',
@@ -919,35 +919,49 @@ export default class coincatch extends coincatchRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'spot', 'swap'
+         * @param {string} [params.type] 'spot' or 'swap'
          * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const methodName = 'watchOrders';
         await this.loadMarkets ();
         let market = undefined;
         let marketId = undefined;
-        const messageHash = 'order';
-        let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             marketId = market['id'];
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        if ((type === 'spot') && (symbol === undefined)) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        let instType = 'spbl';
+        let instId = marketId;
+        if (marketType === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for ' + marketType + ' markets.');
+            }
+        } else {
+            instId = 'default';
+            instType = 'umcbl';
+            if (symbol === undefined) {
+                [ instType, params ] = this.handleOptionAndParams (params, methodName, 'instType', instType);
+            } else {
+                if (marketId.indexOf ('_DMCBL') >= 0) {
+                    instType = 'dmcbl';
+                }
+            }
         }
-        const instType = 'spbl';
-        const instId = (type === 'spot') ? marketId : 'default'; // swap orders require 'default' instId
         const channel = 'orders';
-        subscriptionHash = subscriptionHash + ':' + instType;
         const args: Dict = {
             'instType': instType,
             'channel': channel,
             'instId': instId,
         };
-        const orders = await this.watchPrivate (messageHash, subscriptionHash, args, params);
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            messageHash += ':' + symbol;
+        }
+        const orders = await this.watchPrivate (messageHash, messageHash, args, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -962,24 +976,24 @@ export default class coincatch extends coincatchRest {
         //         action: 'snapshot',
         //         arg: { instType: 'spbl', channel: 'orders', instId: 'ETHUSDT_SPBL' },
         //         data: [
-        //         {
-        //             instId: 'ETHUSDT_SPBL',
-        //             ordId: '1228627925964996608',
-        //             clOrdId: 'f0cccf74-c535-4523-a53d-dbe3b9958559',
-        //             px: '2000',
-        //             sz: '0.001',
-        //             notional: '2',
-        //             ordType: 'limit',
-        //             force: 'normal',
-        //             side: 'buy',
-        //             accFillSz: '0',
-        //             avgPx: '0',
-        //             status: 'new',
-        //             cTime: 1728653645030,
-        //             uTime: 1728653645030,
-        //             orderFee: [],
-        //             eps: 'API'
-        //         }
+        //             {
+        //                 instId: 'ETHUSDT_SPBL',
+        //                 ordId: '1228627925964996608',
+        //                 clOrdId: 'f0cccf74-c535-4523-a53d-dbe3b9958559',
+        //                 px: '2000',
+        //                 sz: '0.001',
+        //                 notional: '2',
+        //                 ordType: 'limit',
+        //                 force: 'normal',
+        //                 side: 'buy',
+        //                 accFillSz: '0',
+        //                 avgPx: '0',
+        //                 status: 'new',
+        //                 cTime: 1728653645030,
+        //                 uTime: 1728653645030,
+        //                 orderFee: [],
+        //                 eps: 'API'
+        //             }
         //         ],
         //         ts: 1728653645046
         //     }
@@ -990,30 +1004,30 @@ export default class coincatch extends coincatchRest {
         //         action: 'snapshot',
         //         arg: { instType: 'umcbl', channel: 'orders', instId: 'default' },
         //         data: [
-        //         {
-        //             accFillSz: '0',
-        //             cTime: 1728653796976,
-        //             clOrdId: '1228628563272753152',
-        //             eps: 'API',
-        //             force: 'normal',
-        //             hM: 'single_hold',
-        //             instId: 'ETHUSDT_UMCBL',
-        //             lever: '5',
-        //             low: false,
-        //             notionalUsd: '20',
-        //             ordId: '1228628563188867072',
-        //             ordType: 'limit',
-        //             orderFee: [Array],
-        //             posSide: 'net',
-        //             px: '2000',
-        //             side: 'buy',
-        //             status: 'new',
-        //             sz: '0.01',
-        //             tS: 'buy_single',
-        //             tdMode: 'cross',
-        //             tgtCcy: 'USDT',
-        //             uTime: 1728653796976
-        //         }
+        //             {
+        //                 accFillSz: '0',
+        //                 cTime: 1728653796976,
+        //                 clOrdId: '1228628563272753152',
+        //                 eps: 'API',
+        //                 force: 'normal',
+        //                 hM: 'single_hold',
+        //                 instId: 'ETHUSDT_UMCBL',
+        //                 lever: '5',
+        //                 low: false,
+        //                 notionalUsd: '20',
+        //                 ordId: '1228628563188867072',
+        //                 ordType: 'limit',
+        //                 orderFee: [],
+        //                 posSide: 'net',
+        //                 px: '2000',
+        //                 side: 'buy',
+        //                 status: 'new',
+        //                 sz: '0.01',
+        //                 tS: 'buy_single',
+        //                 tdMode: 'cross',
+        //                 tgtCcy: 'USDT',
+        //                 uTime: 1728653796976
+        //             }
         //         ],
         //         ts: 1728653797002
         //     }
@@ -1033,19 +1047,23 @@ export default class coincatch extends coincatchRest {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const hash = 'orders';
         const stored = this.orders;
-        const messageHash = 'order';
+        let symbol: Str = undefined;
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
             const marketId = this.safeString (order, 'instId', argInstId);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const parsed = this.parseWsOrder (order, market);
             stored.append (parsed);
+            symbol = parsed['symbol'];
+            const messageHash = 'orders:' + symbol;
+            client.resolve (stored, messageHash);
         }
-        client.resolve (stored, messageHash);
+        client.resolve (stored, hash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //     {
@@ -1063,8 +1081,34 @@ export default class coincatch extends coincatchRest {
         //         status: 'new',
         //         cTime: 1728653645030,
         //         uTime: 1728653645030,
-        //         orderFee: [],
+        //         orderFee: orderFee: [ { fee: '0', feeCcy: 'USDT' } ],
         //         eps: 'API'
+        //     }
+        //
+        // swap
+        //     {
+        //         accFillSz: '0',
+        //         cTime: 1728653796976,
+        //         clOrdId: '1228628563272753152',
+        //         eps: 'API',
+        //         force: 'normal',
+        //         hM: 'single_hold',
+        //         instId: 'ETHUSDT_UMCBL',
+        //         lever: '5',
+        //         low: false,
+        //         notionalUsd: '20',
+        //         ordId: '1228628563188867072',
+        //         ordType: 'limit',
+        //         orderFee: [ { fee: '0', feeCcy: 'USDT' } ],
+        //         posSide: 'net',
+        //         px: '2000',
+        //         side: 'buy',
+        //         status: 'new',
+        //         sz: '0.01',
+        //         tS: 'buy_single',
+        //         tdMode: 'cross',
+        //         tgtCcy: 'USDT',
+        //         uTime: 1728653796976
         //     }
         //
         const marketId = this.safeString (order, 'instId');
@@ -1074,57 +1118,44 @@ export default class coincatch extends coincatchRest {
         const rawStatus = this.safeString (order, 'status');
         const orderFee = this.safeList (order, 'orderFee', []);
         const fee = this.safeDict (orderFee, 0);
-        const feeAmount = this.safeString (fee, 'fee');
-        let feeObject = undefined;
-        if (feeAmount !== undefined) {
-            const feeCurrency = this.safeString (fee, 'feeCoin');
-            feeObject = {
-                'cost': this.parseNumber (Precise.stringAbs (feeAmount)),
-                'currency': this.safeCurrencyCode (feeCurrency),
-            };
-        }
+        const feeCost = Precise.stringMul (this.safeString (fee, 'fee'), '-1');
+        const feeCurrency = this.safeString (fee, 'feeCcy');
         let price = this.omitZero (this.safeString (order, 'px'));
         const priceAvg = this.omitZero (this.safeString (order, 'avgPx'));
         if (price === undefined) {
             price = priceAvg;
         }
-        const amount = this.safeString (order, 'sz');
-        const side = this.safeString (order, 'side');
-        const type = this.safeString (order, 'ordType');
+        const type = this.safeStringLower (order, 'ordType');
         return this.safeOrder ({
-            'info': order,
-            'symbol': symbol,
             'id': this.safeString (order, 'ordId'),
             'clientOrderId': this.safeString (order, 'clOrdId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': this.safeInteger (order, 'uTime'),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'uTime'),
+            'status': this.parseOrderStatus (rawStatus),
+            'symbol': symbol,
             'type': type,
-            'timeInForce': this.safeStringUpper (order, 'force'),
-            'postOnly': undefined,
-            'side': side,
+            'timeInForce': this.parseOrderTimeInForce (this.safeStringLower (order, 'force')),
+            'side': this.safeStringLower (order, 'side'),
             'price': price,
-            'triggerPrice': undefined,
-            'amount': amount,
-            'cost': this.safeString (order, 'notional'),
             'average': this.safeString (order, 'avgPx'),
+            'amount': this.safeString (order, 'sz'),
             'filled': this.safeString (order, 'accFillSz'),
             'remaining': undefined,
-            'status': this.parseWsOrderStatus (rawStatus),
-            'fee': feeObject,
+            'triggerPrice': undefined,
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
+            'cost': this.safeString (order, 'notional'),
             'trades': undefined,
+            'fee': {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            },
+            'reduceOnly': this.safeBool (order, 'low'),
+            'postOnly': undefined,
+            'info': order,
         }, market);
-    }
-
-    parseWsOrderStatus (status) {
-        const statuses: Dict = {
-            'init': 'open',
-            'new': 'open',
-            'partially_filled': 'open',
-            'full_fill': 'closed',
-            'cancelled': 'canceled',
-        };
-        return this.safeString (statuses, status, status);
     }
 
     handleErrorMessage (client: Client, message) {
