@@ -10,6 +10,29 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     v1PublicGetHealthcheckPing (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetSymbolsSymbolOhlc (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetSymbolsSymbolTrades (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetSymbolsSymbolPrices (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetSymbolsSymbolTicker24hr (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetSymbolsSymbolDepth5001 (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetTicker24HrAgg (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetCMarkets (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetCMarketsMetadata (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsNewUsers (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsTvl (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsVolumeByInstrument (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsLiquidation (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsTotalVolume (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsOpenInterest (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsTotalTrades (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsBasis (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsInsuranceFund (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsLongAndShortRatio (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketStatsFundingRate (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetAnalyticsMarketOverview (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetExplorerSearch (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetExplorerTransactions (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetExplorerBlocks (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
