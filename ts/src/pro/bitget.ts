@@ -1152,43 +1152,33 @@ export default class bitget extends bitgetRest {
          */
         await this.loadMarkets ();
         let market = undefined;
-        let marketId = undefined;
-        let isTrigger = undefined;
-        [ isTrigger, params ] = this.isTriggerOrder (params);
-        let messageHash = (isTrigger) ? 'triggerOrder' : 'order';
-        let subscriptionHash = 'order:trades';
+        let type = undefined;
+        let subType = undefined;
+        let settle = undefined;
+        let instId = undefined;
+        let instType = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            marketId = market['id'];
-            messageHash = messageHash + ':' + symbol;
+            instId = market['id'];
         }
-        const productType = this.safeString (params, 'productType');
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params, 'linear');
-        if ((type === 'spot' || type === 'margin') && (symbol === undefined)) {
+        [ params, type, subType, settle, instType ] = this.handleProductTypesAndParams (market, 'watchOrders', params);
+        if (type !== 'spot' && type !== 'margin') {
+            instId = 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        } else if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        if ((productType === undefined) && (type !== 'spot') && (symbol === undefined)) {
-            messageHash = messageHash + ':' + subType;
-        } else if (productType === 'USDT-FUTURES') {
-            messageHash = messageHash + ':linear';
-        } else if (productType === 'COIN-FUTURES') {
-            messageHash = messageHash + ':inverse';
-        } else if (productType === 'USDC-FUTURES') {
-            messageHash = messageHash + ':usdcfutures'; // non unified channel
+        let isTrigger = undefined;
+        [ isTrigger, params ] = this.isTriggerOrder (params);
+        let messageHash = (!isTrigger) ? 'order' : 'order:trigger';
+        if (symbol === undefined) {
+            messageHash += ':' + subType;
+            if (settle !== undefined) {
+                messageHash += ':' + settle;
+            }
+        } else {
+            messageHash += ':' + symbol;
         }
-        let instType = undefined;
-        [ instType, params ] = this.getInstType (market, params);
-        if (type === 'spot') {
-            subscriptionHash = subscriptionHash + ':' + symbol;
-        }
-        if (isTrigger) {
-            subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
-        }
-        const instId = (type === 'spot' || type === 'margin') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         let channel = isTrigger ? 'orders-algo' : 'orders';
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('watchOrders', params);
@@ -1201,13 +1191,12 @@ export default class bitget extends bitgetRest {
                 channel = 'orders-crossed';
             }
         }
-        subscriptionHash = subscriptionHash + ':' + instType;
         const args: Dict = {
             'instType': instType,
             'channel': channel,
             'instId': instId,
         };
-        const orders = await this.watchPrivate (messageHash, subscriptionHash, args, params);
+        const orders = await this.watchPrivate (messageHash, messageHash, args, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1261,9 +1250,6 @@ export default class bitget extends bitgetRest {
         } else {
             marketType = 'contract';
         }
-        const isLinearSwap = (instType === 'USDT-FUTURES');
-        const isInverseSwap = (instType === 'COIN-FUTURES');
-        const isUSDCFutures = (instType === 'USDC-FUTURES');
         const data = this.safeValue (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1272,7 +1258,7 @@ export default class bitget extends bitgetRest {
         }
         const isTrigger = (channel === 'orders-algo') || (channel === 'ordersAlgo');
         const stored = isTrigger ? this.triggerOrders : this.orders;
-        const messageHash = isTrigger ? 'triggerOrder' : 'order';
+        const messageHash = (!isTrigger) ? 'order' : 'order:trigger';
         const marketSymbols: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -1295,14 +1281,12 @@ export default class bitget extends bitgetRest {
             client.resolve (stored, innerMessageHash);
         }
         client.resolve (stored, messageHash);
-        if (isLinearSwap) {
-            client.resolve (stored, 'order:linear');
-        }
-        if (isInverseSwap) {
+        if (instType === 'USDT-FUTURES') {
+            client.resolve (stored, 'order:linear:USDT');
+        } else if (instType === 'USDC-FUTURES') {
+            client.resolve (stored, 'order:linear:USDC');
+        } else if (instType === 'COIN-FUTURES') {
             client.resolve (stored, 'order:inverse');
-        }
-        if (isUSDCFutures) {
-            client.resolve (stored, 'order:usdcfutures');
         }
     }
 
