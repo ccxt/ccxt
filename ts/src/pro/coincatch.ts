@@ -3,10 +3,10 @@
 import coincatchRest from '../coincatch.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ChecksumError, ExchangeError, NotSupported, RateLimitExceeded, UnsubscribeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -126,14 +126,14 @@ export default class coincatch extends coincatchRest {
         return await future;
     }
 
-    async watchPublic (messageHash, args, params = {}) {
+    async watchPublic (messageHash, subscribeHash, args, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'op': 'subscribe',
             'args': [ args ],
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, subscribeHash);
     }
 
     async unWatchPublic (messageHash, args, params = {}) {
@@ -146,7 +146,7 @@ export default class coincatch extends coincatchRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, subscriptionHash, args, params = {}) {
+    async watchPrivate (messageHash, subscribeHash, args, params = {}) {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const request: Dict = {
@@ -154,7 +154,18 @@ export default class coincatch extends coincatchRest {
             'args': [ args ],
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, subscriptionHash);
+        return await this.watch (url, messageHash, message, subscribeHash);
+    }
+
+    async watchPrivateMultiple (messageHashes, subscribeHashes, args, params = {}) {
+        await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const request: Dict = {
+            'op': 'subscribe',
+            'args': args,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, subscribeHashes);
     }
 
     handleAuthenticate (client: Client, message) {
@@ -166,14 +177,14 @@ export default class coincatch extends coincatchRest {
         future.resolve (true);
     }
 
-    async watchPublicMultiple (messageHashes, argsArray, params = {}) {
+    async watchPublicMultiple (messageHashes, subscribeHashes, argsArray, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'op': 'subscribe',
             'args': argsArray,
         };
         const message = this.extend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+        return await this.watchMultiple (url, messageHashes, message, subscribeHashes);
     }
 
     async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, params = {}): Promise<any> {
@@ -245,7 +256,7 @@ export default class coincatch extends coincatchRest {
             'channel': channel,
             'instId': instId,
         };
-        return await this.watchPublic (messageHash, args, params);
+        return await this.watchPublic (messageHash, messageHash, args, params);
     }
 
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
@@ -289,7 +300,7 @@ export default class coincatch extends coincatchRest {
             topics.push (args);
             messageHashes.push ('ticker:' + symbol);
         }
-        const tickers = await this.watchPublicMultiple (messageHashes, topics, params);
+        const tickers = await this.watchPublicMultiple (messageHashes, messageHashes, topics, params);
         if (this.newUpdates) {
             const result: Dict = {};
             result[tickers['symbol']] = tickers;
@@ -438,7 +449,7 @@ export default class coincatch extends coincatchRest {
             'instId': instId,
         };
         const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
-        const ohlcv = await this.watchPublic (messageHash, args, params);
+        const ohlcv = await this.watchPublic (messageHash, messageHash, args, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -591,7 +602,7 @@ export default class coincatch extends coincatchRest {
             topics.push (args);
             messageHashes.push (channel + ':' + symbol);
         }
-        const orderbook = await this.watchPublicMultiple (messageHashes, topics, params);
+        const orderbook = await this.watchPublicMultiple (messageHashes, messageHashes, topics, params);
         return orderbook.limit ();
     }
 
@@ -738,7 +749,7 @@ export default class coincatch extends coincatchRest {
             topics.push (args);
             messageHashes.push ('trade:' + symbol);
         }
-        const trades = await this.watchPublicMultiple (messageHashes, topics, params);
+        const trades = await this.watchPublicMultiple (messageHashes, messageHashes, topics, params);
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -1112,7 +1123,8 @@ export default class coincatch extends coincatchRest {
         //     }
         //
         const marketId = this.safeString (order, 'instId');
-        market = this.safeMarketCustom (marketId, market);
+        const settleId = this.safeString (order, 'tgtCcy');
+        market = this.safeMarketCustom (marketId, market, settleId);
         const timestamp = this.safeInteger (order, 'cTime');
         const symbol = market['symbol'];
         const rawStatus = this.safeString (order, 'status');
@@ -1156,6 +1168,207 @@ export default class coincatch extends coincatchRest {
             'postOnly': undefined,
             'info': order,
         }, market);
+    }
+
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name coincatch#watchPositions
+         * @description watch all open positions
+         * @see https://coincatch.github.io/github.io/en/mix/#positions-channel
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, 'swap');
+        const messageHashes = [];
+        const hash = 'positions';
+        let instTypes = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                const instType = this.getPrivateInstType (market);
+                if (!this.inArray (instType, instTypes)) {
+                    instTypes.push (instType);
+                }
+                messageHashes.push (hash + '::' + symbol);
+            }
+        } else {
+            instTypes = [ 'umcbl', 'dmcbl' ];
+            messageHashes.push (hash);
+        }
+        const args = [];
+        const subscribeHashes = [];
+        for (let i = 0; i < instTypes.length; i++) {
+            const instType = instTypes[i];
+            const arg: Dict = {
+                'instType': instType,
+                'channel': hash,
+                'instId': 'default',
+            };
+            subscribeHashes.push (hash + '::' + instType);
+            args.push (arg);
+        }
+        const newPositions = await this.watchPrivateMultiple (messageHashes, subscribeHashes, args, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (newPositions, symbols, since, limit, true);
+    }
+
+    getPrivateInstType (market: Market) {
+        const marketId = market['id'];
+        if (marketId.indexOf ('_DMCBL') >= 0) {
+            return 'dmcbl';
+        }
+        return 'umcbl';
+    }
+
+    handlePositions (client: Client, message) {
+        //
+        //     {
+        //         action: 'snapshot',
+        //         arg: { instType: 'umcbl', channel: 'positions', instId: 'default' },
+        //         data: [
+        //             {
+        //                 posId: '1221355728745619456',
+        //                 instId: 'ETHUSDT_UMCBL',
+        //                 instName: 'ETHUSDT',
+        //                 marginCoin: 'USDT',
+        //                 margin: '5.27182',
+        //                 marginMode: 'crossed',
+        //                 holdSide: 'long',
+        //                 holdMode: 'single_hold',
+        //                 total: '0.01',
+        //                 available: '0.01',
+        //                 locked: '0',
+        //                 averageOpenPrice: '2635.91',
+        //                 leverage: 5,
+        //                 achievedProfits: '0',
+        //                 upl: '-0.0267',
+        //                 uplRate: '-0.005064664576',
+        //                 liqPx: '-3110.66866033',
+        //                 keepMarginRate: '0.0033',
+        //                 marginRate: '0.002460827254',
+        //                 cTime: '1726919818102',
+        //                 uTime: '1728919604312',
+        //                 markPrice: '2633.24',
+        //                 autoMargin: 'off'
+        //             }
+        //         ],
+        //         ts: 1728919604329
+        //     }
+        //
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const rawPositions = this.safeValue (message, 'data', []);
+        const dataLength = rawPositions.length;
+        if (dataLength === 0) {
+            return;
+        }
+        const newPositions = [];
+        const symbols = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parseWsPosition (rawPosition);
+            symbols.push (position['symbol']);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const hash = 'positions';
+        const messageHashes = this.findMessageHashes (client, hash);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbol = parts[1];
+            if (this.inArray (symbol, symbols)) {
+                const positionsForSymbol = [];
+                for (let j = 0; j < newPositions.length; j++) {
+                    const position = newPositions[j];
+                    if (position['symbol'] === symbol) {
+                        positionsForSymbol.push (position);
+                    }
+                }
+                client.resolve (positionsForSymbol, messageHash);
+            }
+        }
+        client.resolve (newPositions, hash);
+    }
+
+    parseWsPosition (position, market = undefined) {
+        //
+        //     {
+        //         posId: '1221355728745619456',
+        //         instId: 'ETHUSDT_UMCBL',
+        //         instName: 'ETHUSDT',
+        //         marginCoin: 'USDT',
+        //         margin: '5.27182',
+        //         marginMode: 'crossed',
+        //         holdSide: 'long',
+        //         holdMode: 'single_hold',
+        //         total: '0.01',
+        //         available: '0.01',
+        //         locked: '0',
+        //         averageOpenPrice: '2635.91',
+        //         leverage: 5,
+        //         achievedProfits: '0',
+        //         upl: '-0.0267',
+        //         uplRate: '-0.005064664576',
+        //         liqPx: '-3110.66866033',
+        //         keepMarginRate: '0.0033',
+        //         marginRate: '0.002460827254',
+        //         cTime: '1726919818102',
+        //         uTime: '1728919604312',
+        //         markPrice: '2633.24',
+        //         autoMargin: 'off'
+        //     }
+        //
+        const marketId = this.safeString (position, 'instId');
+        const settleId = this.safeString (position, 'marginCoin');
+        market = this.safeMarketCustom (marketId, market, settleId);
+        const marginModeId = this.safeString (position, 'marginMode');
+        const marginMode = this.getSupportedMapping (marginModeId, {
+            'crossed': 'cross',
+            'isolated': 'isolated',
+        });
+        const hedgedId = this.safeString (position, 'posMode');
+        const hedged = (hedgedId === 'hedge_mode') ? true : false;
+        const timestamp = this.safeInteger2 (position, 'uTime', 'cTime');
+        const percentageDecimal = this.safeString (position, 'unrealizedPLR');
+        const percentage = Precise.stringMul (percentageDecimal, '100');
+        let contractSize = undefined;
+        if (market !== undefined) {
+            contractSize = market['contractSize'];
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'posId'),
+            'symbol': market['symbol'],
+            'notional': undefined,
+            'marginMode': marginMode,
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'entryPrice': this.safeNumber (position, 'openPriceAvg'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
+            'percentage': this.parseNumber (percentage),
+            'contracts': this.safeNumber (position, 'total'),
+            'contractSize': contractSize,
+            'markPrice': undefined,
+            'side': this.safeString (position, 'holdSide'),
+            'hedged': hedged,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': this.safeNumber (position, 'keepMarginRate'),
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber (position, 'leverage'),
+            'marginRatio': this.safeNumber (position, 'marginRate'),
+        });
     }
 
     handleErrorMessage (client: Client, message) {
@@ -1233,6 +1446,9 @@ export default class coincatch extends coincatchRest {
         }
         if (channel === 'orders') {
             this.handleOrder (client, message);
+        }
+        if (channel === 'positions') {
+            this.handlePositions (client, message);
         }
     }
 
