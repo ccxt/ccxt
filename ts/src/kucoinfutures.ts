@@ -245,6 +245,7 @@ export default class kucoinfutures extends kucoin {
                     '400100': BadRequest, // Parameter Error -- You tried to access the resource with invalid parameters
                     '411100': AccountSuspended, // User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                    '300009': InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
                 },
                 'broad': {
                     'Position does not exist': OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
