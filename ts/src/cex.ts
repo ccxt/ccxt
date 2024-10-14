@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances } from './base/types.js';
+import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -44,6 +44,7 @@ export default class cex extends Exchange {
                 'fetchOpenOrders': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
+                'fetchLedger': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -503,6 +504,7 @@ export default class cex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest entry
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
@@ -625,6 +627,7 @@ export default class cex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest entry
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const dataType = this.safeString (params, 'dataType');
@@ -867,7 +870,7 @@ export default class cex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @param {int} [params.until] timestamp in ms of the latest entry
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1109,6 +1112,99 @@ export default class cex extends Exchange {
             orders.push ({ 'clientOrderId': id });
         }
         return this.parseOrders (orders);
+    }
+
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        /**
+         * @method
+         * @name cex#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-transaction-history
+         * @param {string} [code] unified currency code
+         * @param {int} [since] timestamp in ms of the earliest ledger entry
+         * @param {int} [limit] max number of ledger entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ledger entry
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request: Dict = {};
+        if (since !== undefined) {
+            request['dateFrom'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request['dateTo'] = this.iso8601 (until);
+        }
+        const response = await this.privatePostGetMyTransactionHistory (this.extend (request, params));
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": [
+        //            {
+        //                "transactionId": "30367722",
+        //                "timestamp": "2024-10-14T14:08:49.987Z",
+        //                "accountId": "",
+        //                "type": "withdraw",
+        //                "amount": "-12.39060600",
+        //                "details": "Withdraw fundingId=1235039 clientId=up132245425 walletTxId=76337154166",
+        //                "currency": "USDT"
+        //            },
+        //            ...
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        let amount = this.safeString (item, 'amount');
+        let direction = undefined;
+        if (Precise.stringLe (amount, '0')) {
+            direction = 'out';
+            amount = Precise.stringMul ('-1', amount);
+        } else {
+            direction = 'in';
+        }
+        const currencyId = this.safeString (item, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestampString = this.safeString (item, 'timestamp');
+        const timestamp = this.parse8601 (timestampString);
+        const type = this.safeString (item, 'type');
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'transactionId'),
+            'direction': direction,
+            'account': this.safeString (item, 'accountId'),
+            'referenceAccount': undefined,
+            'referenceId': undefined,
+            'type': this.parseLedgerEntryType (type),
+            'currency': code,
+            'amount': this.parseNumber (amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': undefined,
+            'status': undefined,
+            'fee': undefined,
+        }, currency) as LedgerEntry;
+    }
+
+    parseLedgerEntryType (type) {
+        const ledgerType: Dict = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'commission': 'fee',
+        };
+        return this.safeString (ledgerType, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
