@@ -654,7 +654,18 @@ export default class cex extends Exchange {
         //            ...
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseOHLCVsBy (data, since, limit, false, [ 'timestamp', 'open', 'high', 'low', 'close', 'volume' ]);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 'timestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

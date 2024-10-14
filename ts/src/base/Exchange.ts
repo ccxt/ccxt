@@ -4081,7 +4081,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
-    parseOHLCVsBy (ohlcvs: object[], since: Int = undefined, limit: Int = undefined, tail: Bool = false, keys: any[] = []): OHLCV[] {
+    parseOHLCVsByDict (ohlcvs: object[], since: Int = undefined, limit: Int = undefined, tail: Bool = false, keys: string[] = []): OHLCV[] {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push ([
