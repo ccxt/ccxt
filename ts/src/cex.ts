@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction } from './base/types.js';
+import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -46,11 +46,11 @@ export default class cex extends Exchange {
                 'cancelAllOrders': true,
                 'fetchLedger': true,
                 'fetchDepositsWithdrawals': true,
+                'transfer': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
                 'api': {
-                    // 'rest': 'https://cex.io/api',
                     'public': 'https://trade.cex.io/api/spot/rest-public',
                     'private': 'https://trade.cex.io/api/spot/rest',
                 },
@@ -64,9 +64,7 @@ export default class cex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': {
-
-                    },
+                    'get': {},
                     'post': {
                         'get_server_time': 1,
                         'get_pairs_info': 1,
@@ -79,9 +77,7 @@ export default class cex extends Exchange {
                     },
                 },
                 'private': {
-                    'get': {
-
-                    },
+                    'get': {},
                     'post': {
                         'get_my_current_fee': 5,
                         'get_fee_strategy': 1,
@@ -109,8 +105,7 @@ export default class cex extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
-                'broad': {
-                },
+                'broad': {},
             },
             'timeframes': {
                 '1m': '1m',
@@ -138,7 +133,7 @@ export default class cex extends Exchange {
                     'THETA': 'theta',
                     'XTZ': 'tezos',
                     'TIA': 'celestia',
-                    'CRONOS': 'cronos', //
+                    'CRONOS': 'cronos', // CRC20
                     'MATIC': 'polygon',
                     'TON': 'ton',
                     'TRC20': 'tron',
@@ -1296,9 +1291,69 @@ export default class cex extends Exchange {
 
     parseTransactionStatus (status: Str) {
         const statuses: Dict = {
+            'rejected': 'rejected',
+            'pending': 'pending',
             'approved': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        /**
+         * @method
+         * @name cex#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
+         * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const guid = this.safeString (params, 'guid', this.uuid ());
+        const request: Dict = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'fromAccountId': fromAccount,
+            'toAccountId': toAccount,
+        };
+        const response = await this.privatePostDoMyInternalTransfer (this.extend (request, params));
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "transactionId": "30375415"
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const transfer = this.parseTransfer (data, currency);
+        const fillResponseFromRequest = this.handleOption ('transfer', 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+            transfer['id'] = guid;
+        }
+        return transfer;
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const currencyCode = this.safeCurrencyCode (undefined, currency);
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'transactionId'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currencyCode,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
