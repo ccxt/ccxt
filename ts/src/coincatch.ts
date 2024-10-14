@@ -3632,12 +3632,12 @@ export default class coincatch extends Exchange {
         const feeDetailString = this.safeString (order, 'feeDetail');
         let fees = undefined;
         let feeCurrency: Str = undefined;
-        let feeAmount: Str = undefined;
+        let feeCost: Str = undefined;
         if (feeDetailString !== undefined) {
             fees = this.parseFeeDetailString (feeDetailString);
         } else {
             feeCurrency = marginCoin ? this.safeCurrencyCode (marginCoin) : undefined;
-            feeAmount = Precise.stringAbs (this.safeString (order, 'fee'));
+            feeCost = Precise.stringAbs (this.safeString (order, 'fee'));
         }
         const timeInForce = this.parseOrderTimeInForce (this.safeStringLower (order, 'timeInForce'));
         let postOnly: Bool = undefined;
@@ -3669,7 +3669,7 @@ export default class coincatch extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': feeCurrency,
-                'amount': feeAmount,
+                'cost': feeCost,
             },
             'fees': fees,
             'reduceOnly': this.safeBool (order, 'reduceOnly'),
