@@ -2138,8 +2138,14 @@ public partial class mexc : Exchange
         object order = this.parseOrder(response, market);
         ((IDictionary<string,object>)order)["side"] = side;
         ((IDictionary<string,object>)order)["type"] = type;
-        ((IDictionary<string,object>)order)["price"] = price;
-        ((IDictionary<string,object>)order)["amount"] = amount;
+        if (isTrue(isEqual(this.safeString(order, "price"), null)))
+        {
+            ((IDictionary<string,object>)order)["price"] = price;
+        }
+        if (isTrue(isEqual(this.safeString(order, "amount"), null)))
+        {
+            ((IDictionary<string,object>)order)["amount"] = amount;
+        }
         return order;
     }
 
