@@ -42,6 +42,7 @@ export default class cex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
+                'cancelOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -1050,6 +1051,31 @@ export default class cex extends Exchange {
             'trades': undefined,
             'info': order,
         }, market);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#cancelOrder
+         * @description cancels an open order
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': parseInt (id),
+            'cancelRequestId': 'c_' + (this.milliseconds ()).toString (),
+            'timestamp': this.milliseconds (),
+        };
+        const response = await this.privatePostDoCancelMyOrder (this.extend (request, params));
+        //
+        //      {"ok":"ok","data":{}}
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
