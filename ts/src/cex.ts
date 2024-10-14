@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int } from './base/types.js';
+import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@ export default class cex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOHLCV': true,
                 'fetchTradingFees': true,
+                'fetchAccounts': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -739,6 +740,44 @@ export default class cex extends Exchange {
             'taker': this.safeNumber (fee, 'percent'),
             'percentage': undefined,
             'tierBased': undefined,
+        };
+    }
+
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        await this.loadMarkets ();
+        const response = await this.privatePostGetMyAccountStatusV3 (params);
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "convertedCurrency": "USD",
+        //            "balancesPerAccounts": {
+        //                "": {
+        //                    "AI": {
+        //                        "balance": "0.000000",
+        //                        "balanceOnHold": "0.000000"
+        //                    },
+        //                    "USDT": {
+        //                        "balance": "0.00000000",
+        //                        "balanceOnHold": "0.00000000"
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const balances = this.safeDict (data, 'balancesPerAccounts', {});
+        const arrays = this.toArray (balances);
+        return this.parseAccounts (arrays, params);
+    }
+
+    parseAccount (account: Dict): Account {
+        return {
+            'id': undefined,
+            'type': undefined,
+            'code': undefined,
+            'info': account,
         };
     }
 
