@@ -34,6 +34,7 @@ class bitget extends bitget$1 {
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchPositions': true,
@@ -212,6 +213,7 @@ class bitget extends bitget$1 {
         //         "ts": 1701842994341
         //     }
         //
+        this.handleBidAsk(client, message);
         const ticker = this.parseWsTicker(message);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
@@ -320,6 +322,70 @@ class bitget extends bitget$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'baseVolume'),
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),
+            'info': ticker,
+        }, market);
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#watchBidsAsks
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const market = this.market(symbols[0]);
+        let instType = undefined;
+        [instType, params] = this.getInstType(market, params);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketInner = this.market(symbol);
+            const args = {
+                'instType': instType,
+                'channel': 'ticker',
+                'instId': marketInner['id'],
+            };
+            topics.push(args);
+            messageHashes.push('bidask:' + symbol);
+        }
+        const tickers = await this.watchPublicMultiple(messageHashes, topics, params);
+        if (this.newUpdates) {
+            const result = {};
+            result[tickers['symbol']] = tickers;
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    handleBidAsk(client, message) {
+        const ticker = this.parseWsBidAsk(message);
+        const symbol = ticker['symbol'];
+        this.bidsasks[symbol] = ticker;
+        const messageHash = 'bidask:' + symbol;
+        client.resolve(ticker, messageHash);
+    }
+    parseWsBidAsk(message, market = undefined) {
+        const arg = this.safeValue(message, 'arg', {});
+        const data = this.safeValue(message, 'data', []);
+        const ticker = this.safeValue(data, 0, {});
+        const timestamp = this.safeInteger(ticker, 'ts');
+        const instType = this.safeString(arg, 'instType');
+        const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
+        const marketId = this.safeString(ticker, 'instId');
+        market = this.safeMarket(marketId, market, undefined, marketType);
+        return this.safeTicker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeString(ticker, 'askPr'),
+            'askVolume': this.safeString(ticker, 'askSz'),
+            'bid': this.safeString(ticker, 'bidPr'),
+            'bidVolume': this.safeString(ticker, 'bidSz'),
             'info': ticker,
         }, market);
     }
@@ -1074,7 +1140,7 @@ class bitget extends bitget$1 {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchOrders', market, params, 'linear');
         if ((type === 'spot' || type === 'margin') && (symbol === undefined)) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
+            marketId = 'default';
         }
         if ((productType === undefined) && (type !== 'spot') && (symbol === undefined)) {
             messageHash = messageHash + ':' + subType;
@@ -1089,7 +1155,12 @@ class bitget extends bitget$1 {
             messageHash = messageHash + ':usdcfutures'; // non unified channel
         }
         let instType = undefined;
-        [instType, params] = this.getInstType(market, params);
+        if (market === undefined && type === 'spot') {
+            instType = 'SPOT';
+        }
+        else {
+            [instType, params] = this.getInstType(market, params);
+        }
         if (type === 'spot') {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
@@ -1465,8 +1536,15 @@ class bitget extends bitget$1 {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         let instType = undefined;
-        [instType, params] = this.getInstType(market, params);
+        if (market === undefined && type === 'spot') {
+            instType = 'SPOT';
+        }
+        else {
+            [instType, params] = this.getInstType(market, params);
+        }
         const subscriptionHash = 'fill:' + instType;
         const args = {
             'instType': instType,

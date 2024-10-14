@@ -396,6 +396,11 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetCopytradingPublicSubpositionsHistory",parameters);
     }
 
+    public async Task<object> publicGetSupportAnnouncementsTypes (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSupportAnnouncementsTypes",parameters);
+    }
+
     public async Task<object> privateGetRfqCounterparties (object parameters = null)
     {
         return await this.callAsync ("privateGetRfqCounterparties",parameters);
@@ -1039,6 +1044,11 @@ public partial class okx : Exchange
     public async Task<object> privateGetUsersPartnerIfRebate (object parameters = null)
     {
         return await this.callAsync ("privateGetUsersPartnerIfRebate",parameters);
+    }
+
+    public async Task<object> privateGetSupportAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSupportAnnouncements",parameters);
     }
 
     public async Task<object> privatePostRfqCreateRfq (object parameters = null)

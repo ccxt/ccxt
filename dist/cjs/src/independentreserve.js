@@ -801,9 +801,9 @@ class independentreserve extends independentreserve$1 {
         return {
             'info': depositAddress,
             'currency': this.safeString(currency, 'code'),
+            'network': undefined,
             'address': address,
             'tag': this.safeString(depositAddress, 'Tag'),
-            'network': undefined,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

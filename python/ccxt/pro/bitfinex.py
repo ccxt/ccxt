@@ -213,15 +213,15 @@ class bitfinex(ccxt.async_support.bitfinex):
         open = None
         if (last is not None) and (change is not None):
             open = Precise.string_sub(last, change)
-        result = {
+        result = self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.safe_float(message, 9),
-            'low': self.safe_float(message, 10),
-            'bid': self.safe_float(message, 1),
+            'high': self.safe_string(message, 9),
+            'low': self.safe_string(message, 10),
+            'bid': self.safe_string(message, 1),
             'bidVolume': None,
-            'ask': self.safe_float(message, 3),
+            'ask': self.safe_string(message, 3),
             'askVolume': None,
             'vwap': None,
             'open': self.parse_number(open),
@@ -229,12 +229,12 @@ class bitfinex(ccxt.async_support.bitfinex):
             'last': self.parse_number(last),
             'previousClose': None,
             'change': self.parse_number(change),
-            'percentage': self.safe_float(message, 6),
+            'percentage': self.safe_string(message, 6),
             'average': None,
-            'baseVolume': self.safe_float(message, 8),
+            'baseVolume': self.safe_string(message, 8),
             'quoteVolume': None,
             'info': message,
-        }
+        })
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 

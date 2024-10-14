@@ -333,7 +333,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/rest-api/add-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -378,9 +378,21 @@ public partial class kraken
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trailingPercent</term>
+    /// <description>
+    /// string : *margin only* the percent to trail away from the current market price
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.trailingLimitAmount</term>
     /// <description>
     /// string : *margin only* the quote amount away from the trailingAmount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingLimitPercent</term>
+    /// <description>
+    /// string : *margin only* the percent away from the trailingAmount
     /// </description>
     /// </item>
     /// <item>
@@ -875,10 +887,10 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch deposit methods for a currency associated with this account
@@ -915,10 +927,10 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// make a withdrawal

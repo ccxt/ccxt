@@ -1,5 +1,5 @@
 import Exchange from './abstract/wavesexchange.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class wavesexchange
  * @augments Exchange
@@ -32,14 +32,7 @@ export default class wavesexchange extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     filterFutureCandles(ohlcvs: any): any[];
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        address: string;
-        code: string;
-        currency: string;
-        network: string;
-        tag: any;
-        info: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     getMatcherPublicKey(): Promise<any>;
     getAssetBytes(currencyId: any): Uint8Array;
     getAssetId(currencyId: any): any;

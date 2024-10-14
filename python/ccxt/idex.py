@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.idex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1655,7 +1655,7 @@ class idex(Exchange, ImplicitAPI):
         authenticated = hasApiKey and hasSecret and hasWalletAddress and hasPrivateKey
         return(defaultCost / 2) if authenticated else defaultCost
 
-    def fetch_deposit_address(self, code: Str = None, params={}):
+    def fetch_deposit_address(self, code: Str = None, params={}) -> DepositAddress:
         """
         fetch the Polygon address of the wallet
         :see: https://api-docs-v3.idex.io/#get-wallets
@@ -1682,7 +1682,7 @@ class idex(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    [
         #        {
@@ -1704,9 +1704,9 @@ class idex(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': None,
+            'network': 'MATIC',
             'address': address,
             'tag': None,
-            'network': 'MATIC',
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

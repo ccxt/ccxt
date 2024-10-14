@@ -58,6 +58,8 @@ public partial class hashkey : Exchange
                 { "fetchConvertTradeHistory", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
@@ -1836,11 +1838,11 @@ public partial class hashkey : Exchange
             tag = null;
         }
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", getValue(currency, "code") },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 
@@ -3689,7 +3691,7 @@ public partial class hashkey : Exchange
         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3711,7 +3713,6 @@ public partial class hashkey : Exchange
     public override object parseFundingRate(object contract, object market = null)
     {
         //
-        // fetchFundingRates
         //     {
         //         "symbol": "ETHUSDT-PERPETUAL",
         //         "rate": "0.0001",
@@ -3740,6 +3741,7 @@ public partial class hashkey : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

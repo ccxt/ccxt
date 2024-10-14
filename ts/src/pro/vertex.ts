@@ -47,6 +47,9 @@ export default class vertex extends vertexRest {
                     'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
+                'ws': {
+                    'inflate': true,
+                },
             },
             'streaming': {
                 // 'ping': this.ping,
@@ -77,6 +80,14 @@ export default class vertex extends vertexRest {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
+        const wsOptions = {
+            'headers': {
+                'Sec-WebSocket-Extensions': 'permessage-deflate',
+            },
+        };
+        this.options['ws'] = {
+            'options': wsOptions,
+        };
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 

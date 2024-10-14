@@ -2041,8 +2041,8 @@ export default class tokocrypto extends Exchange {
         /**
          * @method
          * @name tokocrypto#fetchDepositAddress
-         * @see https://www.tokocrypto.com/apidocs/#deposit-address-signed
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.tokocrypto.com/apidocs/#deposit-address-signed
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2086,11 +2086,11 @@ export default class tokocrypto extends Exchange {
         }
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': this.safeString(data, 'network'),
             'address': address,
             'tag': tag,
-            'network': this.safeString(data, 'network'),
-            'info': response,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

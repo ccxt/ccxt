@@ -45,6 +45,9 @@ class vertex extends vertex$1 {
                     'fetchPositionsSnapshot': true,
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
+                'ws': {
+                    'inflate': true,
+                },
             },
             'streaming': {
                 // 'ping': this.ping,
@@ -73,6 +76,14 @@ class vertex extends vertex$1 {
             'id': requestId,
         };
         const request = this.extend(subscribe, message);
+        const wsOptions = {
+            'headers': {
+                'Sec-WebSocket-Extensions': 'permessage-deflate',
+            },
+        };
+        this.options['ws'] = {
+            'options': wsOptions,
+        };
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {

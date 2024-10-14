@@ -419,7 +419,7 @@ public partial class bingx : ccxt.bingx
         object symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(!isEqual(symbolsLength, 0)) && !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array like  [[\'BTC/USDT:USDT\', \'1m\'], [\'LTC/USDT:USDT\', \'5m\']]")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array like  [['BTC/USDT:USDT', '1m'], ['LTC/USDT:USDT', '5m']]")) ;
         }
         await this.loadMarkets();
         object messageHashes = new List<object>() {};

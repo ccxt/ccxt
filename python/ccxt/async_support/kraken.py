@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -66,6 +66,7 @@ class kraken(Exchange, ImplicitAPI):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'createTrailingAmountOrder': True,
+                'createTrailingPercentOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
@@ -76,6 +77,8 @@ class kraken(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -456,7 +459,9 @@ class kraken(Exchange, ImplicitAPI):
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
+                'EGeneral:Invalid arguments:price': InvalidOrder,
                 'EOrder:Unknown order': InvalidOrder,
+                'EOrder:Invalid price:Invalid price argument': InvalidOrder,
                 'EOrder:Order minimum not met': InvalidOrder,
                 'EGeneral:Invalid arguments': BadRequest,
                 'ESession:Invalid session': AuthenticationError,
@@ -1397,8 +1402,8 @@ class kraken(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
         create a trade order
+        :see: https://docs.kraken.com/api/docs/rest-api/add-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1410,7 +1415,9 @@ class kraken(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: *margin only* the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: *margin only* the price that a take profit order is triggered at
         :param str [params.trailingAmount]: *margin only* the quote amount to trail away from the current market price
+        :param str [params.trailingPercent]: *margin only* the percent to trail away from the current market price
         :param str [params.trailingLimitAmount]: *margin only* the quote amount away from the trailingAmount
+        :param str [params.trailingLimitPercent]: *margin only* the percent away from the trailingAmount
         :param str [params.offset]: *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
         :param str [params.trigger]: *margin only* the activation price type, 'last' or 'index', default is 'last'
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1717,8 +1724,11 @@ class kraken(Exchange, ImplicitAPI):
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         trailingAmount = self.safe_string(params, 'trailingAmount')
+        trailingPercent = self.safe_string(params, 'trailingPercent')
         trailingLimitAmount = self.safe_string(params, 'trailingLimitAmount')
+        trailingLimitPercent = self.safe_string(params, 'trailingLimitPercent')
         isTrailingAmountOrder = trailingAmount is not None
+        isTrailingPercentOrder = trailingPercent is not None
         isLimitOrder = type.endswith('limit')  # supporting limit, stop-loss-limit, take-profit-limit, etc
         isMarketOrder = type == 'market'
         cost = self.safe_string(params, 'cost')
@@ -1732,7 +1742,7 @@ class kraken(Exchange, ImplicitAPI):
                 request['volume'] = self.cost_to_precision(symbol, cost)
             extendedOflags = flags + ',viqc' if (flags is not None) else 'viqc'
             request['oflags'] = extendedOflags
-        elif isLimitOrder and not isTrailingAmountOrder:
+        elif isLimitOrder and not isTrailingAmountOrder and not isTrailingPercentOrder:
             request['price'] = self.price_to_precision(symbol, price)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         if isStopLossOrTakeProfitTrigger:
@@ -1750,19 +1760,30 @@ class kraken(Exchange, ImplicitAPI):
                     request['ordertype'] = 'take-profit'
             if isLimitOrder:
                 request['price2'] = self.price_to_precision(symbol, price)
-        elif isTrailingAmountOrder:
+        elif isTrailingAmountOrder or isTrailingPercentOrder:
+            trailingPercentString = None
+            if trailingPercent is not None:
+                trailingPercentString = ('+' + trailingPercent) if (trailingPercent.endswith('%')) else ('+' + trailingPercent + '%')
+            trailingAmountString = '+' + trailingAmount if (trailingAmount is not None) else None  # must use + for self
+            offset = self.safe_string(params, 'offset', '-')  # can use + or - for self
+            trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount) if (trailingLimitAmount is not None) else None
             trailingActivationPriceType = self.safe_string(params, 'trigger', 'last')
-            trailingAmountString = '+' + trailingAmount
             request['trigger'] = trailingActivationPriceType
-            if isLimitOrder or (trailingLimitAmount is not None):
-                offset = self.safe_string(params, 'offset', '-')
-                trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount)
-                request['price'] = trailingAmountString
-                request['price2'] = trailingLimitAmountString
+            if isLimitOrder or (trailingLimitAmount is not None) or (trailingLimitPercent is not None):
                 request['ordertype'] = 'trailing-stop-limit'
+                if trailingLimitPercent is not None:
+                    trailingLimitPercentString = (offset + trailingLimitPercent) if (trailingLimitPercent.endswith('%')) else (offset + trailingLimitPercent + '%')
+                    request['price'] = trailingPercentString
+                    request['price2'] = trailingLimitPercentString
+                elif trailingLimitAmount is not None:
+                    request['price'] = trailingAmountString
+                    request['price2'] = trailingLimitAmountString
             else:
-                request['price'] = trailingAmountString
                 request['ordertype'] = 'trailing-stop'
+                if trailingPercent is not None:
+                    request['price'] = trailingPercentString
+                else:
+                    request['price'] = trailingAmountString
         if reduceOnly:
             if method == 'createOrderWs':
                 request['reduce_only'] = True  # ws request can't have stringified bool
@@ -1789,7 +1810,7 @@ class kraken(Exchange, ImplicitAPI):
             request['oflags'] = extendedPostFlags
         if (flags is not None) and not ('oflags' in request):
             request['oflags'] = flags
-        params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset'])
+        params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset'])
         return [request, params]
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
@@ -2604,7 +2625,7 @@ class kraken(Exchange, ImplicitAPI):
         #
         return self.safe_value(response, 'result')
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
@@ -2657,7 +2678,7 @@ class kraken(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' privatePostDepositAddresses() returned no addresses for ' + code)
         return self.parse_deposit_address(firstResult, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
@@ -2670,11 +2691,11 @@ class kraken(Exchange, ImplicitAPI):
         code = currency['code']
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': depositAddress,
         }
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
@@ -2916,11 +2937,15 @@ class kraken(Exchange, ImplicitAPI):
                 # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + self.urlencode_nested(params)
         elif api == 'private':
+            price = self.safe_string(params, 'price')
+            isTriggerPercent = False
+            if price is not None:
+                isTriggerPercent = True if (price.endswith('%')) else False
             isCancelOrderBatch = (path == 'CancelOrderBatch')
             self.check_required_credentials()
             nonce = str(self.nonce())
             # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if isCancelOrderBatch:
+            if isCancelOrderBatch or isTriggerPercent:
                 body = self.json(self.extend({'nonce': nonce}, params))
             else:
                 body = self.urlencode_nested(self.extend({'nonce': nonce}, params))
@@ -2933,9 +2958,8 @@ class kraken(Exchange, ImplicitAPI):
             headers = {
                 'API-Key': self.apiKey,
                 'API-Sign': signature,
-                # 'Content-Type': 'application/x-www-form-urlencoded',
             }
-            if isCancelOrderBatch:
+            if isCancelOrderBatch or isTriggerPercent:
                 headers['Content-Type'] = 'application/json'
             else:
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'

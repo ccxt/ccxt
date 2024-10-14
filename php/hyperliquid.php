@@ -2017,6 +2017,7 @@ class hyperliquid extends Exchange {
         //             "crossed" => true,
         //             "dir" => "Close Long",
         //             "fee" => "0.050062",
+        //             "feeToken" => "USDC",
         //             "hash" => "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
         //             "liquidationMarkPx" => null,
         //             "oid" => 3929354691,
@@ -2077,7 +2078,11 @@ class hyperliquid extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
-            'fee' => array( 'cost' => $fee, 'currency' => 'USDC' ),
+            'fee' => array(
+                'cost' => $fee,
+                'currency' => $this->safe_string($trade, 'feeToken'),
+                'rate' => null,
+            ),
         ), $market);
     }
 
@@ -2198,11 +2203,12 @@ class hyperliquid extends Exchange {
         $market = $this->safe_market($marketId, null);
         $symbol = $market['symbol'];
         $leverage = $this->safe_dict($entry, 'leverage', array());
-        $isIsolated = ($this->safe_string($leverage, 'type') === 'isolated');
-        $quantity = $this->safe_number($leverage, 'rawUsd');
+        $marginMode = $this->safe_string($leverage, 'type');
+        $isIsolated = ($marginMode === 'isolated');
+        $size = $this->safe_number($entry, 'szi');
         $side = null;
-        if ($quantity !== null) {
-            $side = ($quantity > 0) ? 'short' : 'long';
+        if ($size !== null) {
+            $side = ($size > 0) ? 'long' : 'short';
         }
         $unrealizedPnl = $this->safe_number($entry, 'unrealizedPnl');
         $initialMargin = $this->safe_number($entry, 'marginUsed');
@@ -2216,20 +2222,20 @@ class hyperliquid extends Exchange {
             'isolated' => $isIsolated,
             'hedged' => null,
             'side' => $side,
-            'contracts' => $this->safe_number($entry, 'szi'),
+            'contracts' => $size,
             'contractSize' => null,
             'entryPrice' => $this->safe_number($entry, 'entryPx'),
             'markPrice' => null,
             'notional' => $this->safe_number($entry, 'positionValue'),
             'leverage' => $this->safe_number($leverage, 'value'),
-            'collateral' => null,
+            'collateral' => $this->safe_number($entry, 'marginUsed'),
             'initialMargin' => $initialMargin,
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,
             'unrealizedPnl' => $unrealizedPnl,
             'liquidationPrice' => $this->safe_number($entry, 'liquidationPx'),
-            'marginMode' => null,
+            'marginMode' => $marginMode,
             'percentage' => $percentage,
         ));
     }

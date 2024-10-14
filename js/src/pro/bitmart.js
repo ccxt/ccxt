@@ -26,6 +26,7 @@ export default class bitmart extends bitmartRest {
                 'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -337,6 +338,7 @@ export default class bitmart extends bitmartRest {
         /**
          * @method
          * @name bitmart#watchTickers
+         * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
          * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -354,6 +356,84 @@ export default class bitmart extends bitmartRest {
             return tickers;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#watchBidsAsks
+         * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const firstMarket = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
+        const url = this.implodeHostname(this.urls['api']['ws'][marketType]['public']);
+        const channelType = (marketType === 'spot') ? 'spot' : 'futures';
+        const actionType = (marketType === 'spot') ? 'op' : 'action';
+        let rawSubscriptions = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            rawSubscriptions.push(channelType + '/ticker:' + market['id']);
+            messageHashes.push('bidask:' + symbols[i]);
+        }
+        if (marketType !== 'spot') {
+            rawSubscriptions = [channelType + '/ticker'];
+        }
+        const request = {
+            'args': rawSubscriptions,
+        };
+        request[actionType] = 'subscribe';
+        const newTickers = await this.watchMultiple(url, messageHashes, request, rawSubscriptions);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[newTickers['symbol']] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    handleBidAsk(client, message) {
+        const table = this.safeString(message, 'table');
+        const isSpot = (table !== undefined);
+        let rawTickers = [];
+        if (isSpot) {
+            rawTickers = this.safeList(message, 'data', []);
+        }
+        else {
+            rawTickers = [this.safeValue(message, 'data', {})];
+        }
+        if (!rawTickers.length) {
+            return;
+        }
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = this.parseWsBidAsk(rawTickers[i]);
+            const symbol = ticker['symbol'];
+            this.bidsasks[symbol] = ticker;
+            const messageHash = 'bidask:' + symbol;
+            client.resolve(ticker, messageHash);
+        }
+    }
+    parseWsBidAsk(ticker, market = undefined) {
+        const marketId = this.safeString(ticker, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
+        const timestamp = this.safeInteger(ticker, 'ms_t');
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeString2(ticker, 'ask_px', 'ask_price'),
+            'askVolume': this.safeString2(ticker, 'ask_sz', 'ask_vol'),
+            'bid': this.safeString2(ticker, 'bid_px', 'bid_price'),
+            'bidVolume': this.safeString2(ticker, 'bid_sz', 'bid_vol'),
+            'info': ticker,
+        }, market);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -934,6 +1014,7 @@ export default class bitmart extends bitmartRest {
         //            }
         //    }
         //
+        this.handleBidAsk(client, message);
         const table = this.safeString(message, 'table');
         const isSpot = (table !== undefined);
         let rawTickers = [];

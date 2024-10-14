@@ -274,6 +274,8 @@ class Ticker(TypedDict):
     average: Num
     quoteVolume: Num
     baseVolume: Num
+    markPrice: Num
+    indexPrice: Num
 
 
 Tickers = Dict[str, Ticker]
@@ -483,6 +485,7 @@ class FundingRate(TypedDict):
     previousFundingDatetime: Str
     previousFundingRate: Num
     info: Dict[str, Any]
+    interval: Str
 
 
 class LeverageTier:
@@ -511,6 +514,14 @@ class LedgerEntry:
     after: float
     status: Str
     fee: Fee
+
+
+class DepositAddress:
+    info: Any
+    currency: Str
+    network: Optional[Str]
+    address: Str
+    tag: Optional[Str]
 
 
 FundingRates = Dict[Str, FundingRate]

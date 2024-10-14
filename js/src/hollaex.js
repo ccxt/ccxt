@@ -54,6 +54,7 @@ export default class hollaex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1349,11 +1350,11 @@ export default class hollaex extends Exchange {
         currency = this.safeCurrency(currencyId, currency);
         const network = this.safeString(depositAddress, 'network');
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {

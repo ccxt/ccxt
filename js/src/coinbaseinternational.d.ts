@@ -95,25 +95,7 @@ export default class coinbaseinternational extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): {
-        id: string;
-        name: string;
-        code: string;
-        precision: any;
-        info: Dict;
-        active: boolean;
-        deposit: any;
-        withdraw: any;
-        networks: any;
-        fee: any;
-        fees: any;
-        limits: {
-            amount?: import("./base/types.js").MinMax;
-            cost?: import("./base/types.js").MinMax;
-            leverage?: import("./base/types.js").MinMax;
-            price?: import("./base/types.js").MinMax;
-        };
-    };
+    parseCurrency(currency: Dict): Currency;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: object, market?: Market): Ticker;

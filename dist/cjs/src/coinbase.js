@@ -4071,9 +4071,9 @@ class coinbase extends coinbase$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(marketId, currency),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(addressInfo, 'destination_tag'),
-            'network': this.networkIdToCode(networkId, code),
         };
     }
     async deposit(code, amount, id, params = {}) {

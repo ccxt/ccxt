@@ -39,6 +39,8 @@ public partial class lbank : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
@@ -2094,11 +2096,11 @@ public partial class lbank : Exchange
         object inverseNetworks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
         object networkCode = this.safeStringUpper(inverseNetworks, networkId, networkId);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 
@@ -2138,11 +2140,11 @@ public partial class lbank : Exchange
         object inverseNetworks = this.safeValue(this.options, "inverse-networks", new Dictionary<string, object>() {});
         object networkCode = this.safeStringUpper(inverseNetworks, network, network);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", address },
             { "tag", tag },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 
@@ -2609,7 +2611,7 @@ public partial class lbank : Exchange
         * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
         * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
         * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
-        * @param {string[]|undefined} codes array of unified currency codes
+        * @param {string[]} [codes] array of unified currency codes
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
         */
@@ -2625,14 +2627,14 @@ public partial class lbank : Exchange
             parameters = this.omit(parameters, "method");
             if (isTrue(isEqual(method, "fetchPublicDepositWithdrawFees")))
             {
-                await this.fetchPublicDepositWithdrawFees(codes, parameters);
+                response = await this.fetchPublicDepositWithdrawFees(codes, parameters);
             } else
             {
-                await this.fetchPrivateDepositWithdrawFees(codes, parameters);
+                response = await this.fetchPrivateDepositWithdrawFees(codes, parameters);
             }
         } else
         {
-            await this.fetchPublicDepositWithdrawFees(codes, parameters);
+            response = await this.fetchPublicDepositWithdrawFees(codes, parameters);
         }
         return response;
     }
