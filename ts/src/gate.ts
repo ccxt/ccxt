@@ -633,6 +633,7 @@ export default class gate extends Exchange {
             },
             'options': {
                 'sandboxMode': false,
+                'unifiedAccount': undefined,
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
@@ -2697,12 +2698,13 @@ export default class gate extends Exchange {
          * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.symbol] margin only - unified ccxt symbol
-         * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
+         * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
          */
         await this.loadMarkets ();
         const symbol = this.safeString (params, 'symbol');
-        const isUnified = this.safeBool (params, 'unified');
-        params = this.omit (params, [ 'symbol', 'unified' ]);
+        params = this.omit (params, 'symbol');
+        let isUnifiedAccount = false;
+        [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'unifiedAccount');
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const [ marginMode, requestQuery ] = this.getMarginMode (false, requestParams);
@@ -2711,7 +2713,7 @@ export default class gate extends Exchange {
             request['currency_pair'] = market['id'];
         }
         let response = undefined;
-        if (isUnified) {
+        if (isUnifiedAccount) {
             response = await this.privateUnifiedGetAccounts (this.extend (request, params));
         } else if (type === 'spot') {
             if (marginMode === 'spot') {
