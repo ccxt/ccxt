@@ -1,15 +1,24 @@
 package main
 
 import (
+	"fmt"
 	"tests/base"
 )
 
 func main() {
-	// fmt.Println("Will run base tests!")
-	// base.BaseTestsInit()
+	RUN_BASE_TETS := base.GetCliArgValue("--baseTests")
+
+	if RUN_BASE_TETS {
+		base.BaseTestsInit()
+		fmt.Println("Base tests passed!")
+		return
+	}
 	tests := base.NewTestMainClass()
-	res := <-tests.Init("binance", nil, nil)
-	base.PanicOnError(res)
-	// NewTestMainClass()
-	// fmt.Println("Base tests passed!")
+
+	argvExchange := base.GetCliPositionalArg(0)
+	argvSymbol := base.GetCliPositionalArg(1)
+	argvMethod := base.GetCliPositionalArg(2)
+
+	<-tests.Init(argvExchange, argvSymbol, argvMethod)
+
 }

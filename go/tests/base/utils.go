@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strings"
 )
 
 const (
@@ -54,6 +55,7 @@ func SetFetchResponse(exchange interface{}, response interface{}) ccxt.IExchange
 }
 
 func GetCliArgValue(arg interface{}) bool {
+	fmt.Println("getting arg", arg)
 	argStr := fmt.Sprintf("%v", arg) // Convert the argument to its string representation
 	for _, v := range os.Args {
 		if v == argStr {
@@ -61,6 +63,20 @@ func GetCliArgValue(arg interface{}) bool {
 		}
 	}
 	return false
+}
+
+func GetCliPositionalArg(index int) interface{} {
+	index++
+	var filteredArgs []string
+	for _, arg := range os.Args {
+		if !strings.HasPrefix(arg, "--") {
+			filteredArgs = append(filteredArgs, arg)
+		}
+	}
+	if len(filteredArgs) > index {
+		return filteredArgs[index]
+	}
+	return nil
 }
 
 // func JsonParse(elem string) interface{} {
