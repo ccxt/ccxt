@@ -2,11 +2,12 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/cex.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry } from './base/types.js';
+import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1311,9 +1312,56 @@ export default class cex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
+        if (toAccount === '') {
+            throw new NotSupported (this.id + ' transfer() does not support transfering to main account');
+        }
+        if (fromAccount !== '') {
+            return this.transferBetweenSubAccounts (code, amount, fromAccount, toAccount, params);
+        }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const guid = this.safeString (params, 'guid', this.uuid ());
+        const request: Dict = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'accountId': toAccount,
+            'clientTxId': guid,
+        };
+        const response = await this.privatePostDoDepositFundsFromWallet (this.extend (request, params));
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "transactionId": "30375415"
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const transfer = this.parseTransfer (data, currency);
+        const fillResponseFromRequest = this.handleOption ('transfer', 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+        }
+        return transfer;
+    }
+
+    async transferBetweenSubAccounts (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        /**
+         * @method
+         * @name cex#transferBetweenSubAccounts
+         * @description transfer currency internally between wallets on the same account
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
+         * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -1336,7 +1384,6 @@ export default class cex extends Exchange {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
-            transfer['id'] = guid;
         }
         return transfer;
     }
@@ -1355,6 +1402,7 @@ export default class cex extends Exchange {
             'status': undefined,
         };
     }
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
