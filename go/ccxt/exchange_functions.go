@@ -76,7 +76,7 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 }
 
 // omitN removes specified keys from a map.
-func (this *Exchange) OmitN(aa interface{}, keys []interface{}) map[string]interface{} {
+func (this *Exchange) OmitN(aa interface{}, keys []interface{}) interface{} {
 	outDict := make(map[string]interface{})
 	a, ok := aa.(map[string]interface{})
 	if ok {
@@ -85,8 +85,9 @@ func (this *Exchange) OmitN(aa interface{}, keys []interface{}) map[string]inter
 				outDict[key] = value
 			}
 		}
+		return outDict
 	}
-	return outDict
+	return aa
 }
 
 // contains checks if a slice contains a specific element.
