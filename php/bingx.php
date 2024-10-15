@@ -601,10 +601,11 @@ class bingx extends Exchange {
                         'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
                     ),
                 );
+                $fee = $this->safe_number($rawNetwork, 'withdrawFee');
                 if ($isDefault) {
-                    $fee = $this->safe_number($rawNetwork, 'withdrawFee');
                     $defaultLimits = $limits;
                 }
+                $precision = $this->safe_number($rawNetwork, 'withdrawPrecision');
                 $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
                 $networks[$networkCode] = array(
                     'info' => $rawNetwork,
@@ -614,7 +615,7 @@ class bingx extends Exchange {
                     'active' => $networkActive,
                     'deposit' => $networkDepositEnabled,
                     'withdraw' => $networkWithdrawEnabled,
-                    'precision' => null,
+                    'precision' => $precision,
                     'limits' => $limits,
                 );
             }

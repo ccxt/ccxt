@@ -611,11 +611,12 @@ public partial class bingx : Exchange
                         { "max", this.safeNumber(rawNetwork, "withdrawMax") },
                     } },
                 };
+                fee = this.safeNumber(rawNetwork, "withdrawFee");
                 if (isTrue(isDefault))
                 {
-                    fee = this.safeNumber(rawNetwork, "withdrawFee");
                     defaultLimits = limits;
                 }
+                object precision = this.safeNumber(rawNetwork, "withdrawPrecision");
                 object networkActive = isTrue(networkDepositEnabled) || isTrue(networkWithdrawEnabled);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
@@ -625,7 +626,7 @@ public partial class bingx : Exchange
                     { "active", networkActive },
                     { "deposit", networkDepositEnabled },
                     { "withdraw", networkWithdrawEnabled },
-                    { "precision", null },
+                    { "precision", precision },
                     { "limits", limits },
                 };
             }
