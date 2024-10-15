@@ -834,6 +834,7 @@ public partial class binance : Exchange
                             { "noSymbol", 10 },
                         } },
                         { "lvtKlines", 1 },
+                        { "convert/exchangeInfo", 4 },
                     } },
                 } },
                 { "fapiData", new Dictionary<string, object>() {
@@ -892,6 +893,7 @@ public partial class binance : Exchange
                         { "feeBurn", 1 },
                         { "symbolConfig", 5 },
                         { "accountConfig", 5 },
+                        { "convert/orderStatus", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "batchOrders", 5 },
@@ -906,6 +908,8 @@ public partial class binance : Exchange
                         { "apiReferral/customization", 1 },
                         { "apiReferral/userCustomization", 1 },
                         { "feeBurn", 1 },
+                        { "convert/getQuote", 200 },
+                        { "convert/acceptQuote", 20 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 1 },

@@ -489,6 +489,7 @@ interface Exchange {
     fapiPublicGetConstituents (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetApiTradingStatus (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetLvtKlines (params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetConvertExchangeInfo (params?: {}): Promise<implicitReturnType>;
     fapiDataGetDeliveryPrice (params?: {}): Promise<implicitReturnType>;
     fapiDataGetOpenInterestHist (params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
@@ -533,6 +534,7 @@ interface Exchange {
     fapiPrivateGetFeeBurn (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetSymbolConfig (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetAccountConfig (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetConvertOrderStatus (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin (params?: {}): Promise<implicitReturnType>;
@@ -545,6 +547,8 @@ interface Exchange {
     fapiPrivatePostApiReferralCustomization (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostApiReferralUserCustomization (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostFeeBurn (params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePostConvertGetQuote (params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePostConvertAcceptQuote (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutOrder (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutBatchOrders (params?: {}): Promise<implicitReturnType>;
