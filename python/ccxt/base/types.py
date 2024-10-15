@@ -365,11 +365,11 @@ class MinMax(TypedDict):
     max: Num
 
 class MarketLimits(TypedDict):
-    amount: MinMax
-    cost: MinMax
-    leverage: MinMax
-    price: MinMax
-    market: MinMax
+    amount: Optional[MinMax]
+    cost: Optional[MinMax]
+    leverage: Optional[MinMax]
+    price: Optional[MinMax]
+    market: Optional[MinMax]
 
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
