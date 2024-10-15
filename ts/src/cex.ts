@@ -230,7 +230,7 @@ export default class cex extends Exchange {
         const dataNetworks = this.safeDict (responses[1], 'data', {});
         const currenciesIndexed = this.indexBy (dataCurrencies, 'currency');
         const data = this.deepExtend (currenciesIndexed, dataNetworks);
-        return this.parseCurrencies (this.values (data));
+        return this.parseCurrencies (this.toArray (data));
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
@@ -729,7 +729,7 @@ export default class cex extends Exchange {
 
     parseTradingFees (response, useKeyAsId = false): TradingFees {
         const result: Dict = {};
-        const keys = this.keys (response);
+        const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             let market = undefined;
@@ -855,7 +855,7 @@ export default class cex extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const keys = this.keys (response);
+        const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const balance = this.safeDict (response, key, {});
@@ -1440,11 +1440,12 @@ export default class cex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const fromMain = (fromAccount === '');
+        const targetAccount = (fromMain ? toAccount : fromAccount);
         const guid = this.safeString (params, 'guid', this.uuid ());
         const request: Dict = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
-            'accountId': toAccount,
+            'accountId': targetAccount,
             'clientTxId': guid,
         };
         let response = undefined;
