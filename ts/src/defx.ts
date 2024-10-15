@@ -7,7 +7,7 @@ import Exchange from './abstract/defx.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
-import type { Dict, int } from './base/types.js';
+import type { Dict, int, Str, Bool, Num, Market, MarketType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -28,8 +28,8 @@ export default class defx extends Exchange {
             'hostname': 'defx.com',
             'has': {
                 'CORS': undefined,
-                'spot': true,
-                'margin': true,
+                'spot': false,
+                'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -292,6 +292,243 @@ export default class defx extends Exchange {
         //
         return this.safeInteger (response, 't');
     }
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name defx#fetchMarkets
+         * @description retrieves data on all markets for defx
+         * @see https://api-docs.defx.com/#73cce0c8-f842-4891-9145-01bb6d61324d
+         * @see https://api-docs.defx.com/#24fd4e5b-840e-451e-99e0-7fea47c7f371
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const request = {
+            'type': 'perps',
+        };
+        const promises = [
+            this.v1PublicGetCMarkets (this.extend (request, params)),
+            this.v1PublicGetCMarketsMetadata (this.extend (request, params)),
+        ]
+        const responses = await Promise.all (promises);
+        //
+        // {
+        //     "data": [
+        //       {
+        //         "market": "DOGE_USDC",
+        //         "candleWindows": [
+        //           "1m",
+        //           "3m",
+        //           "5m",
+        //           "15m",
+        //           "30m",
+        //           "1h",
+        //           "2h",
+        //           "4h",
+        //           "12h",
+        //           "1d",
+        //           "1w",
+        //           "1M"
+        //         ],
+        //         "depthSlabs": [
+        //           "0.00001",
+        //           "0.00005",
+        //           "0.0001",
+        //           "0.001",
+        //           "0.01"
+        //         ],
+        //         "filters": [
+        //           {
+        //             "filterType": "LOT_SIZE",
+        //             "minQty": "1.00000",
+        //             "maxQty": "1500000.00000",
+        //             "stepSize": "1.00000"
+        //           },
+        //           {
+        //             "filterType": "MARKET_LOT_SIZE",
+        //             "minQty": "1.00000",
+        //             "maxQty": "750000.00000",
+        //             "stepSize": "1.00000"
+        //           },
+        //           {
+        //             "filterType": "PRICE_FILTER",
+        //             "minPrice": "0.00244000",
+        //             "maxPrice": "30.00000000",
+        //             "tickSize": "0.00001"
+        //           },
+        //           {
+        //             "filterType": "NOTIONAL",
+        //             "minNotional": "100.00000000"
+        //           },
+        //           {
+        //             "filterType": "PERCENT_PRICE_BY_SIDE",
+        //             "bidMultiplierUp": "1.5",
+        //             "bidMultiplierDown": "0.5",
+        //             "askMultiplierUp": "1.5",
+        //             "askMultiplierDown": "0.5"
+        //           },
+        //           {
+        //             "filterType": "INDEX_PRICE_FILTER",
+        //             "multiplierUp": "1.3",
+        //             "multiplierDown": "0.7"
+        //           }
+        //         ],
+        //         "cappedLeverage": "25",
+        //         "maintenanceMarginTiers": [
+        //           {
+        //             "tier": "1",
+        //             "minMaintenanceMargin": "0",
+        //             "maxMaintenanceMargin": "2500",
+        //             "leverage": "25"
+        //           },
+        //           {
+        //             "tier": "2",
+        //             "minMaintenanceMargin": "2500",
+        //             "maxMaintenanceMargin": "12500",
+        //             "leverage": "20"
+        //           },
+        //           {
+        //             "tier": "3",
+        //             "minMaintenanceMargin": "12500",
+        //             "maxMaintenanceMargin": "25000",
+        //             "leverage": "15"
+        //           },
+        //           {
+        //             "tier": "4",
+        //             "minMaintenanceMargin": "25000",
+        //             "maxMaintenanceMargin": "50000",
+        //             "leverage": "10"
+        //           },
+        //           {
+        //             "tier": "5",
+        //             "minMaintenanceMargin": "50000",
+        //             "maxMaintenanceMargin": "75000",
+        //             "leverage": "8"
+        //           },
+        //           {
+        //             "tier": "6",
+        //             "minMaintenanceMargin": "75000",
+        //             "maxMaintenanceMargin": "125000",
+        //             "leverage": "7"
+        //           },
+        //           {
+        //             "tier": "7",
+        //             "minMaintenanceMargin": "125000",
+        //             "maxMaintenanceMargin": "187500",
+        //             "leverage": "5"
+        //           },
+        //           {
+        //             "tier": "8",
+        //             "minMaintenanceMargin": "187500",
+        //             "maxMaintenanceMargin": "250000",
+        //             "leverage": "3"
+        //           },
+        //           {
+        //             "tier": "9",
+        //             "minMaintenanceMargin": "250000",
+        //             "maxMaintenanceMargin": "375000",
+        //             "leverage": "2"
+        //           },
+        //           {
+        //             "tier": "10",
+        //             "minMaintenanceMargin": "375000",
+        //             "maxMaintenanceMargin": "500000",
+        //             "leverage": "1"
+        //           }
+        //         ],
+        //         "fees": {
+        //           "maker": "0.08",
+        //           "taker": "0.1"
+        //         }
+        //       },
+        //     ]
+        // }
+        //
+        const activeMarkets = this.safeList (responses[0], 'data');
+        const activeMarketsByType = this.indexBy (activeMarkets, 'market');
+        let marketMetadatas = this.safeList (responses[1], 'data');
+        for (let i = 0; i < marketMetadatas.length; i++) {
+            const marketId = marketMetadatas[i]['market'];
+            let status = undefined;
+            if (marketId in activeMarketsByType) {
+                status = activeMarketsByType[marketId]['status'];
+            }
+            marketMetadatas[i]['status'] = status;
+        }
+        return this.parseMarkets (marketMetadatas);
+    }
+    
+    parseMarket (market: Dict): Market {
+        const marketId = this.safeString (market, 'market');
+        const parts = marketId.split ('_');
+        const baseId = this.safeString (parts, 0);
+        const quoteId = this.safeString (parts, 1);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote + ':' + quote;
+        const filters = this.safeList (market, 'filters', []);
+        const fees = this.safeDict (market, 'fees', {});
+        const filtersByType = this.indexBy (filters, 'filterType');
+        const priceFilter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+        const lotFilter = this.safeDict (filtersByType, 'LOT_SIZE', {});
+        const marketLotFilter = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
+        const notionalFilter = this.safeDict (filtersByType, 'NOTIONAL', {});
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': quoteId,
+            'type': 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'active': this.safeString (market, 'status', '') === 'active',
+            'contract': true,
+            'linear': true,
+            'inverse': undefined,
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
+            'contractSize': this.parseNumber ('1'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (lotFilter, 'stepSize'),
+                'price': this.safeNumber (priceFilter, 'tickSize'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': this.safeNumber (market, 'cappedLeverage'),
+                },
+                'amount': {
+                    'min': this.safeNumber (lotFilter, 'minQty'),
+                    'max': this.safeNumber (lotFilter, 'maxQty'),
+                },
+                'price': {
+                    'min': this.safeNumber (priceFilter, 'minPrice'),
+                    'max': this.safeNumber (priceFilter, 'maxPrice'),
+                },
+                'cost': {
+                    'min': this.safeNumber (notionalFilter, 'minNotional'),
+                    'max': undefined,
+                },
+                'market': {
+                    'min': this.safeNumber (marketLotFilter, 'minQty'),
+                    'max': this.safeNumber (marketLotFilter, 'maxQty'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
+    }    
 
     nonce () {
         return this.milliseconds ();
