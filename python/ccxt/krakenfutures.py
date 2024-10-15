@@ -2079,7 +2079,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #  "vol24h": 0.1,
         #  "volumeQuote": 2.63}
         #
-        fundingRateMultiplier = '8'  # https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
+        fundingRateMultiplier = '1'  # https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.symbol(marketId)
         timestamp = self.parse8601(self.safe_string(ticker, 'lastTime'))
