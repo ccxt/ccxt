@@ -634,7 +634,8 @@ export default class cex extends Exchange {
          * @param {int} [params.until] timestamp in ms of the latest entry
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        const dataType = this.safeString (params, 'dataType');
+        let dataType = undefined;
+        [ dataType, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'dataType');
         if (dataType === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
         }
