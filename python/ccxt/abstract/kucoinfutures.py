@@ -219,6 +219,7 @@ class ImplicitAPI:
     futuresprivate_delete_withdrawals_withdrawalid = futuresPrivateDeleteWithdrawalsWithdrawalId = Entry('withdrawals/{withdrawalId}', 'futuresPrivate', 'DELETE', {'cost': 1})
     futuresprivate_delete_cancel_transfer_out = futuresPrivateDeleteCancelTransferOut = Entry('cancel/transfer-out', 'futuresPrivate', 'DELETE', {'cost': 1})
     futuresprivate_delete_sub_api_key = futuresPrivateDeleteSubApiKey = Entry('sub/api-key', 'futuresPrivate', 'DELETE', {'cost': 1})
+    futuresprivate_delete_orders_multi_cancel = futuresPrivateDeleteOrdersMultiCancel = Entry('orders/multi-cancel', 'futuresPrivate', 'DELETE', {'cost': 20})
     webexchange_get_currency_currency_chain_info = webExchangeGetCurrencyCurrencyChainInfo = Entry('currency/currency/chain-info', 'webExchange', 'GET', {'cost': 1})
     webexchange_get_contract_symbol_funding_rates = webExchangeGetContractSymbolFundingRates = Entry('contract/{symbol}/funding-rates', 'webExchange', 'GET', {'cost': 1})
     broker_get_broker_nd_info = brokerGetBrokerNdInfo = Entry('broker/nd/info', 'broker', 'GET', {'cost': 2})

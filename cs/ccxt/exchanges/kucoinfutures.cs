@@ -27,6 +27,7 @@ public partial class kucoinfutures : kucoin
                 { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", true },
                 { "closePositions", false },
@@ -195,6 +196,7 @@ public partial class kucoinfutures : kucoin
                         { "stopOrders", 1 },
                         { "sub/api-key", 1 },
                         { "orders/client-order/{clientOid}", 1 },
+                        { "orders/multi-cancel", 20 },
                     } },
                 } },
                 { "webExchange", new Dictionary<string, object>() {
@@ -1724,6 +1726,74 @@ public partial class kucoinfutures : kucoin
         //   }
         //
         return this.safeValue(response, "data");
+    }
+
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#cancelOrders
+        * @description cancel multiple orders
+        * @see https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string[]} [params.clientOrderIds] client order ids
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object ordersRequests = new List<object>() {};
+        object clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new List<object>() {});
+        parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "clientOids"});
+        object useClientorderId = false;
+        for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+        {
+            useClientorderId = true;
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")) ;
+            }
+            ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "clientOid", this.safeString(clientOrderIds, i) },
+            });
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersRequests).Add(getValue(ids, i));
+        }
+        object requestKey = ((bool) isTrue(useClientorderId)) ? "clientOidsList" : "orderIdsList";
+        object request = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)request)[(string)requestKey] = ordersRequests;
+        object response = await this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, parameters));
+        //
+        //   {
+        //       "code": "200000",
+        //       "data":
+        //       [
+        //           {
+        //               "orderId": "80465574458560512",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           },
+        //           {
+        //               "orderId": "80465575289094144",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           }
+        //       ]
+        //   }
+        //
+        object orders = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(orders, market);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)

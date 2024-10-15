@@ -31,6 +31,7 @@ class kucoinfutures extends kucoin {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
                 'closePositions' => false,
@@ -202,6 +203,7 @@ class kucoinfutures extends kucoin {
                         'stopOrders' => 1,
                         'sub/api-key' => 1,
                         'orders/client-order/{clientOid}' => 1,
+                        'orders/multi-cancel' => 20,
                     ),
                 ),
                 'webExchange' => array(
@@ -1631,6 +1633,66 @@ class kucoinfutures extends kucoin {
         //   }
         //
         return $this->safe_value($response, 'data');
+    }
+
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple $orders
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-$orders
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] client order $ids
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $ordersRequests = array();
+        $clientOrderIds = $this->safe_list_2($params, 'clientOrderIds', 'clientOids', array());
+        $params = $this->omit($params, array( 'clientOrderIds', 'clientOids' ));
+        $useClientorderId = false;
+        for ($i = 0; $i < count($clientOrderIds); $i++) {
+            $useClientorderId = true;
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument when cancelling by clientOrderIds');
+            }
+            $ordersRequests[] = array(
+                'symbol' => $market['id'],
+                'clientOid' => $this->safe_string($clientOrderIds, $i),
+            );
+        }
+        for ($i = 0; $i < count($ids); $i++) {
+            $ordersRequests[] = $ids[$i];
+        }
+        $requestKey = $useClientorderId ? 'clientOidsList' : 'orderIdsList';
+        $request = array();
+        $request[$requestKey] = $ordersRequests;
+        $response = $this->futuresPrivateDeleteOrdersMultiCancel ($this->extend($request, $params));
+        //
+        //   {
+        //       "code" => "200000",
+        //       "data":
+        //       array(
+        //           array(
+        //               "orderId" => "80465574458560512",
+        //               "clientOid" => null,
+        //               "code" => "200",
+        //               "msg" => "success"
+        //           ),
+        //           {
+        //               "orderId" => "80465575289094144",
+        //               "clientOid" => null,
+        //               "code" => "200",
+        //               "msg" => "success"
+        //           }
+        //       )
+        //   }
+        //
+        $orders = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($orders, $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {

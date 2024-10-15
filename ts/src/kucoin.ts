@@ -5050,7 +5050,7 @@ export default class kucoin extends Exchange {
         headers = (headers !== undefined) ? headers : {};
         let url = this.urls['api'][api];
         if (!this.isEmpty (query)) {
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
                 endpoint += '?' + this.rawencode (query);
             } else {
                 body = this.json (query);

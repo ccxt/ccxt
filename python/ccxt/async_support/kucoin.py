@@ -4725,7 +4725,7 @@ class kucoin(Exchange, ImplicitAPI):
         headers = headers if (headers is not None) else {}
         url = self.urls['api'][api]
         if not self.is_empty(query):
-            if (method == 'GET') or (method == 'DELETE'):
+            if ((method == 'GET') or (method == 'DELETE')) and (path != 'orders/multi-cancel'):
                 endpoint += '?' + self.rawencode(query)
             else:
                 body = self.json(query)
