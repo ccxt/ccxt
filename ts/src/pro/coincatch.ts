@@ -3,7 +3,7 @@
 import coincatchRest from '../coincatch.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ChecksumError, ExchangeError, NotSupported, RateLimitExceeded, UnsubscribeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
@@ -1327,47 +1327,54 @@ export default class coincatch extends coincatchRest {
         //         autoMargin: 'off'
         //     }
         //
-        const marketId = this.safeString (position, 'instId');
+        const marketId = this.safeString (position, 'symbol');
         const settleId = this.safeString (position, 'marginCoin');
         market = this.safeMarketCustom (marketId, market, settleId);
+        const timestamp = this.safeInteger (position, 'cTime');
         const marginModeId = this.safeString (position, 'marginMode');
         const marginMode = this.getSupportedMapping (marginModeId, {
             'crossed': 'cross',
             'isolated': 'isolated',
         });
-        const hedgedId = this.safeString (position, 'posMode');
-        const hedged = (hedgedId === 'hedge_mode') ? true : false;
-        const timestamp = this.safeInteger2 (position, 'uTime', 'cTime');
-        const percentageDecimal = this.safeString (position, 'unrealizedPLR');
-        const percentage = Precise.stringMul (percentageDecimal, '100');
-        let contractSize = undefined;
-        if (market !== undefined) {
-            contractSize = market['contractSize'];
+        let isHedged: Bool = undefined;
+        const holdMode = this.safeString (position, 'holdMode');
+        if (holdMode === 'double_hold') {
+            isHedged = true;
+        } else if (holdMode === 'single_hold') {
+            isHedged = false;
         }
+        const percentageDecimal = this.safeString (position, 'uplRate');
+        const percentage = Precise.stringMul (percentageDecimal, '100');
+        const margin = this.safeNumber (position, 'margin');
         return this.safePosition ({
-            'info': position,
-            'id': this.safeString (position, 'posId'),
             'symbol': market['symbol'],
-            'notional': undefined,
-            'marginMode': marginMode,
-            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
-            'entryPrice': this.safeNumber (position, 'openPriceAvg'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
-            'percentage': this.parseNumber (percentage),
-            'contracts': this.safeNumber (position, 'total'),
-            'contractSize': contractSize,
-            'markPrice': undefined,
-            'side': this.safeString (position, 'holdSide'),
-            'hedged': hedged,
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'maintenanceMargin': undefined,
+            'contracts': this.safeNumber (position, 'total'),
+            'contractSize': undefined,
+            'side': this.safeStringLower (position, 'holdSide'),
+            'notional': margin, // todo check
+            'leverage': this.safeInteger (position, 'leverage'),
+            'unrealizedPnl': this.safeNumber (position, 'upl'),
+            'realizedPnl': this.safeNumber (position, 'achievedProfits'),
+            'collateral': undefined, // todo check
+            'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'liquidationPrice': this.safeNumber (position, 'liqPx'),
+            'marginMode': marginMode,
+            'hedged': isHedged,
+            'maintenanceMargin': undefined, // todo check
             'maintenanceMarginPercentage': this.safeNumber (position, 'keepMarginRate'),
-            'collateral': undefined,
-            'initialMargin': undefined,
+            'initialMargin': margin, // todo check
             'initialMarginPercentage': undefined,
-            'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': this.safeNumber (position, 'marginRate'),
+            'lastUpdateTimestamp': this.safeInteger (position, 'uTime'),
+            'lastPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'percentage': percentage,
+            'info': position,
         });
     }
 
