@@ -558,7 +558,7 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 		// }
 		// fmt.Println("key", key.Interface())
 		// fmt.Println("value", valueVal.Interface())
-		if valueVal.IsNil() {
+		if !valueVal.IsValid() {
 			val.SetMapIndex(key, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
 		} else {
 			val.SetMapIndex(key, valueVal)

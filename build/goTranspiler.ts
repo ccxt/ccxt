@@ -111,6 +111,9 @@ const VIRTUAL_BASE_METHODS = [
     "fetchMarginModes",
     "fetchFundingRates",
     "fetchDepositWithdrawFees",
+    "parseMarginModification",
+    "parseIncome",
+    "parseBorrowInterest",
     "sign"
 ]
 
