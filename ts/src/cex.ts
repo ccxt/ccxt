@@ -29,26 +29,26 @@ export default class cex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'fetchTime': true,
-                'fetchMarkets': true,
-                'fetchCurrencies': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchTrades': true,
-                'fetchOrderBook': true,
-                'fetchOHLCV': true,
-                'fetchTradingFees': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchOpenOrders': true,
-                'cancelOrder': true,
-                'cancelAllOrders': true,
-                'fetchLedger': true,
-                'fetchDepositsWithdrawals': true,
-                'transfer': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'createOrder': true,
+                'fetchDepositsWithdrawals': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTradingFees': true,
+                'transfer': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -185,7 +185,8 @@ export default class cex extends Exchange {
          * @param {dict} [params] extra parameters specific to the exchange API endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const promise1 = this.publicPostGetCurrenciesInfo (params);
+        const promises = [];
+        promises.push (this.publicPostGetCurrenciesInfo (params));
         //
         //    {
         //        "ok": "ok",
@@ -200,7 +201,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const promise2 = this.publicPostGetProcessingInfo (params);
+        promises.push (this.publicPostGetProcessingInfo (params));
         //
         //    {
         //        "ok": "ok",
@@ -222,7 +223,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const responses = await Promise.all ([ promise1, promise2 ]);
+        const responses = await Promise.all (promises);
         const dataCurrencies = this.safeList (responses[0], 'data', []);
         const dataNetworks = this.safeDict (responses[1], 'data', {});
         const currenciesIndexed = this.indexBy (dataCurrencies, 'currency');
