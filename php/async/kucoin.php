@@ -5058,7 +5058,7 @@ class kucoin extends Exchange {
         $headers = ($headers !== null) ? $headers : array();
         $url = $this->urls['api'][$api];
         if (!$this->is_empty($query)) {
-            if (($method === 'GET') || ($method === 'DELETE')) {
+            if ((($method === 'GET') || ($method === 'DELETE')) && ($path !== 'orders/multi-cancel')) {
                 $endpoint .= '?' . $this->rawencode($query);
             } else {
                 $body = $this->json($query);

@@ -5237,7 +5237,7 @@ public partial class kucoin : Exchange
         object url = getValue(getValue(this.urls, "api"), api);
         if (!isTrue(this.isEmpty(query)))
         {
-            if (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))
+            if (isTrue(isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE"))))) && isTrue((!isEqual(path, "orders/multi-cancel")))))
             {
                 endpoint = add(endpoint, add("?", this.rawencode(query)));
             } else
