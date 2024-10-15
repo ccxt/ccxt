@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/cex.js';
-import { ExchangeError, ArgumentsRequired, NullResponse, InsufficientFunds, BadRequest } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -20,7 +20,7 @@ export default class cex extends Exchange {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
-            'rateLimit': 1666,
+            'rateLimit': 1667, // 100 req/min
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -113,6 +113,8 @@ export default class cex extends Exchange {
                     'API orders from Main account are not allowed': BadRequest,
                     'check failed': BadRequest,
                     'Insufficient funds': InsufficientFunds,
+                    'Get deposit address for main account is not allowed': PermissionDenied,
+                    'Market Trigger orders are not allowed': BadRequest, // for some reason, triggerPrice does not work for market orders
                 },
             },
             'timeframes': {
@@ -645,6 +647,7 @@ export default class cex extends Exchange {
         const request: Dict = {
             'pair': market['id'],
             'resolution': this.timeframes[timeframe],
+            'dataType': dataType,
         };
         if (since !== undefined) {
             request['fromISO'] = this.iso8601 (since);
@@ -1078,9 +1081,10 @@ export default class cex extends Exchange {
          * @param {string} [params.accountId] account-id to use (default is empty string)
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const accountId = this.safeString (params, 'accountId');
+        let accountId = undefined;
+        [ accountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
         if (accountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() : API trading is now allowed from main account, set a "accountId" param to the name of your sub-account');
+            throw new ArgumentsRequired (this.id + ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1088,18 +1092,22 @@ export default class cex extends Exchange {
             'clientOrderId': this.uuid (),
             'currency1': market['baseId'],
             'currency2': market['quoteId'],
-            'accountId': this.safeString (params, 'accountId', ''),
+            'accountId': accountId,
             'orderType': this.capitalize (type.toLowerCase ()),
             'side': side.toUpperCase (),
             'timestamp': this.milliseconds (),
             'amountCcy1': this.amountToPrecision (symbol, amount),
         };
+        let timeInForce = undefined;
+        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', 'GTC');
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+            request['timeInForce'] = timeInForce;
         }
         let triggerPrice = undefined;
         [ triggerPrice, params ] = this.handleParamString (params, 'triggerPrice');
         if (triggerPrice !== undefined) {
+            request['type'] = 'Stop Limit';
             request['stopPrice'] = triggerPrice;
         }
         const response = await this.privatePostDoMyNewOrder (this.extend (request, params));
@@ -1227,10 +1235,11 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.currency (code);
+            request['currency'] = currency['id'];
         }
-        const request: Dict = {};
         if (since !== undefined) {
             request['dateFrom'] = since;
         }
@@ -1240,7 +1249,7 @@ export default class cex extends Exchange {
         let until = undefined;
         [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
-            request['dateTo'] = this.iso8601 (until);
+            request['dateTo'] = until;
         }
         const response = await this.privatePostGetMyTransactionHistory (this.extend (request, params));
         //
@@ -1332,7 +1341,7 @@ export default class cex extends Exchange {
         let until = undefined;
         [ until, params ] = this.handleParamInteger2 (params, 'until', 'till');
         if (until !== undefined) {
-            request['dateTo'] = this.iso8601 (until);
+            request['dateTo'] = until;
         }
         const response = await this.privatePostGetMyFundingHistory (this.extend (request, params));
         //
@@ -1532,12 +1541,17 @@ export default class cex extends Exchange {
          * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
+        let accountId = undefined;
+        [ accountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'accountId');
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
+        }
         await this.loadMarkets ();
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const currency = this.currency (code);
         const request: Dict = {
-            'accountId': this.safeString (params, 'accountId', ''),
+            'accountId': accountId,
             'currency': currency['id'], // documentation is wrong about this param
             'blockchain': this.networkCodeToId (networkCode),
         };
