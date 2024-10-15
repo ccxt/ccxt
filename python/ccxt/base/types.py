@@ -360,6 +360,17 @@ class MarketMarginModes(TypedDict):
     cross: bool
     isolated: bool
 
+class MinMax(TypedDict):
+    min: Num
+    max: Num
+
+class MarketLimits(TypedDict):
+    amount: MinMax
+    cost: MinMax
+    leverage: MinMax
+    price: MinMax
+    market: MinMax
+
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
     id: Str
@@ -393,7 +404,7 @@ class MarketInterface(TypedDict):
     tierBased: bool
     feeSide: Str
     precision: Any
-    limits: Any
+    limits: MarketLimits
     created: Int
 
 class Limit(TypedDict):
