@@ -293,7 +293,9 @@ func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.IExchange
 	if success == false {
 		return nil
 	}
-	instance.ExtendExchangeOptions(options[0].(map[string]interface{}))
+	globalSettings := SafeValue(options, 0, map[string]interface{}{}).(map[string]interface{})
+	globalOptions := SafeValue(globalSettings, "options", map[string]interface{}{}).(map[string]interface{})
+	instance.ExtendExchangeOptions(globalOptions)
 	return instance
 }
 

@@ -6,6 +6,10 @@ import (
 	"reflect"
 )
 
+func SafeValue(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
+	return ccxt.SafeValue(obj, key, defaultValue)
+}
+
 func Add(a interface{}, b interface{}) interface{} {
 	return ccxt.Add(a, b)
 }
