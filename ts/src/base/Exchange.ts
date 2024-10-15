@@ -169,6 +169,8 @@ import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
+import { buildMixAddress } from '../static_dependencies/mixin-node-sdk/client/utils/address.js'
+import { getUnspentOutputsForRecipients } from '../static_dependencies/mixin-node-sdk/client/utils/safe.js'
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -1531,6 +1533,14 @@ export default class Exchange {
         // TODO: unify to ecdsa
         const signature = starknetCurveSign (hash.replace ('0x', ''), pri.slice (-64));
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
+    }
+
+    mixinBuildMixAddress(members: string[], threshold: number) {
+        return buildMixAddress({ 'members': members, 'threshold': threshold });
+    }
+
+    mixinGetUnspentOutputsForRecipients(outputs, rs) {
+        return getUnspentOutputsForRecipients(outputs, rs);
     }
 
     intToBase16(elem): string {
