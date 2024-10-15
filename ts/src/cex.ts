@@ -107,7 +107,9 @@ export default class cex extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
-                'broad': {},
+                'broad': {
+                    'You have negative balance on following accounts': InsufficientFunds,
+                },
             },
             'timeframes': {
                 '1m': '1m',
@@ -1313,14 +1315,24 @@ export default class cex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
-        if (toAccount === '') {
-            throw new NotSupported (this.id + ' transfer() does not support transfering to main account');
+        let transfer = undefined;
+        if (toAccount !== '' && fromAccount !== '') {
+            transfer = await this.transferBetweenSubAccounts (code, amount, fromAccount, toAccount, params);
+        } else {
+            transfer = await this.transferBetweenMainAndSubAccount (code, amount, fromAccount, toAccount, params);
         }
-        if (fromAccount !== '') {
-            return this.transferBetweenSubAccounts (code, amount, fromAccount, toAccount, params);
+        const fillResponseFromRequest = this.handleOption ('transfer', 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
         }
+        return transfer;
+    }
+
+    async transferBetweenMainAndSubAccount (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const fromMain = (fromAccount === '');
         const guid = this.safeString (params, 'guid', this.uuid ());
         const request: Dict = {
             'currency': currency['id'],
@@ -1328,39 +1340,30 @@ export default class cex extends Exchange {
             'accountId': toAccount,
             'clientTxId': guid,
         };
-        const response = await this.privatePostDoDepositFundsFromWallet (this.extend (request, params));
+        let response = undefined;
+        if (fromMain) {
+            response = await this.privatePostDoDepositFundsFromWallet (this.extend (request, params));
+        } else {
+            response = await this.privatePostDoWithdrawalFundsToWallet (this.extend (request, params));
+        }
+        // both endpoints return the same structure, the only difference is that
+        // the "accountId" is filled with the "subAccount"
         //
-        //    {
-        //        "ok": "ok",
-        //        "data": {
-        //            "transactionId": "30375415"
-        //        }
-        //    }
+        //     {
+        //         "ok": "ok",
+        //         "data": {
+        //             "accountId": "sub1",
+        //             "clientTxId": "27ba8284-67cf-4386-9ec7-80b3871abd45",
+        //             "currency": "USDT",
+        //             "status": "approved"
+        //         }
+        //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const transfer = this.parseTransfer (data, currency);
-        const fillResponseFromRequest = this.handleOption ('transfer', 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
-            transfer['amount'] = amount;
-        }
-        return transfer;
+        return this.parseTransfer (data, currency);
     }
 
     async transferBetweenSubAccounts (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        /**
-         * @method
-         * @name cex#transferBetweenSubAccounts
-         * @description transfer currency internally between wallets on the same account
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
-         * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -1374,33 +1377,49 @@ export default class cex extends Exchange {
         //    {
         //        "ok": "ok",
         //        "data": {
-        //            "transactionId": "30375415"
+        //            "transactionId": "30225415"
         //        }
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const transfer = this.parseTransfer (data, currency);
-        const fillResponseFromRequest = this.handleOption ('transfer', 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
-            transfer['amount'] = amount;
-        }
-        return transfer;
+        return this.parseTransfer (data, currency);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        const currencyCode = this.safeCurrencyCode (undefined, currency);
+        //
+        // transferBetweenSubAccounts
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "transactionId": "30225415"
+        //        }
+        //    }
+        //
+        // transfer between main/sub
+        //
+        //     {
+        //         "ok": "ok",
+        //         "data": {
+        //             "accountId": "sub1",
+        //             "clientTxId": "27ba8284-67cf-4386-9ec7-80b3871abd45",
+        //             "currency": "USDT",
+        //             "status": "approved"
+        //         }
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
             'info': transfer,
-            'id': this.safeString (transfer, 'transactionId'),
+            'id': this.safeString2 (transfer, 'transactionId', 'clientTxId'),
             'timestamp': undefined,
             'datetime': undefined,
             'currency': currencyCode,
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': undefined,
+            'status': this.parseTransactionStatus (this.safeString (transfer, 'status')),
         };
     }
 
@@ -1485,29 +1504,16 @@ export default class cex extends Exchange {
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        // if (Array.isArray (response)) {
-        //     return response; // public endpoints may return []-arrays
-        // }
-        // if (body === 'true') {
-        //     return undefined;
-        // }
-        // if (response === undefined) {
-        //     throw new NullResponse (this.id + ' returned ' + this.json (response));
-        // }
-        // if ('e' in response) {
-        //     if ('ok' in response) {
-        //         if (response['ok'] === 'ok') {
-        //             return undefined;
-        //         }
-        //     }
-        // }
-        // if ('error' in response) {
-        //     const message = this.safeString (response, 'error');
-        //     const feedback = this.id + ' ' + body;
-        //     this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-        //     this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-        //     throw new ExchangeError (feedback);
-        // }
-        // return undefined;
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' returned ' + this.json (response));
+        }
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
     }
 }
