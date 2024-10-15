@@ -1066,10 +1066,6 @@ ${caseStatements.join('\n')}
 
         let isAlias = baseClass !== 'Exchange';
 
-        if (isAlias) {
-            content = content.replace(/this.Exchange.Describe/gm, "this." + baseClass + ".Describe");
-        }
-
         if (!ws) {
             content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
             content = content.replace(/base\./gm, "this.Exchange.");
@@ -1098,6 +1094,11 @@ ${caseStatements.join('\n')}
             // const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
             // content = constructorLine  + content;
         }
+
+        if (isAlias) {
+            content = content.replace(/this.Exchange.Describe/gm, "this." + baseClass + ".Describe");
+        }
+
         const capitalizedClassName = className.charAt(0).toUpperCase() + className.slice(1);
         let initMethod = '';
         if (!isAlias) {
@@ -1109,7 +1110,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         } else {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
-    this.${baseClass}.Init(userConfig)
+    this.${baseClass}.Init(this.DeepExtend(this.Describe(), userConfig))
 }\n`
         }
 
