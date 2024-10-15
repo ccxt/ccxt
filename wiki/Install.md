@@ -232,4 +232,4 @@ docker run -it ccxt
 ```
 
 ## Proxy
-If you are unable to obtain data from CCXT due to some location restrictions, you can make read [proxy](https://github.com/ccxt/ccxt/wiki/Manual#proxy) section.
+If you are unable to obtain data from exchanges due to location restrictions read the [proxy](https://github.com/ccxt/ccxt/wiki/Manual#proxy) section.
