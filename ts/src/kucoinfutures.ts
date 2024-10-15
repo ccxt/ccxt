@@ -1696,6 +1696,9 @@ export default class kucoinfutures extends kucoin {
         let useClientorderId = false;
         for (let i = 0; i < clientOrderIds.length; i++) {
             useClientorderId = true;
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds');
+            }
             ordersRequests.push ({
                 'symbol': market['id'],
                 'clientOid': this.safeString (clientOrderIds, i),
