@@ -48,14 +48,12 @@ func InvalidProxySettings(v ...interface{}) interface{} {
 	return ccxt.InvalidProxySettings(v)
 }
 
-func SetFetchResponse(exchange interface{}, response interface{}) ccxt.IExchange {
-	// exchange.(ccxt.IExchange).SetFetchResponse(method.(string), response)
-	// return exchange.(ccxt.IExchange)
-	return nil
+func SetFetchResponse(exchange ccxt.IExchange, response interface{}) ccxt.IExchange {
+	exchange.SetFetchResponse(response)
+	return exchange
 }
 
 func GetCliArgValue(arg interface{}) bool {
-	fmt.Println("getting arg", arg)
 	argStr := fmt.Sprintf("%v", arg) // Convert the argument to its string representation
 	for _, v := range os.Args {
 		if v == argStr {

@@ -19,6 +19,11 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 				ch <- "panic:" + ToString(r)
 			}
 		}()
+
+		if this.FetchResponse != nil {
+			ch <- this.FetchResponse
+			return
+		}
 		// Convert url to string
 		urlStr, ok := url.(string)
 		if !ok {

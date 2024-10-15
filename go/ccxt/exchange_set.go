@@ -91,3 +91,7 @@ func (this *Exchange) SetWssProxy(wssProxy interface{}) {
 func (this *Exchange) SetWsProxy(wsProxy interface{}) {
 	this.WsProxy = wsProxy.(string)
 }
+
+func (this *Exchange) SetFetchResponse(fetchResponse interface{}) {
+	this.FetchResponse = fetchResponse
+}

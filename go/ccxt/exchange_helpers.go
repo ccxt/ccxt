@@ -556,7 +556,13 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 		// if !valueVal.Type().AssignableTo(val.Type().Elem()) {
 		// 	// return fmt.Errorf("value type %s does not match map value type %s", valueVal.Type(), val.Type().Elem())
 		// }
-		val.SetMapIndex(key, valueVal)
+		// fmt.Println("key", key.Interface())
+		// fmt.Println("value", valueVal.Interface())
+		if valueVal.IsNil() {
+			val.SetMapIndex(key, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+		} else {
+			val.SetMapIndex(key, valueVal)
+		}
 	default:
 		// return fmt.Errorf("unsupported type: %s", val.Kind())
 	}
