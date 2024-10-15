@@ -4081,22 +4081,6 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
-    parseOHLCVsByDict (ohlcvs: object[], since: Int = undefined, limit: Int = undefined, tail: Bool = false, keys: string[] = []): OHLCV[] {
-        const results = [];
-        for (let i = 0; i < ohlcvs.length; i++) {
-            results.push ([
-                this.safeInteger (ohlcvs[i], keys[0]), // timestamp
-                this.safeNumber (ohlcvs[i], keys[1]), // open
-                this.safeNumber (ohlcvs[i], keys[2]), // high
-                this.safeNumber (ohlcvs[i], keys[3]), // low
-                this.safeNumber (ohlcvs[i], keys[4]), // close
-                this.safeNumber (ohlcvs[i], keys[5]), // volume
-            ]);
-        }
-        const sorted = this.sortBy (results, 0);
-        return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
-    }
-
     parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
         // marketIdKey should only be undefined when response is a dictionary
         symbols = this.marketSymbols (symbols);
