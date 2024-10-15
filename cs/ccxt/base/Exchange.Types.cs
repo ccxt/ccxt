@@ -140,7 +140,7 @@ public struct Limits
         cost = limits.ContainsKey("cost") ? new MinMax(limits["cost"]) : null;
         leverage = limits.ContainsKey("leverage") ? new MinMax(limits["leverage"]) : null;
         price = limits.ContainsKey("price") ? new MinMax(limits["price"]) : null;
-        price = limits.ContainsKey("market") ? new MinMax(limits["market"]) : null;
+        market = limits.ContainsKey("market") ? new MinMax(limits["market"]) : null;
     }
 }
 
