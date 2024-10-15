@@ -2,12 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/cex.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol, NotSupported } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NullResponse, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -49,6 +48,7 @@ export default class cex extends Exchange {
                 'fetchDepositsWithdrawals': true,
                 'transfer': true,
                 'fetchDepositAddress': true,
+                'createOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -109,6 +109,10 @@ export default class cex extends Exchange {
                 'exact': {},
                 'broad': {
                     'You have negative balance on following accounts': InsufficientFunds,
+                    'Mandatory parameter side should be one of BUY,SELL': BadRequest,
+                    'API orders from Main account are not allowed': BadRequest,
+                    'check failed': BadRequest,
+                    'Insufficient funds': InsufficientFunds,
                 },
             },
             'timeframes': {
@@ -908,7 +912,7 @@ export default class cex extends Exchange {
         //            {
         //                "orderId": "1313003",
         //                "clientOrderId": "037F0AFEB93A",
-        //                "clientId": "up421445425",
+        //                "clientId": "up421412345",
         //                "accountId": null,
         //                "status": "FILLED",
         //                "statusIsFinal": true,
@@ -983,7 +987,7 @@ export default class cex extends Exchange {
         //
         //                "orderId": "1313003",
         //                "clientOrderId": "037F0AFEB93A",
-        //                "clientId": "up421445425",
+        //                "clientId": "up421412345",
         //                "accountId": null,
         //                "status": "FILLED",
         //                "statusIsFinal": true,
@@ -1044,7 +1048,7 @@ export default class cex extends Exchange {
             'postOnly': undefined,
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeNumber (order, 'price'),
-            'stopPrice': undefined,
+            'stopPrice': this.safeNumber (order, 'stopPrice'),
             'amount': requestedBase,
             'cost': executedQuote,
             'average': this.safeNumber (order, 'averagePrice'),
@@ -1055,6 +1059,98 @@ export default class cex extends Exchange {
             'trades': undefined,
             'info': order,
         }, market);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#createOrder
+         * @description create a trade order
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.accountId] account-id to use (default is empty string)
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const accountId = this.safeString (params, 'accountId');
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() : API trading is now allowed from main account, set a "accountId" param to the name of your sub-account');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'clientOrderId': this.uuid (),
+            'currency1': market['baseId'],
+            'currency2': market['quoteId'],
+            'accountId': this.safeString (params, 'accountId', ''),
+            'orderType': this.capitalize (type.toLowerCase ()),
+            'side': side.toUpperCase (),
+            'timestamp': this.milliseconds (),
+            'amountCcy1': this.amountToPrecision (symbol, amount),
+        };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        let triggerPrice = undefined;
+        [ triggerPrice, params ] = this.handleParamString (params, 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            request['stopPrice'] = triggerPrice;
+        }
+        const response = await this.privatePostDoMyNewOrder (this.extend (request, params));
+        //
+        // on success
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "messageType": "executionReport",
+        //            "clientId": "up132245425",
+        //            "orderId": "1318485",
+        //            "clientOrderId": "b5b6cd40-154c-4c1c-bd51-4a442f3d50b9",
+        //            "accountId": "sub1",
+        //            "status": "FILLED",
+        //            "currency1": "LTC",
+        //            "currency2": "USDT",
+        //            "side": "BUY",
+        //            "executedAmountCcy1": "0.23000000",
+        //            "executedAmountCcy2": "15.09030000",
+        //            "requestedAmountCcy1": "0.23000000",
+        //            "requestedAmountCcy2": null,
+        //            "orderType": "Market",
+        //            "timeInForce": null,
+        //            "comment": null,
+        //            "executionType": "Trade",
+        //            "executionId": "1726747124624_101_41116",
+        //            "transactTime": "2024-10-15T15:08:12.794Z",
+        //            "expireTime": null,
+        //            "effectiveTime": null,
+        //            "averagePrice": "65.61",
+        //            "lastQuantity": "0.23000000",
+        //            "lastAmountCcy1": "0.23000000",
+        //            "lastAmountCcy2": "15.09030000",
+        //            "lastPrice": "65.61",
+        //            "feeAmount": "0.03772575",
+        //            "feeCurrency": "USDT",
+        //            "clientCreateTimestamp": "1729004892014",
+        //            "serverCreateTimestamp": "1729004891628",
+        //            "lastUpdateTimestamp": "1729004892786"
+        //        }
+        //    }
+        //
+        // on failure, there are extra fields
+        //
+        //             "status": "REJECTED",
+        //             "requestedAmountCcy1": null,
+        //             "orderRejectReason": "{\\" code \\ ":405,\\" reason \\ ":\\" Either AmountCcy1(OrderQty)or AmountCcy2(CashOrderQty)should be specified for market order not both \\ "}",
+        //             "rejectCode": 405,
+        //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
+        //
+        const data = this.safeDict (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1155,7 +1251,7 @@ export default class cex extends Exchange {
         //                "accountId": "",
         //                "type": "withdraw",
         //                "amount": "-12.39060600",
-        //                "details": "Withdraw fundingId=1235039 clientId=up421445425 walletTxId=76337154166",
+        //                "details": "Withdraw fundingId=1235039 clientId=up421412345 walletTxId=76337154166",
         //                "currency": "USDT"
         //            },
         //            ...
@@ -1210,7 +1306,7 @@ export default class cex extends Exchange {
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
-         * @name ცეხ#fetchDepositsWithdrawals
+         * @name cex#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
          * @see https://trade.cex.io/docs/#rest-private-api-calls-funding-history
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -1242,7 +1338,7 @@ export default class cex extends Exchange {
         //        "ok": "ok",
         //        "data": [
         //            {
-        //                "clientId": "up421445425",
+        //                "clientId": "up421412345",
         //                "accountId": "",
         //                "currency": "USDT",
         //                "direction": "withdraw",
@@ -1504,8 +1600,18 @@ export default class cex extends Exchange {
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        // in some cases, like from createOrder, exchange returns nested escaped JSON string:
+        //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
+        // and because of `.parseJson` bug, we need extra fix
         if (response === undefined) {
-            throw new NullResponse (this.id + ' returned ' + this.json (response));
+            if (body === undefined) {
+                throw new NullResponse (this.id + ' returned empty response');
+            } else if (body[0] === '{') {
+                const fixed = this.fixStringifiedJsonMembers (body);
+                response = this.parseJson (fixed);
+            } else {
+                throw new NullResponse (this.id + ' returned unparsed response: ' + body);
+            }
         }
         const error = this.safeString (response, 'error');
         if (error !== undefined) {
@@ -1513,6 +1619,15 @@ export default class cex extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
             throw new ExchangeError (feedback);
+        }
+        // check errors in order-engine (the responses are not standard, so we parse here)
+        if (url.indexOf ('do_my_new_order') >= 0) {
+            const data = this.safeDict (response, 'data', {});
+            const rejectReason = this.safeString (data, 'rejectReason');
+            if (rejectReason !== undefined) {
+                this.throwBroadlyMatchedException (this.exceptions['broad'], rejectReason, rejectReason);
+                throw new ExchangeError (this.id + ' createOrder() ' + rejectReason);
+            }
         }
         return undefined;
     }
