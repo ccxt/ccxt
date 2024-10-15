@@ -779,7 +779,7 @@ export default class bingx extends Exchange {
         let isActive = false;
         if ((this.safeString (market, 'apiStateOpen') === 'true') && (this.safeString (market, 'apiStateClose') === 'true')) {
             isActive = true; // swap active
-        } else if (this.safeBool (market, 'apiStateSell') && this.safeBool (market, 'apiStateBuy') && (this.safeNumber (market, 'status') === 1)) {
+        } else if (this.safeBool (market, 'apiStateSell') && this.safeBool (market, 'apiStateBuy') && (this.safeString (market, 'status') === '1')) {
             isActive = true; // spot active
         }
         const isInverse = (spot) ? undefined : checkIsInverse;
