@@ -1440,7 +1440,7 @@ export default class cex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const fromMain = (fromAccount === '');
-        const targetAccount = (fromMain ? toAccount : fromAccount);
+        const targetAccount = fromMain ? toAccount : fromAccount;
         const guid = this.safeString (params, 'guid', this.uuid ());
         const request: Dict = {
             'currency': currency['id'],
