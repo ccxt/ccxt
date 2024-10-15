@@ -48,6 +48,7 @@ export default class cex extends Exchange {
                 'fetchLedger': true,
                 'fetchDepositsWithdrawals': true,
                 'transfer': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -1403,6 +1404,55 @@ export default class cex extends Exchange {
         };
     }
 
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        /**
+         * @method
+         * @name cex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const currency = this.currency (code);
+        const request: Dict = {
+            'accountId': this.safeString (params, 'accountId', ''),
+            'currency': currency['id'], // documentation is wrong about this param
+            'blockchain': this.networkCodeToId (networkCode),
+        };
+        const response = await this.privatePostGetDepositAddress (this.extend (request, params));
+        //
+        //    {
+        //        "ok": "ok",
+        //        "data": {
+        //            "address": "TCr..................1AE",
+        //            "accountId": "sub1",
+        //            "currency": "USDT",
+        //            "blockchain": "tron"
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+        const address = this.safeString (depositAddress, 'address');
+        const currencyId = this.safeString (depositAddress, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        this.checkAddress (address);
+        return {
+            'info': depositAddress,
+            'currency': currency['code'],
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'blockchain')),
+            'address': address,
+            'tag': undefined,
+        } as DepositAddress;
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
