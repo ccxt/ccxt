@@ -19,6 +19,7 @@ func main() {
 	argvSymbol := base.GetCliPositionalArg(1)
 	argvMethod := base.GetCliPositionalArg(2)
 
-	<-tests.Init(argvExchange, argvSymbol, argvMethod)
+	res := <-tests.Init(argvExchange, argvSymbol, argvMethod)
+	base.PanicOnError(res)
 
 }
