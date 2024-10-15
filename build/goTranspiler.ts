@@ -98,6 +98,19 @@ const VIRTUAL_BASE_METHODS = [
     "fetchL2OrderBook",
     "fetchL3OrderBook",
     "fetchOrderTrades",
+    'fetchFundingInterval',
+    'fetchFundingIntervals',
+    "fetchLeverage",
+    "fetchLeverages",
+    "fetchOption",
+    "parseOption",
+    "safeMarket", // try to remove custom implementations
+    "createExpiredOptionMarket",
+    "fetchLeverageTiers",
+    "fetchDepositsWithdrawals",
+    "fetchMarginModes",
+    "fetchFundingRates",
+    "fetchDepositWithdrawFees",
     "sign"
 ]
 
@@ -755,6 +768,7 @@ class NewTranspiler {
     }
 
     transpileBaseMethods(baseExchangeFile) {
+        log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow)
         const goExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
 
@@ -773,11 +787,13 @@ class NewTranspiler {
         // custom transformations needed for go
         baseClass = baseClass.replaceAll(/\=\snew\s/gm, "= ");
         baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
+        baseClass = baseClass.replaceAll(/callDynamically\(/gm, 'this.callDynamically(') //fix this on the transpiler
         baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
         baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
         baseClass = baseClass.replaceAll(/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
+        
 
 
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
@@ -949,14 +965,14 @@ ${caseStatements.join('\n')}
         }
 
         this.transpileBaseMethods (exchangeBase)
-        this.createDynamicInstanceFile();
+        // this.createDynamicInstanceFile();
 
         if (baseOnly) {
             return;
         }
 
 
-        this.transpileTests()
+        // this.transpileTests()
 
         // this.transpileErrorHierarchy ()
 
@@ -1038,9 +1054,22 @@ ${caseStatements.join('\n')}
         const goImports = this.getGoImports(goVersion, ws).join("\n") + "\n\n";
         let content = goVersion.content;
 
+        // const isInheritedExchange = content.indexOf('')
+
         // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
         // const baseWsClassExec = baseWsClassRegex.exec(content);
         // const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
+
+        const classExtends = /type\s\w+\sstruct\s{\s*(\w+)/;
+        const matches = content.match(classExtends);
+        const baseClass = matches ? matches[1] : '';
+
+        let isAlias = baseClass !== 'Exchange';
+
+        if (isAlias) {
+            content = content.replace(/this.Exchange.Describe/gm, "this." + baseClass + ".Describe");
+        }
+
         if (!ws) {
             content = content.replace(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
             content = content.replace(/base\./gm, "this.Exchange.");
@@ -1050,6 +1079,8 @@ ${caseStatements.join('\n')}
             content = content.replace(/var precise interface\{\} = /gm, "precise := ");
             content = content.replace(/var preciseAmount interface\{\} = /gm, "preciseAmount := ");
             content = content.replace(/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'); // idex tmp fix
+            content = content.replace(/ToString\(precise\)/, 'precise.ToString()')
+            content = content.replace(/<\-callDynamically/gm, '<-this.callDynamically') //fix this on the transpiler
 
         } else {
             // const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
@@ -1068,11 +1099,20 @@ ${caseStatements.join('\n')}
             // content = constructorLine  + content;
         }
         const capitalizedClassName = className.charAt(0).toUpperCase() + className.slice(1);
-        const initMethod = `
+        let initMethod = '';
+        if (!isAlias) {
+            initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
-	this.Exchange = Exchange{}
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+    this.Exchange = Exchange{}
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
 }\n`
+        } else {
+            initMethod = `
+func (this *${className}) Init(userConfig map[string]interface{}) {
+    this.${baseClass}.Init(userConfig)
+}\n`
+        }
+
         content = this.createGeneratedHeader().join('\n') + '\n' + content + '\n' +  initMethod;
         return goImports + content;
     }

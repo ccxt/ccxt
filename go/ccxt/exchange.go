@@ -83,17 +83,17 @@ type Exchange struct {
 	PrivateKey    string
 	WalletAddress string
 
-	HttpProxy            string
-	HttpsProxy           string
-	Http_proxy           string
-	Https_proxy          string
-	Proxy                string
-	ProxyUrl             string
+	HttpProxy            interface{}
+	HttpsProxy           interface{}
+	Http_proxy           interface{}
+	Https_proxy          interface{}
+	Proxy                interface{}
+	ProxyUrl             interface{}
 	ProxyUrlCallback     interface{}
-	Proxy_url            string
+	Proxy_url            interface{}
 	Proxy_url_callback   interface{}
-	SocksProxy           string
-	Socks_proxy          string
+	SocksProxy           interface{}
+	Socks_proxy          interface{}
 	SocksProxyCallback   interface{}
 	Socks_proxy_callback interface{}
 
@@ -131,18 +131,18 @@ type Exchange struct {
 	MaxEntriesPerRequest    int
 }
 
-var DECIMAL_PLACES int = 2
-var SIGNIFICANT_DIGITS int = 3
-var TICK_SIZE int = 4
+const DECIMAL_PLACES int = 2
+const SIGNIFICANT_DIGITS int = 3
+const TICK_SIZE int = 4
 
-var TRUNCATE int = 0
+const TRUNCATE int = 0
 
-var NO_PADDING = 5
-var PAD_WITH_ZERO int = 6
+const NO_PADDING = 5
+const PAD_WITH_ZERO int = 6
 
 // var ROUND int = 0
 
-func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
+func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
 	// var properties = this.describe()
 	var extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
@@ -152,9 +152,17 @@ func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map
 	//this.itf = itf
 	this.initializeProperties(extendedProperties)
 
+	if (this.Markets != nil) && (len(this.Markets) > 0) {
+		this.SetMarkets(this.Markets, nil)
+	}
+
 	this.transformApiNew(this.Api)
 
 	// fmt.Println(this.TransformedApi)
+}
+
+func (this *Exchange) Init(userConfig map[string]interface{}) {
+	// to do
 }
 
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
@@ -162,6 +170,11 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
 	go func() {
 		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
 		if this.Markets != nil && len(this.Markets) > 0 {
 			if this.Markets_by_id == nil && len(this.Markets) > 0 {
 				ch <- this.SetMarkets(this.Markets, nil)
@@ -189,6 +202,26 @@ func (this *Exchange) Throttle(cost interface{}) <-chan interface{} {
 	go func() interface{} {
 		defer close(ch)
 		return nil
+	}()
+	return ch
+}
+
+func (this *Exchange) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		markets := <-this.callInternal("fetchMarkets", optionalArgs)
+		return markets
+	}()
+	return ch
+}
+
+func (this *Exchange) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		markets := <-this.callInternal("fetchCurrencies", optionalArgs)
+		return markets
 	}()
 	return ch
 }
@@ -246,21 +279,35 @@ func (this *Exchange) Log(args ...interface{}) {
 }
 
 func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) <-chan interface{} {
-	endpoint := endpoint2.(string)
-	if val, ok := this.TransformedApi[endpoint]; ok {
-		endPointData := val.(map[string]interface{})
-		// endPointData := this.TransformedApi[endpoint].(map[string]interface{})
-		method := endPointData["method"].(string)
-		path := endPointData["path"].(string)
-		api := endPointData["api"]
-		var cost float64 = 1
-		if valCost, ok := endPointData["cost"]; ok {
-			cost = valCost.(float64)
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		endpoint := endpoint2.(string)
+		if val, ok := this.TransformedApi[endpoint]; ok {
+			endPointData := val.(map[string]interface{})
+			// endPointData := this.TransformedApi[endpoint].(map[string]interface{})
+			method := endPointData["method"].(string)
+			path := endPointData["path"].(string)
+			api := endPointData["api"]
+			var cost float64 = 1
+			if valCost, ok := endPointData["cost"]; ok {
+				cost = valCost.(float64)
+			}
+			res := <-this.Fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
+			PanicOnError(res)
+			ch <- res
 		}
-		res := this.Fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
-		return res
-	}
-	return nil
+		ch <- nil
+	}()
+	return ch
 }
 
 func NewError(err interface{}, v ...interface{}) string {
@@ -316,9 +363,8 @@ func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
 }
 
-func callDynamically(args ...interface{}) chan interface{} {
-	// to do
-	return nil
+func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+	return this.callInternal(name2.(string), args...)
 }
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
@@ -405,7 +451,7 @@ func (e *exampleArrayCache) ToArray() []interface{} {
 	return e.data
 }
 
-func (this *Exchange) ParseTimeframe(timeframe interface{}) *int {
+func (this *Exchange) ParseTimeframe(timeframe interface{}) interface{} {
 	str, ok := timeframe.(string)
 	if !ok {
 		return nil
@@ -442,7 +488,7 @@ func (this *Exchange) ParseTimeframe(timeframe interface{}) *int {
 	}
 
 	result := amount * scale
-	return &result
+	return result
 }
 
 func Totp(secret interface{}) string {
@@ -636,90 +682,21 @@ func (this *Exchange) IsEmpty(a interface{}) bool {
 }
 
 func (this *Exchange) callInternal(name2 string, args ...interface{}) <-chan interface{} {
-	name := Capitalize(name2)
-	baseType := reflect.TypeOf(this.Itf)
-
 	ch := make(chan interface{})
 	go func() {
-		for i := 0; i < baseType.NumMethod(); i++ {
-			method := baseType.Method(i)
-			if name == method.Name {
-				methodType := method.Type
-				numIn := methodType.NumIn()
-				isVariadic := methodType.IsVariadic()
-
-				var in []reflect.Value
-				if isVariadic {
-					// Handle fixed arguments
-					for k := 0; k < numIn-1; k++ {
-						if k < len(args) {
-							in = append(in, reflect.ValueOf(args[k]))
-						} else {
-							paramType := methodType.In(k)
-							in = append(in, reflect.Zero(paramType))
-						}
-					}
-
-					// Handle variadic arguments
-					variadicType := methodType.In(numIn - 1).Elem()
-					for k := numIn - 1; k < len(args); k++ {
-						if args[k] == nil {
-							in = append(in, reflect.Zero(variadicType))
-						} else {
-							in = append(in, reflect.ValueOf(args[k]))
-						}
-					}
-				} else {
-					for k := 0; k < numIn; k++ {
-						if k < len(args) {
-							if args[k] == nil {
-								paramType := methodType.In(k)
-								in = append(in, reflect.Zero(paramType))
-							} else {
-								in = append(in, reflect.ValueOf(args[k]))
-							}
-						} else {
-							paramType := methodType.In(k)
-							in = append(in, reflect.Zero(paramType))
-						}
-					}
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				if r != "break" {
+					ch <- "panic:" + ToString(r)
 				}
-
-				// Call the method
-				res := reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
-
-				// Check if the result is a channel
-				if len(res) > 0 && res[0].Kind() == reflect.Chan {
-					resultChan := res[0]
-					// Read values from the returned channel and pass them to ch
-					go func() {
-						for {
-							val, ok := resultChan.Recv()
-							if !ok {
-								break // result channel is closed
-							}
-							ch <- val.Interface() // pass the value to the output channel
-						}
-						close(ch) // close the output channel after all values are received
-					}()
-					// Don't close `ch` yet, as it will be closed after the resultChan is read
-					return
-				} else if len(res) > 0 {
-					// Directly return the first result if it's not a channel
-					val := res[0].Interface()
-					ch <- val
-				} else {
-					// Return nil if no results
-					ch <- nil
-				}
-				close(ch)
-				return
 			}
-		}
-		// If no method is found, return nil
-		ch <- nil
-		close(ch)
+		}()
+		res := <-CallInternalMethod(this.Itf, name2, args...)
+		ch <- res
 	}()
+	// res := <-CallInternalMethod(this.Itf, name2, args...)
+	// return res
 	return ch
 }
 
@@ -882,3 +859,12 @@ func (this *Exchange) StarknetEncodeStructuredData(a interface{}, b interface{},
 func (this *Exchange) StarknetSign(a interface{}, b interface{}) interface{} {
 	return nil // to do
 }
+
+func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
+	options := options2.(map[string]interface{})
+	extended := this.Extend(this.Options, options)
+	this.Options = extended
+}
+
+// func (this *Exchange) Init(userConfig map[string]interface{}) {
+// }
