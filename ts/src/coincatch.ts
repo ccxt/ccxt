@@ -1543,7 +1543,7 @@ export default class coincatch extends Exchange {
         if (since !== undefined) {
             requestedLimit = maxEntriesPerRequest;
         }
-        if (limit !== undefined) {
+        if (requestedLimit !== undefined) {
             request['pageSize'] = requestedLimit;
         }
         const response = await this.publicGetApiMixV1MarketHistoryFundRate (this.extend (request, params));
