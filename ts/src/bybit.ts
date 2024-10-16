@@ -7212,7 +7212,7 @@ export default class bybit extends Exchange {
         if (paginate) {
             params = this.omit (params, 'paginate');
             params['timeframe'] = timeframe;
-            return await this.fetchPaginatedCallCursor ('fetchOpenInterestHistory', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 200) as FundingHistory[];
+            return await this.fetchPaginatedCallCursor ('fetchOpenInterestHistory', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 200) as OpenInterest[];
         }
         const market = this.market (symbol);
         if (market['spot'] || market['option']) {
