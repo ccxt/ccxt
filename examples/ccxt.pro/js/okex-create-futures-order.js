@@ -1,7 +1,8 @@
 'use strict';
 
-const ccxt = require ('ccxt')
-    , exchange = new ccxt.okex ({
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.okex ({
         apiKey: 'YOUR_API_KEY',
         secret: 'YOUR_API_SECRET',
         password: 'YOUR_API_PASSWORD',
