@@ -2477,6 +2477,7 @@ export default class coincatch extends Exchange {
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             const triggerPrice = this.safeString (orderParams, 'triggerPrice');
             if (triggerPrice !== undefined) {
+                // todo add check for another tp and sl
                 throw new NotSupported (this.id + ' ' + methodName + '() does not support trigger orders');
             }
             const clientOrderId = this.safeString (orderRequest, 'clientOrderId');
@@ -2537,11 +2538,34 @@ export default class coincatch extends Exchange {
             request['orderDataList'] = ordersRequests;
             response = await this.privatePostApiMixV1OrderBatchOrders (this.extend (request, params));
             //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1729100084017,
+            //         "data": {
+            //             "orderInfo": [
+            //                 {
+            //                     "orderId": "1230500426827522049",
+            //                     "clientOid": "1230500426898825216"
+            //                 }
+            //             ],
+            //             "failure": [
+            //                 {
+            //                     "orderId": "",
+            //                     "clientOid": null,
+            //                     "errorMsg": "The order price exceeds the maximum price limit: 2,642.53",
+            //                     "errorCode": "22047"
+            //                 }
+            //             ],
+            //             "result": true
+            //         }
+            //     }
             //
             propertyName = 'orderInfo';
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
+        // todo handle errors in response
         const data = this.safeDict (response, 'data', {});
         responseOrders = this.safeList (data, propertyName, []);
         return this.parseOrders (responseOrders);
