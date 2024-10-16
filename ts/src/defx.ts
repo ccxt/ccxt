@@ -7,7 +7,8 @@ import Exchange from './abstract/defx.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
-import type { Dict, int, Str, Bool, Num, Market, MarketType } from './base/types.js';
+import { NotSupported } from './base/errors.js';
+import type { Dict, int, Str, Bool, Num, Market, Ticker, Tickers, Strings } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -102,7 +103,7 @@ export default class defx extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -528,7 +529,101 @@ export default class defx extends Exchange {
             'created': undefined,
             'info': market,
         };
-    }    
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name defx#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://api-docs.defx.com/#8c61cfbd-40d9-410e-b014-f5b36eba51d1
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            const firstSymbol = this.safeString (symbols, 0);
+            if (firstSymbol !== undefined) {
+                market = this.market (firstSymbol);
+            }
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
+        if (type === 'spot') {
+            throw new NotSupported (this.id + ' fetchTickers() is not supported for ' + type + ' markets');
+        }
+        const response = await this.v1PublicGetTicker24HrAgg (params);
+        //
+        // {
+        //     "ETH_USDC": {
+        //       "priceChange": "0",
+        //       "priceChangePercent": "0",
+        //       "openPrice": "1646.15",
+        //       "highPrice": "1646.15",
+        //       "lowPrice": "1646.15",
+        //       "lastPrice": "1646.15",
+        //       "quoteVolume": "13.17",
+        //       "volume": "0.008",
+        //       "markPrice": "1645.15"
+        //     }
+        // }
+        //
+        return this.parseTickers (response, symbols);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     "ETH_USDC": {
+        //       "priceChange": "0",
+        //       "priceChangePercent": "0",
+        //       "openPrice": "1646.15",
+        //       "highPrice": "1646.15",
+        //       "lowPrice": "1646.15",
+        //       "lastPrice": "1646.15",
+        //       "quoteVolume": "13.17",
+        //       "volume": "0.008",
+        //       "markPrice": "1645.15"
+        //     }
+        //
+        const symbol = market['symbol'];
+        const open = this.safeString (ticker, 'openPrice');
+        const high = this.safeString (ticker, 'highPrice');
+        const low = this.safeString (ticker, 'lowPrice');
+        const close = this.safeString (ticker, 'lastPrice');
+        const quoteVolume = this.safeString (ticker, 'quoteVolume');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const percentage = this.safeString (ticker, 'priceChangePercent');
+        const change = this.safeString (ticker, 'priceChange');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': high,
+            'low': low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': close,
+            'last': undefined,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'markPrice': this.safeString (ticker, 'markPrice'),
+            'indexPrice': undefined,
+            'info': ticker,
+        }, market);
+    }
 
     nonce () {
         return this.milliseconds ();
