@@ -531,6 +531,48 @@ export default class defx extends Exchange {
         };
     }
 
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name defx#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api-docs.defx.com/#fe6f81d0-2f3a-4eee-976f-c8fc8f4c5d56
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetSymbolsSymbolTicker24hr (this.extend (request, params));
+        //
+        // {
+        //     "symbol": "BTC_USDC",
+        //     "priceChange": "0",
+        //     "priceChangePercent": "0",
+        //     "weightedAvgPrice": "0",
+        //     "lastPrice": "2.00",
+        //     "lastQty": "10.000",
+        //     "bestBidPrice": "1646.00",
+        //     "bestBidQty": "10.000",
+        //     "bestAskPrice": "1646.00",
+        //     "bestAskQty": "10.000",
+        //     "openPrice": "0.00",
+        //     "highPrice": "0.00",
+        //     "lowPrice": "0.00",
+        //     "volume": "0.000",
+        //     "quoteVolume": "0.00",
+        //     "openTime": 1700142658697,
+        //     "closeTime": 1700142658697,
+        //     "openInterestBase": "1.000",
+        //     "openInterestQuote": "0.43112300"
+        // }
+        //
+        return this.parseTicker (response, market);
+    }
+
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
@@ -576,6 +618,32 @@ export default class defx extends Exchange {
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
+        // fetchTicker
+        //
+        // {
+        //     "symbol": "BTC_USDC",
+        //     "priceChange": "0",
+        //     "priceChangePercent": "0",
+        //     "weightedAvgPrice": "0",
+        //     "lastPrice": "2.00",
+        //     "lastQty": "10.000",
+        //     "bestBidPrice": "1646.00",
+        //     "bestBidQty": "10.000",
+        //     "bestAskPrice": "1646.00",
+        //     "bestAskQty": "10.000",
+        //     "openPrice": "0.00",
+        //     "highPrice": "0.00",
+        //     "lowPrice": "0.00",
+        //     "volume": "0.000",
+        //     "quoteVolume": "0.00",
+        //     "openTime": 1700142658697,
+        //     "closeTime": 1700142658697,
+        //     "openInterestBase": "1.000",
+        //     "openInterestQuote": "0.43112300"
+        // }
+        //
+        // fetchTickers
+        //
         //     "ETH_USDC": {
         //       "priceChange": "0",
         //       "priceChangePercent": "0",
@@ -588,6 +656,10 @@ export default class defx extends Exchange {
         //       "markPrice": "1645.15"
         //     }
         //
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId !== undefined) {
+            market = this.market (marketId);
+        }
         const symbol = market['symbol'];
         const open = this.safeString (ticker, 'openPrice');
         const high = this.safeString (ticker, 'highPrice');
@@ -597,16 +669,25 @@ export default class defx extends Exchange {
         const baseVolume = this.safeString (ticker, 'volume');
         const percentage = this.safeString (ticker, 'priceChangePercent');
         const change = this.safeString (ticker, 'priceChange');
+        let ts = this.safeInteger (ticker, 'closeTime');
+        if (ts === 0) {
+            ts = undefined;
+        }
+        const datetime = this.iso8601 (ts);
+        const bid = this.safeString (ticker, 'bestBidPrice');
+        const bidVolume = this.safeString (ticker, 'bestBidQty');
+        const ask = this.safeString (ticker, 'bestAskPrice');
+        const askVolume = this.safeString (ticker, 'bestAskQty');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': ts,
+            'datetime': datetime,
             'high': high,
             'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': open,
             'close': close,
