@@ -235,9 +235,9 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/order/placeOrder': 2, // done
                         'api/mix/v1/order/batch-orders': { 'cost': 4, 'step': 10 }, // done
                         'api/mix/v1/order/cancel-order': 2, // done
-                        'api/mix/v1/order/cancel-batch-orders': 1,
-                        'api/mix/v1/order/cancel-symbol-orders': 1,
-                        'api/mix/v1/order/cancel-all-orders': 1,
+                        'api/mix/v1/order/cancel-batch-orders': 2, // done
+                        'api/mix/v1/order/cancel-symbol-orders': 2, // done
+                        'api/mix/v1/order/cancel-all-orders': 2, // done
                         'api/mix/v1/plan/placePlan': 1,
                         'api/mix/v1/plan/modifyPlan': 1,
                         'api/mix/v1/plan/modifyPlanPreset': 1,
@@ -2968,7 +2968,7 @@ export default class coincatch extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
+         * @param {string} [params.productType] 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
          * @param {string} [params.marginCoin] *swap only* the margin coin of the market to fetch entries for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3380,6 +3380,8 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap' - the type of the market to cancel orders for (default 'spot')
          * @param {bool} [params.trigger] true for canceling a trigger orders (default false)
+         * @param {string} [params.productType] *swap only (if symbol is not provided* 'umcbl' or 'dmcbl' - the product type of the market to cancel orders for (default 'umcbl')
+         * @param {string} [params.marginCoin] *mandatory for swap dmcb (if symbol is not provided)* the margin coin of the market to cancel orders for
          * @returns {object} response from the exchange
          */
         const methodName = 'cancelAllOrders';
@@ -3430,8 +3432,43 @@ export default class coincatch extends Exchange {
                 //
                 response = await this.privatePostApiSpotV1TradeCancelSymbolOrder (this.extend (request, params));
             }
+        } else if (marketType === 'swap') {
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
+                request['marginCoin'] = market['settleId'];
+                response = await this.privatePostApiMixV1OrderCancelSymbolOrders (this.extend (request, params));
+            } else {
+                let productType = 'umcbl';
+                productType = this.handleOption (methodName, 'productType', productType);
+                request['productType'] = productType;
+                let marginCoin: Str = undefined;
+                if (productType === 'umcbl') {
+                    marginCoin = 'USDT';
+                } else {
+                    [ marginCoin, params ] = this.handleOptionAndParams (params, methodName, 'marginCoin', marginCoin);
+                    if (marginCoin === undefined) {
+                        throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a marginCoin parameter for dmcbl product type');
+                    }
+                }
+                request['marginCoin'] = marginCoin;
+                response = await this.privatePostApiMixV1OrderCancelAllOrders (this.extend (request, params));
+            }
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1729104940774,
+            //         "data": {
+            //             "result": true,
+            //             "order_ids": [ "1230500426827522049" ],
+            //             "client_order_ids": [ "1230500426898825216" ],
+            //             "fail_infos": []
+            //         }
+            //     }
+            //
+            const result = this.getResultFromBatchCancelingSwapOrders (response);
+            return this.parseOrders (result, market);
         } else {
-            // add swap
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
         const order = this.safeOrder (response);
@@ -3517,20 +3554,25 @@ export default class coincatch extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeDict (response, 'data', {});
-            result = [];
-            const orderIds = this.safeValue (data, 'order_ids', []);
-            for (let i = 0; i < orderIds.length; i++) {
-                const orderId = orderIds[i];
-                const resultItem = {
-                    'orderId': orderId,
-                };
-                result.push (resultItem);
-            }
+            result = this.getResultFromBatchCancelingSwapOrders (response);
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
         return this.parseOrders (result, market);
+    }
+
+    getResultFromBatchCancelingSwapOrders (response) {
+        const data = this.safeDict (response, 'data', {});
+        const result = [];
+        const orderIds = this.safeValue (data, 'order_ids', []);
+        for (let i = 0; i < orderIds.length; i++) {
+            const orderId = orderIds[i];
+            const resultItem = {
+                'orderId': orderId,
+            };
+            result.push (resultItem);
+        }
+        return result;
     }
 
     parseOrder (order, market = undefined): Order {
