@@ -1184,16 +1184,22 @@ export default class coincatch extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         const marketType = market['type'];
         const timeframes = this.options['timeframes'][marketType];
+        const encodedTimeframe = this.safeString (timeframes, timeframe, timeframe);
+        const maxLimit = 1000;
+        let requestedLimit = limit;
+        if ((since !== undefined) || (until !== undefined)) {
+            requestedLimit = maxLimit; // the exchange returns only last limit candles, so we have to fetch max limit if since or until are provided
+        }
+        if (requestedLimit !== undefined) {
+            request['limit'] = requestedLimit;
+        }
         let response = undefined;
         if (market['spot']) {
-            request['period'] = this.safeString (timeframes, timeframe, timeframe);
+            request['period'] = encodedTimeframe;
             if (since !== undefined) {
                 request['after'] = since;
             }
@@ -1224,14 +1230,13 @@ export default class coincatch extends Exchange {
             const data = this.safeList (response, 'data', []);
             return this.parseOHLCVs (data, market, timeframe, since, limit);
         } else if (market['swap']) {
-            request['granularity'] = this.safeString (timeframes, timeframe, timeframe);
+            request['granularity'] = encodedTimeframe;
             if (until === undefined) {
                 until = this.milliseconds ();
             }
             if (since === undefined) {
-                limit = limit ? limit : 100;
                 const duration = this.parseTimeframe (timeframe);
-                since = until - (duration * limit * 1000);
+                since = until - (duration * requestedLimit * 1000);
             }
             request['startTime'] = since; // since and until are mandatory for swap
             request['endTime'] = until;
@@ -1767,7 +1772,6 @@ export default class coincatch extends Exchange {
     }
 
     parseTransfer (transfer, currency: Currency = undefined) {
-        const timestamp = this.safeInteger (transfer, 'requestTime'); // todo check
         const msg = this.safeString (transfer, 'msg');
         let status: Str = undefined;
         if (msg === 'success') {
@@ -1776,8 +1780,8 @@ export default class coincatch extends Exchange {
         const data = this.safeDict (transfer, 'data', {});
         return {
             'id': this.safeString (data, 'transferId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
             'fromAccount': undefined,
@@ -2397,7 +2401,6 @@ export default class coincatch extends Exchange {
         let hedged: Bool = false;
         [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
         // hedged and non-hedged orders have different side values and reduceOnly handling
-        // todo find the best way to handle this
         if (hedged) {
             let reduceOnly: Bool = false;
             [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly', reduceOnly);
@@ -2469,7 +2472,6 @@ export default class coincatch extends Exchange {
          */
         await this.loadMarkets ();
         // same symbol for all orders
-        // only non-trigger orders are supported todo add an exception for trigger orders
         const methodName = 'createOrders';
         params['methodName'] = methodName;
         const ordersRequests = [];
@@ -3222,7 +3224,7 @@ export default class coincatch extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         } else {
-            request['startTime'] = 0; // todo check
+            request['startTime'] = 0; // is mandatory
         }
         if (limit !== undefined) {
             request['pageSize'] = limit;
@@ -3232,7 +3234,7 @@ export default class coincatch extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         } else {
-            request['endTime'] = this.milliseconds (); // todo check
+            request['endTime'] = this.milliseconds (); // is mandatory
         }
         let market: Market = undefined;
         let response = undefined;
@@ -3690,7 +3692,7 @@ export default class coincatch extends Exchange {
             'canceled': 'canceled',
             'cancelled': 'canceled',
         };
-        return this.safeString (satuses, status, status); // todo check other statuses
+        return this.safeString (satuses, status, status);
     }
 
     parseOrderSide (side: Str): Str {
@@ -4630,14 +4632,14 @@ export default class coincatch extends Exchange {
             if (since !== undefined) {
                 request['startTime'] = since;
             } else {
-                request['startTime'] = 0; // todo check
+                request['startTime'] = 0; // is mandatory
             }
             let until: Int = undefined;
             [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
             if (until !== undefined) {
                 request['endTime'] = until;
             } else {
-                request['endTime'] = this.milliseconds (); // todo check
+                request['endTime'] = this.milliseconds (); // is mandatory
             }
             if (limit !== undefined) {
                 request['pageSize'] = limit;
@@ -4742,6 +4744,7 @@ export default class coincatch extends Exchange {
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
         // spot
         //     {
         //         "billId": "1220289012519190529",
