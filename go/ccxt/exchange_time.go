@@ -157,6 +157,53 @@ func (this *Exchange) Ymd(ts interface{}, args ...interface{}) string {
 }
 
 // parse8601 parses an ISO 8601 date string and returns the timestamp in milliseconds since the Unix epoch.
+// func (this *Exchange) Parse8601(datetime2 interface{}) interface{} {
+// 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
+// 		return nil
+// 	}
+// 	datetime := datetime2.(string)
+// 	if strings.Contains(datetime, "+0") {
+// 		parts := strings.Split(datetime, "+")
+// 		datetime = parts[0]
+// 	}
+// 	// Try to parse the datetime string as RFC3339 and convert to UTC
+// 	t, err := time.Parse(time.RFC3339, datetime)
+// 	if err != nil {
+// 		return nil
+// 	}
+// 	// Ensure the time is in UTC
+// 	t = t.UTC()
+// 	timestamp := t.UnixNano() / int64(time.Millisecond)
+// 	return timestamp
+// }
+
+// func (this *Exchange) Parse8601(datetime2 interface{}) interface{} {
+// 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
+// 		return nil
+// 	}
+// 	datetime := datetime2.(string)
+// 	if strings.Contains(datetime, "+0") {
+// 		parts := strings.Split(datetime, "+")
+// 		datetime = parts[0]
+// 	}
+
+// 	// First, try to parse using RFC3339 format
+// 	t, err := time.Parse(time.RFC3339, datetime)
+// 	if err != nil {
+// 		// If RFC3339 parsing fails, try the custom layout
+// 		layout := "2006-01-02 15:04:05.999"
+// 		t, err = time.Parse(layout, datetime)
+// 		if err != nil {
+// 			return nil // Return nil if both parsing attempts fail
+// 		}
+// 	}
+
+// 	// Ensure the time is in UTC
+// 	t = t.UTC()
+// 	timestamp := t.UnixNano() / int64(time.Millisecond)
+// 	return timestamp
+// }
+
 func (this *Exchange) Parse8601(datetime2 interface{}) interface{} {
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
@@ -166,11 +213,23 @@ func (this *Exchange) Parse8601(datetime2 interface{}) interface{} {
 		parts := strings.Split(datetime, "+")
 		datetime = parts[0]
 	}
-	// Try to parse the datetime string as RFC3339 and convert to UTC
+
+	// First, try to parse using RFC3339 format
 	t, err := time.Parse(time.RFC3339, datetime)
 	if err != nil {
-		return nil
+		// Try parsing without timezone (e.g., "2024-07-18T04:10:33.389")
+		layoutWithoutTimezone := "2006-01-02T15:04:05.999"
+		t, err = time.Parse(layoutWithoutTimezone, datetime)
+		if err != nil {
+			// If that fails, try the custom layout with space separator (e.g., "2024-07-17 16:00:43.928")
+			layoutWithSpace := "2006-01-02 15:04:05.999"
+			t, err = time.Parse(layoutWithSpace, datetime)
+			if err != nil {
+				return nil // Return nil if all parsing attempts fail
+			}
+		}
 	}
+
 	// Ensure the time is in UTC
 	t = t.UTC()
 	timestamp := t.UnixNano() / int64(time.Millisecond)

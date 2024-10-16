@@ -155,6 +155,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	//this.itf = itf
 	this.initializeProperties(extendedProperties)
 
+	this.AfterConstruct()
+
 	if (this.Markets != nil) && (len(this.Markets) > 0) {
 		this.SetMarkets(this.Markets, nil)
 	}

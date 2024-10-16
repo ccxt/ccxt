@@ -161,10 +161,11 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 	switch reflectValue.Kind() {
 	case reflect.Slice, reflect.Array:
 		// Handle slice or array: key should be an integer index.
-		index, ok := key.(int)
-		if !ok {
+		index2 := ParseInt(key)
+		if index2 == math.MinInt64 {
 			return nil // Key is not an int, invalid index
 		}
+		index := int(index2)
 		if index < 0 || index >= reflectValue.Len() {
 			return nil // Index out of bounds
 		}

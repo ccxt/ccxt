@@ -356,7 +356,7 @@ func (this *Exchange) initializeProperties(extendedProperties Dict) {
 	this.Hostname = SafeString(extendedProperties, "hostname", "").(string)
 	this.Urls = SafeValue(extendedProperties, "urls", map[string]interface{}{}).(map[string]interface{})
 
-	this.Options = map[string]interface{}{}
+	this.Options = this.GetDefaultOptions().(map[string]interface{})
 	extendedOptions := SafeValue(extendedProperties, "options", map[string]interface{}{}).(map[string]interface{})
 	for k, v := range extendedOptions {
 		this.Options[k] = v
