@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported } from './base/errors.js';
-import type { Dict, int, Str, Bool, Num, Market, Ticker, Tickers, Strings } from './base/types.js';
+import type { Dict, int, Market, Ticker, Tickers, Strings } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -310,7 +310,7 @@ export default class defx extends Exchange {
         const promises = [
             this.v1PublicGetCMarkets (this.extend (request, params)),
             this.v1PublicGetCMarketsMetadata (this.extend (request, params)),
-        ]
+        ];
         const responses = await Promise.all (promises);
         //
         // {
@@ -447,7 +447,7 @@ export default class defx extends Exchange {
         //
         const activeMarkets = this.safeList (responses[0], 'data');
         const activeMarketsByType = this.indexBy (activeMarkets, 'market');
-        let marketMetadatas = this.safeList (responses[1], 'data');
+        const marketMetadatas = this.safeList (responses[1], 'data');
         for (let i = 0; i < marketMetadatas.length; i++) {
             const marketId = marketMetadatas[i]['market'];
             let status = undefined;
@@ -458,7 +458,7 @@ export default class defx extends Exchange {
         }
         return this.parseMarkets (marketMetadatas);
     }
-    
+
     parseMarket (market: Dict): Market {
         const marketId = this.safeString (market, 'market');
         const parts = marketId.split ('_');
@@ -552,8 +552,6 @@ export default class defx extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchTickers() is not supported for ' + type + ' markets');
         }
