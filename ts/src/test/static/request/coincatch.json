@@ -1,6 +1,6 @@
 {
     "exchange": "coincatch",
-    "skipKeys": [ "startTime", "endTime", "pageNo" ],
+    "skipKeys": [ "startTime", "endTime" ],
     "outputType": "both",
     "methods": {
         "fetchCurrencies": [
