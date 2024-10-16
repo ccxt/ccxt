@@ -2162,8 +2162,10 @@ class mexc(Exchange, ImplicitAPI):
         order = self.parse_order(response, market)
         order['side'] = side
         order['type'] = type
-        order['price'] = price
-        order['amount'] = amount
+        if self.safe_string(order, 'price') is None:
+            order['price'] = price
+        if self.safe_string(order, 'amount') is None:
+            order['amount'] = amount
         return order
 
     def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):

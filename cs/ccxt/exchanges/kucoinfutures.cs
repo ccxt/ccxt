@@ -27,12 +27,14 @@ public partial class kucoinfutures : kucoin
                 { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "cancelOrders", true },
                 { "closeAllPositions", false },
                 { "closePosition", true },
                 { "closePositions", false },
                 { "createDepositAddress", true },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopLossOrder", true },
@@ -194,6 +196,7 @@ public partial class kucoinfutures : kucoin
                         { "stopOrders", 1 },
                         { "sub/api-key", 1 },
                         { "orders/client-order/{clientOid}", 1 },
+                        { "orders/multi-cancel", 20 },
                     } },
                 } },
                 { "webExchange", new Dictionary<string, object>() {
@@ -233,6 +236,7 @@ public partial class kucoinfutures : kucoin
                     { "400100", typeof(BadRequest) },
                     { "411100", typeof(AccountSuspended) },
                     { "500000", typeof(ExchangeNotAvailable) },
+                    { "300009", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Position does not exist", typeof(OrderNotFound) },
@@ -1453,12 +1457,15 @@ public partial class kucoinfutures : kucoin
         * @name kucoinfutures#createOrder
         * @description Create an order on the exchange
         * @see https://docs.kucoin.com/futures/#place-an-order
+        * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
         * @param {string} symbol Unified CCXT market symbol
         * @param {string} type 'limit' or 'market'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount the amount of currency to trade
         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params]  extra parameters specific to the exchange API endpoint
+        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
         * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
         * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
@@ -1481,6 +1488,7 @@ public partial class kucoinfutures : kucoin
         object market = this.market(symbol);
         object testOrder = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
+        object isTpAndSlOrder = isTrue((!isEqual(this.safeValue(parameters, "stopLoss"), null))) || isTrue((!isEqual(this.safeValue(parameters, "takeProfit"), null)));
         object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(testOrder))
@@ -1488,7 +1496,13 @@ public partial class kucoinfutures : kucoin
             response = await this.futuresPrivatePostOrdersTest(orderRequest);
         } else
         {
-            response = await this.futuresPrivatePostOrders(orderRequest);
+            if (isTrue(isTpAndSlOrder))
+            {
+                response = await this.futuresPrivatePostStOrders(orderRequest);
+            } else
+            {
+                response = await this.futuresPrivatePostOrders(orderRequest);
+            }
         }
         //
         //    {
@@ -1579,6 +1593,9 @@ public partial class kucoinfutures : kucoin
         var triggerPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[0];
         var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[1];
         var takeProfitPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[2];
+        object stopLoss = this.safeDict(parameters, "stopLoss");
+        object takeProfit = this.safeDict(parameters, "takeProfit");
+        // const isTpAndSl = stopLossPrice && takeProfitPrice;
         object triggerPriceTypes = new Dictionary<string, object>() {
             { "mark", "MP" },
             { "last", "TP" },
@@ -1586,12 +1603,28 @@ public partial class kucoinfutures : kucoin
         };
         object triggerPriceType = this.safeString(parameters, "triggerPriceType", "mark");
         object triggerPriceTypeValue = this.safeString(triggerPriceTypes, triggerPriceType, triggerPriceType);
-        parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"});
+        parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"});
         if (isTrue(triggerPrice))
         {
             ((IDictionary<string,object>)request)["stop"] = ((bool) isTrue((isEqual(side, "buy")))) ? "up" : "down";
             ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["stopPriceType"] = triggerPriceTypeValue;
+        } else if (isTrue(isTrue(!isEqual(stopLoss, null)) || isTrue(!isEqual(takeProfit, null))))
+        {
+            object priceType = triggerPriceTypeValue;
+            if (isTrue(!isEqual(stopLoss, null)))
+            {
+                object slPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
+                ((IDictionary<string,object>)request)["triggerStopDownPrice"] = this.priceToPrecision(symbol, slPrice);
+                priceType = this.safeString(stopLoss, "triggerPriceType", triggerPriceTypeValue);
+            }
+            if (isTrue(!isEqual(takeProfit, null)))
+            {
+                object tpPrice = this.safeString2(takeProfit, "triggerPrice", "takeProfitPrice");
+                ((IDictionary<string,object>)request)["triggerStopUpPrice"] = this.priceToPrecision(symbol, tpPrice);
+                priceType = this.safeString(stopLoss, "triggerPriceType", triggerPriceTypeValue);
+            }
+            ((IDictionary<string,object>)request)["stopPriceType"] = priceType;
         } else if (isTrue(isTrue(stopLossPrice) || isTrue(takeProfitPrice)))
         {
             if (isTrue(stopLossPrice))
@@ -1693,6 +1726,74 @@ public partial class kucoinfutures : kucoin
         //   }
         //
         return this.safeValue(response, "data");
+    }
+
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#cancelOrders
+        * @description cancel multiple orders
+        * @see https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders
+        * @param {string[]} ids order ids
+        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string[]} [params.clientOrderIds] client order ids
+        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object ordersRequests = new List<object>() {};
+        object clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new List<object>() {});
+        parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "clientOids"});
+        object useClientorderId = false;
+        for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+        {
+            useClientorderId = true;
+            if (isTrue(isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")) ;
+            }
+            ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
+                { "symbol", getValue(market, "id") },
+                { "clientOid", this.safeString(clientOrderIds, i) },
+            });
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)ordersRequests).Add(getValue(ids, i));
+        }
+        object requestKey = ((bool) isTrue(useClientorderId)) ? "clientOidsList" : "orderIdsList";
+        object request = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)request)[(string)requestKey] = ordersRequests;
+        object response = await this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, parameters));
+        //
+        //   {
+        //       "code": "200000",
+        //       "data":
+        //       [
+        //           {
+        //               "orderId": "80465574458560512",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           },
+        //           {
+        //               "orderId": "80465575289094144",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           }
+        //       ]
+        //   }
+        //
+        object orders = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(orders, market);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)

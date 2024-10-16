@@ -811,6 +811,7 @@ class binance extends Exchange {
                         'constituents' => 2,
                         'apiTradingStatus' => array( 'cost' => 1, 'noSymbol' => 10 ),
                         'lvtKlines' => 1,
+                        'convert/exchangeInfo' => 4,
                     ),
                 ),
                 'fapiData' => array(
@@ -864,6 +865,7 @@ class binance extends Exchange {
                         'feeBurn' => 1,
                         'symbolConfig' => 5,
                         'accountConfig' => 5,
+                        'convert/orderStatus' => 5,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
@@ -879,6 +881,8 @@ class binance extends Exchange {
                         'apiReferral/customization' => 1,
                         'apiReferral/userCustomization' => 1,
                         'feeBurn' => 1,
+                        'convert/getQuote' => 200, // 360 requests per hour
+                        'convert/acceptQuote' => 20,
                     ),
                     'put' => array(
                         'listenKey' => 1,

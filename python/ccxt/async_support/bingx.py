@@ -614,9 +614,10 @@ class bingx(Exchange, ImplicitAPI):
                         'max': self.safe_number(rawNetwork, 'withdrawMax'),
                     },
                 }
+                fee = self.safe_number(rawNetwork, 'withdrawFee')
                 if isDefault:
-                    fee = self.safe_number(rawNetwork, 'withdrawFee')
                     defaultLimits = limits
+                precision = self.safe_number(rawNetwork, 'withdrawPrecision')
                 networkActive = networkDepositEnabled or networkWithdrawEnabled
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -626,7 +627,7 @@ class bingx(Exchange, ImplicitAPI):
                     'active': networkActive,
                     'deposit': networkDepositEnabled,
                     'withdraw': networkWithdrawEnabled,
-                    'precision': None,
+                    'precision': precision,
                     'limits': limits,
                 }
             active = depositEnabled or withdrawEnabled
@@ -771,7 +772,7 @@ class bingx(Exchange, ImplicitAPI):
         isActive = False
         if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
             isActive = True  # swap active
-        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy') and (self.safe_number(market, 'status') == 1):
+        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy') and (self.safe_string(market, 'status') == '1'):
             isActive = True  # spot active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear

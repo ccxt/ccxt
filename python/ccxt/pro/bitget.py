@@ -1079,7 +1079,7 @@ class bitget(ccxt.async_support.bitget):
         subType = None
         subType, params = self.handle_sub_type_and_params('watchOrders', market, params, 'linear')
         if (type == 'spot' or type == 'margin') and (symbol is None):
-            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument for ' + type + ' markets.')
+            marketId = 'default'
         if (productType is None) and (type != 'spot') and (symbol is None):
             messageHash = messageHash + ':' + subType
         elif productType == 'USDT-FUTURES':
@@ -1089,7 +1089,10 @@ class bitget(ccxt.async_support.bitget):
         elif productType == 'USDC-FUTURES':
             messageHash = messageHash + ':usdcfutures'  # non unified channel
         instType = None
-        instType, params = self.get_inst_type(market, params)
+        if market is None and type == 'spot':
+            instType = 'SPOT'
+        else:
+            instType, params = self.get_inst_type(market, params)
         if type == 'spot':
             subscriptionHash = subscriptionHash + ':' + symbol
         if isTrigger:
@@ -1432,8 +1435,13 @@ class bitget(ccxt.async_support.bitget):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash = messageHash + ':' + symbol
+        type = None
+        type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         instType = None
-        instType, params = self.get_inst_type(market, params)
+        if market is None and type == 'spot':
+            instType = 'SPOT'
+        else:
+            instType, params = self.get_inst_type(market, params)
         subscriptionHash = 'fill:' + instType
         args: dict = {
             'instType': instType,

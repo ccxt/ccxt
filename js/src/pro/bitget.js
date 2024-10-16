@@ -1143,7 +1143,7 @@ export default class bitget extends bitgetRest {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchOrders', market, params, 'linear');
         if ((type === 'spot' || type === 'margin') && (symbol === undefined)) {
-            throw new ArgumentsRequired(this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
+            marketId = 'default';
         }
         if ((productType === undefined) && (type !== 'spot') && (symbol === undefined)) {
             messageHash = messageHash + ':' + subType;
@@ -1158,7 +1158,12 @@ export default class bitget extends bitgetRest {
             messageHash = messageHash + ':usdcfutures'; // non unified channel
         }
         let instType = undefined;
-        [instType, params] = this.getInstType(market, params);
+        if (market === undefined && type === 'spot') {
+            instType = 'SPOT';
+        }
+        else {
+            [instType, params] = this.getInstType(market, params);
+        }
         if (type === 'spot') {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
@@ -1534,8 +1539,15 @@ export default class bitget extends bitgetRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         let instType = undefined;
-        [instType, params] = this.getInstType(market, params);
+        if (market === undefined && type === 'spot') {
+            instType = 'SPOT';
+        }
+        else {
+            [instType, params] = this.getInstType(market, params);
+        }
         const subscriptionHash = 'fill:' + instType;
         const args = {
             'instType': instType,

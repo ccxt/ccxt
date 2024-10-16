@@ -38,12 +38,14 @@ class kucoinfutures extends kucoin {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
                 'closePositions' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopLossOrder' => true,
@@ -208,6 +210,7 @@ class kucoinfutures extends kucoin {
                         'stopOrders' => 1,
                         'sub/api-key' => 1,
                         'orders/client-order/{clientOid}' => 1,
+                        'orders/multi-cancel' => 20,
                     ),
                 ),
                 'webExchange' => array(
@@ -247,6 +250,7 @@ class kucoinfutures extends kucoin {
                     '400100' => '\\ccxt\\BadRequest', // Parameter Error -- You tried to access the resource with invalid parameters
                     '411100' => '\\ccxt\\AccountSuspended', // User is frozen -- Please contact us via support center
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
+                    '300009' => '\\ccxt\\InvalidOrder', // array("msg":"No open positions to close.","code":"300009")
                 ),
                 'broad' => array(
                     'Position does not exist' => '\\ccxt\\OrderNotFound', // array( "code":"200000", "msg":"Position does not exist" )
@@ -1436,12 +1440,15 @@ class kucoinfutures extends kucoin {
             /**
              * Create an order on the exchange
              * @see https://docs.kucoin.com/futures/#place-an-order
+             * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
+             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
              * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
              * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
              * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
@@ -1463,12 +1470,17 @@ class kucoinfutures extends kucoin {
             $market = $this->market($symbol);
             $testOrder = $this->safe_bool($params, 'test', false);
             $params = $this->omit($params, 'test');
+            $isTpAndSlOrder = ($this->safe_value($params, 'stopLoss') !== null) || ($this->safe_value($params, 'takeProfit') !== null);
             $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($testOrder) {
                 $response = Async\await($this->futuresPrivatePostOrdersTest ($orderRequest));
             } else {
-                $response = Async\await($this->futuresPrivatePostOrders ($orderRequest));
+                if ($isTpAndSlOrder) {
+                    $response = Async\await($this->futuresPrivatePostStOrders ($orderRequest));
+                } else {
+                    $response = Async\await($this->futuresPrivatePostOrders ($orderRequest));
+                }
             }
             //
             //    {
@@ -1551,6 +1563,9 @@ class kucoinfutures extends kucoin {
             'leverage' => 1,
         );
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
+        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        // $isTpAndSl = $stopLossPrice && $takeProfitPrice;
         $triggerPriceTypes = array(
             'mark' => 'MP',
             'last' => 'TP',
@@ -1558,11 +1573,24 @@ class kucoinfutures extends kucoin {
         );
         $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'mark');
         $triggerPriceTypeValue = $this->safe_string($triggerPriceTypes, $triggerPriceType, $triggerPriceType);
-        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
+        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'takeProfit', 'stopLoss' ));
         if ($triggerPrice) {
             $request['stop'] = ($side === 'buy') ? 'up' : 'down';
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['stopPriceType'] = $triggerPriceTypeValue;
+        } elseif ($stopLoss !== null || $takeProfit !== null) {
+            $priceType = $triggerPriceTypeValue;
+            if ($stopLoss !== null) {
+                $slPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
+                $request['triggerStopDownPrice'] = $this->price_to_precision($symbol, $slPrice);
+                $priceType = $this->safe_string($stopLoss, 'triggerPriceType', $triggerPriceTypeValue);
+            }
+            if ($takeProfit !== null) {
+                $tpPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'takeProfitPrice');
+                $request['triggerStopUpPrice'] = $this->price_to_precision($symbol, $tpPrice);
+                $priceType = $this->safe_string($stopLoss, 'triggerPriceType', $triggerPriceTypeValue);
+            }
+            $request['stopPriceType'] = $priceType;
         } elseif ($stopLossPrice || $takeProfitPrice) {
             if ($stopLossPrice) {
                 $request['stop'] = ($side === 'buy') ? 'up' : 'down';
@@ -1645,6 +1673,68 @@ class kucoinfutures extends kucoin {
             //   }
             //
             return $this->safe_value($response, 'data');
+        }) ();
+    }
+
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple $orders
+             * @see https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-$orders
+             * @param {string[]} $ids order $ids
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$params->clientOrderIds] client order $ids
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $ordersRequests = array();
+            $clientOrderIds = $this->safe_list_2($params, 'clientOrderIds', 'clientOids', array());
+            $params = $this->omit($params, array( 'clientOrderIds', 'clientOids' ));
+            $useClientorderId = false;
+            for ($i = 0; $i < count($clientOrderIds); $i++) {
+                $useClientorderId = true;
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument when cancelling by clientOrderIds');
+                }
+                $ordersRequests[] = array(
+                    'symbol' => $market['id'],
+                    'clientOid' => $this->safe_string($clientOrderIds, $i),
+                );
+            }
+            for ($i = 0; $i < count($ids); $i++) {
+                $ordersRequests[] = $ids[$i];
+            }
+            $requestKey = $useClientorderId ? 'clientOidsList' : 'orderIdsList';
+            $request = array();
+            $request[$requestKey] = $ordersRequests;
+            $response = Async\await($this->futuresPrivateDeleteOrdersMultiCancel ($this->extend($request, $params)));
+            //
+            //   {
+            //       "code" => "200000",
+            //       "data":
+            //       array(
+            //           array(
+            //               "orderId" => "80465574458560512",
+            //               "clientOid" => null,
+            //               "code" => "200",
+            //               "msg" => "success"
+            //           ),
+            //           {
+            //               "orderId" => "80465575289094144",
+            //               "clientOid" => null,
+            //               "code" => "200",
+            //               "msg" => "success"
+            //           }
+            //       )
+            //   }
+            //
+            $orders = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($orders, $market);
         }) ();
     }
 

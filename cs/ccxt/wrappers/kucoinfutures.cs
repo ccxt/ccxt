@@ -351,6 +351,7 @@ public partial class kucoinfutures
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.kucoin.com/futures/#place-an-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -362,6 +363,18 @@ public partial class kucoinfutures
     /// <term>params</term>
     /// <description>
     /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfit</term>
+    /// <description>
+    /// object : *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLoss</term>
+    /// <description>
+    /// object : *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
     /// </description>
     /// </item>
     /// <item>
@@ -508,6 +521,26 @@ public partial class kucoinfutures
     {
         var res = await this.cancelOrder(id, symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// cancel multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancel all open orders

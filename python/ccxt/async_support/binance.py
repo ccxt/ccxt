@@ -828,6 +828,7 @@ class binance(Exchange, ImplicitAPI):
                         'constituents': 2,
                         'apiTradingStatus': {'cost': 1, 'noSymbol': 10},
                         'lvtKlines': 1,
+                        'convert/exchangeInfo': 4,
                     },
                 },
                 'fapiData': {
@@ -881,6 +882,7 @@ class binance(Exchange, ImplicitAPI):
                         'feeBurn': 1,
                         'symbolConfig': 5,
                         'accountConfig': 5,
+                        'convert/orderStatus': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -896,6 +898,8 @@ class binance(Exchange, ImplicitAPI):
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
                         'feeBurn': 1,
+                        'convert/getQuote': 200,  # 360 requests per hour
+                        'convert/acceptQuote': 20,
                     },
                     'put': {
                         'listenKey': 1,

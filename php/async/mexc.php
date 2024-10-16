@@ -2279,8 +2279,12 @@ class mexc extends Exchange {
             $order = $this->parse_order($response, $market);
             $order['side'] = $side;
             $order['type'] = $type;
-            $order['price'] = $price;
-            $order['amount'] = $amount;
+            if ($this->safe_string($order, 'price') === null) {
+                $order['price'] = $price;
+            }
+            if ($this->safe_string($order, 'amount') === null) {
+                $order['amount'] = $amount;
+            }
             return $order;
         }) ();
     }

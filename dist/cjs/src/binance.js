@@ -804,6 +804,7 @@ class binance extends binance$1 {
                         'constituents': 2,
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
+                        'convert/exchangeInfo': 4,
                     },
                 },
                 'fapiData': {
@@ -857,6 +858,7 @@ class binance extends binance$1 {
                         'feeBurn': 1,
                         'symbolConfig': 5,
                         'accountConfig': 5,
+                        'convert/orderStatus': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -872,6 +874,8 @@ class binance extends binance$1 {
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
                         'feeBurn': 1,
+                        'convert/getQuote': 200,
+                        'convert/acceptQuote': 20,
                     },
                     'put': {
                         'listenKey': 1,

@@ -46,12 +46,14 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'closeAllPositions': False,
                 'closePosition': True,
                 'closePositions': False,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createOrders': True,
+                'createOrderWithTakeProfitAndStopLoss': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopLossOrder': True,
@@ -216,6 +218,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'stopOrders': 1,
                         'sub/api-key': 1,
                         'orders/client-order/{clientOid}': 1,
+                        'orders/multi-cancel': 20,
                     },
                 },
                 'webExchange': {
@@ -255,6 +258,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     '400100': BadRequest,  # Parameter Error -- You tried to access the resource with invalid parameters
                     '411100': AccountSuspended,  # User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
+                    '300009': InvalidOrder,  # {"msg":"No open positions to close.","code":"300009"}
                 },
                 'broad': {
                     'Position does not exist': OrderNotFound,  # {"code":"200000", "msg":"Position does not exist"}
@@ -1372,12 +1376,15 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         Create an order on the exchange
         :see: https://docs.kucoin.com/futures/#place-an-order
+        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
         :param float [params.takeProfitPrice]: price to trigger take-profit orders
@@ -1399,12 +1406,16 @@ class kucoinfutures(kucoin, ImplicitAPI):
         market = self.market(symbol)
         testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
+        isTpAndSlOrder = (self.safe_value(params, 'stopLoss') is not None) or (self.safe_value(params, 'takeProfit') is not None)
         orderRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
         response = None
         if testOrder:
             response = self.futuresPrivatePostOrdersTest(orderRequest)
         else:
-            response = self.futuresPrivatePostOrders(orderRequest)
+            if isTpAndSlOrder:
+                response = self.futuresPrivatePostStOrders(orderRequest)
+            else:
+                response = self.futuresPrivatePostOrders(orderRequest)
         #
         #    {
         #        "code": "200000",
@@ -1479,6 +1490,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'leverage': 1,
         }
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
+        stopLoss = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
+        # isTpAndSl = stopLossPrice and takeProfitPrice
         triggerPriceTypes: dict = {
             'mark': 'MP',
             'last': 'TP',
@@ -1486,11 +1500,22 @@ class kucoinfutures(kucoin, ImplicitAPI):
         }
         triggerPriceType = self.safe_string(params, 'triggerPriceType', 'mark')
         triggerPriceTypeValue = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
-        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
+        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'takeProfit', 'stopLoss'])
         if triggerPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['stopPriceType'] = triggerPriceTypeValue
+        elif stopLoss is not None or takeProfit is not None:
+            priceType = triggerPriceTypeValue
+            if stopLoss is not None:
+                slPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
+                request['triggerStopDownPrice'] = self.price_to_precision(symbol, slPrice)
+                priceType = self.safe_string(stopLoss, 'triggerPriceType', triggerPriceTypeValue)
+            if takeProfit is not None:
+                tpPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'takeProfitPrice')
+                request['triggerStopUpPrice'] = self.price_to_precision(symbol, tpPrice)
+                priceType = self.safe_string(stopLoss, 'triggerPriceType', triggerPriceTypeValue)
+            request['stopPriceType'] = priceType
         elif stopLossPrice or takeProfitPrice:
             if stopLossPrice:
                 request['stop'] = 'up' if (side == 'buy') else 'down'
@@ -1560,6 +1585,61 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #   }
         #
         return self.safe_value(response, 'data')
+
+    def cancel_orders(self, ids, symbol: Str = None, params={}):
+        """
+        cancel multiple orders
+        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders
+        :param str[] ids: order ids
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: client order ids
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        ordersRequests = []
+        clientOrderIds = self.safe_list_2(params, 'clientOrderIds', 'clientOids', [])
+        params = self.omit(params, ['clientOrderIds', 'clientOids'])
+        useClientorderId = False
+        for i in range(0, len(clientOrderIds)):
+            useClientorderId = True
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds')
+            ordersRequests.append({
+                'symbol': market['id'],
+                'clientOid': self.safe_string(clientOrderIds, i),
+            })
+        for i in range(0, len(ids)):
+            ordersRequests.append(ids[i])
+        requestKey = 'clientOidsList' if useClientorderId else 'orderIdsList'
+        request: dict = {}
+        request[requestKey] = ordersRequests
+        response = self.futuresPrivateDeleteOrdersMultiCancel(self.extend(request, params))
+        #
+        #   {
+        #       "code": "200000",
+        #       "data":
+        #       [
+        #           {
+        #               "orderId": "80465574458560512",
+        #               "clientOid": null,
+        #               "code": "200",
+        #               "msg": "success"
+        #           },
+        #           {
+        #               "orderId": "80465575289094144",
+        #               "clientOid": null,
+        #               "code": "200",
+        #               "msg": "success"
+        #           }
+        #       ]
+        #   }
+        #
+        orders = self.safe_list(response, 'data', [])
+        return self.parse_orders(orders, market)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """

@@ -1096,6 +1096,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("futuresPrivateDeleteSubApiKey",parameters);
     }
 
+    public async Task<object> futuresPrivateDeleteOrdersMultiCancel (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivateDeleteOrdersMultiCancel",parameters);
+    }
+
     public async Task<object> webExchangeGetCurrencyCurrencyChainInfo (object parameters = null)
     {
         return await this.callAsync ("webExchangeGetCurrencyCurrencyChainInfo",parameters);
