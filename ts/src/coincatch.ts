@@ -1178,7 +1178,6 @@ export default class coincatch extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const methodName = 'fetchOHLCV';
-        // todo add pagination
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1527,35 +1526,25 @@ export default class coincatch extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of entries to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.pageNo] the page number to fetch
+         * @param {bool} [params.nextPage] whether to query the next page (default false)
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const methodName = 'fetchFundingRateHistory';
         await this.loadMarkets ();
-        const timeframe = '8h';
         const maxEntriesPerRequest = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, methodName, 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic (methodName, symbol, since, limit, timeframe, params, maxEntriesPerRequest) as FundingRateHistory[];
-        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
+        let requestedLimit = limit;
         if (since !== undefined) {
-            const timeDelta = this.milliseconds () - since;
-            const duration = this.parseTimeframe (timeframe);
-            const currentLimit = limit ? limit : maxEntriesPerRequest;
-            const pageNo = this.parseToInt (timeDelta / (duration * currentLimit * 1000));
-            // todo handle pagination
-            request['pageNo'] = pageNo;
-            request['pageSize'] = currentLimit;
-        } else if (limit !== undefined) {
-            request['pageSize'] = limit;
+            requestedLimit = maxEntriesPerRequest;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = requestedLimit;
         }
         const response = await this.publicGetApiMixV1MarketHistoryFundRate (this.extend (request, params));
         //
