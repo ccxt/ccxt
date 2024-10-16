@@ -3166,14 +3166,15 @@ class binance(Exchange, ImplicitAPI):
         fees = self.fees
         linear = None
         inverse = None
-        strike = self.safe_string(market, 'strikePrice')
         symbol = base + '/' + quote
+        strike = None
         if contract:
             if swap:
                 symbol = symbol + ':' + settle
             elif future:
                 symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry)
             elif option:
+                strike = self.number_to_string(self.parse_to_numeric(self.safe_string(market, 'strikePrice')))
                 symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + self.safe_string(optionParts, 3)
             contractSize = self.safe_number_2(market, 'contractSize', 'unit', self.parse_number('1'))
             linear = settle == quote
@@ -5951,11 +5952,21 @@ class binance(Exchange, ImplicitAPI):
             if isPortfolioMargin:
                 request['quantity'] = self.parse_to_numeric(amount)
             else:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
+                marketAmountPrecision = self.safe_string(market['precision'], 'amount')
+                isPrecisionAvailable = (marketAmountPrecision is not None)
+                if isPrecisionAvailable:
+                    request['quantity'] = self.amount_to_precision(symbol, amount)
+                else:
+                    request['quantity'] = self.parse_to_numeric(amount)  # some options don't have the precision available
         if priceIsRequired and not isPriceMatch:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
-            request['price'] = self.price_to_precision(symbol, price)
+            pricePrecision = self.safe_string(market['precision'], 'price')
+            isPricePrecisionAvailable = (pricePrecision is not None)
+            if isPricePrecisionAvailable:
+                request['price'] = self.price_to_precision(symbol, price)
+            else:
+                request['price'] = self.parse_to_numeric(price)  # some options don't have the precision available
         if stopPriceIsRequired:
             if market['contract']:
                 if stopPrice is None:

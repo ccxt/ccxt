@@ -3203,14 +3203,15 @@ class binance extends Exchange {
         $fees = $this->fees;
         $linear = null;
         $inverse = null;
-        $strike = $this->safe_string($market, 'strikePrice');
         $symbol = $base . '/' . $quote;
+        $strike = null;
         if ($contract) {
             if ($swap) {
                 $symbol = $symbol . ':' . $settle;
             } elseif ($future) {
                 $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry);
             } elseif ($option) {
+                $strike = $this->number_to_string($this->parse_to_numeric($this->safe_string($market, 'strikePrice')));
                 $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $this->safe_string($optionParts, 3);
             }
             $contractSize = $this->safe_number_2($market, 'contractSize', 'unit', $this->parse_number('1'));
@@ -6195,14 +6196,26 @@ class binance extends Exchange {
             if ($isPortfolioMargin) {
                 $request['quantity'] = $this->parse_to_numeric($amount);
             } else {
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
+                $isPrecisionAvailable = ($marketAmountPrecision !== null);
+                if ($isPrecisionAvailable) {
+                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                } else {
+                    $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
+                }
             }
         }
         if ($priceIsRequired && !$isPriceMatch) {
             if ($price === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
             }
-            $request['price'] = $this->price_to_precision($symbol, $price);
+            $pricePrecision = $this->safe_string($market['precision'], 'price');
+            $isPricePrecisionAvailable = ($pricePrecision !== null);
+            if ($isPricePrecisionAvailable) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            } else {
+                $request['price'] = $this->parse_to_numeric($price); // some options don't have the $precision available
+            }
         }
         if ($stopPriceIsRequired) {
             if ($market['contract']) {

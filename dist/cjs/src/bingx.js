@@ -493,6 +493,7 @@ class bingx extends bingx$1 {
                 },
                 'networks': {
                     'ARB': 'ARBITRUM',
+                    'MATIC': 'POLYGON',
                 },
             },
         });

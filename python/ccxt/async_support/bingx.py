@@ -509,6 +509,7 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ARB': 'ARBITRUM',
+                    'MATIC': 'POLYGON',
                 },
             },
         })

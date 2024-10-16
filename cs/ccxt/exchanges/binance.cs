@@ -3174,8 +3174,8 @@ public partial class binance : Exchange
         object fees = this.fees;
         object linear = null;
         object inverse = null;
-        object strike = this.safeString(market, "strikePrice");
         object symbol = add(add(bs, "/"), quote);
+        object strike = null;
         if (isTrue(contract))
         {
             if (isTrue(swap))
@@ -3186,6 +3186,7 @@ public partial class binance : Exchange
                 symbol = add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry));
             } else if (isTrue(option))
             {
+                strike = this.numberToString(this.parseToNumeric(this.safeString(market, "strikePrice")));
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry)), "-"), strike), "-"), this.safeString(optionParts, 3));
             }
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
@@ -6488,7 +6489,15 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount);
             } else
             {
-                ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
+                object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
+                object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
+                if (isTrue(isPrecisionAvailable))
+                {
+                    ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
+                } else
+                {
+                    ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
+                }
             }
         }
         if (isTrue(isTrue(priceIsRequired) && !isTrue(isPriceMatch)))
@@ -6497,7 +6506,15 @@ public partial class binance : Exchange
             {
                 throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
             }
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            object pricePrecision = this.safeString(getValue(market, "precision"), "price");
+            object isPricePrecisionAvailable = (!isEqual(pricePrecision, null));
+            if (isTrue(isPricePrecisionAvailable))
+            {
+                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            } else
+            {
+                ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(price); // some options don't have the precision available
+            }
         }
         if (isTrue(stopPriceIsRequired))
         {

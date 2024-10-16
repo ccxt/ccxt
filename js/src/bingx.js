@@ -496,6 +496,7 @@ export default class bingx extends Exchange {
                 },
                 'networks': {
                     'ARB': 'ARBITRUM',
+                    'MATIC': 'POLYGON',
                 },
             },
         });
