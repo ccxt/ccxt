@@ -257,7 +257,7 @@
                 "method": "cancelOrder",
                 "url": "https://trade.cex.io/api/spot/rest/do_cancel_my_order",
                 "input": [
-                  "8d718b79-54fd-415d-947a-bf0a876b0b44",
+                  "8",
                   null,
                   {
                     "timestamp": 1729012822601,
