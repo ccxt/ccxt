@@ -2245,9 +2245,19 @@ export default class Exchange {
                     if (limit > arrayLength) {
                         limit = arrayLength;
                     }
-                    array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit);
+                    // array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit);
+                    if (ascending) {
+                        array = this.arraySlice (array, 0, limit);
+                    } else {
+                        array = this.arraySlice (array, -limit);
+                    }
                 } else {
-                    array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
+                    // array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
+                    if (ascending) {
+                        array = this.arraySlice (array, -limit);
+                    } else {
+                        array = this.arraySlice (array, 0, limit);
+                    }
                 }
             }
         }
