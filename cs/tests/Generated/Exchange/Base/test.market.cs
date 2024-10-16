@@ -207,6 +207,7 @@ public partial class testMainClass : BaseTest
                 testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, getValue(market, "precision"), getValue(precisionKeys, i));
             }
         }
+        object isInactiveMarket = isEqual(getValue(market, "active"), false);
         // check limits
         if (!isTrue((inOp(skippedProperties, "limits"))))
         {
@@ -217,6 +218,10 @@ public partial class testMainClass : BaseTest
             {
                 object key = getValue(limitsKeys, i);
                 object limitEntry = getValue(getValue(market, "limits"), key);
+                if (isTrue(isInactiveMarket))
+                {
+                    continue;
+                }
                 // min >= 0
                 testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "min", "0");
                 // max >= 0

@@ -1966,6 +1966,10 @@ class hyperliquid extends Exchange {
         $statuses = array(
             'triggered' => 'open',
             'filled' => 'closed',
+            'open' => 'open',
+            'canceled' => 'canceled',
+            'rejected' => 'rejected',
+            'marginCanceled' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
