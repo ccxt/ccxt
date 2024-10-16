@@ -129,6 +129,9 @@ type Exchange struct {
 
 	MinFundingAddressLength int
 	MaxEntriesPerRequest    int
+
+	// tests only
+	FetchResponse interface{}
 }
 
 const DECIMAL_PLACES int = 2
@@ -659,7 +662,11 @@ func (this *Exchange) CheckRequiredDependencies() {
 }
 
 func (this *Exchange) FixStringifiedJsonMembers(a interface{}) string {
-	return a.(string) // to do
+	aStr := a.(string)
+	aStr = strings.ReplaceAll(aStr, "\\", "")
+	aStr = strings.ReplaceAll(aStr, "\"{", "{")
+	aStr = strings.ReplaceAll(aStr, "}\"", "}")
+	return aStr
 }
 
 func (this *Exchange) IsEmpty(a interface{}) bool {

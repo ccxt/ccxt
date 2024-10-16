@@ -172,7 +172,11 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 
 	case reflect.Map:
 		// Handle map: key needs to be appropriate for the map
-		reflectKeyValue := reflect.ValueOf(key)
+		keyStr, ok := key.(string)
+		if !ok {
+			return nil // Key is not a string, invalid key
+		}
+		reflectKeyValue := reflect.ValueOf(keyStr)
 		if reflectValue.MapIndex(reflectKeyValue).IsValid() {
 			return reflectValue.MapIndex(reflectKeyValue).Interface()
 		}
@@ -1304,24 +1308,71 @@ func ParseFloat(input interface{}) interface{} {
 }
 
 func ParseJSON(input interface{}) interface{} {
-	jsonString := fmt.Sprintf("%v", input)
-	// var result interface{}
-
-	if jsonString[0] == '[' {
-		var arrayResult []map[string]interface{}
-		err := json.Unmarshal([]byte(jsonString), &arrayResult)
-		if err != nil {
-			return nil
-		}
-		return arrayResult
+	jsonString, ok := input.(string)
+	if !ok {
+		return nil
 	}
 
-	var mapResult map[string]interface{}
-	err := json.Unmarshal([]byte(jsonString), &mapResult)
+	// // var result interface{}
+
+	// if jsonString[0] == '[' {
+	// 	var arrayResult []map[string]interface{}
+	// 	err := json.Unmarshal([]byte(jsonString), &arrayResult)
+	// 	if err != nil {
+	// 		return nil
+	// 	}
+	// 	return arrayResult
+	// }
+
+	// var mapResult map[string]interface{}
+	// err := json.Unmarshal([]byte(jsonString), &mapResult)
+	// if err != nil {
+	// 	return nil
+	// }
+	// return mapResult
+
+	var result interface{}
+
+	decoder := json.NewDecoder(strings.NewReader(jsonString))
+	decoder.UseNumber() // Ensures large numbers are handled correctly
+
+	err := decoder.Decode(&result)
 	if err != nil {
 		return nil
 	}
-	return mapResult
+	convertNumbers(result) //convert json.Number to int64
+	return result
+}
+
+func convertNumbers(data interface{}) {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		for key, value := range v {
+			if number, ok := value.(json.Number); ok {
+				// Try to convert the json.Number to int64
+				if intVal, err := number.Int64(); err == nil {
+					v[key] = intVal
+				} else {
+					v[key] = number.String() // Preserve the string if not convertible to int64
+				}
+			} else {
+				convertNumbers(value) // Recurse for nested maps
+			}
+		}
+	case []interface{}:
+		for i, value := range v {
+			if number, ok := value.(json.Number); ok {
+				// Try to convert the json.Number to int64
+				if intVal, err := number.Int64(); err == nil {
+					v[i] = intVal
+				} else {
+					v[i] = number.String() // Preserve the string if not convertible to int64
+				}
+			} else {
+				convertNumbers(value) // Recurse for nested arrays
+			}
+		}
+	}
 }
 
 func throwDynamicException(exceptionType interface{}, message interface{}) {

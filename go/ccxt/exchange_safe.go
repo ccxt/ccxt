@@ -47,7 +47,7 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 				}
 				keyStr := fmt.Sprintf("%v", key)
 				if value, found := dict[keyStr]; found {
-					if value != nil {
+					if value != nil && value != "" {
 						return value
 					}
 				}
