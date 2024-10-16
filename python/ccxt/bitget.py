@@ -1207,7 +1207,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40707': BadRequest,  # Start time is greater than end time
                     '40708': BadRequest,  # Parameter verification is abnormal
                     '40709': ExchangeError,  # There is no hasattr(self, position) position, and no automatic margin call can be set
-                    '40710': ExchangeError,  # Abnormal account status
+                    '40710': PermissionDenied,  # Abnormal account status
                     '40711': InsufficientFunds,  # Insufficient contract account balance
                     '40712': InsufficientFunds,  # Insufficient margin
                     '40713': ExchangeError,  # Cannot exceed the maximum transferable margin amount
