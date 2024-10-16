@@ -6794,7 +6794,7 @@ export default class Exchange {
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method] (symbol, params);
                 } else if (method === 'fetchOpenInterestHistory') {
-                    response = await this[method] (symbol, timeframe, since, limit, params);
+                    response = await this[method] (symbol, timeframe, since, maxEntriesPerRequest, params);
                 } else {
                     response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 }
