@@ -170,7 +170,8 @@ import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
 import { buildMixAddress } from '../static_dependencies/mixin-node-sdk/client/utils/address.js'
-import { getUnspentOutputsForRecipients } from '../static_dependencies/mixin-node-sdk/client/utils/safe.js'
+import { buildSafeTransaction, buildSafeTransactionRecipient, encodeSafeTransaction, getUnspentOutputsForRecipients, signSafeTransaction } from '../static_dependencies/mixin-node-sdk/client/utils/safe.js'
+import { signAuthenticationToken } from '../static_dependencies/mixin-node-sdk/client/utils/auth.js'
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -1535,17 +1536,32 @@ export default class Exchange {
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
     }
 
-    mixinBuildMixAddress(members: string[], threshold: number) {
-        return buildMixAddress({ 'members': members, 'threshold': threshold });
-    }
-
     mixinGetUnspentOutputsForRecipients(outputs, rs) {
         return getUnspentOutputsForRecipients(outputs, rs);
     }
 
+    mixinBuildSafeTransaction(utxos, rs, gs, extra, references = []) {
+        return buildSafeTransaction(utxos, rs, gs, extra, references);
+    }
+
+    mixinBuildSafeTransactionRecipient(members, threshold, amount) {
+        return buildSafeTransactionRecipient(members, threshold, amount);
+    }
+
+    mixinEncodeSafeTransaction(tx) {
+        return encodeSafeTransaction(tx);
+    }
+
+    mixinSignAuthenticationToken(methodRaw, uri, params, requestID, keystore) {
+        return signAuthenticationToken(methodRaw, uri, params, requestID, keystore);
+    }
+
+    mixinSignSafeTransaction(raw, views, privateKey, index = 0) {
+        return signSafeTransaction(raw, views, privateKey, index);
+    }
+
     intToBase16(elem): string {
         return elem.toString(16);
-
     }
 
     extendExchangeOptions (newOptions: Dict) {

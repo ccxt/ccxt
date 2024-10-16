@@ -3,6 +3,7 @@ import { Field } from './_noble-curves/abstract/modular.js';
 import { numberToBytesLE, bytesToNumberLE } from './_noble-curves/abstract/utils.js';
 import { blake3Hash, sha512Hash } from './uniq';
 import { putUvarInt } from './encoder';
+import { randomBytes } from './_noble-hashes/utils.js';
 
 const scMinusOne = Buffer.from('ecd3f55c1a631258d69cf7a2def9de1400000000000000000000000000000010', 'hex');
 const base = ed25519.ExtendedPoint.fromHex('5866666666666666666666666666666666666666666666666666666666666666');
@@ -97,6 +98,8 @@ const hashScalar = (k: Buffer, index: number) => {
   hash.copy(src, 32, 0, 32);
   return setUniformBytes(src);
 };
+
+export const getRandomBytes = (len?: number) => Buffer.from(randomBytes(len ?? ed25519.CURVE.Fp.BYTES));
 
 export const edwards25519 = {
   scalar: fn,

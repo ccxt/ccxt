@@ -29,3 +29,28 @@ export interface SafeUtxoOutput extends UtxoOutput {
     senders_threshold: number;
     sequence: number;
 }
+
+export interface GhostKey {
+    mask: string;
+    keys: string[];
+}
+
+export interface GhostKeyRequest {
+    receivers: string[];
+    index: number;
+    hint: string;
+}  
+
+export interface PaymentParams {
+    uuid?: string;
+    mainnetAddress?: string;
+    mixAddress?: string;
+    members?: string[];
+    threshold?: number;
+  
+    asset?: string;
+    amount?: string;
+    memo?: string;
+    trace?: string;
+    returnTo?: string;
+}

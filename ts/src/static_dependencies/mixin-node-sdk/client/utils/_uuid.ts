@@ -170,4 +170,4 @@ function v4(options?: Version4Options, buf?: Uint8Array, offset?: number): UUIDT
   return unsafeStringify(rnds);
 }
 
-export { stringify, parse, v4 };
+export { stringify, parse, v4, validate };
