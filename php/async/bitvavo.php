@@ -49,6 +49,8 @@ class bitvavo extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
@@ -268,6 +270,7 @@ class bitvavo extends Exchange {
                 ),
             ),
             'options' => array(
+                'currencyToPrecisionRoundingMode' => TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
                 'networks' => array(
                     'ERC20' => 'ETH',
@@ -279,10 +282,6 @@ class bitvavo extends Exchange {
                 'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             ),
         ));
-    }
-
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision'], DECIMAL_PLACES);
     }
 
     public function amount_to_precision($symbol, $amount) {
@@ -455,11 +454,11 @@ class bitvavo extends Exchange {
             //         ),
             //     )
             //
-            return $this->parse_currencies($response);
+            return $this->parse_currencies_custom($response);
         }) ();
     }
 
-    public function parse_currencies($currencies) {
+    public function parse_currencies_custom($currencies) {
         //
         //     array(
         //         {
@@ -1041,7 +1040,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1065,11 +1064,11 @@ class bitvavo extends Exchange {
             $tag = $this->safe_string($response, 'paymentId');
             $this->check_address($address);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => null,
                 'address' => $address,
                 'tag' => $tag,
-                'network' => null,
-                'info' => $response,
             );
         }) ();
     }
@@ -1333,6 +1332,7 @@ class bitvavo extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

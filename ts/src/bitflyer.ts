@@ -743,6 +743,7 @@ export default class bitflyer extends Exchange {
          * @name bitflyer#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1088,10 +1089,10 @@ export default class bitflyer extends Exchange {
         const feedback = this.id + ' ' + body;
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         const errorMessage = this.safeString (response, 'error_message');
-        const statusCode = this.safeNumber (response, 'status');
+        const statusCode = this.safeInteger (response, 'status');
         if (errorMessage !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], statusCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }

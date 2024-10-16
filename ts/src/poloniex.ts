@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, Num, Currencies, TradingFees, Dict, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,6 +43,8 @@ export default class poloniex extends Exchange {
                 'fetchClosedOrder': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -637,6 +639,7 @@ export default class poloniex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'quantity'),
             'quoteVolume': this.safeString (ticker, 'amount'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -1123,8 +1126,10 @@ export default class poloniex extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         let resultingTrades = this.safeValue (order, 'resultingTrades');
-        if (!Array.isArray (resultingTrades)) {
-            resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
+        if (resultingTrades !== undefined) {
+            if (!Array.isArray (resultingTrades)) {
+                resultingTrades = this.safeValue (resultingTrades, this.safeString (market, 'id', marketId));
+            }
         }
         const price = this.safeString2 (order, 'price', 'rate');
         const amount = this.safeString (order, 'quantity');
@@ -1804,7 +1809,7 @@ export default class poloniex extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name poloniex#fetchDepositAddress
@@ -1847,12 +1852,12 @@ export default class poloniex extends Exchange {
             }
         }
         return {
+            'info': response,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {

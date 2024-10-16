@@ -38,6 +38,8 @@ public partial class wavesexchange : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", null },
+                { "fetchDepositAddressesByNetwork", null },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
@@ -1059,12 +1061,11 @@ public partial class wavesexchange : Exchange
                 object responseInner = await this.nodeGetAddressesPublicKeyPublicKey(this.extend(request, request));
                 object addressInner = this.safeString(response, "address");
                 return new Dictionary<string, object>() {
-                    { "address", addressInner },
-                    { "code", code },
+                    { "info", responseInner },
                     { "currency", code },
                     { "network", network },
+                    { "address", addressInner },
                     { "tag", null },
-                    { "info", responseInner },
                 };
             } else
             {
@@ -1105,12 +1106,11 @@ public partial class wavesexchange : Exchange
         object addresses = this.safeValue(response, "deposit_addresses");
         object address = this.safeString(addresses, 0);
         return new Dictionary<string, object>() {
-            { "address", address },
-            { "code", code },
-            { "currency", code },
-            { "tag", null },
-            { "network", unifiedNetwork },
             { "info", response },
+            { "currency", code },
+            { "network", unifiedNetwork },
+            { "address", address },
+            { "tag", null },
         };
     }
 
@@ -1249,7 +1249,10 @@ public partial class wavesexchange : Exchange
             throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for "), type), " orders to determine the max price for buy and the min price for sell")) ;
         }
         object timestamp = this.milliseconds();
-        object defaultExpiryDelta = this.safeInteger(this.options, "createOrderDefaultExpiry", 2419200000);
+        object defaultExpiryDelta = null;
+        var defaultExpiryDeltaparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "defaultExpiry", this.safeInteger(this.options, "createOrderDefaultExpiry", 2419200000));
+        defaultExpiryDelta = ((IList<object>)defaultExpiryDeltaparametersVariable)[0];
+        parameters = ((IList<object>)defaultExpiryDeltaparametersVariable)[1];
         object expiration = this.sum(timestamp, defaultExpiryDelta);
         object matcherFees = await this.getFeesForAsset(symbol, side, amount, price);
         // {
@@ -1409,12 +1412,12 @@ public partial class wavesexchange : Exchange
         //
         if (isTrue(isMarketOrder))
         {
-            object response = await this.matcherPostMatcherOrderbookMarket(body);
+            object response = await this.matcherPostMatcherOrderbookMarket(this.extend(body, parameters));
             object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         } else
         {
-            object response = await this.matcherPostMatcherOrderbook(body);
+            object response = await this.matcherPostMatcherOrderbook(this.extend(body, parameters));
             object value = this.safeDict(response, "message");
             return this.parseOrder(value, market);
         }

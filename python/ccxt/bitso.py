@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -53,6 +53,7 @@ class bitso(Exchange, ImplicitAPI):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -123,6 +124,12 @@ class bitso(Exchange, ImplicitAPI):
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'networks': {
+                    'TRC20': 'trx',
+                    'ERC20': 'erc20',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bep2',
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -195,12 +202,12 @@ class bitso(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str code: unified currency code, default is None
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
+        :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
@@ -244,7 +251,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+    def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
         #     {
         #         "eid": "2510b3e2bc1c87f584500a18084f35ed",
@@ -308,6 +315,7 @@ class bitso(Exchange, ImplicitAPI):
         amount = self.safe_string(firstBalance, 'amount')
         currencyId = self.safe_string(firstBalance, 'currency')
         code = self.safe_currency_code(currencyId, currency)
+        currency = self.safe_currency(currencyId, currency)
         details = self.safe_value(item, 'details', {})
         referenceId = self.safe_string_2(details, 'fid', 'wid')
         if referenceId is None:
@@ -327,6 +335,7 @@ class bitso(Exchange, ImplicitAPI):
             }
         timestamp = self.parse8601(self.safe_string(item, 'created_at'))
         return self.safe_ledger_entry({
+            'info': item,
             'id': self.safe_string(item, 'eid'),
             'direction': direction,
             'account': None,
@@ -341,7 +350,6 @@ class bitso(Exchange, ImplicitAPI):
             'after': None,
             'status': 'ok',
             'fee': fee,
-            'info': item,
         }, currency)
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -1129,6 +1137,7 @@ class bitso(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.bitso.com/bitso-api/docs/look-up-orders
+        :param str id: the order id
         :param str symbol: not used by bitso fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1245,7 +1254,7 @@ class bitso(Exchange, ImplicitAPI):
         transactions = self.safe_list(response, 'payload', [])
         return self.parse_transactions(transactions, currency, since, limit, params)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1266,11 +1275,11 @@ class bitso(Exchange, ImplicitAPI):
             tag = self.safe_string(parts, 1)
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     def fetch_transaction_fees(self, codes: Strings = None, params={}):
@@ -1545,18 +1554,6 @@ class bitso(Exchange, ImplicitAPI):
         first = self.safe_dict(payload, 0)
         return self.parse_transaction(first, currency)
 
-    def safe_network(self, networkId):
-        if networkId is None:
-            return None
-        networkId = networkId.upper()
-        networksById: dict = {
-            'trx': 'TRC20',
-            'erc20': 'ERC20',
-            'bsc': 'BEP20',
-            'bep2': 'BEP2',
-        }
-        return self.safe_string(networksById, networkId, networkId)
-
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # deposit
@@ -1603,12 +1600,14 @@ class bitso(Exchange, ImplicitAPI):
         networkId = self.safe_string_2(transaction, 'network', 'method')
         status = self.safe_string(transaction, 'status')
         withdrawId = self.safe_string(transaction, 'wid')
+        networkCode = self.network_id_to_code(networkId)
+        networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
         return {
             'id': self.safe_string_2(transaction, 'wid', 'fid'),
             'txid': self.safe_string(details, 'tx_hash'),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'network': self.safe_network(networkId),
+            'network': networkCodeUpper,
             'addressFrom': receivingAddress,
             'address': withdrawalAddress if (withdrawalAddress is not None) else receivingAddress,
             'addressTo': withdrawalAddress,

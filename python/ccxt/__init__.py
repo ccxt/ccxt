@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.3.78'
+__version__ = '4.4.18'
 
 # ----------------------------------------------------------------------------
 
@@ -54,6 +54,7 @@ from ccxt.base.errors import OperationRejected                        # noqa: F4
 from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
+from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -79,6 +80,7 @@ from ccxt.base.errors import RequestTimeout                           # noqa: F4
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import CancelPending                            # noqa: F401
+from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 from ccxt.ace import ace                                              # noqa: F401
@@ -93,7 +95,6 @@ from ccxt.binanceusdm import binanceusdm                              # noqa: F4
 from ccxt.bingx import bingx                                          # noqa: F401
 from ccxt.bit2c import bit2c                                          # noqa: F401
 from ccxt.bitbank import bitbank                                      # noqa: F401
-from ccxt.bitbay import bitbay                                        # noqa: F401
 from ccxt.bitbns import bitbns                                        # noqa: F401
 from ccxt.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.bitfinex import bitfinex                                    # noqa: F401
@@ -141,8 +142,8 @@ from ccxt.fmfwio import fmfwio                                        # noqa: F4
 from ccxt.gate import gate                                            # noqa: F401
 from ccxt.gateio import gateio                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
+from ccxt.hashkey import hashkey                                      # noqa: F401
 from ccxt.hitbtc import hitbtc                                        # noqa: F401
-from ccxt.hitbtc3 import hitbtc3                                      # noqa: F401
 from ccxt.hollaex import hollaex                                      # noqa: F401
 from ccxt.htx import htx                                              # noqa: F401
 from ccxt.huobi import huobi                                          # noqa: F401
@@ -204,7 +205,6 @@ exchanges = [
     'bingx',
     'bit2c',
     'bitbank',
-    'bitbay',
     'bitbns',
     'bitcoincom',
     'bitfinex',
@@ -252,8 +252,8 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
+    'hashkey',
     'hitbtc',
-    'hitbtc3',
     'hollaex',
     'htx',
     'huobi',

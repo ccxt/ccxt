@@ -22,6 +22,7 @@ export default class vertex extends vertexRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchPositions': true,
             },
             'urls': {
@@ -45,6 +46,9 @@ export default class vertex extends vertexRest {
                 'watchPositions': {
                     'fetchPositionsSnapshot': true, // or false
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
+                'ws': {
+                    'inflate': true,
                 },
             },
             'streaming': {
@@ -76,6 +80,14 @@ export default class vertex extends vertexRest {
             'id': requestId,
         };
         const request = this.extend (subscribe, message);
+        const wsOptions = {
+            'headers': {
+                'Sec-WebSocket-Extensions': 'permessage-deflate',
+            },
+        };
+        this.options['ws'] = {
+            'options': wsOptions,
+        };
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
@@ -589,7 +601,7 @@ export default class vertex extends vertexRest {
         const client = this.client (url);
         this.setPositionsCache (client, symbols, params);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);

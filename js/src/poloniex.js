@@ -44,6 +44,8 @@ export default class poloniex extends Exchange {
                 'fetchClosedOrder': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -630,6 +632,7 @@ export default class poloniex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'quantity'),
             'quoteVolume': this.safeString(ticker, 'amount'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -1108,8 +1111,10 @@ export default class poloniex extends Exchange {
         market = this.safeMarket(marketId, market, '_');
         const symbol = market['symbol'];
         let resultingTrades = this.safeValue(order, 'resultingTrades');
-        if (!Array.isArray(resultingTrades)) {
-            resultingTrades = this.safeValue(resultingTrades, this.safeString(market, 'id', marketId));
+        if (resultingTrades !== undefined) {
+            if (!Array.isArray(resultingTrades)) {
+                resultingTrades = this.safeValue(resultingTrades, this.safeString(market, 'id', marketId));
+            }
         }
         const price = this.safeString2(order, 'price', 'rate');
         const amount = this.safeString(order, 'quantity');
@@ -1830,11 +1835,11 @@ export default class poloniex extends Exchange {
             }
         }
         return {
+            'info': response,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': response,
         };
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {

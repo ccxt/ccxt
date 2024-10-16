@@ -1,5 +1,5 @@
 import Exchange from './abstract/okcoin.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 /**
  * @class okcoin
  * @augments Exchange
@@ -9,7 +9,6 @@ export default class okcoin extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -34,15 +33,9 @@ export default class okcoin extends Exchange {
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
-        info: any;
-    };
-    fetchDepositAddress(code: string, params?: {}): Promise<any>;
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
@@ -53,25 +46,9 @@ export default class okcoin extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: Dict, currency?: Currency): {
-        id: string;
-        info: Dict;
-        timestamp: number;
-        datetime: string;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
-        type: string;
-        currency: string;
-        symbol: string;
-        amount: number;
-        before: any;
-        after: number;
-        status: string;
-        fee: any;
-    };
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

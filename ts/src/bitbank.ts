@@ -5,7 +5,7 @@ import Exchange from './abstract/bitbank.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -40,6 +40,8 @@ export default class bitbank extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -736,6 +738,7 @@ export default class bitbank extends Exchange {
          * @name bitbank#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -833,7 +836,7 @@ export default class bitbank extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bitbank#fetchDepositAddress
@@ -855,12 +858,12 @@ export default class bitbank extends Exchange {
         const firstAccount = this.safeValue (accounts, 0, {});
         const address = this.safeString (firstAccount, 'address');
         return {
+            'info': response,
             'currency': currency,
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {

@@ -52,6 +52,7 @@ class gemini extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -865,8 +866,9 @@ class gemini extends Exchange {
 
     public function fetch_ticker_v1_and_v2(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
-            $tickerA = Async\await($this->fetch_ticker_v1($symbol, $params));
-            $tickerB = Async\await($this->fetch_ticker_v2($symbol, $params));
+            $tickerPromiseA = $this->fetch_ticker_v1($symbol, $params);
+            $tickerPromiseB = $this->fetch_ticker_v2($symbol, $params);
+            list($tickerA, $tickerB) = Async\await(Promise\all(array( $tickerPromiseA, $tickerPromiseB )));
             return $this->deep_extend($tickerA, array(
                 'open' => $tickerB['open'],
                 'high' => $tickerB['high'],
@@ -1808,7 +1810,7 @@ class gemini extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
@@ -1827,7 +1829,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network

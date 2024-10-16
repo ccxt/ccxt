@@ -48,6 +48,8 @@ export default class wavesexchange extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': undefined,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -1146,12 +1148,11 @@ export default class wavesexchange extends Exchange {
                 const responseInner = await this.nodeGetAddressesPublicKeyPublicKey(this.extend(request, request));
                 const addressInner = this.safeString(response, 'address');
                 return {
-                    'address': addressInner,
-                    'code': code,
+                    'info': responseInner,
                     'currency': code,
                     'network': network,
+                    'address': addressInner,
                     'tag': undefined,
-                    'info': responseInner,
                 };
             }
             else {
@@ -1192,12 +1193,11 @@ export default class wavesexchange extends Exchange {
         const addresses = this.safeValue(response, 'deposit_addresses');
         const address = this.safeString(addresses, 0);
         return {
-            'address': address,
-            'code': code,
-            'currency': code,
-            'tag': undefined,
-            'network': unifiedNetwork,
             'info': response,
+            'currency': code,
+            'network': unifiedNetwork,
+            'address': address,
+            'tag': undefined,
         };
     }
     async getMatcherPublicKey() {
@@ -1302,7 +1302,8 @@ export default class wavesexchange extends Exchange {
             throw new InvalidOrder(this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
         }
         const timestamp = this.milliseconds();
-        const defaultExpiryDelta = this.safeInteger(this.options, 'createOrderDefaultExpiry', 2419200000);
+        let defaultExpiryDelta = undefined;
+        [defaultExpiryDelta, params] = this.handleOptionAndParams(params, 'createOrder', 'defaultExpiry', this.safeInteger(this.options, 'createOrderDefaultExpiry', 2419200000));
         const expiration = this.sum(timestamp, defaultExpiryDelta);
         const matcherFees = await this.getFeesForAsset(symbol, side, amount, price);
         // {
@@ -1450,12 +1451,12 @@ export default class wavesexchange extends Exchange {
         //     }
         //
         if (isMarketOrder) {
-            const response = await this.matcherPostMatcherOrderbookMarket(body);
+            const response = await this.matcherPostMatcherOrderbookMarket(this.extend(body, params));
             const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
         else {
-            const response = await this.matcherPostMatcherOrderbook(body);
+            const response = await this.matcherPostMatcherOrderbook(this.extend(body, params));
             const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }

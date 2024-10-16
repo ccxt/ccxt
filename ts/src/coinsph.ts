@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSym
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 /**
  * @class coinsph
@@ -1857,7 +1857,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name coinsph#fetchDepositAddress
@@ -1891,7 +1891,7 @@ export default class coinsph extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "ETH",
@@ -1902,12 +1902,12 @@ export default class coinsph extends Exchange {
         const currencyId = this.safeString (depositAddress, 'coin');
         const parsedCurrency = this.safeCurrencyCode (currencyId, currency);
         return {
+            'info': depositAddress,
             'currency': parsedCurrency,
+            'network': null,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'addressTag'),
-            'network': null,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
     urlEncodeQuery (query = {}) {

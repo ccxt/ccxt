@@ -1,5 +1,5 @@
 import Exchange from './abstract/gemini.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class gemini
  * @augments Exchange
@@ -44,8 +44,8 @@ export default class gemini extends Exchange {
         tag: any;
         info: any;
     };
-    fetchDepositAddress(code: string, params?: {}): Promise<any>;
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.vertex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1154,7 +1154,7 @@ class vertex(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'candlesticks', [])
         return self.parse_ohlcvs(rows, market, timeframe, since, limit)
 
-    def parse_funding_rate(self, ticker, market: Market = None):
+    def parse_funding_rate(self, ticker, market: Market = None) -> FundingRate:
         #
         # {
         #     "product_id": 4,
@@ -1208,9 +1208,10 @@ class vertex(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
-    async def fetch_funding_rate(self, symbol: str, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
@@ -1235,13 +1236,13 @@ class vertex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetches funding rates for multiple markets
         :see: https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
         :param str[] symbols: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1886,6 +1887,7 @@ class vertex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2819,4 +2821,12 @@ class vertex(Exchange, ImplicitAPI):
         else:
             if params:
                 url += '?' + self.urlencode(params)
+        if path != 'execute':
+            # required encoding for public methods
+            if headers is not None:
+                headers['Accept-Encoding'] = 'gzip'
+            else:
+                headers = {
+                    'Accept-Encoding': 'gzip',
+                }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

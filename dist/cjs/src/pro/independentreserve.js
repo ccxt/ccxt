@@ -15,6 +15,7 @@ class independentreserve extends independentreserve$1 {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': false,
                 'watchOrderBook': true,

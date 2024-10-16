@@ -48,6 +48,8 @@ class deribit extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingRate' => true,
@@ -1030,7 +1032,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://docs.deribit.com/#private-get_current_deposit_address
@@ -1065,11 +1067,11 @@ class deribit extends Exchange {
         $address = $this->safe_string($result, 'address');
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => null,
-            'network' => null,
-            'info' => $response,
         );
     }
 
@@ -1145,6 +1147,8 @@ class deribit extends Exchange {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($stats, 'volume'),
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
         ), $market);
     }
@@ -2965,7 +2969,7 @@ class deribit extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://docs.deribit.com/#public-get_funding_rate_value
@@ -3050,7 +3054,7 @@ class deribit extends Exchange {
         return $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //   {
         //       "jsonrpc":"2.0",
@@ -3090,6 +3094,7 @@ class deribit extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => '8h',
         );
     }
 

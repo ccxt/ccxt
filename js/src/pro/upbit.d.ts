@@ -1,11 +1,14 @@
 import upbitRest from '../upbit.js';
-import type { Int, Str, Order, OrderBook, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, Str, Order, OrderBook, Trade, Ticker, Balances, Tickers, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class upbit extends upbitRest {
     describe(): any;
     watchPublic(symbol: string, channel: any, params?: {}): Promise<any>;
+    watchPublicMultiple(symbols: Strings, channel: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleTicker(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;

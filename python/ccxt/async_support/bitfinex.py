@@ -5,8 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
+import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -54,6 +55,8 @@ class bitfinex(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -565,11 +568,11 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        ids = await self.publicGetSymbols()
+        idsPromise = self.publicGetSymbols()
         #
         #     ["btcusd", "ltcusd", "ltcbtc"]
         #
-        details = await self.publicGetSymbolsDetails()
+        detailsPromise = self.publicGetSymbolsDetails()
         #
         #     [
         #         {
@@ -584,6 +587,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
+        ids, details = await asyncio.gather(*[idsPromise, detailsPromise])
         result = []
         for i in range(0, len(details)):
             market = details[i]
@@ -832,7 +836,7 @@ class bitfinex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -841,7 +845,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.publicGetTickers(params)
         result: dict = {}
         for i in range(0, len(response)):
-            ticker = self.parse_ticker({'result': response[i]})
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -1272,6 +1276,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+        :param str id: the order id
         :param str symbol: not used by bitfinex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1359,7 +1364,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-deposit

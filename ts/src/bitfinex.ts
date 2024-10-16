@@ -6,7 +6,7 @@ import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied,
 import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFees, Dict, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFees, Dict, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -40,6 +40,8 @@ export default class bitfinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -568,11 +570,11 @@ export default class bitfinex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const ids = await this.publicGetSymbols ();
+        const idsPromise = this.publicGetSymbols ();
         //
         //     [ "btcusd", "ltcusd", "ltcbtc" ]
         //
-        const details = await this.publicGetSymbolsDetails ();
+        const detailsPromise = this.publicGetSymbolsDetails ();
         //
         //     [
         //         {
@@ -587,6 +589,7 @@ export default class bitfinex extends Exchange {
         //         },
         //     ]
         //
+        const [ ids, details ] = await Promise.all ([ idsPromise, detailsPromise ]);
         const result = [];
         for (let i = 0; i < details.length; i++) {
             const market = details[i];
@@ -863,7 +866,7 @@ export default class bitfinex extends Exchange {
          * @method
          * @name bitfinex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -872,7 +875,7 @@ export default class bitfinex extends Exchange {
         const response = await this.publicGetTickers (params);
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker ({ 'result': response[i] });
+            const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -1355,6 +1358,7 @@ export default class bitfinex extends Exchange {
          * @name bitfinex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+         * @param {string} id the order id
          * @param {string} symbol not used by bitfinex fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1454,7 +1458,7 @@ export default class bitfinex extends Exchange {
         return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bitfinex#fetchDepositAddress
@@ -1486,7 +1490,7 @@ export default class bitfinex extends Exchange {
             'tag': tag,
             'network': undefined,
             'info': response,
-        };
+        } as DepositAddress;
     }
 
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

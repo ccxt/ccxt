@@ -1093,6 +1093,7 @@ class btcmarkets extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://docs.btcmarkets.net/v3/#operation/getOrderById
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by btcmarkets fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

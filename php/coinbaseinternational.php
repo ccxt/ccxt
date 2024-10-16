@@ -787,11 +787,12 @@ class coinbaseinternational extends Exchange {
         $currencyId = $this->safe_string($network, 'asset_name');
         $currencyCode = $this->safe_currency_code($currencyId);
         $networkId = $this->safe_string($network, 'network_arn_id');
+        $networkIdForCode = $this->safe_string_n($network, array( 'network_name', 'display_name', 'network_arn_id' ), '');
         return $this->safe_network(array(
             'info' => $network,
             'id' => $networkId,
             'name' => $this->safe_string($network, 'display_name'),
-            'network' => $this->network_id_to_code($this->safe_string_n($network, array( 'network_name', 'display_name', 'network_arn_id' ), ''), $currencyCode),
+            'network' => $this->network_id_to_code($networkIdForCode, $currencyCode),
             'active' => null,
             'deposit' => null,
             'withdraw' => null,
@@ -1369,15 +1370,10 @@ class coinbaseinternational extends Exchange {
         //        ...
         //    )
         //
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $this->parse_currency($currencies[$i]);
-            $result[$currency['code']] = $currency;
-        }
-        return $result;
+        return $this->parse_currencies($currencies);
     }
 
-    public function parse_currency(array $currency) {
+    public function parse_currency(array $currency): array {
         //
         //    {
         //       "asset_id":"1",
@@ -1391,7 +1387,7 @@ class coinbaseinternational extends Exchange {
         $id = $this->safe_string($currency, 'asset_name');
         $code = $this->safe_currency_code($id);
         $statusId = $this->safe_string($currency, 'status');
-        return array(
+        return $this->safe_currency_structure(array(
             'id' => $id,
             'name' => $code,
             'code' => $code,
@@ -1404,7 +1400,7 @@ class coinbaseinternational extends Exchange {
             'fee' => null,
             'fees' => null,
             'limits' => $this->limits,
-        );
+        ));
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
@@ -1486,6 +1482,8 @@ class coinbaseinternational extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'previousClose' => null,
+            'markPrice' => $this->safe_number($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_number($ticker, 'index_price'),
         ));
     }
 

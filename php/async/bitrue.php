@@ -331,6 +331,7 @@ class bitrue extends Exchange {
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod' => 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully' => false,
+                'currencyToPrecisionRoundingMode' => TRUNCATE,
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
@@ -342,6 +343,67 @@ class bitrue extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
+                    'AETERNITY' => 'Aeternity',
+                    'AION' => 'AION',
+                    'ALGO' => 'Algorand',
+                    'ASK' => 'ASK',
+                    'ATOM' => 'ATOM',
+                    'AVAXC' => 'AVAX C-Chain',
+                    'BCH' => 'BCH',
+                    'BEP2' => 'BEP2',
+                    'BEP20' => 'BEP20',
+                    'Bitcoin' => 'Bitcoin',
+                    'BRP20' => 'BRP20',
+                    'ADA' => 'Cardano',
+                    'CASINOCOIN' => 'CasinoCoin',
+                    'CASINOCOIN-XRPL' => 'CasinoCoin XRPL',
+                    'CONTENTOS' => 'Contentos',
+                    'DASH' => 'Dash',
+                    'DECOIN' => 'Decoin',
+                    'DFI' => 'DeFiChain',
+                    'DGB' => 'DGB',
+                    'DIVI' => 'Divi',
+                    'DOGE' => 'dogecoin',
+                    'EOS' => 'EOS',
+                    'ETC' => 'ETC',
+                    'FILECOIN' => 'Filecoin',
+                    'FREETON' => 'FREETON',
+                    'HBAR' => 'HBAR',
+                    'HEDERA' => 'Hedera Hashgraph',
+                    'HRC20' => 'HRC20',
+                    'ICON' => 'ICON',
+                    'ICP' => 'ICP',
+                    'IGNIS' => 'Ignis',
+                    'INTERNETCOMPUTER' => 'Internet Computer',
+                    'IOTA' => 'IOTA',
+                    'KAVA' => 'KAVA',
+                    'KSM' => 'KSM',
+                    'LTC' => 'LiteCoin',
+                    'LUNA' => 'Luna',
+                    'MATIC' => 'MATIC',
+                    'MOBILECOIN' => 'Mobile Coin',
+                    'MONACOIN' => 'MonaCoin',
+                    'XMR' => 'Monero',
+                    'NEM' => 'NEM',
+                    'NEP5' => 'NEP5',
+                    'OMNI' => 'OMNI',
+                    'PAC' => 'PAC',
+                    'DOT' => 'Polkadot',
+                    'RAVEN' => 'Ravencoin',
+                    'SAFEX' => 'Safex',
+                    'SOL' => 'SOLANA',
+                    'SGB' => 'Songbird',
+                    'XML' => 'Stellar Lumens',
+                    'XYM' => 'Symbol',
+                    'XTZ' => 'Tezos',
+                    'theta' => 'theta',
+                    'THETA' => 'THETA',
+                    'VECHAIN' => 'VeChain',
+                    'WANCHAIN' => 'Wanchain',
+                    'XINFIN' => 'XinFin Network',
+                    'XRP' => 'XRP',
+                    'XRPL' => 'XRPL',
+                    'ZIL' => 'ZIL',
                 ),
                 'defaultType' => 'spot',
                 'timeframes' => array(
@@ -460,15 +522,6 @@ class bitrue extends Exchange {
         ));
     }
 
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        // info is available in currencies only if the user has configured his api keys
-        if ($this->safe_value($this->currencies[$code], 'precision') !== null) {
-            return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
-        } else {
-            return $this->number_to_string($fee);
-        }
-    }
-
     public function nonce() {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
@@ -516,78 +569,6 @@ class bitrue extends Exchange {
             //
             return $this->safe_integer($response, 'serverTime');
         }) ();
-    }
-
-    public function safe_network($networkId) {
-        $uppercaseNetworkId = strtoupper($networkId);
-        $networksById = array(
-            'Aeternity' => 'Aeternity',
-            'AION' => 'AION',
-            'Algorand' => 'Algorand',
-            'ASK' => 'ASK',
-            'ATOM' => 'ATOM',
-            'AVAX C-Chain' => 'AVAX C-Chain',
-            'bch' => 'bch',
-            'BCH' => 'BCH',
-            'BEP2' => 'BEP2',
-            'BEP20' => 'BEP20',
-            'Bitcoin' => 'Bitcoin',
-            'BRP20' => 'BRP20',
-            'Cardano' => 'ADA',
-            'CasinoCoin' => 'CasinoCoin',
-            'CasinoCoin XRPL' => 'CasinoCoin XRPL',
-            'Contentos' => 'Contentos',
-            'Dash' => 'Dash',
-            'Decoin' => 'Decoin',
-            'DeFiChain' => 'DeFiChain',
-            'DGB' => 'DGB',
-            'Divi' => 'Divi',
-            'dogecoin' => 'DOGE',
-            'EOS' => 'EOS',
-            'ERC20' => 'ERC20',
-            'ETC' => 'ETC',
-            'Filecoin' => 'Filecoin',
-            'FREETON' => 'FREETON',
-            'HBAR' => 'HBAR',
-            'Hedera Hashgraph' => 'Hedera Hashgraph',
-            'HRC20' => 'HRC20',
-            'ICON' => 'ICON',
-            'ICP' => 'ICP',
-            'Ignis' => 'Ignis',
-            'Internet Computer' => 'Internet Computer',
-            'IOTA' => 'IOTA',
-            'KAVA' => 'KAVA',
-            'KSM' => 'KSM',
-            'LiteCoin' => 'LiteCoin',
-            'Luna' => 'Luna',
-            'MATIC' => 'MATIC',
-            'Mobile Coin' => 'Mobile Coin',
-            'MonaCoin' => 'MonaCoin',
-            'Monero' => 'Monero',
-            'NEM' => 'NEM',
-            'NEP5' => 'NEP5',
-            'OMNI' => 'OMNI',
-            'PAC' => 'PAC',
-            'Polkadot' => 'Polkadot',
-            'Ravencoin' => 'Ravencoin',
-            'Safex' => 'Safex',
-            'SOLANA' => 'SOL',
-            'Songbird' => 'Songbird',
-            'Stellar Lumens' => 'Stellar Lumens',
-            'Symbol' => 'Symbol',
-            'Tezos' => 'XTZ',
-            'theta' => 'theta',
-            'THETA' => 'THETA',
-            'TRC20' => 'TRC20',
-            'VeChain' => 'VeChain',
-            'VECHAIN' => 'VECHAIN',
-            'Wanchain' => 'Wanchain',
-            'XinFin Network' => 'XinFin Network',
-            'XRP' => 'XRP',
-            'XRPL' => 'XRPL',
-            'ZIL' => 'ZIL',
-        );
-        return $this->safe_string_2($networksById, $networkId, $uppercaseNetworkId, $networkId);
     }
 
     public function fetch_currencies($params = array ()): PromiseInterface {
@@ -2039,6 +2020,7 @@ class bitrue extends Exchange {
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
              * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

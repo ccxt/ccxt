@@ -23,6 +23,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'watchTickers' => false,
                 'watchOrderBook' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,

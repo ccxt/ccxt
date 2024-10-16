@@ -826,11 +826,12 @@ public partial class coinbaseinternational : Exchange
         object currencyId = this.safeString(network, "asset_name");
         object currencyCode = this.safeCurrencyCode(currencyId);
         object networkId = this.safeString(network, "network_arn_id");
+        object networkIdForCode = this.safeStringN(network, new List<object>() {"network_name", "display_name", "network_arn_id"}, "");
         return this.safeNetwork(new Dictionary<string, object>() {
             { "info", network },
             { "id", networkId },
             { "name", this.safeString(network, "display_name") },
-            { "network", this.networkIdToCode(this.safeStringN(network, new List<object>() {"network_name", "display_name", "network_arn_id"}, ""), currencyCode) },
+            { "network", this.networkIdToCode(networkIdForCode, currencyCode) },
             { "active", null },
             { "deposit", null },
             { "withdraw", null },
@@ -1468,16 +1469,10 @@ public partial class coinbaseinternational : Exchange
         //        ...
         //    ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
-        {
-            object currency = this.parseCurrency(getValue(currencies, i));
-            ((IDictionary<string,object>)result)[(string)getValue(currency, "code")] = currency;
-        }
-        return result;
+        return this.parseCurrencies(currencies);
     }
 
-    public virtual object parseCurrency(object currency)
+    public override object parseCurrency(object currency)
     {
         //
         //    {
@@ -1492,7 +1487,7 @@ public partial class coinbaseinternational : Exchange
         object id = this.safeString(currency, "asset_name");
         object code = this.safeCurrencyCode(id);
         object statusId = this.safeString(currency, "status");
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "name", code },
             { "code", code },
@@ -1505,7 +1500,7 @@ public partial class coinbaseinternational : Exchange
             { "fee", null },
             { "fees", null },
             { "limits", this.limits },
-        };
+        });
     }
 
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -1597,6 +1592,8 @@ public partial class coinbaseinternational : Exchange
             { "baseVolume", null },
             { "quoteVolume", null },
             { "previousClose", null },
+            { "markPrice", this.safeNumber(ticker, "mark_price") },
+            { "indexPrice", this.safeNumber(ticker, "index_price") },
         });
     }
 

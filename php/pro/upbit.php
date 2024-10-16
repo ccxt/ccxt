@@ -17,7 +17,9 @@ class upbit extends \ccxt\async\upbit {
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
+                'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
                 'watchBalance' => true,
@@ -62,6 +64,36 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
+    public function watch_public_multiple(?array $symbols, $channel, $params = array ()) {
+        return Async\async(function () use ($symbols, $channel, $params) {
+            Async\await($this->load_markets());
+            if ($symbols === null) {
+                $symbols = $this->symbols;
+            }
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $url = $this->implode_params($this->urls['api']['ws'], array(
+                'hostname' => $this->hostname,
+            ));
+            $messageHashes = array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $messageHashes[] = $channel . ':' . $marketIds[$i];
+            }
+            $request = array(
+                array(
+                    'ticket' => $this->uuid(),
+                ),
+                array(
+                    'type' => $channel,
+                    'codes' => $marketIds,
+                    // 'isOnlySnapshot' => false,
+                    // 'isOnlyRealtime' => false,
+                ),
+            );
+            return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
+        }) ();
+    }
+
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -75,22 +107,86 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @see https://global-docs.upbit.com/reference/websocket-ticker
+             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $newTickers = Async\await($this->watch_public_multiple($symbols, 'ticker'));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
+             * get the list of most recent trades for a particular $symbol
              * @see https://global-docs.upbit.com/reference/websocket-trade
-             * @param {string} $symbol unified $symbol of the market to fetch $trades for
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a list of $symbols
+             * @see https://global-docs.upbit.com/reference/websocket-trade
+             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
-            $trades = Async\await($this->watch_public($symbol, 'trade'));
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
+            $channel = 'trade';
+            $messageHashes = array();
+            $url = $this->implode_params($this->urls['api']['ws'], array(
+                'hostname' => $this->hostname,
+            ));
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $market = $this->market($symbols[$i]);
+                    $marketId = $market['id'];
+                    $symbol = $market['symbol'];
+                    $this->options[$channel] = $this->safe_value($this->options, $channel, array());
+                    $this->options[$channel][$symbol] = true;
+                    $messageHashes[] = $channel . ':' . $marketId;
+                }
+            }
+            $optionSymbols = is_array($this->options[$channel]) ? array_keys($this->options[$channel]) : array();
+            $marketIds = $this->market_ids($optionSymbols);
+            $request = array(
+                array(
+                    'ticket' => $this->uuid(),
+                ),
+                array(
+                    'type' => $channel,
+                    'codes' => $marketIds,
+                    // 'isOnlySnapshot' => false,
+                    // 'isOnlyRealtime' => false,
+                ),
+            );
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();

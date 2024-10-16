@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.78'
+__version__ = '4.4.18'
 
 # -----------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ from ccxt.base.errors import OperationRejected                        # noqa: F4
 from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
+from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -58,6 +59,7 @@ from ccxt.base.errors import RequestTimeout                           # noqa: F4
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import CancelPending                            # noqa: F401
+from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
@@ -73,7 +75,6 @@ from ccxt.async_support.binanceusdm import binanceusdm                          
 from ccxt.async_support.bingx import bingx                                      # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                      # noqa: F401
 from ccxt.async_support.bitbank import bitbank                                  # noqa: F401
-from ccxt.async_support.bitbay import bitbay                                    # noqa: F401
 from ccxt.async_support.bitbns import bitbns                                    # noqa: F401
 from ccxt.async_support.bitcoincom import bitcoincom                            # noqa: F401
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
@@ -121,8 +122,8 @@ from ccxt.async_support.fmfwio import fmfwio                                    
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
+from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
-from ccxt.async_support.hitbtc3 import hitbtc3                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
 from ccxt.async_support.htx import htx                                          # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
@@ -184,7 +185,6 @@ exchanges = [
     'bingx',
     'bit2c',
     'bitbank',
-    'bitbay',
     'bitbns',
     'bitcoincom',
     'bitfinex',
@@ -232,8 +232,8 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
+    'hashkey',
     'hitbtc',
-    'hitbtc3',
     'hollaex',
     'htx',
     'huobi',

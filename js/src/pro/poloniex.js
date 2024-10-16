@@ -21,6 +21,7 @@ export default class poloniex extends poloniexRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchBalance': true,
                 'watchStatus': false,
                 'watchOrders': true,
@@ -398,12 +399,44 @@ export default class poloniex extends poloniexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
         await this.loadMarkets();
-        symbol = this.symbol(symbol);
+        symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const name = 'trades';
-        const trades = await this.subscribe(name, name, false, [symbol], params);
+        const url = this.urls['api']['ws']['public'];
+        const marketIds = this.marketIds(symbols);
+        const subscribe = {
+            'event': 'subscribe',
+            'channel': [
+                name,
+            ],
+            'symbols': marketIds,
+        };
+        const request = this.extend(subscribe, params);
+        const messageHashes = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                messageHashes.push(name + '::' + symbols[i]);
+            }
+        }
+        const trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }

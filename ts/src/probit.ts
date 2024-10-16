@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol, MarketClosed, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -48,6 +48,7 @@ export default class probit extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -1089,6 +1090,7 @@ export default class probit extends Exchange {
          * @name probit#fetchOrder
          * @see https://docs-en.probit.com/reference/order-3
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1313,7 +1315,7 @@ export default class probit extends Exchange {
         return this.parseOrder (data);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'destination_tag');
         const currencyId = this.safeString (depositAddress, 'currency_id');
@@ -1322,15 +1324,15 @@ export default class probit extends Exchange {
         const network = this.safeString (depositAddress, 'platform_id');
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name probit#fetchDepositAddress
@@ -1385,7 +1387,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddress (firstAddress, currency);
     }
 
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name probit#fetchDepositAddresses

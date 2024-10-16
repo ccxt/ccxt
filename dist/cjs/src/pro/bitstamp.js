@@ -14,6 +14,7 @@ class bitstamp extends bitstamp$1 {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,

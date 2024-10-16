@@ -1293,6 +1293,7 @@ public partial class vertex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -1335,7 +1336,7 @@ public partial class vertex : Exchange
         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
         * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2141,6 +2142,7 @@ public partial class vertex : Exchange
         * @name vertex#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3028,7 +3030,7 @@ public partial class vertex : Exchange
         {
             return new List<object>() {this.walletAddress, parameters};
         }
-        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside \'params\' or the wallet address set")) ;
+        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside 'params' or the wallet address set")) ;
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
@@ -3075,6 +3077,19 @@ public partial class vertex : Exchange
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
+            }
+        }
+        if (isTrue(!isEqual(path, "execute")))
+        {
+            // required encoding for public methods
+            if (isTrue(!isEqual(headers, null)))
+            {
+                ((IDictionary<string,object>)headers)["Accept-Encoding"] = "gzip";
+            } else
+            {
+                headers = new Dictionary<string, object>() {
+                    { "Accept-Encoding", "gzip" },
+                };
             }
         }
         return new Dictionary<string, object>() {

@@ -29,6 +29,29 @@ class Helper
         return null;
 
     }
+
+    public static Dictionary<string, Dictionary<string, List<OHLCV>>> ConvertToDictionaryOHLCVList(object data2)
+    {
+
+        var data = data2 as Dictionary<string, object>;
+        var result = new Dictionary<string, Dictionary<string, List<OHLCV>>>();
+        foreach (var symbol in data.Keys)
+        {
+            var symbolOHLCV = data[symbol] as Dictionary<string, object>;
+            var timeframeOHLCV = new Dictionary<string, List<OHLCV>>();
+            foreach (var timeframe in symbolOHLCV.Keys)
+            {
+                var ohlcvList = new List<OHLCV>();
+                foreach (var ohlcv in symbolOHLCV[timeframe] as List<object>)
+                {
+                    ohlcvList.Add(new OHLCV(ohlcv));
+                }
+                timeframeOHLCV.Add(timeframe, ohlcvList);
+            }
+            result.Add(symbol, timeframeOHLCV);
+        }
+        return result;
+    }
 }
 
 
@@ -43,15 +66,15 @@ public struct Precision
         price = Exchange.SafeFloat(precision, "price");
     }
 }
-public struct MarketMarginMode
+public struct MarketMarginModes
 {
     public bool? cross;
     public bool? isolated;
-    public MarketMarginMode(object marginMode2)
+    public MarketMarginModes(object marginModes2)
     {
-        var marginMode = (Dictionary<string, object>)marginMode2;
-        cross = Exchange.SafeBool(marginMode, "cross");
-        isolated = Exchange.SafeBool(marginMode, "isolated");
+        var marginModes = (Dictionary<string, object>)marginModes2;
+        cross = Exchange.SafeBool(marginModes, "cross");
+        isolated = Exchange.SafeBool(marginModes, "isolated");
     }
 }
 
@@ -164,7 +187,7 @@ public struct Market
     public string? feeSide;
 
     public Precision? precision;
-    public MarketMarginMode? marginMode;
+    public MarketMarginModes? marginModes;
 
     public Limits? limits;
     public Dictionary<string, object> info;
@@ -206,7 +229,7 @@ public struct Market
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
-        marginMode = market.ContainsKey("marginMode") ? new MarketMarginMode(market["marginMode"]) : null;
+        marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
     }
 }
 
@@ -325,6 +348,9 @@ public struct Ticker
     public double? average;
     public double? baseVolume;
     public double? quoteVolume;
+
+    public double? indexPrice;
+    public double? markPrice;
     public Dictionary<string, object> info;
 
     public Ticker(object ticker2)
@@ -350,6 +376,8 @@ public struct Ticker
         baseVolume = Exchange.SafeFloat(ticker, "baseVolume");
         quoteVolume = Exchange.SafeFloat(ticker, "quoteVolume");
         info = Helper.GetInfo(ticker);
+        indexPrice = Exchange.SafeFloat(ticker, "indexPrice");
+        markPrice = Exchange.SafeFloat(ticker, "markPrice");
     }
 }
 
@@ -656,6 +684,8 @@ public struct OHLCVC
     }
 }
 
+
+
 public struct Balance
 {
     public double? free;
@@ -763,6 +793,25 @@ public struct DepositAddressResponse
         tag = Exchange.SafeString(depositAddressResponse, "tag");
         status = Exchange.SafeString(depositAddressResponse, "status");
         info = Helper.GetInfo(depositAddressResponse);
+    }
+}
+
+public struct DepositAddress
+{
+    public Dictionary<string, object>? info;
+    public string currency;
+    public string? network;
+    public string address;
+    public string? tag;
+
+    public DepositAddress(object depositAddress2)
+    {
+        var depositAddress = (Dictionary<string, object>)depositAddress2;
+        info = Helper.GetInfo(depositAddress);
+        currency = Exchange.SafeString(depositAddress, "currency");
+        network = Exchange.SafeString(depositAddress, "network");
+        address = Exchange.SafeString(depositAddress, "address");
+        tag = Exchange.SafeString(depositAddress, "tag");
     }
 }
 
@@ -974,6 +1023,7 @@ public struct FundingRate
     public double? previousFundingTimestamp;
     public string? previousFundingDatetime;
     public double? previousFundingRate;
+    public string? interval;
 
     public FundingRate(object fundingRateEntry)
     {
@@ -992,6 +1042,7 @@ public struct FundingRate
         previousFundingTimestamp = Exchange.SafeFloat(fundingRateEntry, "previousFundingTimestamp");
         previousFundingDatetime = Exchange.SafeString(fundingRateEntry, "previousFundingDatetime");
         previousFundingRate = Exchange.SafeFloat(fundingRateEntry, "previousFundingRate");
+        interval = Exchange.SafeString(fundingRateEntry, "interval");
     }
 }
 

@@ -1178,7 +1178,7 @@ class vertex extends Exchange {
         return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_funding_rate($ticker, ?array $market = null) {
+    public function parse_funding_rate($ticker, ?array $market = null): array {
         //
         // {
         //     "product_id" => 4,
@@ -1233,10 +1233,11 @@ class vertex extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
@@ -1262,13 +1263,13 @@ class vertex extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetches funding rates for multiple markets
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
          * @param {string[]} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
         $request = array();
@@ -1967,6 +1968,7 @@ class vertex extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2936,6 +2938,16 @@ class vertex extends Exchange {
         } else {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
+            }
+        }
+        if ($path !== 'execute') {
+            // required encoding for public methods
+            if ($headers !== null) {
+                $headers['Accept-Encoding'] = 'gzip';
+            } else {
+                $headers = array(
+                    'Accept-Encoding' => 'gzip',
+                );
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

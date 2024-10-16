@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.78';
+$version = '4.4.18';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.78';
+    const VERSION = '4.4.18';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -346,7 +346,6 @@ class Exchange {
         'bingx',
         'bit2c',
         'bitbank',
-        'bitbay',
         'bitbns',
         'bitcoincom',
         'bitfinex',
@@ -394,8 +393,8 @@ class Exchange {
         'gate',
         'gateio',
         'gemini',
+        'hashkey',
         'hitbtc',
-        'hitbtc3',
         'hollaex',
         'htx',
         'huobi',
@@ -1099,20 +1098,6 @@ class Exchange {
 
     public static function decode($input) {
         return $input;
-    }
-
-    public function check_address($address) {
-        if (empty($address) || !is_string($address)) {
-            throw new InvalidAddress($this->id . ' address is null');
-        }
-
-        if ((count(array_unique(str_split($address))) === 1) ||
-            (strlen($address) < $this->minFundingAddressLength) ||
-            (strpos($address, ' ') !== false)) {
-            throw new InvalidAddress($this->id . ' address is invalid or has less than ' . strval($this->minFundingAddressLength) . ' characters: "' . strval($address) . '"');
-        }
-
-        return $address;
     }
 
     public function __construct($options = array()) {
@@ -2219,6 +2204,14 @@ class Exchange {
         return array();
     }
 
+    public function rand_number($size) {
+        $number = '';
+        for ($i = 0; $i < $size; $i++) {
+            $number .= mt_rand(0, 9);
+        }
+        return (int)$number;
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2374,6 +2367,8 @@ class Exchange {
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => null,
                 'fetchFundingRateHistory' => null,
+                'fetchFundingInterval' => null,
+                'fetchFundingIntervals' => null,
                 'fetchFundingRates' => null,
                 'fetchGreeks' => null,
                 'fetchIndexOHLCV' => null,
@@ -2418,7 +2413,6 @@ class Exchange {
                 'fetchOrdersWs' => null,
                 'fetchOrderTrades' => null,
                 'fetchOrderWs' => null,
-                'fetchPermissions' => null,
                 'fetchPosition' => null,
                 'fetchPositionHistory' => null,
                 'fetchPositionsHistory' => null,
@@ -2435,6 +2429,7 @@ class Exchange {
                 'fetchTicker' => true,
                 'fetchTickerWs' => null,
                 'fetchTickers' => null,
+                'fetchMarkPrices' => null,
                 'fetchTickersWs' => null,
                 'fetchTime' => null,
                 'fetchTrades' => true,
@@ -2752,55 +2747,43 @@ class Exchange {
         $httpsProxy = null;
         $socksProxy = null;
         // $httpProxy
-        if ($this->value_is_defined($this->httpProxy)) {
+        $isHttpProxyDefined = $this->value_is_defined($this->httpProxy);
+        $isHttp_proxy_defined = $this->value_is_defined($this->http_proxy);
+        if ($isHttpProxyDefined || $isHttp_proxy_defined) {
             $usedProxies[] = 'httpProxy';
-            $httpProxy = $this->httpProxy;
+            $httpProxy = $isHttpProxyDefined ? $this->httpProxy : $this->http_proxy;
         }
-        if ($this->value_is_defined($this->http_proxy)) {
-            $usedProxies[] = 'http_proxy';
-            $httpProxy = $this->http_proxy;
-        }
-        if ($this->httpProxyCallback !== null) {
+        $ishttpProxyCallbackDefined = $this->value_is_defined($this->httpProxyCallback);
+        $ishttp_proxy_callback_defined = $this->value_is_defined($this->http_proxy_callback);
+        if ($ishttpProxyCallbackDefined || $ishttp_proxy_callback_defined) {
             $usedProxies[] = 'httpProxyCallback';
-            $httpProxy = $this->httpProxyCallback ($url, $method, $headers, $body);
-        }
-        if ($this->http_proxy_callback !== null) {
-            $usedProxies[] = 'http_proxy_callback';
-            $httpProxy = $this->http_proxy_callback ($url, $method, $headers, $body);
+            $httpProxy = $ishttpProxyCallbackDefined ? $this->httpProxyCallback ($url, $method, $headers, $body) : $this->http_proxy_callback ($url, $method, $headers, $body);
         }
         // $httpsProxy
-        if ($this->value_is_defined($this->httpsProxy)) {
+        $isHttpsProxyDefined = $this->value_is_defined($this->httpsProxy);
+        $isHttps_proxy_defined = $this->value_is_defined($this->https_proxy);
+        if ($isHttpsProxyDefined || $isHttps_proxy_defined) {
             $usedProxies[] = 'httpsProxy';
-            $httpsProxy = $this->httpsProxy;
+            $httpsProxy = $isHttpsProxyDefined ? $this->httpsProxy : $this->https_proxy;
         }
-        if ($this->value_is_defined($this->https_proxy)) {
-            $usedProxies[] = 'https_proxy';
-            $httpsProxy = $this->https_proxy;
-        }
-        if ($this->httpsProxyCallback !== null) {
+        $ishttpsProxyCallbackDefined = $this->value_is_defined($this->httpsProxyCallback);
+        $ishttps_proxy_callback_defined = $this->value_is_defined($this->https_proxy_callback);
+        if ($ishttpsProxyCallbackDefined || $ishttps_proxy_callback_defined) {
             $usedProxies[] = 'httpsProxyCallback';
-            $httpsProxy = $this->httpsProxyCallback ($url, $method, $headers, $body);
-        }
-        if ($this->https_proxy_callback !== null) {
-            $usedProxies[] = 'https_proxy_callback';
-            $httpsProxy = $this->https_proxy_callback ($url, $method, $headers, $body);
+            $httpsProxy = $ishttpsProxyCallbackDefined ? $this->httpsProxyCallback ($url, $method, $headers, $body) : $this->https_proxy_callback ($url, $method, $headers, $body);
         }
         // $socksProxy
-        if ($this->value_is_defined($this->socksProxy)) {
+        $isSocksProxyDefined = $this->value_is_defined($this->socksProxy);
+        $isSocks_proxy_defined = $this->value_is_defined($this->socks_proxy);
+        if ($isSocksProxyDefined || $isSocks_proxy_defined) {
             $usedProxies[] = 'socksProxy';
-            $socksProxy = $this->socksProxy;
+            $socksProxy = $isSocksProxyDefined ? $this->socksProxy : $this->socks_proxy;
         }
-        if ($this->value_is_defined($this->socks_proxy)) {
-            $usedProxies[] = 'socks_proxy';
-            $socksProxy = $this->socks_proxy;
-        }
-        if ($this->socksProxyCallback !== null) {
+        $issocksProxyCallbackDefined = $this->value_is_defined($this->socksProxyCallback);
+        $issocks_proxy_callback_defined = $this->value_is_defined($this->socks_proxy_callback);
+        if ($issocksProxyCallbackDefined || $issocks_proxy_callback_defined) {
             $usedProxies[] = 'socksProxyCallback';
-            $socksProxy = $this->socksProxyCallback ($url, $method, $headers, $body);
-        }
-        if ($this->socks_proxy_callback !== null) {
-            $usedProxies[] = 'socks_proxy_callback';
-            $socksProxy = $this->socks_proxy_callback ($url, $method, $headers, $body);
+            $socksProxy = $issocksProxyCallbackDefined ? $this->socksProxyCallback ($url, $method, $headers, $body) : $this->socks_proxy_callback ($url, $method, $headers, $body);
         }
         // check
         $length = count($usedProxies);
@@ -2856,6 +2839,19 @@ class Exchange {
         if ($proxyAgentSet && $proxyUrlSet) {
             throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
+    }
+
+    public function check_address(?string $address = null) {
+        if ($address === null) {
+            throw new InvalidAddress($this->id . ' $address is null');
+        }
+        // check the $address is not the same letter like 'aaaaa' nor too short nor has a space
+        $uniqChars = ($this->unique($this->string_to_chars_array($address)));
+        $length = count($uniqChars); // py transpiler trick
+        if ($length === 1 || strlen($address) < $this->minFundingAddressLength || mb_strpos($address, ' ') > -1) {
+            throw new InvalidAddress($this->id . ' $address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
+        }
+        return $address;
     }
 
     public function find_message_hashes($client, string $element) {
@@ -3078,6 +3074,21 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
     }
 
+    public function parse_currency(array $rawCurrency) {
+        throw new NotSupported($this->id . ' parseCurrency() is not supported yet');
+    }
+
+    public function parse_currencies($rawCurrencies) {
+        $result = array();
+        $arr = $this->to_array($rawCurrencies);
+        for ($i = 0; $i < count($arr); $i++) {
+            $parsed = $this->parse_currency($arr[$i]);
+            $code = $parsed['code'];
+            $result[$code] = $parsed;
+        }
+        return $result;
+    }
+
     public function parse_market(array $market) {
         throw new NotSupported($this->id . ' parseMarket() is not supported yet');
     }
@@ -3172,6 +3183,10 @@ class Exchange {
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
+    }
+
+    public function fetch_funding_intervals(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingIntervals() is not supported yet');
     }
 
     public function watch_funding_rate(string $symbol, $params = array ()) {
@@ -3323,6 +3338,7 @@ class Exchange {
                 'ETH' => array( 'ERC20' => 'ETH' ),
                 'TRX' => array( 'TRC20' => 'TRX' ),
                 'CRO' => array( 'CRC20' => 'CRONOS' ),
+                'BRC20' => array( 'BRC20' => 'BTC' ),
             ),
         );
     }
@@ -3457,6 +3473,10 @@ class Exchange {
                     'min' => null,
                     'max' => null,
                 ),
+            ),
+            'marginModes' => array(
+                'cross' => null,
+                'isolated' => null,
             ),
             'created' => null,
             'info' => null,
@@ -4253,6 +4273,8 @@ class Exchange {
             'baseVolume' => $this->parse_number($baseVolume),
             'quoteVolume' => $this->parse_number($quoteVolume),
             'previousClose' => $this->safe_number($ticker, 'previousClose'),
+            'indexPrice' => $this->safe_number($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_number($ticker, 'markPrice'),
         ));
     }
 
@@ -4535,7 +4557,7 @@ class Exchange {
             if ($currencyCode === null) {
                 $currencies = is_array($this->currencies) ? array_values($this->currencies) : array();
                 for ($i = 0; $i < count($currencies); $i++) {
-                    $currency = array( $i );
+                    $currency = $currencies[$i];
                     $networks = $this->safe_dict($currency, 'networks');
                     $network = $this->safe_dict($networks, $networkCode);
                     $networkId = $this->safe_string($network, 'id');
@@ -4680,13 +4702,13 @@ class Exchange {
         );
     }
 
-    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, Bool $tail = false) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
         }
         $sorted = $this->sort_by($results, 0);
-        return $this->filter_by_since_limit($sorted, $since, $limit, 0);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
     public function parse_leverage_tiers(mixed $response, ?array $symbols = null, $marketIdKey = null) {
@@ -4918,7 +4940,10 @@ class Exchange {
     }
 
     public function get_list_from_object_values($objects, int|string $key) {
-        $newArray = $this->to_array($objects);
+        $newArray = $objects;
+        if (gettype($objects) !== 'array' || array_keys($objects) !== array_keys(array_keys($objects))) {
+            $newArray = $this->to_array($objects);
+        }
         $results = array();
         for ($i = 0; $i < count($newArray); $i++) {
             $results[] = $newArray[$i][$key];
@@ -5088,10 +5113,6 @@ class Exchange {
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $this->cancel_order_ws($id, $symbol);
         return $this->create_order_ws($symbol, $type, $side, $amount, $price, $params);
-    }
-
-    public function fetch_permissions($params = array ()) {
-        throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -5523,6 +5544,23 @@ class Exchange {
         }
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()) {
+        if ($this->has['fetchMarkPrices']) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $tickers = $this->fetch_mark_prices(array( $symbol ), $params);
+            $ticker = $this->safe_dict($tickers, $symbol);
+            if ($ticker === null) {
+                throw new NullResponse($this->id . ' fetchMarkPrices() could not find a $ticker for ' . $symbol);
+            } else {
+                return $ticker;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
+        }
+    }
+
     public function fetch_ticker_ws(string $symbol, $params = array ()) {
         if ($this->has['fetchTickersWs']) {
             $this->load_markets();
@@ -5546,6 +5584,10 @@ class Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
     }
 
     public function fetch_tickers_ws(?array $symbols = null, $params = array ()) {
@@ -6351,7 +6393,8 @@ class Exchange {
         if ($precision === null) {
             return $this->force_string($fee);
         } else {
-            return $this->decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+            $roundingMode = $this->safe_integer($this->options, 'currencyToPrecisionRoundingMode', ROUND);
+            return $this->decimal_to_precision($fee, $roundingMode, $precision, $this->precisionMode, $this->paddingMode);
         }
     }
 
@@ -6646,7 +6689,7 @@ class Exchange {
             $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
         if ($indexed) {
-            return $this->index_by($result, 'currency');
+            $result = $this->filter_by_array($result, 'currency', null, $indexed);
         }
         return $result;
     }
@@ -6828,6 +6871,26 @@ class Exchange {
             }
         } else {
             throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
+        }
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()) {
+        if ($this->has['fetchFundingIntervals']) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetchFundingInterval() supports contract markets only');
+            }
+            $rates = $this->fetch_funding_intervals(array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetchFundingInterval() returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingInterval() is not supported yet');
         }
     }
 
@@ -7190,7 +7253,7 @@ class Exchange {
                     $errors = 0;
                     $result = $this->array_concat($result, $response);
                     $last = $this->safe_value($response, $responseLength - 1);
-                    $paginationTimestamp = $this->safe_integer($last, 'timestamp') - 1;
+                    $paginationTimestamp = $this->safe_integer($last, 'timestamp') + 1;
                     if (($until !== null) && ($paginationTimestamp >= $until)) {
                         break;
                     }
@@ -7293,7 +7356,7 @@ class Exchange {
                 $response = null;
                 if ($method === 'fetchAccounts') {
                     $response = $this->$method ($params);
-                } elseif ($method === 'getLeverageTiersPaginated') {
+                } elseif ($method === 'getLeverageTiersPaginated' || $method === 'fetchPositions') {
                     $response = $this->$method ($symbol, $params);
                 } else {
                     $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
@@ -7303,15 +7366,26 @@ class Exchange {
                 if ($this->verbose) {
                     $cursorString = ($cursorValue === null) ? '' : $cursorValue;
                     $iteration = ($i + 1);
-                    $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorString;
+                    $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' $cursor ' . $cursorString;
                     $this->log($cursorMessage);
                 }
                 if ($responseLength === 0) {
                     break;
                 }
                 $result = $this->array_concat($result, $response);
-                $last = $this->safe_value($response, $responseLength - 1);
-                $cursorValue = $this->safe_value($last['info'], $cursorReceived);
+                $last = $this->safe_dict($response, $responseLength - 1);
+                // $cursorValue = $this->safe_value($last['info'], $cursorReceived);
+                $cursorValue = null; // search for the $cursor
+                for ($j = 0; $j < $responseLength; $j++) {
+                    $index = $responseLength - $j - 1;
+                    $entry = $this->safe_dict($response, $index);
+                    $info = $this->safe_dict($entry, 'info');
+                    $cursor = $this->safe_value($info, $cursorReceived);
+                    if ($cursor !== null) {
+                        $cursorValue = $cursor;
+                        break;
+                    }
+                }
                 if ($cursorValue === null) {
                     break;
                 }
@@ -7640,7 +7714,7 @@ class Exchange {
          */
         if ($this->has['fetchPositionsHistory']) {
             $positions = $this->fetch_positions_history(array( $symbol ), $since, $limit, $params);
-            return $this->safe_dict($positions, 0);
+            return $positions;
         } else {
             throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
         }
@@ -7696,5 +7770,66 @@ class Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
          */
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
+    }
+
+    public function clean_unsubscription($client, string $subHash, string $unsubHash) {
+        if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
+            unset($client->subscriptions[$unsubHash]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
+            unset($client->subscriptions[$subHash]);
+        }
+        if (is_array($client->futures) && array_key_exists($subHash, $client->futures)) {
+            $error = new UnsubscribeError ($this->id . ' ' . $subHash);
+            $client->reject ($error, $subHash);
+        }
+        $client->resolve (true, $unsubHash);
+    }
+
+    public function clean_cache(array $subscription) {
+        $topic = $this->safe_string($subscription, 'topic');
+        $symbols = $this->safe_list($subscription, 'symbols', array());
+        $symbolsLength = count($symbols);
+        if ($topic === 'ohlcv') {
+            $symbolsAndTimeFrames = $this->safe_list($subscription, 'symbolsAndTimeframes', array());
+            for ($i = 0; $i < count($symbolsAndTimeFrames); $i++) {
+                $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
+                $symbol = $this->safe_string($symbolAndTimeFrame, 0);
+                $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
+                if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                    unset($this->ohlcvs[$symbol][$timeframe]);
+                }
+            }
+        } elseif ($symbolsLength > 0) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                if ($topic === 'trades') {
+                    unset($this->trades[$symbol]);
+                } elseif ($topic === 'orderbook') {
+                    unset($this->orderbooks[$symbol]);
+                } elseif ($topic === 'ticker') {
+                    unset($this->tickers[$symbol]);
+                }
+            }
+        } else {
+            if ($topic === 'myTrades') {
+                // don't reset $this->myTrades directly here
+                // because in c# we need to use a different object
+                $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
+                for ($i = 0; $i < count($keys); $i++) {
+                    unset($this->myTrades[$keys[$i]]);
+                }
+            } elseif ($topic === 'orders') {
+                $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
+                for ($i = 0; $i < count($orderSymbols); $i++) {
+                    unset($this->orders[$orderSymbols[$i]]);
+                }
+            } elseif ($topic === 'ticker') {
+                $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
+                for ($i = 0; $i < count($tickerSymbols); $i++) {
+                    unset($this->tickers[$tickerSymbols[$i]]);
+                }
+            }
+        }
     }
 }

@@ -29,6 +29,8 @@ public partial class poloniexfutures : Exchange
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", false },
                 { "fetchL3OrderBook", true },
@@ -1511,6 +1513,7 @@ public partial class poloniexfutures : Exchange
         * @description fetches information on an order made by the user
         * @see https://api-docs.poloniex.com/futures/api/orders#get-details-of-a-single-order
         * @see https://api-docs.poloniex.com/futures/api/orders#get-single-order-by-clientoid
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1740,28 +1743,70 @@ public partial class poloniexfutures : Exchange
         //        "predictedValue": 0.00375
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseFundingRate(data, market);
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name poloniexfutures#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://api-docs.poloniex.com/futures/api/futures-index#get-premium-index
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
+    }
+
+    public override object parseFundingRate(object data, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "granularity": 28800000,
+        //         "timePoint": 1637380800000,
+        //         "value": 0.0001,
+        //         "predictedValue": 0.0001,
+        //     }
+        //
         object fundingTimestamp = this.safeInteger(data, "timePoint");
-        // the website displayes the previous funding rate as "funding rate"
+        object marketId = this.safeString(data, "symbol");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
             { "markPrice", null },
             { "indexPrice", null },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", null },
             { "datetime", null },
-            { "fundingRate", this.safeNumber(data, "predictedValue") },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", null },
-            { "nextFundingRate", null },
+            { "fundingRate", this.safeNumber(data, "value") },
+            { "fundingTimestamp", fundingTimestamp },
+            { "fundingDatetime", this.iso8601(fundingTimestamp) },
+            { "nextFundingRate", this.safeNumber(data, "predictedValue") },
             { "nextFundingTimestamp", null },
             { "nextFundingDatetime", null },
-            { "previousFundingRate", this.safeNumber(data, "value") },
-            { "previousFundingTimestamp", fundingTimestamp },
-            { "previousFundingDatetime", this.iso8601(fundingTimestamp) },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(this.safeString(data, "granularity")) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)

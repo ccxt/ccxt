@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1203,7 +1203,7 @@ export default class vertex extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-    parseFundingRate (ticker, market: Market = undefined) {
+    parseFundingRate (ticker, market: Market = undefined): FundingRate {
         //
         // {
         //     "product_id": 4,
@@ -1258,10 +1258,11 @@ export default class vertex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name vertex#fetchFundingRate
@@ -1289,7 +1290,7 @@ export default class vertex extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name vertex#fetchFundingRates
@@ -1297,7 +1298,7 @@ export default class vertex extends Exchange {
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
          * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2006,6 +2007,7 @@ export default class vertex extends Exchange {
          * @name vertex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2991,6 +2993,16 @@ export default class vertex extends Exchange {
         } else {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
+        }
+        if (path !== 'execute') {
+            // required encoding for public methods
+            if (headers !== undefined) {
+                headers['Accept-Encoding'] = 'gzip';
+            } else {
+                headers = {
+                    'Accept-Encoding': 'gzip',
+                };
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

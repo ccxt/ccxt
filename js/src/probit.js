@@ -49,6 +49,7 @@ export default class probit extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -1076,6 +1077,7 @@ export default class probit extends Exchange {
          * @name probit#fetchOrder
          * @see https://docs-en.probit.com/reference/order-3
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1309,11 +1311,11 @@ export default class probit extends Exchange {
         const network = this.safeString(depositAddress, 'platform_id');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddress(code, params = {}) {

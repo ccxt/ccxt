@@ -20,6 +20,7 @@ public partial class vertex : ccxt.vertex
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchPositions", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -43,6 +44,9 @@ public partial class vertex : ccxt.vertex
                 { "watchPositions", new Dictionary<string, object>() {
                     { "fetchPositionsSnapshot", true },
                     { "awaitPositionsSnapshot", true },
+                } },
+                { "ws", new Dictionary<string, object>() {
+                    { "inflate", true },
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {
@@ -75,6 +79,14 @@ public partial class vertex : ccxt.vertex
             { "id", requestId },
         };
         object request = this.extend(subscribe, message);
+        object wsOptions = new Dictionary<string, object>() {
+            { "headers", new Dictionary<string, object>() {
+                { "Sec-WebSocket-Extensions", "permessage-deflate" },
+            } },
+        };
+        ((IDictionary<string,object>)this.options)["ws"] = new Dictionary<string, object>() {
+            { "options", wsOptions },
+        };
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
 
@@ -447,7 +459,7 @@ public partial class vertex : ccxt.vertex
         object symbol = this.safeString(subscription, "symbol"); // watchOrderBook
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         this.spawn(this.fetchOrderBookSnapshot, new object[] { client, message, subscription});
@@ -488,7 +500,7 @@ public partial class vertex : ccxt.vertex
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }
@@ -633,7 +645,7 @@ public partial class vertex : ccxt.vertex
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols, parameters);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -802,7 +814,7 @@ public partial class vertex : ccxt.vertex
             // allows further authentication attempts
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
             }
         }
     }
@@ -1051,7 +1063,7 @@ public partial class vertex : ccxt.vertex
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             } else
             {

@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -50,6 +50,8 @@ export default class phemex extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
@@ -2503,6 +2505,8 @@ export default class phemex extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {string} [params.posSide] *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2598,15 +2602,21 @@ export default class phemex extends Exchange {
                 request['baseQtyEv'] = this.toEv (amountString, market);
             }
         } else if (market['swap']) {
+            const hedged = this.safeBool (params, 'hedged', false);
+            params = this.omit (params, 'hedged');
             let posSide = this.safeStringLower (params, 'posSide');
             if (posSide === undefined) {
-                posSide = 'Merged';
+                if (hedged) {
+                    if (reduceOnly) {
+                        side = (side === 'buy') ? 'sell' : 'buy';
+                    }
+                    posSide = (side === 'buy') ? 'Long' : 'Short';
+                } else {
+                    posSide = 'Merged';
+                }
             }
             posSide = this.capitalize (posSide);
             request['posSide'] = posSide;
-            if (reduceOnly !== undefined) {
-                request['reduceOnly'] = reduceOnly;
-            }
             if (market['settle'] === 'USDT') {
                 request['orderQtyRq'] = amount;
             } else {
@@ -2967,6 +2977,7 @@ export default class phemex extends Exchange {
          * @name phemex#fetchOrder
          * @see https://phemex-docs.github.io/#query-orders-by-ids
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2990,7 +3001,7 @@ export default class phemex extends Exchange {
         if (market['settle'] === 'USDT') {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId (this.extend (request, params));
         } else if (market['spot']) {
-            response = await this.privateGetSpotOrdersActive (this.extend (request, params));
+            response = await this.privateGetApiDataSpotsOrdersByOrderId (this.extend (request, params));
         } else {
             response = await this.privateGetExchangeOrder (this.extend (request, params));
         }
@@ -3005,7 +3016,10 @@ export default class phemex extends Exchange {
                     throw new OrderNotFound (this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
                 }
             }
-            order = this.safeValue (data, 0, {});
+            order = this.safeDict (data, 0, {});
+        } else if (market['spot']) {
+            const rows = this.safeList (data, 'rows', []);
+            order = this.safeDict (rows, 0, {});
         }
         return this.parseOrder (order, market);
     }
@@ -3043,7 +3057,7 @@ export default class phemex extends Exchange {
         } else if (market['swap']) {
             response = await this.privateGetExchangeOrderList (this.extend (request, params));
         } else {
-            response = await this.privateGetSpotOrders (this.extend (request, params));
+            response = await this.privateGetApiDataSpotsOrders (this.extend (request, params));
         }
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeList (data, 'rows', data);
@@ -3342,7 +3356,7 @@ export default class phemex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name phemex#fetchDepositAddress
@@ -3356,9 +3370,9 @@ export default class phemex extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (params, 'network', defaultNetwork);
         network = this.safeString (networks, network, network);
         if (network === undefined) {
@@ -3382,12 +3396,12 @@ export default class phemex extends Exchange {
         const tag = this.safeString (data, 'tag');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -3986,7 +4000,7 @@ export default class phemex extends Exchange {
         return value;
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name phemex#fetchFundingRate
@@ -4036,7 +4050,7 @@ export default class phemex extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "askEp": 2332500,
@@ -4095,7 +4109,8 @@ export default class phemex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {

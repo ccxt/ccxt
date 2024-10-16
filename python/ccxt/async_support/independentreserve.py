@@ -5,8 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
+import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import BadRequest
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -154,11 +155,12 @@ class independentreserve(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        baseCurrencies = await self.publicGetGetValidPrimaryCurrencyCodes(params)
+        baseCurrenciesPromise = self.publicGetGetValidPrimaryCurrencyCodes(params)
         #     ['Xbt', 'Eth', 'Usdt', ...]
-        quoteCurrencies = await self.publicGetGetValidSecondaryCurrencyCodes(params)
+        quoteCurrenciesPromise = self.publicGetGetValidSecondaryCurrencyCodes(params)
         #     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        limits = await self.publicGetGetOrderMinimumVolumes(params)
+        limitsPromise = self.publicGetGetOrderMinimumVolumes(params)
+        baseCurrencies, quoteCurrencies, limits = await asyncio.gather(*[baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise])
         #
         #     {
         #         "Xbt": 0.0001,
@@ -711,7 +713,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
@@ -735,7 +737,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        Tag: '3307446684',
@@ -749,9 +751,9 @@ class independentreserve(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_string(currency, 'code'),
+            'network': None,
             'address': address,
             'tag': self.safe_string(depositAddress, 'Tag'),
-            'network': None,
         }
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):

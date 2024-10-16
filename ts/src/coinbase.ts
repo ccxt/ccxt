@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees, LedgerEntry, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -779,15 +779,14 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+         * @description Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
@@ -795,15 +794,14 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+         * @description Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params);
     }
 
@@ -2271,24 +2269,24 @@ export default class coinbase extends Exchange {
         return this.parseCustomBalance (response, params);
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         /**
          * @method
          * @name coinbase#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-         * @param {string} code unified currency code, default is undefined
+         * @description Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', undefined, 100);
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'next_starting_after', 'starting_after', undefined, 100) as LedgerEntry[];
         }
         let currency = undefined;
         if (code !== undefined) {
@@ -2310,8 +2308,28 @@ export default class coinbase extends Exchange {
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'next_starting_after');
         if ((cursor !== undefined) && (cursor !== '')) {
+            const lastFee = this.safeDict (last, 'fee');
             last['next_starting_after'] = cursor;
-            ledger[lastIndex] = last;
+            ledger[lastIndex] = {
+                'info': this.safeDict (last, 'info'),
+                'id': this.safeString (last, 'id'),
+                'timestamp': this.safeInteger (last, 'timestamp'),
+                'datetime': this.safeString (last, 'datetime'),
+                'direction': this.safeString (last, 'direction'),
+                'account': this.safeString (last, 'account'),
+                'referenceId': undefined,
+                'referenceAccount': undefined,
+                'type': this.safeString (last, 'type'),
+                'currency': this.safeString (last, 'currency'),
+                'amount': this.safeNumber (last, 'amount'),
+                'before': undefined,
+                'after': undefined,
+                'status': this.safeString (last, 'status'),
+                'fee': {
+                    'cost': this.safeNumber (lastFee, 'cost'),
+                    'currency': this.safeString (lastFee, 'currency'),
+                },
+            };
         }
         return ledger;
     }
@@ -2338,7 +2356,7 @@ export default class coinbase extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         // crypto deposit transaction
         //
@@ -2593,6 +2611,7 @@ export default class coinbase extends Exchange {
         }
         const currencyId = this.safeString (amountInfo, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         //
         // the address and txid do not belong to the unified ledger structure
         //
@@ -2628,7 +2647,7 @@ export default class coinbase extends Exchange {
                 accountId = parts[3];
             }
         }
-        return {
+        return this.safeLedgerEntry ({
             'info': item,
             'id': id,
             'timestamp': timestamp,
@@ -2644,7 +2663,7 @@ export default class coinbase extends Exchange {
             'after': undefined,
             'status': status,
             'fee': fee,
-        };
+        }, currency) as LedgerEntry;
     }
 
     async findAccountId (code, params = {}) {
@@ -3944,7 +3963,7 @@ export default class coinbase extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name coinbase#fetchDepositAddress
@@ -4016,10 +4035,10 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const addressStructures = this.parseDepositAddresses (data, undefined, false);
-        return this.indexBy (addressStructures, 'network');
+        return this.indexBy (addressStructures, 'network') as DepositAddress[];
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -4074,10 +4093,10 @@ export default class coinbase extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode (marketId, currency),
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'tag': this.safeString (addressInfo, 'destination_tag'),
-            'network': this.networkIdToCode (networkId, code),
-        };
+        } as DepositAddress;
     }
 
     async deposit (code: string, amount: number, id: string, params = {}) {

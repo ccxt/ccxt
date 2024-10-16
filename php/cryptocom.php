@@ -49,6 +49,7 @@ class cryptocom extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
@@ -89,8 +90,8 @@ class cryptocom extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
-                'fetchTradingFees' => false,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
@@ -136,7 +137,7 @@ class cryptocom extends Exchange {
                 'www' => 'https://crypto.com/',
                 'referral' => array(
                     'url' => 'https://crypto.com/exch/kdacthrnxt',
-                    'discount' => 0.15,
+                    'discount' => 0.75,
                 ),
                 'doc' => array(
                     'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
@@ -158,6 +159,7 @@ class cryptocom extends Exchange {
                             'public/get-valuations' => 1,
                             'public/get-expired-settlement-price' => 10 / 3,
                             'public/get-insurance' => 1,
+                            'public/get-risk-parameters' => 1,
                         ),
                         'post' => array(
                             'public/staking/get-conversion-rate' => 2,
@@ -191,6 +193,8 @@ class cryptocom extends Exchange {
                             'private/get-accounts' => 10 / 3,
                             'private/get-withdrawal-history' => 10 / 3,
                             'private/get-deposit-history' => 10 / 3,
+                            'private/get-fee-rate' => 2,
+                            'private/get-instrument-fee-rate' => 2,
                             'private/staking/stake' => 2,
                             'private/staking/unstake' => 2,
                             'private/staking/get-staking-position' => 2,
@@ -593,7 +597,7 @@ class cryptocom extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
          * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1671,7 +1675,7 @@ class cryptocom extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
          * fetch a dictionary of $addresses for a $currency, indexed by $network
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-$address
@@ -1723,17 +1727,18 @@ class cryptocom extends Exchange {
             $result[$network] = array(
                 'info' => $value,
                 'currency' => $responseCode,
+                'network' => $network,
                 'address' => $address,
                 'tag' => $tag,
-                'network' => $network,
             );
         }
         return $result;
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a currency associated with this account
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -1747,19 +1752,6 @@ class cryptocom extends Exchange {
             $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
             return $depositAddresses[$keys[0]];
         }
-    }
-
-    public function safe_network($networkId) {
-        $networksById = array(
-            'BTC' => 'BTC',
-            'ETH' => 'ETH',
-            'SOL' => 'SOL',
-            'BNB' => 'BNB',
-            'CRONOS' => 'CRONOS',
-            'MATIC' => 'MATIC',
-            'OP' => 'OP',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -2342,11 +2334,11 @@ class cryptocom extends Exchange {
         return $this->parse_deposit_withdraw_fees($currencyMap, $codes, 'full_name');
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-         * @param {string} $code unified $currency $code
+         * @param {string} [$code] unified $currency $code
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry
          * @param {int} [$limit] max number of $ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2405,7 +2397,7 @@ class cryptocom extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "account_id" => "ce075cef-1234-4321-bd6e-gf9007351e64",
@@ -2428,6 +2420,8 @@ class cryptocom extends Exchange {
         //
         $timestamp = $this->safe_integer($item, 'event_timestamp_ms');
         $currencyId = $this->safe_string($item, 'instrument_name');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_string($item, 'transaction_qty');
         $direction = null;
         if (Precise::string_lt($amount, '0')) {
@@ -2436,14 +2430,15 @@ class cryptocom extends Exchange {
         } else {
             $direction = 'in';
         }
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string($item, 'order_id'),
             'direction' => $direction,
             'account' => $this->safe_string($item, 'account_id'),
             'referenceId' => $this->safe_string($item, 'trade_id'),
             'referenceAccount' => $this->safe_string($item, 'trade_match_id'),
             'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'journal_type')),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $code,
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2454,8 +2449,7 @@ class cryptocom extends Exchange {
                 'currency' => null,
                 'cost' => null,
             ),
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -2959,6 +2953,119 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_dict($response, 'result');
         return $this->parse_order($result, $market);
+    }
+
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+        /**
+         * fetch the trading fees for a $market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = $this->v1PrivatePostPrivateGetInstrumentFeeRate ($this->extend($request, $params));
+        //
+        //    {
+        //        "id" => 1,
+        //        "code" => 0,
+        //        "method" => "private/staking/unstake",
+        //        "result" => {
+        //          "staking_id" => "1",
+        //          "instrument_name" => "SOL.staked",
+        //          "status" => "NEW",
+        //          "quantity" => "1",
+        //          "underlying_inst_name" => "SOL",
+        //          "reason" => "NO_ERROR"
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'result', array());
+        return $this->parse_trading_fee($data, $market);
+    }
+
+    public function fetch_trading_fees($params = array ()): array {
+        /**
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+         * fetch the trading fees for multiple markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+         */
+        $this->load_markets();
+        $response = $this->v1PrivatePostPrivateGetFeeRate ($params);
+        //
+        //   {
+        //       "id" => 1,
+        //       "method" => "/private/get-fee-rate",
+        //       "code" => 0,
+        //       "result" => {
+        //         "spot_tier" => "3",
+        //         "deriv_tier" => "3",
+        //         "effective_spot_maker_rate_bps" => "6.5",
+        //         "effective_spot_taker_rate_bps" => "6.9",
+        //         "effective_deriv_maker_rate_bps" => "1.1",
+        //         "effective_deriv_taker_rate_bps" => "3"
+        //       }
+        //   }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_trading_fees($result);
+    }
+
+    public function parse_trading_fees($response) {
+        //
+        // {
+        //         "spot_tier" => "3",
+        //         "deriv_tier" => "3",
+        //         "effective_spot_maker_rate_bps" => "6.5",
+        //         "effective_spot_taker_rate_bps" => "6.9",
+        //         "effective_deriv_maker_rate_bps" => "1.1",
+        //         "effective_deriv_taker_rate_bps" => "3"
+        //  }
+        //
+        $result = array();
+        $result['info'] = $response;
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $isSwap = $market['swap'];
+            $takerFeeKey = $isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
+            $makerFeeKey = $isSwap ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            $tradingFee = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $this->parse_number(Precise::string_div($this->safe_string($response, $makerFeeKey), '10000')),
+                'taker' => $this->parse_number(Precise::string_div($this->safe_string($response, $takerFeeKey), '10000')),
+                'percentage' => null,
+                'tierBased' => null,
+            );
+            $result[$symbol] = $tradingFee;
+        }
+        return $result;
+    }
+
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
+        //
+        // {
+        //      "instrument_name" => "BTC_USD",
+        //      "effective_maker_rate_bps" => "6.5",
+        //      "effective_taker_rate_bps" => "6.9"
+        // }
+        //
+        $marketId = $this->safe_string($fee, 'instrument_name');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->parse_number(Precise::string_div($this->safe_string($fee, 'effective_maker_rate_bps'), '10000')),
+            'taker' => $this->parse_number(Precise::string_div($this->safe_string($fee, 'effective_taker_rate_bps'), '10000')),
+            'percentage' => null,
+            'tierBased' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -24,7 +24,6 @@ var binanceusdm = require('./src/binanceusdm.js');
 var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
-var bitbay = require('./src/bitbay.js');
 var bitbns = require('./src/bitbns.js');
 var bitcoincom = require('./src/bitcoincom.js');
 var bitfinex = require('./src/bitfinex.js');
@@ -72,8 +71,8 @@ var fmfwio = require('./src/fmfwio.js');
 var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
+var hashkey = require('./src/hashkey.js');
 var hitbtc = require('./src/hitbtc.js');
-var hitbtc3 = require('./src/hitbtc3.js');
 var hollaex = require('./src/hollaex.js');
 var htx = require('./src/htx.js');
 var huobi = require('./src/huobi.js');
@@ -158,6 +157,7 @@ var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateio$1 = require('./src/pro/gateio.js');
 var gemini$1 = require('./src/pro/gemini.js');
+var hashkey$1 = require('./src/pro/hashkey.js');
 var hitbtc$1 = require('./src/pro/hitbtc.js');
 var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
@@ -194,7 +194,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.78';
+const version = '4.4.18';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -209,7 +209,6 @@ const exchanges = {
     'bingx': bingx,
     'bit2c': bit2c,
     'bitbank': bitbank,
-    'bitbay': bitbay,
     'bitbns': bitbns,
     'bitcoincom': bitcoincom,
     'bitfinex': bitfinex,
@@ -257,8 +256,8 @@ const exchanges = {
     'gate': gate,
     'gateio': gateio,
     'gemini': gemini,
+    'hashkey': hashkey,
     'hitbtc': hitbtc,
-    'hitbtc3': hitbtc3,
     'hollaex': hollaex,
     'htx': htx,
     'huobi': huobi,
@@ -345,6 +344,7 @@ const pro = {
     'gate': gate$1,
     'gateio': gateio$1,
     'gemini': gemini$1,
+    'hashkey': hashkey$1,
     'hitbtc': hitbtc$1,
     'hollaex': hollaex$1,
     'htx': htx$1,
@@ -410,6 +410,7 @@ exports.InvalidAddress = errors.InvalidAddress;
 exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
 exports.InvalidProxySettings = errors.InvalidProxySettings;
+exports.ManualInteractionNeeded = errors.ManualInteractionNeeded;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
 exports.MarketClosed = errors.MarketClosed;
 exports.NetworkError = errors.NetworkError;
@@ -426,6 +427,7 @@ exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
+exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.ace = ace;
 exports.alpaca = alpaca;
@@ -439,7 +441,6 @@ exports.binanceusdm = binanceusdm;
 exports.bingx = bingx;
 exports.bit2c = bit2c;
 exports.bitbank = bitbank;
-exports.bitbay = bitbay;
 exports.bitbns = bitbns;
 exports.bitcoincom = bitcoincom;
 exports.bitfinex = bitfinex;
@@ -487,8 +488,8 @@ exports.fmfwio = fmfwio;
 exports.gate = gate;
 exports.gateio = gateio;
 exports.gemini = gemini;
+exports.hashkey = hashkey;
 exports.hitbtc = hitbtc;
-exports.hitbtc3 = hitbtc3;
 exports.hollaex = hollaex;
 exports.htx = htx;
 exports.huobi = huobi;

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
-from ccxt.base.types import Currencies, Currency, Int, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry
+from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -72,11 +72,15 @@ class xt(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawals': False,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -1137,17 +1141,21 @@ class xt(Exchange, ImplicitAPI):
         maxCost = None
         minPrice = None
         maxPrice = None
+        amountPrecision = None
         for i in range(0, len(filters)):
             entry = filters[i]
             filter = self.safe_string(entry, 'filter')
             if filter == 'QUANTITY':
                 minAmount = self.safe_number(entry, 'min')
                 maxAmount = self.safe_number(entry, 'max')
+                amountPrecision = self.safe_number(entry, 'tickSize')
             if filter == 'QUOTE_QTY':
                 minCost = self.safe_number(entry, 'min')
             if filter == 'PRICE':
                 minPrice = self.safe_number(entry, 'min')
                 maxPrice = self.safe_number(entry, 'max')
+        if amountPrecision is None:
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision')))
         underlyingType = self.safe_string(market, 'underlyingType')
         linear = None
         inverse = None
@@ -1222,7 +1230,7 @@ class xt(Exchange, ImplicitAPI):
             'optionType': None,
             'precision': {
                 'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
+                'amount': amountPrecision,
                 'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseCoinPrecision'))),
                 'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteCoinPrecision'))),
             },
@@ -1355,7 +1363,7 @@ class xt(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
             self.safe_number(ohlcv, 'c'),
-            self.safe_number_2(ohlcv, volumeIndex, 'v'),
+            self.safe_number_2(ohlcv, 'q', volumeIndex),
         ]
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
@@ -3306,7 +3314,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://doc.xt.com/#futures_usergetBalanceBill
@@ -3363,7 +3371,7 @@ class xt(Exchange, ImplicitAPI):
         ledger = self.safe_value(data, 'items', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency=None) -> LedgerEntry:
         #
         #     {
         #         "id": "207260567109387524",
@@ -3379,8 +3387,10 @@ class xt(Exchange, ImplicitAPI):
         side = self.safe_string(item, 'side')
         direction = 'in' if (side == 'ADD') else 'out'
         currencyId = self.safe_string(item, 'coin')
+        currency = self.safe_currency(currencyId, currency)
         timestamp = self.safe_integer(item, 'createdTime')
-        return {
+        return self.safe_ledger_entry({
+            'info': item,
             'id': self.safe_string(item, 'id'),
             'direction': direction,
             'account': None,
@@ -3398,8 +3408,7 @@ class xt(Exchange, ImplicitAPI):
                 'currency': None,
                 'cost': None,
             },
-            'info': item,
-        }
+        }, currency)
 
     def parse_ledger_entry_type(self, type):
         ledgerType = {
@@ -3414,7 +3423,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://doc.xt.com/#deposit_withdrawaldepositAddressGet
@@ -3448,7 +3457,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency=None) -> DepositAddress:
         #
         #     {
         #         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3458,11 +3467,11 @@ class xt(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': self.safe_currency_code(None, currency),
+            'network': None,
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
-            'network': None,
-            'info': depositAddress,
         }
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4024,7 +4033,17 @@ class xt(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://doc.xt.com/#futures_quotesgetFundingRate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rate(symbol, params)
+
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://doc.xt.com/#futures_quotesgetFundingRate
@@ -4062,7 +4081,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market=None) -> FundingRate:
         #
         #     {
         #         "symbol": "btc_usdt",
@@ -4074,6 +4093,7 @@ class xt(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_', 'swap')
         timestamp = self.safe_integer(contract, 'nextCollectionTime')
+        interval = self.safe_string(contract, 'collectionInternal')
         return {
             'info': contract,
             'symbol': symbol,
@@ -4092,6 +4112,7 @@ class xt(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': interval + 'h',
         }
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

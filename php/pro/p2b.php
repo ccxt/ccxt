@@ -33,8 +33,9 @@ class p2b extends \ccxt\async\p2b {
                 'watchOrders' => false,
                 // 'watchStatus' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,  // in the docs but does not return anything when subscribed to
+                'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -143,26 +144,87 @@ class p2b extends \ccxt\async\p2b {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+             * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#$market-status
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->method] 'state' (default) or 'price'
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $watchTickerOptions = $this->safe_dict($this->options, 'watchTicker');
+            $name = $this->safe_string($watchTickerOptions, 'name', 'state');  // or price
+            list($name, $params) = $this->handle_option_and_params($params, 'method', 'name', $name);
+            $messageHashes = array();
+            $args = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $messageHashes[] = $name . '::' . $market['symbol'];
+                $args[] = $market['id'];
+            }
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'method' => $name . '.subscribe',
+                'params' => $args,
+                'id' => $this->milliseconds(),
+            );
+            Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
+             * get the list of most recent trades for a particular $symbol
              * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a list of $symbols
+             * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = [
-                $market['id'],
-            ];
-            $messageHash = 'deals::' . $market['symbol'];
-            $trades = Async\await($this->subscribe('deals.subscribe', $messageHash, $request, $params));
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
+            $messageHashes = array();
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $messageHashes[] = 'deals::' . $symbols[$i];
+                }
+            }
+            $marketIds = $this->market_ids($symbols);
+            $url = $this->urls['api']['ws'];
+            $subscribe = array(
+                'method' => 'deals.subscribe',
+                'params' => $marketIds,
+                'id' => $this->milliseconds(),
+            );
+            $query = $this->extend($subscribe, $params);
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $query, $messageHashes));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
@@ -335,6 +397,7 @@ class p2b extends \ccxt\async\p2b {
             $ticker = $this->parse_ticker($tickerData, $market);
         }
         $symbol = $ticker['symbol'];
+        $this->tickers[$symbol] = $ticker;
         $messageHash = $messageHashStart . '::' . $symbol;
         $client->resolve ($ticker, $messageHash);
         return $message;

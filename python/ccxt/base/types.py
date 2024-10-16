@@ -272,6 +272,8 @@ class Ticker(TypedDict):
     average: Num
     quoteVolume: Num
     baseVolume: Num
+    markPrice: Num
+    indexPrice: Num
 
 
 Tickers = Dict[str, Ticker]
@@ -354,7 +356,7 @@ class Option(TypedDict):
 
 OptionChain = Dict[str, Option]
 
-class MarketMarginMode(TypedDict):
+class MarketMarginModes(TypedDict):
     cross: bool
     isolated: bool
 
@@ -371,7 +373,7 @@ class MarketInterface(TypedDict):
     subType: Str
     spot: bool
     margin: bool
-    marginMode: MarketMarginMode
+    marginModes: MarketMarginModes
     swap: bool
     future: bool
     option: bool
@@ -481,6 +483,7 @@ class FundingRate(TypedDict):
     previousFundingDatetime: Str
     previousFundingRate: Num
     info: Dict[str, Any]
+    interval: Str
 
 
 class LeverageTier:
@@ -509,6 +512,14 @@ class LedgerEntry:
     after: float
     status: Str
     fee: Fee
+
+
+class DepositAddress:
+    info: Any
+    currency: Str
+    network: Optional[Str]
+    address: Str
+    tag: Optional[Str]
 
 
 FundingRates = Dict[Str, FundingRate]
