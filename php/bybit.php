@@ -7105,7 +7105,8 @@ class bybit extends Exchange {
         $paginate = $this->safe_bool($params, 'paginate');
         if ($paginate) {
             $params = $this->omit($params, 'paginate');
-            return $this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 500);
+            $params['timeframe'] = $timeframe;
+            return $this->fetch_paginated_call_cursor('fetchOpenInterestHistory', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 200);
         }
         $market = $this->market($symbol);
         if ($market['spot'] || $market['option']) {

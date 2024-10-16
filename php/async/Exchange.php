@@ -5615,6 +5615,8 @@ class Exchange extends \ccxt\Exchange {
             $i = 0;
             $errors = 0;
             $result = array();
+            $timeframe = $this->safe_string($params, 'timeframe');
+            $params = $this->omit($params, 'timeframe'); // reading the $timeframe from the $method arguments to avoid changing the signature
             while ($i < $maxCalls) {
                 try {
                     if ($cursorValue !== null) {
@@ -5628,6 +5630,8 @@ class Exchange extends \ccxt\Exchange {
                         $response = Async\await($this->$method ($params));
                     } elseif ($method === 'getLeverageTiersPaginated' || $method === 'fetchPositions') {
                         $response = Async\await($this->$method ($symbol, $params));
+                    } elseif ($method === 'fetchOpenInterestHistory') {
+                        $response = Async\await($this->$method ($symbol, $timeframe, $since, $maxEntriesPerRequest, $params));
                     } else {
                         $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
                     }

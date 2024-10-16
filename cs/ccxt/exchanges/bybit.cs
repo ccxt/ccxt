@@ -7784,7 +7784,8 @@ public partial class bybit : Exchange
         if (isTrue(paginate))
         {
             parameters = this.omit(parameters, "paginate");
-            return await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, 500);
+            ((IDictionary<string,object>)parameters)["timeframe"] = timeframe;
+            return await this.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 200);
         }
         object market = this.market(symbol);
         if (isTrue(isTrue(getValue(market, "spot")) || isTrue(getValue(market, "option"))))

@@ -7345,6 +7345,8 @@ class Exchange {
         $i = 0;
         $errors = 0;
         $result = array();
+        $timeframe = $this->safe_string($params, 'timeframe');
+        $params = $this->omit($params, 'timeframe'); // reading the $timeframe from the $method arguments to avoid changing the signature
         while ($i < $maxCalls) {
             try {
                 if ($cursorValue !== null) {
@@ -7358,6 +7360,8 @@ class Exchange {
                     $response = $this->$method ($params);
                 } elseif ($method === 'getLeverageTiersPaginated' || $method === 'fetchPositions') {
                     $response = $this->$method ($symbol, $params);
+                } elseif ($method === 'fetchOpenInterestHistory') {
+                    $response = $this->$method ($symbol, $timeframe, $since, $maxEntriesPerRequest, $params);
                 } else {
                     $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
                 }

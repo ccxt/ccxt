@@ -7242,7 +7242,8 @@ export default class bybit extends Exchange {
         const paginate = this.safeBool(params, 'paginate');
         if (paginate) {
             params = this.omit(params, 'paginate');
-            return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);
+            params['timeframe'] = timeframe;
+            return await this.fetchPaginatedCallCursor('fetchOpenInterestHistory', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 200);
         }
         const market = this.market(symbol);
         if (market['spot'] || market['option']) {

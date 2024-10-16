@@ -6485,6 +6485,8 @@ public partial class Exchange
         object i = 0;
         object errors = 0;
         object result = new List<object>() {};
+        object timeframe = this.safeString(parameters, "timeframe");
+        parameters = this.omit(parameters, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
         while (isLessThan(i, maxCalls))
         {
             try
@@ -6504,6 +6506,9 @@ public partial class Exchange
                 } else if (isTrue(isTrue(isEqual(method, "getLeverageTiersPaginated")) || isTrue(isEqual(method, "fetchPositions"))))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, parameters }));
+                } else if (isTrue(isEqual(method, "fetchOpenInterestHistory")))
+                {
+                    response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, maxEntriesPerRequest, parameters }));
                 } else
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));

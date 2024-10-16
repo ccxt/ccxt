@@ -5981,6 +5981,8 @@ class Exchange(object):
         i = 0
         errors = 0
         result = []
+        timeframe = self.safe_string(params, 'timeframe')
+        params = self.omit(params, 'timeframe')  # reading the timeframe from the method arguments to avoid changing the signature
         while(i < maxCalls):
             try:
                 if cursorValue is not None:
@@ -5992,6 +5994,8 @@ class Exchange(object):
                     response = getattr(self, method)(params)
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = getattr(self, method)(symbol, params)
+                elif method == 'fetchOpenInterestHistory':
+                    response = getattr(self, method)(symbol, timeframe, since, maxEntriesPerRequest, params)
                 else:
                     response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
