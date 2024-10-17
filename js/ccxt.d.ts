@@ -138,6 +138,7 @@ import blofinPro from './src/pro/blofin.js';
 import bybitPro from './src/pro/bybit.js';
 import cexPro from './src/pro/cex.js';
 import coinbasePro from './src/pro/coinbase.js';
+import coinbaseadvancedPro from './src/pro/coinbaseadvanced.js';
 import coinbaseexchangePro from './src/pro/coinbaseexchange.js';
 import coinbaseinternationalPro from './src/pro/coinbaseinternational.js';
 import coincheckPro from './src/pro/coincheck.js';
@@ -320,6 +321,7 @@ declare const pro: {
     bybit: typeof bybitPro;
     cex: typeof cexPro;
     coinbase: typeof coinbasePro;
+    coinbaseadvanced: typeof coinbaseadvancedPro;
     coinbaseexchange: typeof coinbaseexchangePro;
     coinbaseinternational: typeof coinbaseinternationalPro;
     coincheck: typeof coincheckPro;
@@ -398,6 +400,7 @@ declare const ccxt: {
         bybit: typeof bybitPro;
         cex: typeof cexPro;
         coinbase: typeof coinbasePro;
+        coinbaseadvanced: typeof coinbaseadvancedPro;
         coinbaseexchange: typeof coinbaseexchangePro;
         coinbaseinternational: typeof coinbaseinternationalPro;
         coincheck: typeof coincheckPro;

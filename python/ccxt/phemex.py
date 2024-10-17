@@ -82,6 +82,7 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -4493,6 +4494,77 @@ class phemex(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
+
+    def fetch_open_interest(self, symbol: str, params={}):
+        """
+        retrieves the open interest of a trading pair
+        :see: https://phemex-docs.github.io/#query-24-hours-ticker
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest is only supported for contract markets.')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.v2GetMdV2Ticker24hr(self.extend(request, params))
+        #
+        #    {
+        #        error: null,
+        #        id: '0',
+        #        result: {
+        #          closeRp: '67550.1',
+        #          fundingRateRr: '0.0001',
+        #          highRp: '68400',
+        #          indexPriceRp: '67567.15389794',
+        #          lowRp: '66096.4',
+        #          markPriceRp: '67550.1',
+        #          openInterestRv: '1848.1144186',
+        #          openRp: '66330',
+        #          predFundingRateRr: '0.0001',
+        #          symbol: 'BTCUSDT',
+        #          timestamp: '1729114315443343001',
+        #          turnoverRv: '228863389.3237532',
+        #          volumeRq: '3388.5600312'
+        #        }
+        #    }
+        #
+        result = self.safe_dict(response, 'result')
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #    {
+        #        closeRp: '67550.1',
+        #        fundingRateRr: '0.0001',
+        #        highRp: '68400',
+        #        indexPriceRp: '67567.15389794',
+        #        lowRp: '66096.4',
+        #        markPriceRp: '67550.1',
+        #        openInterestRv: '1848.1144186',
+        #        openRp: '66330',
+        #        predFundingRateRr: '0.0001',
+        #        symbol: 'BTCUSDT',
+        #        timestamp: '1729114315443343001',
+        #        turnoverRv: '228863389.3237532',
+        #        volumeRq: '3388.5600312'
+        #    }
+        #
+        timestamp = self.safe_integer(interest, 'timestamp') / 1000000
+        id = self.safe_string(interest, 'symbol')
+        return self.safe_open_interest({
+            'info': interest,
+            'symbol': self.safe_symbol(id, market),
+            'baseVolume': self.safe_string(interest, 'volumeRq'),
+            'quoteVolume': None,  # deprecated
+            'openInterestAmount': self.safe_string(interest, 'openInterestRv'),
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }, market)
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:

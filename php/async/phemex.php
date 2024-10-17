@@ -72,6 +72,7 @@ class phemex extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -4824,6 +4825,82 @@ class phemex extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transaction($data, $currency);
         }) ();
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * retrieves the open interest of a trading pair
+             * @see https://phemex-docs.github.io/#query-24-hours-ticker
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {array} [$params] exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest is only supported for contract markets.');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->v2GetMdV2Ticker24hr ($this->extend($request, $params)));
+            //
+            //    {
+            //        error => null,
+            //        id => '0',
+            //        $result => {
+            //          closeRp => '67550.1',
+            //          fundingRateRr => '0.0001',
+            //          highRp => '68400',
+            //          indexPriceRp => '67567.15389794',
+            //          lowRp => '66096.4',
+            //          markPriceRp => '67550.1',
+            //          openInterestRv => '1848.1144186',
+            //          openRp => '66330',
+            //          predFundingRateRr => '0.0001',
+            //          $symbol => 'BTCUSDT',
+            //          timestamp => '1729114315443343001',
+            //          turnoverRv => '228863389.3237532',
+            //          volumeRq => '3388.5600312'
+            //        }
+            //    }
+            //
+            $result = $this->safe_dict($response, 'result');
+            return $this->parse_open_interest($result, $market);
+        }) ();
+    }
+
+    public function parse_open_interest($interest, ?array $market = null) {
+        //
+        //    {
+        //        closeRp => '67550.1',
+        //        fundingRateRr => '0.0001',
+        //        highRp => '68400',
+        //        indexPriceRp => '67567.15389794',
+        //        lowRp => '66096.4',
+        //        markPriceRp => '67550.1',
+        //        openInterestRv => '1848.1144186',
+        //        openRp => '66330',
+        //        predFundingRateRr => '0.0001',
+        //        symbol => 'BTCUSDT',
+        //        $timestamp => '1729114315443343001',
+        //        turnoverRv => '228863389.3237532',
+        //        volumeRq => '3388.5600312'
+        //    }
+        //
+        $timestamp = $this->safe_integer($interest, 'timestamp') / 1000000;
+        $id = $this->safe_string($interest, 'symbol');
+        return $this->safe_open_interest(array(
+            'info' => $interest,
+            'symbol' => $this->safe_symbol($id, $market),
+            'baseVolume' => $this->safe_string($interest, 'volumeRq'),
+            'quoteVolume' => null,  // deprecated
+            'openInterestAmount' => $this->safe_string($interest, 'openInterestRv'),
+            'openInterestValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ), $market);
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
