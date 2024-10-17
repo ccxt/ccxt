@@ -1911,3 +1911,24 @@ public struct OptionChain
         }
     }
 }
+
+
+public struct LongShortRatio
+{
+    public Dictionary<string, object>? info;
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public string? period;
+    public double? longShortRatio;
+
+    public LongShortRatio(object longShortRatio)
+    {
+        info = Helper.GetInfo(longShortRatio);
+        symbol = Exchange.SafeString(longShortRatio, "symbol");
+        timestamp = Exchange.SafeInteger(longShortRatio, "timestamp");
+        datetime = Exchange.SafeString(longShortRatio, "datetime");
+        period = Exchange.SafeString(longShortRatio, "period");
+        longShortRatio = Exchange.SafeFloat(longShortRatio, "longShortRatio");
+    }
+}

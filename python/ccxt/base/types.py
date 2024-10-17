@@ -522,6 +522,15 @@ class DepositAddress:
     tag: Optional[Str]
 
 
+class LongShortRatio:
+    info: Any
+    symbol: Str
+    timestamp: Optional[Int]
+    datetime: Optional[Str]
+    period: Optional[Str]
+    longShortRatio: float
+
+
 FundingRates = Dict[Str, FundingRate]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
