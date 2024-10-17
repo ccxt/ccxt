@@ -67,6 +67,7 @@ public partial class testMainClass : BaseTest
         // var hasKeys = hasDict.Keys;
         var testFiles = new dict();
         var hasKeys = properties as List<object>;
+        hasKeys.Add("features");
         foreach (var key2 in hasKeys)
         {
             var key = key2 as string;
