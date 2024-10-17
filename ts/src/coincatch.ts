@@ -246,8 +246,8 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/plan/placePositionsTPSL': 1,
                         'api/mix/v1/plan/modifyTPSLPlan': 1,
                         'api/mix/v1/plan/cancelPlan': 2, // done
-                        'api/mix/v1/plan/cancelSymbolPlan': 1,
-                        'api/mix/v1/plan/cancelAllPlan': 1,
+                        'api/mix/v1/plan/cancelSymbolPlan': 2, // done
+                        'api/mix/v1/plan/cancelAllPlan': 2, // done
                     },
                 },
             },
@@ -371,6 +371,7 @@ export default class coincatch extends Exchange {
                     // {"code":"40019","msg":"Parameter startTime cannot be empty","requestTime":1727968771287,"data":null}
                     // {"code":"40020","msg":"Parameter orderIds or clientOids error","requestTime":1729101703824,"data":null}
                     // {"code":"40808","msg":"Parameter verification exception margin mode == FIXED","requestTime":1729160569067,"data":null}
+                    // {"code":"22001","msg":"No order to cancel","requestTime":1729177061422,"data":null}
                 },
                 'broad': {},
             },
@@ -3525,15 +3526,20 @@ export default class coincatch extends Exchange {
         /**
          * @method
          * @name coincatch#cancelAllOrders
-         * @description cancels all open orders for a specific market
+         * @description cancels all open orders
          * @see https://coincatch.github.io/github.io/en/spot/#cancel-all-orders
          * @see https://coincatch.github.io/github.io/en/spot/#batch-cancel-plan-orders
+         * @see https://coincatch.github.io/github.io/en/mix/#batch-cancel-order
+         * @see https://coincatch.github.io/github.io/en/mix/#cancel-order-by-symbol
+         * @see https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl-by-symbol
+         * @see https://coincatch.github.io/github.io/en/mix/#cancel-all-trigger-order-tpsl
          * @param {string} [symbol] unified symbol of the market the orders were made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap' - the type of the market to cancel orders for (default 'spot')
          * @param {bool} [params.trigger] true for canceling a trigger orders (default false)
          * @param {string} [params.productType] *swap only (if symbol is not provided* 'umcbl' or 'dmcbl' - the product type of the market to cancel orders for (default 'umcbl')
-         * @param {string} [params.marginCoin] *mandatory for swap dmcb (if symbol is not provided)* the margin coin of the market to cancel orders for
+         * @param {string} [params.marginCoin] *mandatory for swap non-trigger dmcb (if symbol is not provided)* the margin coin of the market to cancel orders for
+         * @param {string} [params.planType] *swap trigger only* the type of the plan order to cancel: 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
          * @returns {object} response from the exchange
          */
         const methodName = 'cancelAllOrders';
@@ -3585,14 +3591,29 @@ export default class coincatch extends Exchange {
                 response = await this.privatePostApiSpotV1TradeCancelSymbolOrder (this.extend (request, params));
             }
         } else if (marketType === 'swap') {
+            let productType = 'umcbl';
             if (symbol !== undefined) {
                 request['symbol'] = market['id'];
+            } else {
+                productType = this.handleOption (methodName, 'productType', productType);
+                request['productType'] = productType; // we need either symbol or productType
+            }
+            let planType: Str = undefined;
+            [ planType, params ] = this.handleOptionAndParams (params, methodName, 'planType', planType);
+            if ((trigger) || (planType !== undefined)) { // if trigger or stop-loss/take-profit orders
+                if (planType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a planType parameter for swap trigger orders ("profit_plan" - profit order, "loss_plan" - loss order, "normal_plan" - plan order, "pos_profit" - position profit, "pos_loss" - position loss, "moving_plan" - Trailing TP/SL, "track_plan" - Trailing Stop)');
+                }
+                request['planType'] = planType;
+                if (symbol !== undefined) {
+                    response = await this.privatePostApiMixV1PlanCancelSymbolPlan (this.extend (request, params));
+                } else {
+                    response = await this.privatePostApiMixV1PlanCancelAllPlan (this.extend (request, params));
+                }
+            } else if (symbol !== undefined) { // if non-trigger orders and symbol is provided
                 request['marginCoin'] = market['settleId'];
                 response = await this.privatePostApiMixV1OrderCancelSymbolOrders (this.extend (request, params));
-            } else {
-                let productType = 'umcbl';
-                productType = this.handleOption (methodName, 'productType', productType);
-                request['productType'] = productType;
+            } else { // if non-trigger orders and symbol is not provided
                 let marginCoin: Str = undefined;
                 if (productType === 'umcbl') {
                     marginCoin = 'USDT';
