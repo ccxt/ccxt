@@ -1229,6 +1229,7 @@ export default class kucoin extends Exchange {
             const status: Int = this.safeInteger (data, 'status');
             this.options['hfMigrated'] = (status === 2);
         }
+        return true;
     }
 
     handleHfAndParams (params = {}) {
@@ -3502,7 +3503,7 @@ export default class kucoin extends Exchange {
             const network = this.safeDict (networks, networkCode);
             if (this.safeNumber (network, 'precision') !== undefined) {
                 // if precision exists, no need to refetch
-                return;
+                return true;
             }
             // otherwise try to fetch and store in instance
             const request: Dict = {
@@ -3537,7 +3538,9 @@ export default class kucoin extends Exchange {
             const precision = this.parseNumber (this.parsePrecision (this.safeString (data, 'precision')));
             const code = currency['code'];
             this.currencies[code]['networks'][networkCode]['precision'] = precision;
+            return true;
         }
+        return false;
     }
 
     parseTransactionStatus (status: Str) {
@@ -4019,7 +4022,10 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        const returnType = isolated ? result : this.safeBalance (result);
+        let returnType = result;
+        if (!isolated) {
+            returnType = this.safeBalance (result);
+        }
         return returnType as Balances;
     }
 
@@ -4776,7 +4782,8 @@ export default class kucoin extends Exchange {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate (item);
-                borrowRateHistories[code].push (borrowRateStructure);
+                const borrowRateHistoriesCode = borrowRateHistories[code];
+                borrowRateHistoriesCode.push (borrowRateStructure);
             }
         }
         const keys = Object.keys (borrowRateHistories);
