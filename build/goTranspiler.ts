@@ -114,6 +114,16 @@ const VIRTUAL_BASE_METHODS = [
     "parseMarginModification",
     "parseIncome",
     "parseBorrowInterest",
+    "parseLedgerEntry",
+    "parseTransfer",
+    "fetchPositionsHistory",
+    "parseAccount",
+    "parseFundingRateHistory",
+    "parseFundingRate",
+    "parseMarket",
+    "parseLiquidation",
+    "parseMarketLeverageTiers",
+    "parseDepositWithdrawFee",
     "sign"
 ]
 
@@ -975,7 +985,7 @@ ${caseStatements.join('\n')}
         }
 
 
-        // this.transpileTests()
+        this.transpileTests()
 
         // this.transpileErrorHierarchy ()
 
@@ -1078,7 +1088,7 @@ ${caseStatements.join('\n')}
             content = content.replace(/var precise interface\{\} = /gm, "precise := ");
             content = content.replace(/var preciseAmount interface\{\} = /gm, "preciseAmount := ");
             content = content.replace(/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'); // idex tmp fix
-            content = content.replace(/ToString\(precise\)/, 'precise.ToString()')
+            content = content.replace(/ToString\(precise\)/gm, 'precise.ToString()')
             content = content.replace(/<\-callDynamically/gm, '<-this.callDynamically') //fix this on the transpiler
 
         } else {
