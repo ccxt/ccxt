@@ -9263,7 +9263,7 @@ export default class bybit extends Exchange {
         } as Conversion;
     }
 
-    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         /**
          * @method
          * @name bybit#fetchLongShortRatioHistory
@@ -9282,6 +9282,9 @@ export default class bybit extends Exchange {
         [ type, params ] = this.getBybitType ('fetchLongShortRatioHistory', market, params);
         if (type === 'spot' || type === 'option') {
             throw new NotSupported (this.id + ' fetchLongShortRatioHistory() only support linear and inverse markets');
+        }
+        if (period === undefined) {
+            period = '1d';
         }
         const request: Dict = {
             'symbol': market['id'],

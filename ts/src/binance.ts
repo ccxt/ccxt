@@ -13628,7 +13628,7 @@ export default class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         /**
          * @method
          * @name binance#fetchLongShortRatioHistory
@@ -13644,6 +13644,9 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (period === undefined) {
+            period = '1d';
+        }
         let request: Dict = {
             'pair': market['id'],
             'period': period,

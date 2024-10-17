@@ -8833,7 +8833,7 @@ export default class bitget extends Exchange {
         return this.parseFundingRate (first, market);
     }
 
-    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = '24h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         /**
          * @method
          * @name bitget#fetchLongShortRatioHistory
@@ -8848,6 +8848,9 @@ export default class bitget extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (period === undefined) {
+            period = '24h';
+        }
         const request: Dict = {
             'symbol': market['id'],
             'period': period,
