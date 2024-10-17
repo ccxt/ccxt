@@ -4716,6 +4716,7 @@ export default class gate extends Exchange {
          * @name gate#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
