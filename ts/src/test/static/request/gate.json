@@ -441,6 +441,19 @@
                 ]
             },
             {
+                "description": "spot & trigger",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=finished",  
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
+                ]
+            },
+            {
                 "description": "Swap closed orders",
                 "method": "fetchClosedOrders",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/orders?contract=LTC_USDT&status=finished",

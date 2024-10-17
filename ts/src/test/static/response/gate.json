@@ -488,6 +488,74 @@
                 ]
             },
             {
+                "description": "closed & trigger",
+                "method": "fetchClosedOrders",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
+                ],
+                "httpResponse": [
+                  {
+                    "market": "BTC_USDT",
+                    "user": "3368716",
+                    "trigger": {
+                      "price": "64444",
+                      "rule": "<=",
+                      "expiration": "86400"
+                    },
+                    "put": {
+                      "type": "limit",
+                      "side": "buy",
+                      "price": "61075.1",
+                      "amount": "0.00010000000000000000",
+                      "account": "normal",
+                      "time_in_force": "gtc",
+                      "auto_borrow": false,
+                      "auto_repay": false,
+                      "text": ""
+                    },
+                    "id": "916460068",
+                    "ctime": "1729176124",
+                    "ftime": "1729177584",
+                    "status": "canceled"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "id": "916460068",
+                    "clientOrderId": null,
+                    "timestamp": 1729176124000,
+                    "datetime": "2024-10-17T14:42:04.000Z",
+                    "lastTradeTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 61075.1,
+                    "stopPrice": 64444,
+                    "triggerPrice": 64444,
+                    "average": null,
+                    "amount": 0.0001,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 0.0001,
+                    "fee": null,
+                    "fees": [],
+                    "trades": [],
+                    "lastUpdateTimestamp": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                  }
+                ]
+            },
+            {
                 "description": "closed swap orders",
                 "method": "fetchClosedOrders",
                 "input": [
