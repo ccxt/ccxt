@@ -44,5 +44,5 @@ check_exit_status $? "Python"
 npm run check-php-syntax
 check_exit_status $? "PHP"
 
-echo "All checks passed, pushing..."
+echo "All checks passed, pushing starts ..."
 exit 0
