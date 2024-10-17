@@ -2298,10 +2298,11 @@ export default class coincatch extends Exchange {
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
-         * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC' or 'PO'
+         * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
          * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {float} [params.triggerPrice] the price that the order is to be triggered at
          * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -2314,7 +2315,13 @@ export default class coincatch extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
-        const response = await this.privatePostApiMixV1OrderPlaceOrder (request);
+        const isPlanOrer = this.safeString (request, 'triggerPrice') !== undefined;
+        let response = undefined;
+        if (isPlanOrer) {
+            response = await this.privatePostApiMixV1PlanPlacePlan (request);
+        } else {
+            response = await this.privatePostApiMixV1OrderPlaceOrder (request);
+        }
         //
         //     {
         //         "code": "00000",
@@ -2344,10 +2351,11 @@ export default class coincatch extends Exchange {
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.hedged] default false
-         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
-         * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC' or 'PO'
+         * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
          * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {float} [params.triggerPrice] the price that the order is to be triggered at
          * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -2366,16 +2374,27 @@ export default class coincatch extends Exchange {
             'orderType': type,
             'size': this.amountToPrecision (symbol, amount),
         };
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
         [ request, params ] = this.handleOptionParamsAndRequest (params, methodName, 'clientOrderId', request, 'clientOid');
         const isMarketOrder = (type === 'market');
-        const timeInForceAndParams = this.handleTimeInForceAndPostOnly (methodName, params, isMarketOrder);
-        params = timeInForceAndParams['params'];
-        const timeInForce = timeInForceAndParams['timeInForce'];
-        if (timeInForce !== undefined) {
-            request['timeInForceValue'] = timeInForce;
+        const triggerPrice = this.safeString (params, 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            if (isMarketOrder) {
+                request['triggerType'] = 'market_price';
+            } else {
+                request['executePrice'] = this.priceToPrecision (symbol, price);
+                request['triggerType'] = 'fill_price';
+            }
+        } else {
+            const timeInForceAndParams = this.handleTimeInForceAndPostOnly (methodName, params, isMarketOrder); // only for non-trigger orders
+            params = timeInForceAndParams['params'];
+            const timeInForce = timeInForceAndParams['timeInForce'];
+            if (timeInForce !== undefined) {
+                request['timeInForceValue'] = timeInForce;
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
         }
         let stopLossPrice = this.safeString (params, 'stopLossPrice');
         let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
@@ -2383,6 +2402,7 @@ export default class coincatch extends Exchange {
         const takeProfitParams = this.safeDict (params, 'takeProfit', {});
         stopLossPrice = this.safeString (stopLossParams, 'triggerPrice', stopLossPrice);
         takeProfitPrice = this.safeString (takeProfitParams, 'triggerPrice', takeProfitPrice);
+        params = this.omit (params, [ 'stopLoss', 'takeProfit', 'stopLossPrice', 'takeProfitPrice' ]);
         if (stopLossPrice !== undefined) {
             request['presetStopLossPrice'] = stopLossPrice;
         }
@@ -2692,7 +2712,7 @@ export default class coincatch extends Exchange {
         /**
          * @method
          * @name coincatch#fetchOrder
-         * @description fetches information on an order made by the user
+         * @description fetches information on an order made by the user (non-trigger orders only)
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-details
          * @see https://coincatch.github.io/github.io/en/mix/#get-order-details
          * @param {string} id the order id
@@ -2703,6 +2723,7 @@ export default class coincatch extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'fetchOrder';
+        // for non-trigger orders only
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -3743,8 +3764,8 @@ export default class coincatch extends Exchange {
             'remaining': undefined,
             'stopPrice': undefined,
             'triggerPrice': this.omitZero (this.safeString (order, 'triggerPrice')),
-            'takeProfitPrice': undefined,
-            'stopLossPrice': undefined,
+            'takeProfitPrice': this.safeString (order, 'presetTakeProfitPrice'),
+            'stopLossPrice': this.safeString (order, 'presetStopLossPrice'),
             'cost': this.safeString2 (order, 'fillTotalAmount', 'filledAmount'),
             'trades': undefined,
             'fee': {
