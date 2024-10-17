@@ -896,15 +896,26 @@ export default class cex extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        const orders = await this.privatePostCancelOrdersPair (this.extend (request, params));
+        const response = await this.privatePostCancelOrdersPair (this.extend (request, params));
         //
-        //  {
-        //      "e":"cancel_orders",
-        //      "ok":"ok",
-        //      "data":[
-        //      ]
-        //   }
+        //    {
+        //        "e": "cancel_orders",
+        //        "ok": "ok",
+        //        "data": [
+        //            "2407314",
+        //            "2407317",
+        //            "2407320",
+        //            "2407323"
+        //        ]
+        //    }
         //
+        const data = this.safeList (response, 'data', []);
+        const orders = [];
+        for (let i = 0; i < data.length; i++) {
+            orders.push (this.safeOrder ({
+                'id': data[i],
+            }));
+        }
         return orders;
     }
 
