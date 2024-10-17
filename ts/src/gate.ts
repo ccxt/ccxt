@@ -321,10 +321,17 @@ export default class gate extends Exchange {
                             'interest_records': 20 / 15,
                             'estimate_rate': 20 / 15,
                             'currency_discount_tiers': 20 / 15,
+                            'risk_units': 20 / 15,
+                            'unified_mode': 20 / 15,
+                            'loan_margin_tiers': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
                             'loans': 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
+                            'portfolio_calculator': 20 / 15,
+                        },
+                        'put': {
+                            'unified_mode': 20 / 15,
                         },
                     },
                     'spot': {
@@ -626,6 +633,7 @@ export default class gate extends Exchange {
             },
             'options': {
                 'sandboxMode': false,
+                'unifiedAccount': undefined,
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
@@ -2690,10 +2698,13 @@ export default class gate extends Exchange {
          * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.symbol] margin only - unified ccxt symbol
+         * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
          */
         await this.loadMarkets ();
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, 'symbol');
+        let isUnifiedAccount = false;
+        [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'unifiedAccount');
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const [ marginMode, requestQuery ] = this.getMarginMode (false, requestParams);
@@ -2702,7 +2713,9 @@ export default class gate extends Exchange {
             request['currency_pair'] = market['id'];
         }
         let response = undefined;
-        if (type === 'spot') {
+        if (isUnifiedAccount) {
+            response = await this.privateUnifiedGetAccounts (this.extend (request, params));
+        } else if (type === 'spot') {
             if (marginMode === 'spot') {
                 response = await this.privateSpotGetAccounts (this.extend (request, requestQuery));
             } else if (marginMode === 'margin') {
@@ -2868,12 +2881,63 @@ export default class gate extends Exchange {
         //         "orders_limit": 10
         //     }
         //
+        // unified
+        //
+        //     {
+        //         "user_id": 10001,
+        //         "locked": false,
+        //         "balances": {
+        //             "ETH": {
+        //                 "available": "0",
+        //                 "freeze": "0",
+        //                 "borrowed": "0.075393666654",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "1016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "POINT": {
+        //                 "available": "9999999999.017023138734",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "12016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "USDT": {
+        //                 "available": "0.00000062023",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "16.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             }
+        //         },
+        //         "total": "230.94621713",
+        //         "borrowed": "161.66395521",
+        //         "total_initial_margin": "1025.0524665088",
+        //         "total_margin_balance": "3382495.944473949183",
+        //         "total_maintenance_margin": "205.01049330176",
+        //         "total_initial_margin_rate": "3299.827135672679",
+        //         "total_maintenance_margin_rate": "16499.135678363399",
+        //         "total_available_margin": "3381470.892007440383",
+        //         "unified_account_total": "3381470.892007440383",
+        //         "unified_account_total_liab": "0",
+        //         "unified_account_total_equity": "100016.1",
+        //         "leverage": "2"
+        //     }
+        //
         const result: Dict = {
             'info': response,
         };
         const isolated = marginMode === 'margin';
         let data = response;
-        if ('balances' in data) { // True for cross_margin
+        if ('balances' in data) { // True for cross_margin and unified
             const flatBalances = [];
             const balances = this.safeValue (data, 'balances', []);
             // inject currency and create an artificial balance object
