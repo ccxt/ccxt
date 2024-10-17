@@ -1752,6 +1752,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchFundingRateHistory (symbol, since, limit, params)`
 - `fetchFundingRateInterval (symbol, params)`
 - `fetchFundingRateIntervals (symbols, params)`
+- `fetchLongShortRatio (symbol, params)`
 - ...
 
 ```text
@@ -3439,6 +3440,58 @@ Returns
     'percentage': 11.86,                        // the 24 hour price change as a percentage
     'baseVolume': 100.86,                       // the volume in units of the base currency
     'quoteVolume': 23772.86,                    // the volume in units of the quote currency
+}
+```
+
+## Long Short Ratio
+
+*contract only*
+
+Use the `fetchLongShortRatio` method to fetch the current long short ratio of a symbol and use the `fetchLongShortRatioHistory` to fetch the history of long short ratios for a symbol.
+
+- `fetchLongShortRatio (symbol, period)` for the current ratio of a single market symbol
+- `fetchLongShortRatioHistory (symbol, period, since, limit)` for the history of ratios of a single market symbol
+
+```javascript
+fetchLongShortRatio (symbol, period = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **period** (String) The period to calculate the ratio from, default is 24 hours (e.g. `"24h"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- a [long short ratio structure](#long-short-ratio-structure)
+
+```javascript
+fetchLongShortRatioHistory (symbol = undefined, period = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **period** (String) The period to calculate the ratio from, default is 24 hours (e.g. `"24h"`)
+- **since** (Integer) Timestamp for the earliest ratio (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of ratios to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- an array of [long short ratio structures](#long-short-ratio-structure)
+
+### Long Short Ratio Structure
+
+```javascript
+{
+    info: { ... },
+    symbol: 'BTC/USDT:USDT',
+    timestamp: 1645833600000,
+    datetime: '2022-02-26T00:00:00.000Z',
+    period: '24h',
+    longShortRatio: 0.000072,
 }
 ```
 
