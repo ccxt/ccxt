@@ -3317,21 +3317,27 @@ export default class coincatch extends Exchange {
          */
         let methodName = 'fetchCanceledAndClosedSwapOrders';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
-        const request: Dict = {};
-        if (since !== undefined) {
-            request['startTime'] = since;
-        } else {
-            request['startTime'] = 0; // is mandatory
-        }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
+        let requestSince = since;
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, methodName, 'until', until);
-        if (until !== undefined) {
-            request['endTime'] = until;
-        } else {
-            request['endTime'] = this.milliseconds (); // is mandatory
+        const now = this.milliseconds ();
+        // since and until are mandatory
+        // they should be within 90 days interval
+        const interval = 90 * 24 * 60 * 60 * 1000;
+        if ((until === undefined) && (requestSince === undefined)) {
+            requestSince = now - interval;
+            until = now;
+        } else if (until !== undefined) {
+            requestSince = until - interval;
+        } else { // if since is defined
+            until = since + interval;
+        }
+        const request: Dict = {
+            'startTime': requestSince,
+            'endTime': until,
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -3344,6 +3350,7 @@ export default class coincatch extends Exchange {
         let plan: Str = undefined;
         [ plan, params ] = this.handleOptionAndParams (params, methodName, 'isPlan', plan);
         let response = undefined;
+        let result = undefined;
         if ((isTrigger) || (plan !== undefined)) {
             if (plan !== undefined) {
                 request['isPlan'] = plan;
@@ -3351,60 +3358,99 @@ export default class coincatch extends Exchange {
             if (productType !== undefined) {
                 request['productType'] = productType;
             }
-        } else if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-            response = await this.privateGetApiMixV1OrderHistory (this.extend (request, params));
+            response = await this.privateGetApiMixV1PlanHistoryPlan (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1729174716526,
+            //         "data": [
+            //             {
+            //                 "orderId": "1230763430987104257",
+            //                 "clientOid": "1230763431003881472",
+            //                 "executeOrderId": "",
+            //                 "symbol": "ETHUSDT_UMCBL",
+            //                 "marginCoin": "USDT",
+            //                 "size": "0.03",
+            //                 "executePrice": "0",
+            //                 "triggerPrice": "2000",
+            //                 "status": "cancel",
+            //                 "orderType": "market",
+            //                 "planType": "loss_plan",
+            //                 "side": "sell_single",
+            //                 "triggerType": "fill_price",
+            //                 "presetTakeProfitPrice": "0",
+            //                 "presetTakeLossPrice": "0",
+            //                 "rangeRate": null,
+            //                 "enterPointSource": "SYS",
+            //                 "tradeSide": "sell_single",
+            //                 "holdMode": "single_hold",
+            //                 "reduceOnly": true,
+            //                 "executeTime": "1729173770776",
+            //                 "executeSize": "0",
+            //                 "cTime": "1729162789103",
+            //                 "uTime": "1729173770776"
+            //             }
+            //         ]
+            //     }
+            //
+            result = this.safeList (response, 'data', []);
         } else {
-            if (productType === undefined) {
-                productType = 'umcbl'; // is mandatory for current endpoint
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
+                response = await this.privateGetApiMixV1OrderHistory (this.extend (request, params));
+            } else {
+                if (productType === undefined) {
+                    productType = 'umcbl'; // is mandatory for current endpoint
+                }
+                request['productType'] = productType;
+                response = await this.privateGetApiMixV1OrderHistoryProductType (this.extend (request, params));
             }
-            request['productType'] = productType;
-            response = await this.privateGetApiMixV1OrderHistoryProductType (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1728129807637,
+            //         "data": {
+            //             "nextFlag": false,
+            //             "endId": "1221413696648339457",
+            //             "orderList": [
+            //                 {
+            //                     "symbol": "ETHUSD_DMCBL",
+            //                     "size": 0.1,
+            //                     "orderId": "1225467075288719360",
+            //                     "clientOid": "1225467075288719361",
+            //                     "filledQty": 0.1,
+            //                     "fee": -0.00005996,
+            //                     "price": null,
+            //                     "priceAvg": 2362.03,
+            //                     "state": "filled",
+            //                     "side": "burst_close_long",
+            //                     "timeInForce": "normal",
+            //                     "totalProfits": -0.00833590,
+            //                     "posSide": "long",
+            //                     "marginCoin": "ETH",
+            //                     "filledAmount": 236.20300000,
+            //                     "orderType": "market",
+            //                     "leverage": "12",
+            //                     "marginMode": "fixed",
+            //                     "reduceOnly": true,
+            //                     "enterPointSource": "SYS",
+            //                     "tradeSide": "burst_close_long",
+            //                     "holdMode": "double_hold",
+            //                     "orderSource": "market",
+            //                     "cTime": "1727900039503",
+            //                     "uTime": "1727900039576"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {});
+            result = this.safeList (data, 'orderList', []);
         }
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1728129807637,
-        //         "data": {
-        //             "nextFlag": false,
-        //             "endId": "1221413696648339457",
-        //             "orderList": [
-        //                 {
-        //                     "symbol": "ETHUSD_DMCBL",
-        //                     "size": 0.1,
-        //                     "orderId": "1225467075288719360",
-        //                     "clientOid": "1225467075288719361",
-        //                     "filledQty": 0.1,
-        //                     "fee": -0.00005996,
-        //                     "price": null,
-        //                     "priceAvg": 2362.03,
-        //                     "state": "filled",
-        //                     "side": "burst_close_long",
-        //                     "timeInForce": "normal",
-        //                     "totalProfits": -0.00833590,
-        //                     "posSide": "long",
-        //                     "marginCoin": "ETH",
-        //                     "filledAmount": 236.20300000,
-        //                     "orderType": "market",
-        //                     "leverage": "12",
-        //                     "marginMode": "fixed",
-        //                     "reduceOnly": true,
-        //                     "enterPointSource": "SYS",
-        //                     "tradeSide": "burst_close_long",
-        //                     "holdMode": "double_hold",
-        //                     "orderSource": "market",
-        //                     "cTime": "1727900039503",
-        //                     "uTime": "1727900039576"
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orderList', []);
-        return this.parseOrders (orders, market);
+        return this.parseOrders (result, market);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -3421,7 +3467,8 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
          * @param {bool} [params.trigger] true for canceling a trigger order (default false)
-         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
+         * @param {bool} [params.stop] *swap only* an alternative for trigger param
+         * @param {string} [params.planType] *swap trigger only* the type of the plan order to cancel: 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'cancelOrder';
@@ -3455,9 +3502,13 @@ export default class coincatch extends Exchange {
                 response = await this.privatePostApiSpotV1TradeCancelOrderV2 (this.extend (request, params));
             }
         } else if (marketType === 'swap') {
+            let planType: Str = undefined;
+            [ planType, params ] = this.handleOptionAndParams (params, methodName, 'planType', planType);
             request['marginCoin'] = market['settleId'];
-            if (trigger) {
-                // todo add planType
+            if ((trigger) || (planType !== undefined)) {
+                if (planType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a planType parameter for swap trigger orders ("profit_plan" - profit order, "loss_plan" - loss order, "normal_plan" - plan order, "pos_profit" - position profit, "pos_loss" - position loss, "moving_plan" - Trailing TP/SL, "track_plan" - Trailing Stop)');
+                }
                 response = await this.privatePostApiMixV1PlanCancelPlan (this.extend (request, params));
             } else {
                 response = await this.privatePostApiMixV1OrderCancelOrder (this.extend (request, params));
