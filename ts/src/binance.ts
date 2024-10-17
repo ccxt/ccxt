@@ -3371,9 +3371,11 @@ export default class binance extends Exchange {
                 if (type === 'linear') {
                     account['free'] = this.safeString (entry, 'umWalletBalance');
                     account['used'] = this.safeString (entry, 'umUnrealizedPNL');
+                    account['unrealizedPnl'] = this.safeNumber (entry, 'umUnrealizedPNL');
                 } else if (type === 'inverse') {
                     account['free'] = this.safeString (entry, 'cmWalletBalance');
                     account['used'] = this.safeString (entry, 'cmUnrealizedPNL');
+                    account['unrealizedPnl'] = this.safeNumber (entry, 'cmUnrealizedPNL');
                 } else if (cross) {
                     const borrowed = this.safeString (entry, 'crossMarginBorrowed');
                     const interest = this.safeString (entry, 'crossMarginInterest');
@@ -3383,6 +3385,7 @@ export default class binance extends Exchange {
                     account['total'] = this.safeString (entry, 'crossMarginAsset');
                 } else {
                     account['total'] = this.safeString (entry, 'totalWalletBalance');
+                    account['unrealizedPnl'] = this.safeNumber (entry, 'totalUnrealizedProfit');
                 }
                 result[code] = account;
             }
@@ -3456,6 +3459,7 @@ export default class binance extends Exchange {
                 account['free'] = this.safeString (balance, 'availableBalance');
                 account['used'] = this.safeString (balance, 'initialMargin');
                 account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
+                account['unrealizedPnl'] = this.safeNumber2 (balance, 'crossUnPnl', 'unrealizedProfit');
                 result[code] = account;
             }
         }

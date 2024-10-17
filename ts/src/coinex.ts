@@ -1651,6 +1651,10 @@ export default class coinex extends Exchange {
             const currencyId = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
+            const unrealizedPnl = this.safeNumber (entry, 'unrealized_pnl');
+            if (unrealizedPnl !== undefined) {
+                account['unrealizedPnl'] = unrealizedPnl;
+            }
             account['free'] = this.safeString (entry, 'available');
             account['used'] = this.safeString (entry, 'frozen');
             result[code] = account;

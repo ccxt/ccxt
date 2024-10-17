@@ -947,6 +947,10 @@ export default class blofin extends Exchange {
             // it may be incorrect to use total, free and used for swap accounts
             const eq = this.safeString (balance, 'equity');
             const availEq = this.safeString (balance, 'available');
+            const unrealizedPnl = this.safeNumber (balance, 'unrealizedPnl');
+            if (unrealizedPnl !== undefined) {
+                account['unrealizedPnl'] = unrealizedPnl;
+            }
             if ((eq === undefined) || (availEq === undefined)) {
                 account['free'] = this.safeString (balance, 'availableEquity');
                 account['used'] = this.safeString (balance, 'frozen');
