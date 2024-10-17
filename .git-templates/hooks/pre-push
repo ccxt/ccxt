@@ -13,25 +13,16 @@ for DIR in $CHECK_DIRECTORIES; do
     fi
 done
 
-sleep_arg=$1
-function exit_delay() {
-    # on Windows, the file is opened in a separate window, so to avoid auto-closing
-    if [ "$sleep_arg" == "--sleep" ]; then
-        sleep 999
-    fi
-    exit $1
-}
-
 function check_exit_status() {
     if [ $1 -ne 0 ]; then
         echo "$2 : Linting failed, check the files..."
-        exit_delay 1
+        exit 1
     fi
 }
 
 if [ "$HAS_RELEVANT_CHANGES" = "false" ]; then
     echo "No relevant changes, skipping checks..."
-    exit_delay 0
+    exit 0
 fi
 
 # Lint TS files
@@ -54,4 +45,4 @@ npm run check-php-syntax
 check_exit_status $? "PHP"
 
 echo "All checks passed, pushing..."
-exit_delay 0
+exit 0
