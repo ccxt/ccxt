@@ -203,7 +203,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/order/fills': 2, // done
                         'api/mix/v1/order/allFills': 2, // done
                         'api/mix/v1/plan/currentPlan': 1, // done
-                        'api/mix/v1/plan/historyPlan': 2, // todo
+                        'api/mix/v1/plan/historyPlan': 2, // done
                     },
                     'post': {
                         'api/spot/v1/wallet/transfer-v2': 4, // done
@@ -238,7 +238,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/order/cancel-batch-orders': 2, // done
                         'api/mix/v1/order/cancel-symbol-orders': 2, // done
                         'api/mix/v1/order/cancel-all-orders': 2, // done
-                        'api/mix/v1/plan/placePlan': 1,
+                        'api/mix/v1/plan/placePlan': 2, // done
                         'api/mix/v1/plan/modifyPlan': 1,
                         'api/mix/v1/plan/modifyPlanPreset': 1,
                         'api/mix/v1/plan/placeTPSL': 1,
@@ -3122,12 +3122,14 @@ export default class coincatch extends Exchange {
          * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
+         * @see https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
          * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+         * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
          * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
          * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3158,7 +3160,7 @@ export default class coincatch extends Exchange {
          * @description fetches information on multiple canceled and closed orders made by the user on spot markets
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-history
          * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3302,11 +3304,14 @@ export default class coincatch extends Exchange {
          * @description fetches information on multiple canceled and closed orders made by the user on swap markets
          * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
-         * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
+         * @see https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
+         * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] *swap markets only* the latest time in ms to fetch orders for
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+         * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
          * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -3329,14 +3334,31 @@ export default class coincatch extends Exchange {
             request['endTime'] = this.milliseconds (); // is mandatory
         }
         let market: Market = undefined;
-        let response = undefined;
         if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let productType = this.handleOption (methodName, 'productType');
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', isTrigger);
+        let plan: Str = undefined;
+        [ plan, params ] = this.handleOptionAndParams (params, methodName, 'isPlan', plan);
+        let response = undefined;
+        if ((isTrigger) || (plan !== undefined)) {
+            if (plan !== undefined) {
+                request['isPlan'] = plan;
+            }
+            if (productType !== undefined) {
+                request['productType'] = productType;
+            }
+        } else if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             response = await this.privateGetApiMixV1OrderHistory (this.extend (request, params));
         } else {
-            let productType = 'umcbl';
-            productType = this.handleOption (methodName, 'productType', productType);
+            if (productType === undefined) {
+                productType = 'umcbl'; // is mandatory for current endpoint
+            }
             request['productType'] = productType;
             response = await this.privateGetApiMixV1OrderHistoryProductType (this.extend (request, params));
         }
@@ -3792,6 +3814,7 @@ export default class coincatch extends Exchange {
         //         "cTime": "1729166603306",
         //         "uTime": null
         //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         const marginCoin = this.safeString (order, 'marginCoin');
         market = this.safeMarketCustom (marketId, market, marginCoin);
