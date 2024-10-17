@@ -3509,6 +3509,7 @@ export default class coincatch extends Exchange {
                 if (planType === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a planType parameter for swap trigger orders ("profit_plan" - profit order, "loss_plan" - loss order, "normal_plan" - plan order, "pos_profit" - position profit, "pos_loss" - position loss, "moving_plan" - Trailing TP/SL, "track_plan" - Trailing Stop)');
                 }
+                request['planType'] = planType;
                 response = await this.privatePostApiMixV1PlanCancelPlan (this.extend (request, params));
             } else {
                 response = await this.privatePostApiMixV1OrderCancelOrder (this.extend (request, params));
