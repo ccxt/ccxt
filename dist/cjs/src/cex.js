@@ -46,6 +46,7 @@ class cex extends cex$1 {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1635,11 +1636,11 @@ class cex extends cex$1 {
         const address = this.safeString2(addressObject, 'address', 'destination');
         this.checkAddress(address);
         return {
+            'info': data,
             'currency': code,
+            'network': this.networkIdToCode(selectedNetworkId),
             'address': address,
             'tag': this.safeString2(addressObject, 'destinationTag', 'memo'),
-            'network': this.networkIdToCode(selectedNetworkId),
-            'info': data,
         };
     }
     nonce() {

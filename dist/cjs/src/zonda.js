@@ -47,6 +47,7 @@ class zonda extends zonda$1 {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -1556,11 +1557,11 @@ class zonda extends zonda$1 {
         const address = this.safeString(depositAddress, 'address');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': undefined,
             'address': address,
             'tag': this.safeString(depositAddress, 'tag'),
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddress(code, params = {}) {

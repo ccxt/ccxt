@@ -39,6 +39,8 @@ class bitbank extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -833,7 +835,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -854,11 +856,11 @@ class bitbank extends Exchange {
             $firstAccount = $this->safe_value($accounts, 0, array());
             $address = $this->safe_string($firstAccount, 'address');
             return array(
+                'info' => $response,
                 'currency' => $currency,
+                'network' => null,
                 'address' => $address,
                 'tag' => null,
-                'network' => null,
-                'info' => $response,
             );
         }) ();
     }

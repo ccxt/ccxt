@@ -33,6 +33,8 @@ public partial class bit2c : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -911,11 +913,11 @@ public partial class bit2c : Exchange
         this.checkAddress(address);
         object code = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
             { "network", null },
             { "address", address },
             { "tag", null },
-            { "info", depositAddress },
         };
     }
 

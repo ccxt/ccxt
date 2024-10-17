@@ -44,6 +44,7 @@ public partial class wazirx : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
@@ -1225,11 +1226,11 @@ public partial class wazirx : Exchange
         //     }
         //
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", this.networkCodeToId(networkCode, code) },
             { "address", this.safeString(response, "address") },
             { "tag", null },
-            { "network", this.networkCodeToId(networkCode, code) },
-            { "info", response },
         };
     }
 

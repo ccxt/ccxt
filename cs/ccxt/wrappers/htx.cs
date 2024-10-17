@@ -6,6 +6,25 @@ namespace ccxt;
 
 public partial class htx
 {
+    /// <summary>
+    /// the latest known information on the availability of the exchange API
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
@@ -15,6 +34,8 @@ public partial class htx
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -34,6 +55,7 @@ public partial class htx
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -54,6 +76,21 @@ public partial class htx
         var res = await this.fetchTradingLimits(symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// undefined
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the limits object of a market structure.</returns>
     public async Task<Dictionary<string, object>> FetchTradingLimitsById(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingLimitsById(id, parameters);
@@ -1039,10 +1076,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -1059,10 +1096,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, object note = null, object networkCode = null, Dictionary<string, object> parameters = null)
     {
@@ -1107,6 +1144,7 @@ public partial class htx
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-for-existed-withdraws-and-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1198,6 +1236,7 @@ public partial class htx
     /// fetch the borrow interest rates of all currencies
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1258,6 +1297,8 @@ public partial class htx
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1277,6 +1318,8 @@ public partial class htx
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

@@ -42,6 +42,8 @@ public partial class yobit : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
@@ -1286,8 +1288,8 @@ public partial class yobit : Exchange
         /**
         * @method
         * @name yobit#fetchDepositAddress
-        * @see https://yobit.net/en/api
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://yobit.net/en/api
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1315,29 +1317,11 @@ public partial class yobit : Exchange
         object address = this.safeString(getValue(response, "return"), "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "id", null },
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
-            { "info", response },
-            { "txid", null },
-            { "type", null },
-            { "amount", null },
-            { "status", null },
-            { "timestamp", null },
-            { "datetime", null },
-            { "addressFrom", null },
-            { "addressTo", null },
-            { "tagFrom", null },
-            { "tagTo", null },
-            { "updated", null },
-            { "comment", null },
-            { "fee", new Dictionary<string, object>() {
-                { "currency", null },
-                { "cost", null },
-                { "rate", null },
-            } },
         };
     }
 

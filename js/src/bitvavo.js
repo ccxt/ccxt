@@ -50,6 +50,8 @@ export default class bitvavo extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -448,9 +450,9 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
-    parseCurrencies(currencies) {
+    parseCurrenciesCustom(currencies) {
         //
         //     [
         //         {
@@ -1044,11 +1046,11 @@ export default class bitvavo extends Exchange {
         const tag = this.safeString(response, 'paymentId');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {

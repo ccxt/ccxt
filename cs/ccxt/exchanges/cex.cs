@@ -39,6 +39,7 @@ public partial class cex : Exchange
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
@@ -1673,11 +1674,11 @@ public partial class cex : Exchange
         object address = this.safeString2(addressObject, "address", "destination");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", data },
             { "currency", code },
+            { "network", this.networkIdToCode(selectedNetworkId) },
             { "address", address },
             { "tag", this.safeString2(addressObject, "destinationTag", "memo") },
-            { "network", this.networkIdToCode(selectedNetworkId) },
-            { "info", data },
         };
     }
 

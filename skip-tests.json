@@ -1348,6 +1348,7 @@
     },
     "oxfun": {
         "skip": "cloudflare captcha block",
+        "skipWs": "same",
         "httpProxy": "http://188.34.194.190:8911",
         "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {

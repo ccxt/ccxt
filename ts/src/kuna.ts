@@ -464,17 +464,7 @@ export default class kuna extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrencies (currencies, params = {}) {
-        currencies = this.toArray (currencies);
-        const result: Dict = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = this.parseCurrency (currencies[i]);
-            result[currency['code']] = currency;
-        }
-        return result;
-    }
-
-    parseCurrency (currency: Dict) {
+    parseCurrency (currency: Dict): Currency {
         //
         //    {
         //        "code": "BTC",
@@ -498,7 +488,7 @@ export default class kuna extends Exchange {
         const currencyId = this.safeString (currency, 'code');
         const precision = this.safeString (currency, 'precision');
         const tradePrecision = this.safeString (currency, 'tradePrecision');
-        return {
+        return this.safeCurrencyStructure ({
             'info': currency,
             'id': currencyId,
             'code': this.safeCurrencyCode (currencyId),
@@ -509,7 +499,7 @@ export default class kuna extends Exchange {
             'deposit': undefined,
             'withdraw': undefined,
             'fee': undefined,
-            'precision': Precise.stringMin (precision, tradePrecision),
+            'precision': this.parseNumber (Precise.stringMin (precision, tradePrecision)),
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -521,7 +511,7 @@ export default class kuna extends Exchange {
                 },
             },
             'networks': {},
-        };
+        });
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {

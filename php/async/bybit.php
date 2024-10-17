@@ -4865,7 +4865,7 @@ class bybit extends Exchange {
             $length = count($result);
             if ($length === 0) {
                 $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
-                $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+                $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
             if ($length > 1) {
@@ -4882,7 +4882,7 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/v5/order/order-list
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params] $extra parameters specific to the exchange API endpoint
              * @param {array} [$params->acknowledged] to suppress the warning, set to true
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
@@ -4962,6 +4962,10 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             $innerList = $this->safe_list($result, 'list', array());
+            if (strlen($innerList) === 0) {
+                $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional $order, you might try setting $params["trigger"] = true';
+                throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
+            }
             $order = $this->safe_dict($innerList, 0, array());
             return $this->parse_order($order, $market);
         }) ();
@@ -5130,7 +5134,7 @@ class bybit extends Exchange {
             $length = count($result);
             if ($length === 0) {
                 $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
-                $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+                $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
             if ($length > 1) {
@@ -5164,7 +5168,7 @@ class bybit extends Exchange {
             $length = count($result);
             if ($length === 0) {
                 $isTrigger = $this->safe_bool_n($params, array( 'trigger', 'stop' ), false);
-                $extra = $isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
+                $extra = $isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting $params["trigger"] = true';
                 throw new OrderNotFound('Order ' . (string) $id . ' was not found.' . $extra);
             }
             if ($length > 1) {
@@ -5655,7 +5659,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "chainType" => "ERC20",
@@ -5670,15 +5674,15 @@ class bybit extends Exchange {
         $chain = $this->safe_string($depositAddress, 'chain');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $chain,
             'address' => $address,
             'tag' => $tag,
-            'network' => $chain,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network
@@ -5723,7 +5727,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -7232,7 +7236,8 @@ class bybit extends Exchange {
             $paginate = $this->safe_bool($params, 'paginate');
             if ($paginate) {
                 $params = $this->omit($params, 'paginate');
-                return Async\await($this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 500));
+                $params['timeframe'] = $timeframe;
+                return Async\await($this->fetch_paginated_call_cursor('fetchOpenInterestHistory', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 200));
             }
             $market = $this->market($symbol);
             if ($market['spot'] || $market['option']) {

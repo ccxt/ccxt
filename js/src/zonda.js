@@ -50,6 +50,7 @@ export default class zonda extends Exchange {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -1559,11 +1560,11 @@ export default class zonda extends Exchange {
         const address = this.safeString(depositAddress, 'address');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': undefined,
             'address': address,
             'tag': this.safeString(depositAddress, 'tag'),
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddress(code, params = {}) {

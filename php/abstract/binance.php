@@ -1447,6 +1447,9 @@ abstract class binance extends \ccxt\Exchange {
     public function fapipublic_get_lvtklines($params = array()) {
         return $this->request('lvtKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function fapipublic_get_convert_exchangeinfo($params = array()) {
+        return $this->request('convert/exchangeInfo', 'fapiPublic', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function fapidata_get_delivery_price($params = array()) {
         return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1579,6 +1582,9 @@ abstract class binance extends \ccxt\Exchange {
     public function fapiprivate_get_accountconfig($params = array()) {
         return $this->request('accountConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function fapiprivate_get_convert_orderstatus($params = array()) {
+        return $this->request('convert/orderStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function fapiprivate_post_batchorders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -1614,6 +1620,12 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function fapiprivate_post_feeburn($params = array()) {
         return $this->request('feeBurn', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_post_convert_getquote($params = array()) {
+        return $this->request('convert/getQuote', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 200));
+    }
+    public function fapiprivate_post_convert_acceptquote($params = array()) {
+        return $this->request('convert/acceptQuote', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 20));
     }
     public function fapiprivate_put_listenkey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
@@ -3595,6 +3607,9 @@ abstract class binance extends \ccxt\Exchange {
     public function fapiPublicGetLvtKlines($params = array()) {
         return $this->request('lvtKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function fapiPublicGetConvertExchangeInfo($params = array()) {
+        return $this->request('convert/exchangeInfo', 'fapiPublic', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function fapiDataGetDeliveryPrice($params = array()) {
         return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3727,6 +3742,9 @@ abstract class binance extends \ccxt\Exchange {
     public function fapiPrivateGetAccountConfig($params = array()) {
         return $this->request('accountConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function fapiPrivateGetConvertOrderStatus($params = array()) {
+        return $this->request('convert/orderStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function fapiPrivatePostBatchOrders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -3762,6 +3780,12 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function fapiPrivatePostFeeBurn($params = array()) {
         return $this->request('feeBurn', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivatePostConvertGetQuote($params = array()) {
+        return $this->request('convert/getQuote', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 200));
+    }
+    public function fapiPrivatePostConvertAcceptQuote($params = array()) {
+        return $this->request('convert/acceptQuote', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 20));
     }
     public function fapiPrivatePutListenKey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));

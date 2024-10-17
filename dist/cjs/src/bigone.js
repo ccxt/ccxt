@@ -42,6 +42,8 @@ class bigone extends bigone$1 {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingRate': false,
                 'fetchMarkets': true,
@@ -1850,11 +1852,11 @@ class bigone extends bigone$1 {
         const tag = this.safeString(addressObject, 'memo');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': this.networkIdToCode(selectedNetworkId),
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode(selectedNetworkId),
-            'info': response,
         };
     }
     parseTransactionStatus(status) {

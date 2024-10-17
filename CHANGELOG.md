@@ -1,3 +1,64 @@
+## 4.4.17 (2024-10-11)
+
+*  feat(mexc): spotPrivateGetSelfSymbols (#23955) [d8e45d3670](https://github.com/ccxt/ccxt/commits/d8e45d367003c0b0d4542b633ac5e219201871d9)
+*  feat(mexc): spotPrivateGetSelfSymbols (#23955) [186733174d](https://github.com/ccxt/ccxt/commits/186733174d8840b8a89b8443c7fb31e243ee6e59)
+*  feat(bingx): add fetchMarkPrice (#23954) [d14fe8ee47](https://github.com/ccxt/ccxt/commits/d14fe8ee4708688e2eea7546dcacd77c9d9555df)
+*  fix(bybit): update error (#23962) [5a083b5404](https://github.com/ccxt/ccxt/commits/5a083b54044cfdf106770a6c354ffa668c3733f3)
+*  feat(okx): add fetchMarkPrice (#23956) [d2741848a0](https://github.com/ccxt/ccxt/commits/d2741848a04aa66798d33872a5538832995c2ec8)
+*  feat(okx): add fetchMarkPrice (#23956) [b78540496e](https://github.com/ccxt/ccxt/commits/b78540496e9d6d5cff5ace3baa4dd90172fb33a6)
+*  4.4.17 [2d6de4d331](https://github.com/ccxt/ccxt/commits/2d6de4d331e22fd3344f1d6b9ab474937217366f)
+
+
+## 4.4.16 (2024-10-10)
+
+*  4.4.15 [34089d94e6](https://github.com/ccxt/ccxt/commits/34089d94e6b29d48a6037c26c6274173103a06b2)
+*  htx.fetchPosition docstring @see (#23930) [0b1aa20370](https://github.com/ccxt/ccxt/commits/0b1aa2037014bf5cf1f9c6f56ad7383ee211760b)
+*  feat(bitmart): add indexPrice to ticker (#23939) [eecbafa17a](https://github.com/ccxt/ccxt/commits/eecbafa17ac8ff20b186a37528d07d9bc2db79aa)
+*  feat(binance): add fetchMarkPrice (#23938) [67f77ea912](https://github.com/ccxt/ccxt/commits/67f77ea912cc166a66662436af604bc231414318)
+*  feat(blofin): add fetchMarkPrice (#23940) [ce47aa85fd](https://github.com/ccxt/ccxt/commits/ce47aa85fdbc958449116ff530ab95411d84e0cd)
+*  feat(blofin): add fetchMarkPrice (#23940) [e9f0acc92c](https://github.com/ccxt/ccxt/commits/e9f0acc92c2dfe5897d5a3b205cb7a132dfc44a5)
+*  Has spot (#23945) [f5b942fef3](https://github.com/ccxt/ccxt/commits/f5b942fef312858b9e9c2d66fd31a9b331d3c33d)
+*  fetchPositions, fetchBorrowInterest docstrings (#23944) [3d32b1eefe](https://github.com/ccxt/ccxt/commits/3d32b1eefe68f412842982978ee476f1bfc3e9e6)
+*  fetchPositions, fetchBorrowInterest docstrings (#23944) [d27035f6a4](https://github.com/ccxt/ccxt/commits/d27035f6a449a044cda123cf7b558e3d3b85c2f8)
+*  fetchDepositAddress, fetchDepositAddresses and fetchDepositAddressesByNetwork use DepositAddress and DepositAddress[] types (#23947) [2df95c75e7](https://github.com/ccxt/ccxt/commits/2df95c75e7cb890ed60ac6c5de92be7409bb27b0)
+*  fix(hyperliquid): update parsePosition (#23948) [da33f23475](https://github.com/ccxt/ccxt/commits/da33f234753ea40365deb13f09d643ef0b986ccf)
+*  fix(lbank): fetchDepositWithdrawFees return (#23950) [26947b3ab2](https://github.com/ccxt/ccxt/commits/26947b3ab287a07e8f1c11d1fbb29b8034218f9c)
+*  4.4.16 [ece9556dc0](https://github.com/ccxt/ccxt/commits/ece9556dc03f417b1794cf37354e147204bd4f48)
+
+
+## 4.4.15 (2024-10-08)
+
+*  4.4.14 [8b519c332e](https://github.com/ccxt/ccxt/commits/8b519c332e8346b5f933d5b798a4c83e0b978509)
+*  Misc fixes (#23919) [ee6fd9f565](https://github.com/ccxt/ccxt/commits/ee6fd9f5657ce49e26fa79c3250202714d337fab)
+*  Misc fixes (#23919) [71a8fa5dd6](https://github.com/ccxt/ccxt/commits/71a8fa5dd68b140697380d391c6b319a03b36dd5)
+*  fix(onetrading): new url (#21109) [f6c99c0430](https://github.com/ccxt/ccxt/commits/f6c99c04300536343cac240d7e5c8235c718f157)
+*  upbit: add watchTickers (#23790) [e046023e67](https://github.com/ccxt/ccxt/commits/e046023e67b616e1b2814704cb10cd7f888e1306)
+*  upbit: add watchTickers (#23790) [b6ea6bd9b8](https://github.com/ccxt/ccxt/commits/b6ea6bd9b88525c6110ba8f658c727b0ed6bcf62)
+*  feat(vertex): update encoding (#23903) [b9118f8af1](https://github.com/ccxt/ccxt/commits/b9118f8af140d72275417fba3fe7c2c3531d815f)
+*  feat(vertex): update encoding (#23903) [beb34a96f7](https://github.com/ccxt/ccxt/commits/beb34a96f7e04acf4eb66233488352099ee03855)
+*  htx rename FUD (#23927) [254d3fd514](https://github.com/ccxt/ccxt/commits/254d3fd514824e1213e5b9827aa83b1acc389ef6)
+*  4.4.15 [f0741ca85b](https://github.com/ccxt/ccxt/commits/f0741ca85bc31aa51e8a67d0e0e6dd96d4780305)
+
+
+## 4.4.14 (2024-10-06)
+
+*  4.4.13 [2d0afb67c5](https://github.com/ccxt/ccxt/commits/2d0afb67c573fbaf73c47ebc64efdc798d6edc64)
+*  fix(mexc): resolve until in fetchOrders (#23906) [27cd72239c](https://github.com/ccxt/ccxt/commits/27cd72239cf756a6a90c25a46507d65b23d272f0)
+*  feat(bitget): fetchMarkPrice (#23901) [458372587a](https://github.com/ccxt/ccxt/commits/458372587a6844f1f879afb3dcd949dfdd7ed96b)
+*  feat(bitget): fetchMarkPrice (#23901) [9ff73187c5](https://github.com/ccxt/ccxt/commits/9ff73187c5b612ad45f59d09e9b8a53ca6f86491)
+*  feat(exchanges): fetchFundingInterval and fetchFundingIntervals (#23905) [a323fb254d](https://github.com/ccxt/ccxt/commits/a323fb254df9f7cafd166472e0d76200963a9e27)
+*  feat(exchanges): fetchFundingInterval and fetchFundingIntervals (#23905) [b5b2514b45](https://github.com/ccxt/ccxt/commits/b5b2514b4594f6ebb68f79b097351dc2644f4df7)
+*  feat(cryptocom): add v1PublicGetPublicGetRiskParameters (#23907) [4eeb60265b](https://github.com/ccxt/ccxt/commits/4eeb60265bc3efc96d365637aa4fb384e2169bab)
+*  feat(cryptocom): add v1PublicGetPublicGetRiskParameters (#23907) [50897253a5](https://github.com/ccxt/ccxt/commits/50897253a567733b410f197402f471c116840820)
+*  feat(okx): add watchMarkPrices (#23911) [9b95cb82af](https://github.com/ccxt/ccxt/commits/9b95cb82af8c070a7ad6923d374cdfc1ba5e5e6f)
+*  feat(okx): add watchMarkPrices (#23911) [c400cf10e3](https://github.com/ccxt/ccxt/commits/c400cf10e31ee5e77b19dbcf2b7e7582c8d6a977)
+*  feat(tests):  unnecessary vars (#23912) [c9d12f30d9](https://github.com/ccxt/ccxt/commits/c9d12f30d9975b772933b3bd15fd948f028fc73c)
+*  feat(tests):  unnecessary vars (#23912) [5302755430](https://github.com/ccxt/ccxt/commits/530275543015bd8df8c6c4457d6dadd536305ec4)
+*  chore: update changelog (#23914) [0d947f9ed8](https://github.com/ccxt/ccxt/commits/0d947f9ed8933908a83476c38da584b55af3cbd8)
+*  fix(mexc): fetchDepositAddress/createDepositAddress network id (#23915) [d0ff8ca5ec](https://github.com/ccxt/ccxt/commits/d0ff8ca5ec0bb0e0d3dc3c1502757b32a371140d)
+*  4.4.14 [46f2399207](https://github.com/ccxt/ccxt/commits/46f2399207205b42d985102c2fa56c269bf99a8e)
+
+
 ## 4.4.13 (2024-10-03)
 
 *  4.4.12 [18255e36fb](https://github.com/ccxt/ccxt/commits/18255e36fb4ffa9742dbd1a13a48eb52ffbf0b9a)

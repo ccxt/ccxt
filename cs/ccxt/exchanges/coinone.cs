@@ -38,7 +38,9 @@ public partial class coinone : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
+                { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -1098,10 +1100,11 @@ public partial class coinone : Exchange
             if (isTrue(isEqual(depositAddress, null)))
             {
                 depositAddress = new Dictionary<string, object>() {
+                    { "info", value },
                     { "currency", code },
+                    { "network", null },
                     { "address", null },
                     { "tag", null },
-                    { "info", value },
                 };
             }
             object address = this.safeString(depositAddress, "address", value);

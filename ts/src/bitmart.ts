@@ -1304,7 +1304,7 @@ export default class bitmart extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,

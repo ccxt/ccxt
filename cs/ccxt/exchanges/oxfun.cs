@@ -53,7 +53,7 @@ public partial class oxfun : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposit", false },
-                { "fetchDepositAddress", false },
+                { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
@@ -1896,11 +1896,11 @@ public partial class oxfun : Exchange
         object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", getValue(currency, "code") },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 

@@ -230,6 +230,7 @@ export default class mexc extends Exchange {
                             'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
+                            'selfSymbols': 1,
                         },
                         'post': {
                             'order': 1,
@@ -2273,8 +2274,12 @@ export default class mexc extends Exchange {
         const order = this.parseOrder (response, market);
         order['side'] = side;
         order['type'] = type;
-        order['price'] = price;
-        order['amount'] = amount;
+        if (this.safeString (order, 'price') === undefined) {
+            order['price'] = price;
+        }
+        if (this.safeString (order, 'amount') === undefined) {
+            order['amount'] = amount;
+        }
         return order;
     }
 
