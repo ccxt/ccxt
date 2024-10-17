@@ -1023,7 +1023,10 @@ export default class cex extends Exchange {
         //
         const currency1 = this.safeString (order, 'currency1');
         const currency2 = this.safeString (order, 'currency2');
-        const marketId = currency1 + '-' + currency2;
+        let marketId = undefined;
+        if (currency1 !== undefined && currency2 !== undefined) {
+            marketId = currency1 + '-' + currency2;
+        }
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
