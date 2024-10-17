@@ -4021,7 +4021,10 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        const returnType = isolated ? result : this.safeBalance (result);
+        let returnType = result;
+        if (!isolated) {
+            returnType = this.safeBalance (result);
+        }
         return returnType as Balances;
     }
 

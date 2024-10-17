@@ -1327,6 +1327,11 @@ class testMainClass {
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
+
+                const isDisabledGO = exchange.safeBool (result, 'disabledGO', false);
+                if (isDisabledGO && (this.lang === 'GO')) {
+                    continue;
+                }
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
