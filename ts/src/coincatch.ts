@@ -370,6 +370,7 @@ export default class coincatch extends Exchange {
                     // {"code":"40762","msg":"The order amount exceeds the balance","requestTime":1726935546610,"data":null}
                     // {"code":"40019","msg":"Parameter startTime cannot be empty","requestTime":1727968771287,"data":null}
                     // {"code":"40020","msg":"Parameter orderIds or clientOids error","requestTime":1729101703824,"data":null}
+                    // {"code":"40808","msg":"Parameter verification exception margin mode == FIXED","requestTime":1729160569067,"data":null}
                 },
                 'broad': {},
             },
@@ -4079,6 +4080,9 @@ export default class coincatch extends Exchange {
         marginMode = marginMode.toLowerCase ();
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new NotSupported (this.id + ' setMarginMode() is not supported for ' + market['type'] + ' type of markets');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
@@ -4126,6 +4130,9 @@ export default class coincatch extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new NotSupported (this.id + ' fetchPositionMode() is not supported for ' + market['type'] + ' type of markets');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
@@ -4158,6 +4165,9 @@ export default class coincatch extends Exchange {
         if (productType === undefined) {
             if (symbol !== undefined) {
                 const market = this.market (symbol);
+                if (market['type'] !== 'swap') {
+                    throw new NotSupported (this.id + ' setPositionMode() is not supported for ' + market['type'] + ' type of markets');
+                }
                 const marketId = market['id'];
                 const parts = marketId.split ('_');
                 productType = this.safeStringLower (parts, 1, productType);
@@ -4195,6 +4205,9 @@ export default class coincatch extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' type of markets');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
@@ -4222,6 +4235,9 @@ export default class coincatch extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
@@ -4311,6 +4327,9 @@ export default class coincatch extends Exchange {
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+        }
         amount = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'symbol': market['id'],
@@ -4324,7 +4343,9 @@ export default class coincatch extends Exchange {
         }
         const response = await this.privatePostApiMixV1AccountSetMargin (this.extend (request, params));
         // todo check response
-        //
+        // always returns error
+        // addMargin - "code":"45006","msg":"Insufficient position","requestTime":1729162281543,"data":null
+        // reduceMargin - "code":"40800","msg":"Insufficient amount of margin","requestTime":1729162362718,"data":null
         if (type === 'reduce') {
             amount = Precise.stringAbs (amount);
         }
