@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported } from './base/errors.js';
-import type { Dict, int, Market, Ticker, Tickers, Strings } from './base/types.js';
+import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -121,16 +121,17 @@ export default class defx extends Exchange {
             },
             'timeframes': {
                 '1m': '1m',
+                '3m': '3m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
                 '12h': '12h',
                 '1d': '1d',
                 '1w': '1w',
-                '1M': '1mon',
-                '1y': '1y',
+                '1M': '1M',
             },
             'urls': {
                 'logo': '',
@@ -702,6 +703,78 @@ export default class defx extends Exchange {
             'indexPrice': undefined,
             'info': ticker,
         }, market);
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name defx#fetchOHLCV
+         * @see https://api-docs.defx.com/#54b71951-1472-4670-b5af-4c2dc41e73d0
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        let request: Dict = {
+            'symbol': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+            'limit': limit,
+        };
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const timeframeInSeconds = this.parseTimeframe (timeframe);
+        const timeframeInMilliseconds = timeframeInSeconds * 1000;
+        if (since === undefined) {
+            const end = this.milliseconds ();
+            request['startTime'] = end - (limit * timeframeInMilliseconds);
+            request['endTime'] = end;
+        } else {
+            request['startTime'] = since;
+            if (request['endTime'] === undefined) {
+                request['endTime'] = since + (limit * timeframeInMilliseconds);
+            }
+        }
+        const response = await this.v1PublicGetSymbolsSymbolOhlc (this.extend (request, params));
+        //
+        // [
+        //     {
+        //       "symbol": "BTC_USDC",
+        //       "open": "0.00",
+        //       "high": "0.00",
+        //       "low": "0.00",
+        //       "close": "0.00",
+        //       "volume": "0.000",
+        //       "quoteAssetVolume": "0.00",
+        //       "takerBuyAssetVolume": "0.000",
+        //       "takerBuyQuoteAssetVolume": "0.00",
+        //       "numberOfTrades": 0,
+        //       "start": 1702453663894,
+        //       "end": 1702453663894,
+        //       "isClosed": true
+        //     }
+        // ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        // example response in fetchOHLCV
+        return [
+            this.safeInteger (ohlcv, 'start'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     nonce () {
