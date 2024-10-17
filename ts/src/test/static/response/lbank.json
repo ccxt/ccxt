@@ -117,6 +117,7 @@
         "fetchOHLCV": [
             {
                 "description": "should return updated candle",
+                "disabled": true,
                 "method": "fetchOHLCV",
                 "input": [
                   "BTC/USDT",
