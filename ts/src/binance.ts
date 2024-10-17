@@ -13655,7 +13655,6 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        params = this.omit (params, 'period');
         const response = await this.dapiDataGetGlobalLongShortAccountRatio (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
         return this.parseLongShortRatioHistory (data, market);
@@ -13669,6 +13668,7 @@ export default class binance extends Exchange {
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'period': undefined,
             'longShortRatio': this.safeNumber (info, 'longShortRatio'),
         };
     }
