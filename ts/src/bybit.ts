@@ -9326,13 +9326,15 @@ export default class bybit extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         const timestamp = this.safeIntegerOmitZero (info, 'timestamp');
+        const longString = this.safeString (info, 'buyRatio');
+        const shortString = this.safeString (info, 'sellRatio');
         return {
             'info': info,
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'period': undefined,
-            'longShortRatio': this.safeNumber (info, 'buyRatio'),
+            'longShortRatio': this.parseToNumeric (Precise.stringDiv (longString, shortString)),
         };
     }
 
