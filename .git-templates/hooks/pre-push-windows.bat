@@ -1,4 +1,5 @@
 
+
 set current_dir=%~dp0
 :: need to double backslash it before passing into arg of command
 set current_dir=%current_dir:\=\\\\%
