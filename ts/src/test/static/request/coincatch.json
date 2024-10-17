@@ -1,0 +1,281 @@
+{
+    "exchange": "coincatch",
+    "skipKeys": [ "startTime", "endTime" ],
+    "outputType": "both",
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.coincatch.com/api/spot/v1/public/currencies",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.coincatch.com/api/spot/v1/market/ticker?symbol=ETHUSDT_SPBL",
+                "input": [
+                  "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch ticker for swap",
+                "method": "fetchTicker",
+                "url": "https://api.coincatch.com/api/mix/v1/market/ticker?symbol=ETHUSDT_UMCBL",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.coincatch.com/api/spot/v1/market/tickers",
+                "input": [
+                    [
+                        "ETH/USDT",
+                        "BTC/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api.coincatch.com/api/spot/v1/market/merge-depth?symbol=ETHUSDT_SPBL&limit=1",
+                "input": [
+                    "ETH/USDT",
+                    1
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.coincatch.com/api/spot/v1/market/fills-history?symbol=ETHUSDT_SPBL",
+                "input": [
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades for swap",
+                "method": "fetchTrades",
+                "url": "https://api.coincatch.com/api/mix/v1/market/fills-history?symbol=ETHUSDT_UMCBL",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades for swap with since and limit",
+                "method": "fetchTrades",
+                "url": "https://api.coincatch.com/api/mix/v1/market/fills-history?symbol=ETHUSDT_UMCBL&startTime=1726929987000&limit=1000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1726929987000,
+                    1
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "Fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.coincatch.com/api/mix/v1/market/current-fundRate?symbol=ETHUSDT_UMCBL&productType=UMCBL",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.coincatch.com/api/mix/v1/market/history-fundRate?symbol=ETHUSDT_UMCBL",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch funding rate history with since and limit",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.coincatch.com/api/mix/v1/market/history-fundRate?symbol=ETHUSDT_UMCBL&pageSize=100",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1726790400000,
+                    1
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.coincatch.com/api/spot/v1/account/assets",
+                "input": []
+            },
+            {
+                "description": "Fetch balance for swap",
+                "method": "fetchBalance",
+                "url": "https://api.coincatch.com/api/mix/v1/account/accounts?productType=umcbl",
+                "input": [
+                  {
+                    "type": "swap"
+                  }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchDepositAddress",
+                "url": "https://api.coincatch.com/api/spot/v1/wallet/deposit-address?coin=USDT&chain=TRC20",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.coincatch.com/api/spot/v1/wallet/deposit-list?coin=USDT&startTime=1726531200000&endTime=1726541200000",
+                "input": [
+                    "USDT",
+                    1726531200000,
+                    1,
+                    {
+                        "until": 1726541200000
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/open-orders",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": "{\"symbol\":\"ETHUSDT_SPBL\"}"
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch canceled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/history",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": "{\"symbol\":\"ETHUSDT_SPBL\"}"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchMyTrades",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/fills",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": "{\"symbol\":\"ETHUSDT_SPBL\"}"
+            },
+            {
+                "description": "Fetch my trades with since and limit",
+                "method": "fetchMyTrades",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/fills",
+                "input": [
+                    "ETH/USDT",
+                    1725915471400,
+                    1
+                ],
+                "output": "{\"symbol\":\"ETHUSDT_SPBL\",\"limit\":500}"
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "Fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://api.coincatch.com/api/mix/v1/account/account?symbol=ETHUSDT_UMCBL&marginCoin=USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.coincatch.com/api/mix/v1/account/setMarginMode",
+                "input": [
+                    "cross",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETHUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"marginMode\":\"crossed\"}"
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "Fetch position mode",
+                "method": "fetchPositionMode",
+                "url": "https://api.coincatch.com/api/mix/v1/account/account?symbol=ETHUSDT_UMCBL&marginCoin=USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "Set position mode",
+                "method": "setPositionMode",
+                "url": "https://api.coincatch.com/api/mix/v1/account/setPositionMode",
+                "input": [
+                    true,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"productType\":\"umcbl\",\"holdMode\":\"double_hold\"}"
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://api.coincatch.com/api/mix/v1/account/account?symbol=ETHUSDT_UMCBL&marginCoin=USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Set leverage",
+                "method": "setLeverage",
+                "url": "https://api.coincatch.com/api/mix/v1/account/setLeverage",
+                "input": [
+                    5,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETHUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"leverage\":5}"
+              }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Fetch position",
+                "method": "fetchPosition",
+                "url": "https://api.coincatch.com/api/mix/v1/position/singlePosition-v2?symbol=ETHUSDT_UMCBL&marginCoin=USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ]
+    }
+}
