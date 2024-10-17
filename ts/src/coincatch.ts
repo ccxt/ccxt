@@ -2094,6 +2094,7 @@ export default class coincatch extends Exchange {
          * @see https://coincatch.github.io/github.io/en/spot/#place-order
          * @see https://coincatch.github.io/github.io/en/spot/#place-plan-order
          * @see https://coincatch.github.io/github.io/en/mix/#place-order
+         * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
          * @param {string} side 'buy' or 'sell'
@@ -2292,6 +2293,7 @@ export default class coincatch extends Exchange {
          * @name coincatch#createSwapOrder
          * @description create a trade order on swap market
          * @see https://coincatch.github.io/github.io/en/mix/#place-order
+         * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2848,6 +2850,7 @@ export default class coincatch extends Exchange {
          * @see https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
          * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
+         * @see https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2982,21 +2985,29 @@ export default class coincatch extends Exchange {
         /**
          * @method
          * @ignore
-         * @name coincatch#fetchOpenOrders
+         * @name coincatch#fetchOpenSwapOrders
          * @description fetch all unfilled currently open orders for swap markets
          * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
          * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
+         * @see https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+         * @param {string} [params.isPlan] 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
          * @param {string} [params.productType] 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
-         * @param {string} [params.marginCoin] *swap only* the margin coin of the market to fetch entries for
+         * @param {string} [params.marginCoin] the margin coin of the market to fetch entries for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let methodName = 'fetchOpenSwapOrders';
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', isTrigger);
+        let plan: Str = undefined;
+        [ plan, params ] = this.handleOptionAndParams (params, methodName, 'isPlan', plan);
+        let productType = this.handleOption (methodName, 'productType');
         let market: Market = undefined;
         let response = undefined;
         if (symbol !== undefined) {
@@ -3004,55 +3015,100 @@ export default class coincatch extends Exchange {
             const request: Dict = {
                 'symbol': market['id'],
             };
-            response = await this.privateGetApiMixV1OrderCurrent (this.extend (request, params));
+            if ((isTrigger) || (plan !== undefined)) { // the same endpoint is used for trigger and stop-loss/take-profit orders
+                if (productType !== undefined) {
+                    request['productType'] = productType;
+                }
+                if (plan !== undefined) {
+                    request['isPlan'] = plan; // current param is used to define the type of the orders to fetch (trigger or stop-loss/take-profit)
+                }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1729168682690,
+                //         "data": [
+                //             {
+                //                 "orderId": "1230779428914049025",
+                //                 "clientOid": "1230779428914049024",
+                //                 "symbol": "ETHUSDT_UMCBL",
+                //                 "marginCoin": "USDT",
+                //                 "size": "0.01",
+                //                 "executePrice": "1000",
+                //                 "triggerPrice": "1200",
+                //                 "status": "not_trigger",
+                //                 "orderType": "limit",
+                //                 "planType": "normal_plan",
+                //                 "side": "buy_single",
+                //                 "triggerType": "fill_price",
+                //                 "presetTakeProfitPrice": "4000",
+                //                 "presetTakeLossPrice": "900",
+                //                 "rangeRate": "",
+                //                 "enterPointSource": "API",
+                //                 "tradeSide": "buy_single",
+                //                 "holdMode": "single_hold",
+                //                 "reduceOnly": false,
+                //                 "cTime": "1729166603306",
+                //                 "uTime": null
+                //             }
+                //         ]
+                //     }
+                //
+                response = await this.privateGetApiMixV1PlanCurrentPlan (this.extend (request, params));
+            } else {
+                response = await this.privateGetApiMixV1OrderCurrent (this.extend (request, params));
+            }
+        } else if (isTrigger) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap trigger orders');
         } else {
-            let productType = 'umcbl';
-            productType = this.handleOption (methodName, 'productType', productType);
+            if (productType === undefined) {
+                productType = 'umcbl';
+            }
             const request: Dict = {
-                'productType': productType,
+                'productType': productType, // is mandatory for current endpoint (all open non-trigger orders)
             };
             let marginCoin: Str = undefined;
             marginCoin = this.handleOption (methodName, 'marginCoin', marginCoin);
             if (marginCoin !== undefined) {
                 request['marginCoin'] = marginCoin;
             }
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1728127869097,
+            //         "data": [
+            //             {
+            //                 "symbol": "ETHUSDT_UMCBL",
+            //                 "size": 0.02,
+            //                 "orderId": "1226422495431974913",
+            //                 "clientOid": "1226422495457140736",
+            //                 "filledQty": 0.00,
+            //                 "fee": 0E-8,
+            //                 "price": 500.00,
+            //                 "state": "new",
+            //                 "side": "buy_single",
+            //                 "timeInForce": "normal",
+            //                 "totalProfits": 0E-8,
+            //                 "posSide": "long",
+            //                 "marginCoin": "USDT",
+            //                 "filledAmount": 0.0000,
+            //                 "orderType": "limit",
+            //                 "leverage": "5",
+            //                 "marginMode": "crossed",
+            //                 "reduceOnly": false,
+            //                 "enterPointSource": "API",
+            //                 "tradeSide": "buy_single",
+            //                 "holdMode": "single_hold",
+            //                 "orderSource": "normal",
+            //                 "cTime": "1728127829422",
+            //                 "uTime": "1728127830980"
+            //             }
+            //         ]
+            //     }
+            //
             response = await this.privateGetApiMixV1OrderMarginCoinCurrent (this.extend (request, params));
         }
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1728127869097,
-        //         "data": [
-        //             {
-        //                 "symbol": "ETHUSDT_UMCBL",
-        //                 "size": 0.02,
-        //                 "orderId": "1226422495431974913",
-        //                 "clientOid": "1226422495457140736",
-        //                 "filledQty": 0.00,
-        //                 "fee": 0E-8,
-        //                 "price": 500.00,
-        //                 "state": "new",
-        //                 "side": "buy_single",
-        //                 "timeInForce": "normal",
-        //                 "totalProfits": 0E-8,
-        //                 "posSide": "long",
-        //                 "marginCoin": "USDT",
-        //                 "filledAmount": 0.0000,
-        //                 "orderType": "limit",
-        //                 "leverage": "5",
-        //                 "marginMode": "crossed",
-        //                 "reduceOnly": false,
-        //                 "enterPointSource": "API",
-        //                 "tradeSide": "buy_single",
-        //                 "holdMode": "single_hold",
-        //                 "orderSource": "normal",
-        //                 "cTime": "1728127829422",
-        //                 "uTime": "1728127830980"
-        //             }
-        //         ]
-        //     }
-        //
         const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
@@ -3712,6 +3768,30 @@ export default class coincatch extends Exchange {
         //         "uTime": null
         //     }
         //
+        // privateGetApiMixV1PlanCurrentPlan
+        //     {
+        //         "orderId": "1230779428914049025",
+        //         "clientOid": "1230779428914049024",
+        //         "symbol": "ETHUSDT_UMCBL",
+        //         "marginCoin": "USDT",
+        //         "size": "0.01",
+        //         "executePrice": "1000",
+        //         "triggerPrice": "1200",
+        //         "status": "not_trigger",
+        //         "orderType": "limit",
+        //         "planType": "normal_plan",
+        //         "side": "buy_single",
+        //         "triggerType": "fill_price",
+        //         "presetTakeProfitPrice": "4000",
+        //         "presetTakeLossPrice": "900",
+        //         "rangeRate": "",
+        //         "enterPointSource": "API",
+        //         "tradeSide": "buy_single",
+        //         "holdMode": "single_hold",
+        //         "reduceOnly": false,
+        //         "cTime": "1729166603306",
+        //         "uTime": null
+        //     }
         const marketId = this.safeString (order, 'symbol');
         const marginCoin = this.safeString (order, 'marginCoin');
         market = this.safeMarketCustom (marketId, market, marginCoin);
@@ -3764,7 +3844,7 @@ export default class coincatch extends Exchange {
             'remaining': undefined,
             'stopPrice': undefined,
             'triggerPrice': this.omitZero (this.safeString (order, 'triggerPrice')),
-            'takeProfitPrice': this.safeString (order, 'presetTakeProfitPrice'),
+            'takeProfitPrice': this.safeString2 (order, 'presetTakeProfitPrice', 'presetTakeLossPrice'),
             'stopLossPrice': this.safeString (order, 'presetStopLossPrice'),
             'cost': this.safeString2 (order, 'fillTotalAmount', 'filledAmount'),
             'trades': undefined,
