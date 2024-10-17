@@ -1,0 +1,3278 @@
+[
+  {
+    "id": "TBTCTUSDC",
+    "lowercaseId": "tbtctusdc",
+    "symbol": "tBTCtUSDC",
+    "base": "TBTC",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tbtc",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 5,
+      "price": 1,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200005",
+      "symbol": "tBTCtUSDC",
+      "baseAssetId": "80001",
+      "baseLotSize": "1000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "3000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.1",
+      "quantityTickSize": "0.00001",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "1",
+      "listedAt": "2023-10-29T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TBONKTUSDC",
+    "lowercaseId": "tbonktusdc",
+    "symbol": "tBONKtUSDC",
+    "base": "TBONK",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tbonk",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 8,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200008",
+      "symbol": "tBONKtUSDC",
+      "baseAssetId": "80008",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "8",
+      "protectionPriceLevels": "500",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.00000001",
+      "quantityTickSize": "100",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "4",
+      "listedAt": "2023-12-15T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TRNDRTUSDC",
+    "lowercaseId": "trndrtusdc",
+    "symbol": "tRNDRtUSDC",
+    "base": "TRNDR",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "trndr",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200009",
+      "symbol": "tRNDRtUSDC",
+      "baseAssetId": "80009",
+      "baseLotSize": "1000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "3",
+      "protectionPriceLevels": "5000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "6",
+      "listedAt": "2023-12-20T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "THNTTUSDC",
+    "lowercaseId": "thnttusdc",
+    "symbol": "tHNTtUSDC",
+    "base": "THNT",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "thnt",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200010",
+      "symbol": "tHNTtUSDC",
+      "baseAssetId": "80010",
+      "baseLotSize": "1000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "3",
+      "protectionPriceLevels": "10000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "7",
+      "listedAt": "2023-12-21T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TPYTHTUSDC",
+    "lowercaseId": "tpythtusdc",
+    "symbol": "tPYTHtUSDC",
+    "base": "TPYTH",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tpyth",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200011",
+      "symbol": "tPYTHtUSDC",
+      "baseAssetId": "80011",
+      "baseLotSize": "10000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "750",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "13",
+      "listedAt": "2024-01-05T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TGMTTUSDC",
+    "lowercaseId": "tgmttusdc",
+    "symbol": "tGMTtUSDC",
+    "base": "TGMT",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tgmt",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200012",
+      "symbol": "tGMTtUSDC",
+      "baseAssetId": "80012",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "750",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "14",
+      "listedAt": "2024-01-06T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TEURCTUSDC",
+    "lowercaseId": "teurctusdc",
+    "symbol": "tEURCtUSDC",
+    "base": "TEURC",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "teurc",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200013",
+      "symbol": "tEURCtUSDC",
+      "baseAssetId": "80013",
+      "baseLotSize": "10000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "1000",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1"
+    }
+  },
+  {
+    "id": "THONEYTUSDC",
+    "lowercaseId": "thoneytusdc",
+    "symbol": "tHONEYtUSDC",
+    "base": "THONEY",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "thoney",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200014",
+      "symbol": "tHONEYtUSDC",
+      "baseAssetId": "80014",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "750",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "8",
+      "listedAt": "2023-12-22T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TMOBILETUSDC",
+    "lowercaseId": "tmobiletusdc",
+    "symbol": "tMOBILEtUSDC",
+    "base": "TMOBILE",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tmobile",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 6,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200015",
+      "symbol": "tMOBILEtUSDC",
+      "baseAssetId": "80015",
+      "baseLotSize": "1000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "6",
+      "protectionPriceLevels": "500",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.000001",
+      "quantityTickSize": "1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "9",
+      "listedAt": "2023-12-27T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TJTOTUSDC",
+    "lowercaseId": "tjtotusdc",
+    "symbol": "tJTOtUSDC",
+    "base": "TJTO",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tjto",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200016",
+      "symbol": "tJTOtUSDC",
+      "baseAssetId": "80016",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "3",
+      "protectionPriceLevels": "5000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "11",
+      "listedAt": "2023-12-29T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TMNDETUSDC",
+    "lowercaseId": "tmndetusdc",
+    "symbol": "tMNDEtUSDC",
+    "base": "TMNDE",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tmnde",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200017",
+      "symbol": "tMNDEtUSDC",
+      "baseAssetId": "80017",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "750",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "10",
+      "listedAt": "2023-12-28T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TMSOLTUSDC",
+    "lowercaseId": "tmsoltusdc",
+    "symbol": "tmSOLtUSDC",
+    "base": "TMSOL",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tmsol",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 4,
+      "price": 2,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200018",
+      "symbol": "tmSOLtUSDC",
+      "baseAssetId": "80018",
+      "baseLotSize": "100000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "1000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.01",
+      "quantityTickSize": "0.0001",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "31",
+      "listedAt": "2024-03-15T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TJITOSOLTUSDC",
+    "lowercaseId": "tjitosoltusdc",
+    "symbol": "tJitoSOLtUSDC",
+    "base": "TJITOSOL",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tjitosol",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 4,
+      "price": 2,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200019",
+      "symbol": "tJitoSOLtUSDC",
+      "baseAssetId": "80019",
+      "baseLotSize": "100000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "1000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.01",
+      "quantityTickSize": "0.0001",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "32",
+      "listedAt": "2024-03-15T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TNEONTUSDC",
+    "lowercaseId": "tneontusdc",
+    "symbol": "tNEONtUSDC",
+    "base": "TNEON",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tneon",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200020",
+      "symbol": "tNEONtUSDC",
+      "baseAssetId": "80020",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "3",
+      "protectionPriceLevels": "5000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "12",
+      "listedAt": "2024-01-04T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TDOGETUSDC",
+    "lowercaseId": "tdogetusdc",
+    "symbol": "tDOGEtUSDC",
+    "base": "TDOGE",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tdoge",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 5,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200021",
+      "symbol": "tDOGEtUSDC",
+      "baseAssetId": "80021",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "5",
+      "protectionPriceLevels": "2500",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.00001",
+      "quantityTickSize": "0.1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "17",
+      "listedAt": "2024-01-13T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TIOTTUSDC",
+    "lowercaseId": "tiottusdc",
+    "symbol": "tIOTtUSDC",
+    "base": "TIOT",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tiot",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 6,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200022",
+      "symbol": "tIOTtUSDC",
+      "baseAssetId": "80022",
+      "baseLotSize": "1000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "6",
+      "protectionPriceLevels": "500",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.000001",
+      "quantityTickSize": "1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "18",
+      "listedAt": "2024-01-17T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TORCATUSDC",
+    "lowercaseId": "torcatusdc",
+    "symbol": "tORCAtUSDC",
+    "base": "TORCA",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "torca",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200023",
+      "symbol": "tORCAtUSDC",
+      "baseAssetId": "80023",
+      "baseLotSize": "10000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "3",
+      "protectionPriceLevels": "5000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "16",
+      "listedAt": "2024-01-11T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TRAYTUSDC",
+    "lowercaseId": "traytusdc",
+    "symbol": "tRAYtUSDC",
+    "base": "TRAY",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tray",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200024",
+      "symbol": "tRAYtUSDC",
+      "baseAssetId": "80024",
+      "baseLotSize": "10000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "3",
+      "protectionPriceLevels": "2000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "15",
+      "listedAt": "2024-01-10T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TZBCTUSDC",
+    "lowercaseId": "tzbctusdc",
+    "symbol": "tZBCtUSDC",
+    "base": "TZBC",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tzbc",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 6,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200025",
+      "symbol": "tZBCtUSDC",
+      "baseAssetId": "80025",
+      "baseLotSize": "1000000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "6",
+      "protectionPriceLevels": "2000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.000001",
+      "quantityTickSize": "1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "19",
+      "listedAt": "2024-01-18T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TWIFTUSDC",
+    "lowercaseId": "twiftusdc",
+    "symbol": "tWIFtUSDC",
+    "base": "TWIF",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "twif",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 5,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200026",
+      "symbol": "tWIFtUSDC",
+      "baseAssetId": "80026",
+      "baseLotSize": "100000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "5000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.00001",
+      "quantityTickSize": "0.1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "20",
+      "listedAt": "2024-01-19T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TMOUTAITUSDC",
+    "lowercaseId": "tmoutaitusdc",
+    "symbol": "tMOUTAItUSDC",
+    "base": "TMOUTAI",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tmoutai",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 6,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200028",
+      "symbol": "tMOUTAItUSDC",
+      "baseAssetId": "80028",
+      "baseLotSize": "1000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "6",
+      "protectionPriceLevels": "1000",
+      "priceTickSize": "0.000001",
+      "quantityTickSize": "1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "21",
+      "listedAt": "2024-01-24T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TGECKOTUSDC",
+    "lowercaseId": "tgeckotusdc",
+    "symbol": "tGECKOtUSDC",
+    "base": "TGECKO",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tgecko",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 7,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200031",
+      "symbol": "tGECKOtUSDC",
+      "baseAssetId": "80029",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "7",
+      "protectionPriceLevels": "750",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0000001",
+      "quantityTickSize": "10",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "22",
+      "listedAt": "2024-01-26T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TBLZETUSDC",
+    "lowercaseId": "tblzetusdc",
+    "symbol": "tBLZEtUSDC",
+    "base": "TBLZE",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tblze",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 6,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200032",
+      "symbol": "tBLZEtUSDC",
+      "baseAssetId": "80030",
+      "baseLotSize": "1000000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "6",
+      "protectionPriceLevels": "750",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.000001",
+      "quantityTickSize": "1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "35",
+      "listedAt": "2024-04-03T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TTAKITUSDC",
+    "lowercaseId": "ttakitusdc",
+    "symbol": "tTAKItUSDC",
+    "base": "TTAKI",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "ttaki",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": false,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 5,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200034",
+      "symbol": "tTAKItUSDC",
+      "baseAssetId": "80035",
+      "baseLotSize": "100000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "5",
+      "protectionPriceLevels": "400",
+      "priceTickSize": "0.00001",
+      "quantityTickSize": "0.1",
+      "feeTableId": "3",
+      "status": "2",
+      "displayRank": "24",
+      "listedAt": "2024-02-01T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TWENTUSDC",
+    "lowercaseId": "twentusdc",
+    "symbol": "tWENtUSDC",
+    "base": "TWEN",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "twen",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 8,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200036",
+      "symbol": "tWENtUSDC",
+      "baseAssetId": "80032",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "8",
+      "protectionPriceLevels": "500",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.00000001",
+      "quantityTickSize": "100",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "26",
+      "listedAt": "2024-02-05T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TSAMOTUSDC",
+    "lowercaseId": "tsamotusdc",
+    "symbol": "tSAMOtUSDC",
+    "base": "TSAMO",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tsamo",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 6,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200037",
+      "symbol": "tSAMOtUSDC",
+      "baseAssetId": "80036",
+      "baseLotSize": "1000000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "6",
+      "protectionPriceLevels": "2000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.000001",
+      "quantityTickSize": "1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "27",
+      "listedAt": "2024-02-09T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TCROWNTUSDC",
+    "lowercaseId": "tcrowntusdc",
+    "symbol": "tCROWNtUSDC",
+    "base": "TCROWN",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tcrown",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200038",
+      "symbol": "tCROWNtUSDC",
+      "baseAssetId": "80038",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "750",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "28",
+      "listedAt": "2024-02-15T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TMXMTUSDC",
+    "lowercaseId": "tmxmtusdc",
+    "symbol": "tMXMtUSDC",
+    "base": "TMXM",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tmxm",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 5,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200039",
+      "symbol": "tMXMtUSDC",
+      "baseAssetId": "80039",
+      "baseLotSize": "100000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "1000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.00001",
+      "quantityTickSize": "0.1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "29",
+      "listedAt": "2024-02-16T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TLTCTUSDC",
+    "lowercaseId": "tltctusdc",
+    "symbol": "tLTCtUSDC",
+    "base": "TLTC",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tltc",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 4,
+      "price": 2,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200040",
+      "symbol": "tLTCtUSDC",
+      "baseAssetId": "80040",
+      "baseLotSize": "10000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "500",
+      "priceTickSize": "0.01",
+      "quantityTickSize": "0.0001",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "30",
+      "listedAt": "2024-02-26T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TTAOTUSDC",
+    "lowercaseId": "ttaotusdc",
+    "symbol": "tTAOtUSDC",
+    "base": "TTAO",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "ttao",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 4,
+      "price": 2,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200042",
+      "symbol": "tTAOtUSDC",
+      "baseAssetId": "80042",
+      "baseLotSize": "100000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "2000",
+      "priceTickSize": "0.01",
+      "quantityTickSize": "0.0001",
+      "feeTableId": "3",
+      "status": "1",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TGENETUSDC",
+    "lowercaseId": "tgenetusdc",
+    "symbol": "tGENEtUSDC",
+    "base": "TGENE",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tgene",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": false,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200043",
+      "symbol": "tGENEtUSDC",
+      "baseAssetId": "80043",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "750",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "2",
+      "displayRank": "33",
+      "listedAt": "2024-03-25T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TPENGTUSDC",
+    "lowercaseId": "tpengtusdc",
+    "symbol": "tPENGtUSDC",
+    "base": "TPENG",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tpeng",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": false,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200044",
+      "symbol": "tPENGtUSDC",
+      "baseAssetId": "80044",
+      "baseLotSize": "10000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "750",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "2",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TPONKETUSDC",
+    "lowercaseId": "tponketusdc",
+    "symbol": "tPONKEtUSDC",
+    "base": "TPONKE",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tponke",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": false,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 5,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200046",
+      "symbol": "tPONKEtUSDC",
+      "baseAssetId": "80045",
+      "baseLotSize": "100000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "5",
+      "protectionPriceLevels": "400",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.00001",
+      "quantityTickSize": "0.1",
+      "feeTableId": "3",
+      "status": "2",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TSOLTUSDC",
+    "lowercaseId": "tsoltusdc",
+    "symbol": "tSOLtUSDC",
+    "base": "TSOL",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tsol",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": false,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 4,
+      "price": 2,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200047",
+      "symbol": "tSOLtUSDC",
+      "baseAssetId": "80005",
+      "baseLotSize": "100000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "1000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.01",
+      "quantityTickSize": "0.0001",
+      "feeTableId": "3",
+      "status": "3",
+      "displayRank": "3",
+      "listedAt": "2023-10-29T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TJITOSOLTSOL",
+    "lowercaseId": "tjitosoltsol",
+    "symbol": "tJitoSOLtSOL",
+    "base": "TJITOSOL",
+    "quote": "TSOL",
+    "settle": null,
+    "baseId": "tjitosol",
+    "quoteId": "tsol",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 4,
+      "price": 5,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200048",
+      "symbol": "tJitoSOLtSOL",
+      "baseAssetId": "80019",
+      "baseLotSize": "100000",
+      "quoteAssetId": "80005",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "5",
+      "protectionPriceLevels": "1000",
+      "priceBandBidPct": "50",
+      "priceBandAskPct": "200",
+      "priceTickSize": "0.00001",
+      "quantityTickSize": "0.0001",
+      "feeTableId": "3",
+      "baseMarketIds": [
+        "200019",
+        "200086"
+      ],
+      "isImplied": true,
+      "status": "1"
+    }
+  },
+  {
+    "id": "TBSOLTUSDC",
+    "lowercaseId": "tbsoltusdc",
+    "symbol": "tbSOLtUSDC",
+    "base": "TBSOL",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tbsol",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 4,
+      "price": 2,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200049",
+      "symbol": "tbSOLtUSDC",
+      "baseAssetId": "80031",
+      "baseLotSize": "100000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "1000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.01",
+      "quantityTickSize": "0.0001",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "34",
+      "listedAt": "2024-04-03T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "THXDTUSDC",
+    "lowercaseId": "thxdtusdc",
+    "symbol": "tHXDtUSDC",
+    "base": "THXD",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "thxd",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": false,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200050",
+      "symbol": "tHXDtUSDC",
+      "baseAssetId": "80046",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "300",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "2",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TBLOCKTUSDC",
+    "lowercaseId": "tblocktusdc",
+    "symbol": "tBLOCKtUSDC",
+    "base": "TBLOCK",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tblock",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200051",
+      "symbol": "tBLOCKtUSDC",
+      "baseAssetId": "80049",
+      "baseLotSize": "10000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "3",
+      "protectionPriceLevels": "300",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "44",
+      "listedAt": "2024-04-23T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TSHDWTUSDC",
+    "lowercaseId": "tshdwtusdc",
+    "symbol": "tSHDWtUSDC",
+    "base": "TSHDW",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tshdw",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": false,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200054",
+      "symbol": "tSHDWtUSDC",
+      "baseAssetId": "80052",
+      "baseLotSize": "10000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "1000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "2",
+      "displayRank": "38",
+      "listedAt": "2024-04-17T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TRUNESTUSDC",
+    "lowercaseId": "trunestusdc",
+    "symbol": "tRUNEStUSDC",
+    "base": "TRUNES",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "trunes",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 3,
+      "price": 3,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200055",
+      "symbol": "tRUNEStUSDC",
+      "baseAssetId": "80050",
+      "baseLotSize": "1000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "10000",
+      "priceTickSize": "0.001",
+      "quantityTickSize": "0.001",
+      "feeTableId": "3",
+      "status": "1"
+    }
+  },
+  {
+    "id": "TATLASTUSDC",
+    "lowercaseId": "tatlastusdc",
+    "symbol": "tATLAStUSDC",
+    "base": "TATLAS",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tatlas",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 6,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200062",
+      "symbol": "tATLAStUSDC",
+      "baseAssetId": "80062",
+      "baseLotSize": "100000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "6",
+      "protectionPriceLevels": "1200",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.000001",
+      "quantityTickSize": "1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "47",
+      "listedAt": "2024-05-01T15:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TPOLISTUSDC",
+    "lowercaseId": "tpolistusdc",
+    "symbol": "tPOLIStUSDC",
+    "base": "TPOLIS",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tpolis",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 2,
+      "price": 4,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200063",
+      "symbol": "tPOLIStUSDC",
+      "baseAssetId": "80051",
+      "baseLotSize": "1000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "4",
+      "protectionPriceLevels": "600",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.0001",
+      "quantityTickSize": "0.01",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "48",
+      "listedAt": "2024-05-01T15:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TAABLTUSDC",
+    "lowercaseId": "taabltusdc",
+    "symbol": "tAABLtUSDC",
+    "base": "TAABL",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "taabl",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0,
+      "price": 6,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200064",
+      "symbol": "tAABLtUSDC",
+      "baseAssetId": "80063",
+      "baseLotSize": "1000000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "6",
+      "protectionPriceLevels": "1300",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.000001",
+      "quantityTickSize": "1",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "49",
+      "listedAt": "2024-05-02T00:00:00Z",
+      "isPrimary": true
+    }
+  },
+  {
+    "id": "TSOLTUSDC",
+    "lowercaseId": "tsoltusdc",
+    "symbol": "tSOLtUSDC",
+    "base": "TSOL",
+    "quote": "TUSDC",
+    "settle": null,
+    "baseId": "tsol",
+    "quoteId": "tusdc",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.0008,
+    "maker": 0.0004,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 4,
+      "price": 2,
+      "cost": null,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      }
+    },
+    "created": null,
+    "info": {
+      "marketId": "200086",
+      "symbol": "tSOLtUSDC",
+      "baseAssetId": "80005",
+      "baseLotSize": "100000",
+      "quoteAssetId": "80007",
+      "quoteLotSize": "1",
+      "priceDisplayDecimals": "2",
+      "protectionPriceLevels": "1000",
+      "priceBandBidPct": "25",
+      "priceBandAskPct": "400",
+      "priceTickSize": "0.01",
+      "quantityTickSize": "0.0001",
+      "feeTableId": "3",
+      "status": "1",
+      "displayRank": "3",
+      "listedAt": "2023-10-29T00:00:00Z",
+      "isPrimary": true
+    }
+  }
+]
