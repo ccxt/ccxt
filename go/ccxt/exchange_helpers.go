@@ -721,6 +721,12 @@ func MathCeil(v interface{}) float64 {
 	if num, ok := v.(float64); ok {
 		return math.Ceil(num)
 	}
+	if num, ok := v.(int); ok {
+		return math.Ceil(float64(num))
+	}
+	if num, ok := v.(int64); ok {
+		return math.Ceil(float64(num))
+	}
 	return 0
 }
 
@@ -728,6 +734,12 @@ func MathCeil(v interface{}) float64 {
 func MathRound(v interface{}) float64 {
 	if num, ok := v.(float64); ok {
 		return math.Round(num)
+	}
+	if num, ok := v.(int); ok {
+		return math.Round(float64(num))
+	}
+	if num, ok := v.(int64); ok {
+		return math.Round(float64(num))
 	}
 	return 0
 }

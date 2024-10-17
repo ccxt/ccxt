@@ -199,6 +199,7 @@ func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 interface{}) string {
 			if IsNumber(value) {
 				value = NumberToString(value)
 			}
+			value = strings.ReplaceAll(value.(string), ",", "%2C")
 			outList = append(outList, fmt.Sprintf("%s=%v", key, value))
 		}
 	}
@@ -212,16 +213,21 @@ func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
 		if subDict, ok := value.(map[string]interface{}); ok {
 			for subKey, subValue := range subDict {
 				finalValue := fmt.Sprintf("%v", subValue)
+				// finalValue = strings.ReplaceAll(finalValue, " ", "%20")
 				if boolVal, ok := subValue.(bool); ok {
 					finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
 				}
 				queryString.Add(fmt.Sprintf("%s[%s]", key, subKey), finalValue)
 			}
 		} else {
-			queryString.Add(key, ToString(value))
+			valueStr := ToString(value)
+			// valueStr = strings.ReplaceAll(valueStr, " ", "%20")
+			queryString.Add(key, valueStr)
 		}
 	}
-	return queryString.Encode()
+	res := queryString.Encode()
+	res = strings.ReplaceAll(res, "+", "%20")
+	return res
 }
 
 func (e *Exchange) Urlencode(parameters2 interface{}) string {
