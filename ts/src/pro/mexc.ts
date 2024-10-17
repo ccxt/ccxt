@@ -659,6 +659,7 @@ export default class mexc extends mexcRest {
         } catch (e) {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
+            return;
         }
         client.resolve (storedOrderBook, messageHash);
     }
