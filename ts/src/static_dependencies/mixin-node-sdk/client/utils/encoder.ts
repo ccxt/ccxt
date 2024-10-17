@@ -1,7 +1,7 @@
-import { parse } from './_uuid';
+import { parse } from './_uuid.js';
 import BigNumber from './_bignumber.js';
 import type { Aggregated, Input, Output } from '../types';
-import { parseUnits } from './amount';
+import { parseUnits } from './amount.js';
 
 const MaximumEncodingInt = 0xffff;
 
@@ -20,7 +20,7 @@ export const integerToBytes = (x: number) => {
   return bytes;
 };
 
-export const bigNumberToBytes = (x: BigNumber) => {
+export const bigNumberToBytes = (x) => {
   const bytes = [];
   let i = x;
   do {
@@ -100,7 +100,7 @@ export class Encoder {
     this.write(buf);
   }
 
-  writeInteger(i: BigNumber) {
+  writeInteger(i: typeof BigNumber) {
     const b = bigNumberToBytes(i);
     this.writeInt(b.byteLength);
     this.write(b);

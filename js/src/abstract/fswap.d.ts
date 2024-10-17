@@ -18,9 +18,9 @@ interface Exchange {
     mixinPrivatePostSafeKeys(params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeTransactionRequests(params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeTransactions(params?: {}): Promise<implicitReturnType>;
+    mixinPrivatePostSafeDepositEntries(params?: {}): Promise<implicitReturnType>;
     ccxtProxyPost4swapPreorder(params?: {}): Promise<implicitReturnType>;
     ccxtProxyPostMixinEncodetx(params?: {}): Promise<implicitReturnType>;
-    ccxtProxyPostMixinMixaddress(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

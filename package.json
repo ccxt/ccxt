@@ -44,6 +44,8 @@
     "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
     "emitAPI": "node build/generateImplicitAPI.js",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges && npm run build-docs",
+    "build-ts-only": "npm run pre-transpile && npm run transpile && npm run update-badges && npm run build-docs",
+    "pre-transpile-ts": "",
     "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",

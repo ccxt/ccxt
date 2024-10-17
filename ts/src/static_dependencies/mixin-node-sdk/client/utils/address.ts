@@ -1,7 +1,7 @@
-import bs58 from './_base58';
-import { stringify, parse } from './_uuid';
+import bs58 from './_base58.js';  
+import { stringify, parse } from './_uuid.js';
 import type { MixAddress } from '../types';
-import { newHash } from './uniq';
+import { newHash } from './uniq.js';
 
 export const MainAddressPrefix = 'XIN';
 export const MixAddressPrefix = 'MIX';

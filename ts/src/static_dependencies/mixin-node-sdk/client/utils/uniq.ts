@@ -1,9 +1,9 @@
-import md5 from './_md5';
-import { blake3 } from '../../../noble-hashes/blake3';
-import { sha3_256 } from '../../../noble-hashes/sha3';
-import { sha256 } from '../../../noble-hashes/sha256';
-import { sha512 } from '../../../noble-hashes/sha512';
-import { stringify as uuidStringify, v4 as uuid } from './_uuid';
+import md5 from './_md5.js';
+import { blake3 } from '../../../noble-hashes/blake3.js';
+import { sha3_256 } from '../../../noble-hashes/sha3.js';
+import { sha256 } from '../../../noble-hashes/sha256.js';
+import { sha512 } from '../../../noble-hashes/sha512.js';
+import { stringify as uuidStringify, v4 as uuid } from './_uuid.js';
 
 /** Supporting multisig for tokens & collectibles */
 export const hashMembers = (ids: string[]): string => {

@@ -248,7 +248,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "binary" | "hex" | "base64") => any;
+    }, digest?: "hex" | "base64" | "binary") => any;
     arrayConcat: (a: any[], b: any[]) => any[];
     encode: (str: string) => Uint8Array;
     urlencode: (object: object) => string;
@@ -257,7 +257,7 @@ export default class Exchange {
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
-    }, digest?: "binary" | "hex" | "base64") => any;
+    }, digest?: "hex" | "base64" | "binary") => any;
     numberToString: typeof functions.numberToString;
     parseTimeframe: (timeframe: string) => number;
     safeInteger2: (o: any, k1: IndexType, k2: IndexType, $default?: number) => number;
@@ -376,6 +376,15 @@ export default class Exchange {
     };
     starknetEncodeStructuredData(domain: any, messageTypes: any, messageData: any, address: any): string;
     starknetSign(hash: any, pri: any): string;
+    mixinGetUnspentOutputsForRecipients(outputs: any, rs: any): {
+        utxos: import("../static_dependencies/mixin-node-sdk/client/types/utxo.js").SafeUtxoOutput[];
+        change: any;
+    };
+    mixinBuildSafeTransaction(utxos: any, rs: any, gs: any, extra: any, references?: any[]): import("../static_dependencies/mixin-node-sdk/client/types/multisig.js").SafeTransaction;
+    mixinBuildSafeTransactionRecipient(members: any, threshold: any, amount: any): import("../static_dependencies/mixin-node-sdk/client/types/safe.js").SafeTransactionRecipient;
+    mixinEncodeSafeTransaction(tx: any): string;
+    mixinSignAuthenticationToken(methodRaw: any, uri: any, params: any, requestID: any, keystore: any): string;
+    mixinSignSafeTransaction(raw: any, views: any, privateKey: any, index?: number): string;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(): {};

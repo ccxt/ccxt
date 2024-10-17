@@ -1,4 +1,12 @@
-import { randomBytes } from 'crypto';
+/*
+Copyright (c) 2014, Yahoo! Inc. All rights reserved.
+Copyrights licensed under the New BSD License.
+See the accompanying LICENSE file for terms.
+*/
+
+'use strict';
+
+import randomBytes from 'randombytes';
 
 // Generate an internal UID to make the regexp pattern harder to guess.
 const UID_LENGTH = 16;
@@ -47,8 +55,8 @@ function deleteFunctions(obj) {
     }
 }
 
-export function serialize(obj, options = {}) {
-    options = options || {};
+function serialize(obj, options) {
+    options || (options = {});
 
     // Backwards-compatibility for `space` as the second argument.
     if (typeof options === 'number' || typeof options === 'string') {
@@ -69,6 +77,7 @@ export function serialize(obj, options = {}) {
     // Returns placeholders for functions and regexps (identified by index)
     // which are later replaced by their string representation.
     function replacer(key, value) {
+
         // For nested function
         if (options.ignoreFunction) {
             deleteFunctions(value);
@@ -101,7 +110,7 @@ export function serialize(obj, options = {}) {
             }
 
             if (origValue instanceof Array) {
-                const isSparse = origValue.filter(() => true).length !== origValue.length;
+                const isSparse = origValue.filter(function () { return true }).length !== origValue.length;
                 if (isSparse) {
                     return '@__A-' + UID + '-' + (arrays.push(origValue) - 1) + '__@';
                 }
@@ -132,7 +141,7 @@ export function serialize(obj, options = {}) {
     }
 
     function serializeFunc(fn) {
-        let serializedFn = fn.toString();
+        const serializedFn = fn.toString();
         if (IS_NATIVE_CODE_REGEXP.test(serializedFn)) {
             throw new TypeError('Serializing native function: ' + fn.name);
         }
@@ -151,14 +160,16 @@ export function serialize(obj, options = {}) {
         const def = serializedFn.substr(0, argsStartsAt)
             .trim()
             .split(' ')
-            .filter(val => val.length > 0);
+            .filter(function (val) { return val.length > 0 });
 
-        const nonReservedSymbols = def.filter(val => !RESERVED_SYMBOLS.includes(val));
+        const nonReservedSymbols = def.filter(function (val) {
+            return RESERVED_SYMBOLS.indexOf(val) === -1
+        });
 
-        // enhanced literal objects, example: {keyrandombytes() {}}
+        // enhanced literal objects, example: {key() {}}
         if (nonReservedSymbols.length > 0) {
-            return (def.includes('async') ? 'async ' : '') + 'function'
-                + (def.join('').includes('*') ? '*' : '')
+            return (def.indexOf('async') > -1 ? 'async ' : '') + 'function'
+                + (def.join('').indexOf('*') > -1 ? '*' : '')
                 + serializedFn.substr(argsStartsAt);
         }
 
@@ -206,7 +217,7 @@ export function serialize(obj, options = {}) {
     // Replaces all occurrences of function, regexp, date, map and set placeholders in the
     // JSON string with their string representations. If the original value can
     // not be found, then `undefined` is used.
-    return str.replace(PLACE_HOLDER_REGEXP, (match, backSlash, type, valueIndex) => {
+    return str.replace(PLACE_HOLDER_REGEXP, function (match, backSlash, type, valueIndex) {
         // The placeholder may not be preceded by a backslash. This is to prevent
         // replacing things like `"a\"@__R-<UID>-0__@"` and thus outputting
         // invalid JS.
@@ -215,27 +226,27 @@ export function serialize(obj, options = {}) {
         }
 
         if (type === 'D') {
-            return `new Date("${dates[valueIndex].toISOString()}")`;
+            return "new Date(\"" + dates[valueIndex].toISOString() + "\")";
         }
 
         if (type === 'R') {
-            return `new RegExp(${serialize(regexps[valueIndex].source)}, "${regexps[valueIndex].flags}")`;
+            return "new RegExp(" + serialize(regexps[valueIndex].source) + ", \"" + regexps[valueIndex].flags + "\")";
         }
 
         if (type === 'M') {
-            return `new Map(${serialize(Array.from(maps[valueIndex].entries()), options)})`;
+            return "new Map(" + serialize(Array.from(maps[valueIndex].entries()), options) + ")";
         }
 
         if (type === 'S') {
-            return `new Set(${serialize(Array.from(sets[valueIndex].values()), options)})`;
+            return "new Set(" + serialize(Array.from(sets[valueIndex].values()), options) + ")";
         }
 
         if (type === 'A') {
-            return `Array.prototype.slice.call(${serialize(Object.assign({ length: arrays[valueIndex].length }, arrays[valueIndex]), options)})`;
+            return "Array.prototype.slice.call(" + serialize(Object.assign({ length: arrays[valueIndex].length }, arrays[valueIndex]), options) + ")";
         }
 
         if (type === 'U') {
-            return 'undefined';
+            return 'undefined'
         }
 
         if (type === 'I') {
@@ -243,11 +254,11 @@ export function serialize(obj, options = {}) {
         }
 
         if (type === 'B') {
-            return `BigInt("${bigInts[valueIndex]}")`;
+            return "BigInt(\"" + bigInts[valueIndex] + "\")";
         }
 
         if (type === 'L') {
-            return `new URL(${serialize(urls[valueIndex].toString(), options)})`;
+            return "new URL(" + serialize(urls[valueIndex].toString(), options) + ")";
         }
 
         const fn = functions[valueIndex];
@@ -255,3 +266,5 @@ export function serialize(obj, options = {}) {
         return serializeFunc(fn);
     });
 }
+
+export default serialize;

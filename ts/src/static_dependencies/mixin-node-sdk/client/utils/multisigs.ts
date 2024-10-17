@@ -1,6 +1,6 @@
-import BigNumber from './_bignumber';
+import BigNumber from './_bignumber.js';
 import type { MultisigTransaction, UtxoOutput } from '../types';
-import { Encoder, magic } from './encoder';
+import { Encoder, magic } from './encoder.js';
 
 export const TxVersion = 0x02;
 

@@ -58,6 +58,9 @@ abstract class fswap extends \ccxt\Exchange {
     public function mixinprivate_post_safe_transactions($params = array()) {
         return $this->request('safe/transactions', 'mixinPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function mixinprivate_post_safe_deposit_entries($params = array()) {
+        return $this->request('safe/deposit/entries', 'mixinPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function ccxtproxy_post_4swap_preorder($params = array()) {
         return $this->request('4swap/preorder', 'ccxtProxy', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -114,6 +117,9 @@ abstract class fswap extends \ccxt\Exchange {
     }
     public function mixinPrivatePostSafeTransactions($params = array()) {
         return $this->request('safe/transactions', 'mixinPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function mixinPrivatePostSafeDepositEntries($params = array()) {
+        return $this->request('safe/deposit/entries', 'mixinPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
     public function ccxtProxyPost4swapPreorder($params = array()) {
         return $this->request('4swap/preorder', 'ccxtProxy', 'POST', $params, null, null, array("cost" => 1));

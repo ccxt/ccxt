@@ -1,8 +1,8 @@
 import { ed25519, edwardsToMontgomery, edwardsToMontgomeryPriv, x25519 } from './_noble-curves/ed25519.js';
 import { Field } from './_noble-curves/abstract/modular.js';
 import { numberToBytesLE, bytesToNumberLE } from './_noble-curves/abstract/utils.js';
-import { blake3Hash, sha512Hash } from './uniq';
-import { putUvarInt } from './encoder';
+import { blake3Hash, sha512Hash } from './uniq.js';
+import { putUvarInt } from './encoder.js';
 import { randomBytes } from './_noble-hashes/utils.js';
 
 const scMinusOne = Buffer.from('ecd3f55c1a631258d69cf7a2def9de1400000000000000000000000000000010', 'hex');

@@ -1,8 +1,9 @@
-import { base64RawURLEncode } from './base64';
-import { ed25519 } from './_noble-curves/ed25519';
-import { serialize } from './serialize';
-import { validate } from './_uuid';
-import { sha256Hash } from './uniq';
+import { validate } from './_uuid.js';
+import { sha256Hash } from './uniq.js';
+import serialize from './_serialize.js';
+import { base64RawURLEncode } from './base64.js';
+import { ed25519 } from './_noble-curves/ed25519.js';
+import { AppKeystore, NetworkUserKeystore } from '../types';
 
 export const signToken = (payload: Object, private_key: string): string => {
     const header = base64RawURLEncode(serialize({ alg: 'EdDSA', typ: 'JWT' }));

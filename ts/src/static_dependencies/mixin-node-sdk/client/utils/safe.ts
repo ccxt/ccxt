@@ -1,15 +1,15 @@
-import { validate, v4 } from './_uuid';
-import BigNumber from './_bignumber';
-import { ed25519 } from './_noble-curves/ed25519';
+import { validate, v4 } from './_uuid.js';
+import BigNumber from './_bignumber.js';
+import { ed25519 } from './_noble-curves/ed25519.js';
 import type { Input, Output, GhostKey, GhostKeyRequest, PaymentParams, SafeTransaction, SafeTransactionRecipient, SafeUtxoOutput } from '../types';
-import { Encoder, magic } from './encoder';
-import { Decoder } from './decoder';
-import { base64RawURLEncode } from './base64';
-import { TIPBodyForSequencerRegister } from './tip';
-import { getPublicFromMainnetAddress, buildMixAddress, parseMixAddress } from './address';
-import { encodeScript } from './multisigs';
-import { blake3Hash, newHash, sha512Hash } from './uniq';
-import { edwards25519 as ed, getRandomBytes } from './ed25519';
+import { Encoder, magic } from './encoder.js';
+import { Decoder } from './decoder.js';
+import { base64RawURLEncode } from './base64.js';
+import { TIPBodyForSequencerRegister } from './tip.js';
+import { getPublicFromMainnetAddress, buildMixAddress, parseMixAddress } from './address.js';
+import { encodeScript } from './multisigs.js';
+import { blake3Hash, newHash, sha512Hash } from './uniq.js';
+import { edwards25519 as ed, getRandomBytes } from './ed25519.js';
 
 export const TxVersionHashSignature = 0x05;
 export const OutputTypeScript = 0x00;

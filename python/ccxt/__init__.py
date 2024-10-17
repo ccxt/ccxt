@@ -139,6 +139,7 @@ from ccxt.deribit import deribit                                      # noqa: F4
 from ccxt.digifinex import digifinex                                  # noqa: F401
 from ccxt.exmo import exmo                                            # noqa: F401
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
+from ccxt.fswap import fswap                                          # noqa: F401
 from ccxt.gate import gate                                            # noqa: F401
 from ccxt.gateio import gateio                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
@@ -249,6 +250,7 @@ exchanges = [
     'digifinex',
     'exmo',
     'fmfwio',
+    'fswap',
     'gate',
     'gateio',
     'gemini',

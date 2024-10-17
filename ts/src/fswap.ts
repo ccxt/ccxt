@@ -2,14 +2,6 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/fswap.js';
 import { Precise } from './base/Precise.js';
-import { eddsa } from './base/functions/crypto.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { blake3 } from './static_dependencies/noble-hashes/blake3.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { base58, base64 } from './static_dependencies/scure-base/index.js';
-import { Fp as Field } from './static_dependencies/noble-curves/abstract/modular.js';
-import { numberToBytesLE, bytesToNumberLE } from './static_dependencies/noble-curves/abstract/utils.js';
 import { BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Balances, Currencies, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade } from './base/types.js';
 //  ---------------------------------------------------------------------------
@@ -92,6 +84,7 @@ export default class fswap extends Exchange {
                         'safe/keys': 1,
                         'safe/transaction/requests': 1,
                         'safe/transactions': 1,
+                        'safe/deposit/entries': 1,
                     },
                 },
                 'ccxtProxy': {
@@ -850,8 +843,8 @@ export default class fswap extends Exchange {
     }
 
     findSymbol (payAssetId: string, fillAssetId: string): string {
-        const paySymbol = this.safeCurrencyCode (payAssetId);
-        const fillSymbol = this.safeCurrencyCode (fillAssetId);
+        const paySymbol = this.mapAssetIdToSymbol (payAssetId);
+        const fillSymbol = this.mapAssetIdToSymbol (fillAssetId);
         return paySymbol + '/' + fillSymbol;
     }
 
@@ -930,16 +923,16 @@ export default class fswap extends Exchange {
         });
         const outputs = this.safeValue (resp, 'data', []);
         const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
-        if (!change.isZero() && !change.isNegative()) {
+        if (!change.isZero () && !change.isNegative ()) {
             recipients.push (this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ()));
         }
         const recipientDetails = [];
         for (let i = 0; i < recipients.length; i++) {
             const r = recipients[i];
-            const members = this.safeValue (r, 'members');
+            const receivers = this.safeValue (r, 'members');
             recipientDetails.push ({
                 'hint': this.uuid (),
-                'receivers': members,
+                'receivers': receivers,
                 'index': i,
             });
         }
@@ -948,7 +941,7 @@ export default class fswap extends Exchange {
         console.log ('ghosts', ghosts);
         const tx = this.mixinBuildSafeTransaction (utxos, recipients, ghosts, memo);
         console.log ('tx', tx);
-        const encodedTx = this.mixinEncodeSafeTransaction(tx);
+        const encodedTx = this.mixinEncodeSafeTransaction (tx);
         return encodedTx;
     }
 
@@ -999,6 +992,13 @@ export default class fswap extends Exchange {
         return resp;
     }
 
+    async deposit (symbol: string, amount: number) {
+        const asset_id = this.mapSymbolToAssetId (symbol);
+        const resp = await this.safeTransfer (asset_id, amount.toString (), '');
+        // Placeholder for deposit logic
+        return resp;
+    }
+
     sign (path, api = 'fswapPublic', method = 'GET', params = {}, headers = undefined, body = undefined) {
         //
         // @method
@@ -1021,9 +1021,9 @@ export default class fswap extends Exchange {
                 actualPath = '/me';
             }
             const jwtToken = this.mixinSignAuthenticationToken (method, actualPath, params, requestID, {
-                app_id: this.uid,
-                session_id: this.login,
-                session_private_key: this.password,
+                'app_id': this.uid,
+                'session_id': this.login,
+                'session_private_key': this.password,
             });
             headers = {
                 'Content-Type': 'application/json',

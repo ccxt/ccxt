@@ -390,6 +390,7 @@ class Exchange {
         'digifinex',
         'exmo',
         'fmfwio',
+        'fswap',
         'gate',
         'gateio',
         'gemini',

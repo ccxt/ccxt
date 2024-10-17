@@ -19,5 +19,6 @@ class ImplicitAPI:
     mixinprivate_post_safe_keys = mixinPrivatePostSafeKeys = Entry('safe/keys', 'mixinPrivate', 'POST', {'cost': 1})
     mixinprivate_post_safe_transaction_requests = mixinPrivatePostSafeTransactionRequests = Entry('safe/transaction/requests', 'mixinPrivate', 'POST', {'cost': 1})
     mixinprivate_post_safe_transactions = mixinPrivatePostSafeTransactions = Entry('safe/transactions', 'mixinPrivate', 'POST', {'cost': 1})
+    mixinprivate_post_safe_deposit_entries = mixinPrivatePostSafeDepositEntries = Entry('safe/deposit/entries', 'mixinPrivate', 'POST', {'cost': 1})
     ccxtproxy_post_4swap_preorder = ccxtProxyPost4swapPreorder = Entry('4swap/preorder', 'ccxtProxy', 'POST', {'cost': 1})
     ccxtproxy_post_mixin_encodetx = ccxtProxyPostMixinEncodetx = Entry('mixin/encodetx', 'ccxtProxy', 'POST', {'cost': 1})

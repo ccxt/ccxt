@@ -1,4 +1,4 @@
-import { sha256Hash } from './uniq';
+import { sha256Hash } from './uniq.js';
 
 const TIPSequencerRegister = 'SEQUENCER:REGISTER:';
 

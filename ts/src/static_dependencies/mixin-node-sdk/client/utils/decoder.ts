@@ -1,6 +1,6 @@
 import type { Input, Output } from '../types';
-import { magic } from './encoder';
-import { formatUnits } from './amount';
+import { magic } from './encoder.js';
+import { formatUnits } from './amount.js';
 
 export const bytesToInterger = (b: Buffer) => {
   let x = 0;

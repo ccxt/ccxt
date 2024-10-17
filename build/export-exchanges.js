@@ -631,61 +631,61 @@ async function exportEverything () {
             regex:  /(?:const|var)\s+pro\s+\=\s+\{[^\}]+\}/,
             replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + id + "Pro,") .join ("\n") + "\n}",
         },
-        {
-            file: './python/ccxt/__init__.py',
-            regex: /exchanges \= \[[^\]]+\]/,
-            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            file: './python/ccxt/__init__.py',
-            regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => ('from ccxt.' + id + ' import ' + id).padEnd (70) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            file: './python/ccxt/__init__.py',
-            regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
-            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
-        },
-        {
-            file: './python/ccxt/async_support/__init__.py',
-            regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
-            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
-        },
-        {
-            file: './python/ccxt/async_support/__init__.py',
-            regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => ('from ccxt.async_support.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            file: './python/ccxt/async_support/__init__.py',
-            regex: /exchanges \= \[[^\]]+\]/,
-            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            file: './php/Exchange.php',
-            regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
-            replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
-        },
-        {
-            file: './php/pro/Exchange.php',
-            regex: /Exchange::\$exchanges \= array\s*\([^\)]+\)/,
-            replacement: "Exchange::$exchanges = array(\n    '" + wsIds.join ("',\n    '") + "',\n)",
-        },
-        {
-            file: './python/ccxt/pro/__init__.py',
-            regex: /(?:from ccxt\.pro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: wsIds.map (id => ('from ccxt.pro.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            file: './python/ccxt/pro/__init__.py',
-            regex: /exchanges \= \[[^\]]+\]/,
-            replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            file: './cs/ccxt/base/Exchange.MetaData.cs',
-            regex: /public static List<string> exchanges =.+$/gm,
-            replacement: `public static List<string> exchanges = new List<string> { ${ids.map(i=>`"${i}"`).join(', ')} };`,
-        },
+        // {
+        //     file: './python/ccxt/__init__.py',
+        //     regex: /exchanges \= \[[^\]]+\]/,
+        //     replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+        // },
+        // {
+        //     file: './python/ccxt/__init__.py',
+        //     regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+        //     replacement: ids.map (id => ('from ccxt.' + id + ' import ' + id).padEnd (70) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        // },
+        // {
+        //     file: './python/ccxt/__init__.py',
+        //     regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
+        //     replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
+        // },
+        // {
+        //     file: './python/ccxt/async_support/__init__.py',
+        //     regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
+        //     replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
+        // },
+        // {
+        //     file: './python/ccxt/async_support/__init__.py',
+        //     regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+        //     replacement: ids.map (id => ('from ccxt.async_support.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        // },
+        // {
+        //     file: './python/ccxt/async_support/__init__.py',
+        //     regex: /exchanges \= \[[^\]]+\]/,
+        //     replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+        // },
+        // {
+        //     file: './php/Exchange.php',
+        //     regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
+        //     replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
+        // },
+        // {
+        //     file: './php/pro/Exchange.php',
+        //     regex: /Exchange::\$exchanges \= array\s*\([^\)]+\)/,
+        //     replacement: "Exchange::$exchanges = array(\n    '" + wsIds.join ("',\n    '") + "',\n)",
+        // },
+        // {
+        //     file: './python/ccxt/pro/__init__.py',
+        //     regex: /(?:from ccxt\.pro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+        //     replacement: wsIds.map (id => ('from ccxt.pro.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        // },
+        // {
+        //     file: './python/ccxt/pro/__init__.py',
+        //     regex: /exchanges \= \[[^\]]+\]/,
+        //     replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
+        // },
+        // {
+        //     file: './cs/ccxt/base/Exchange.MetaData.cs',
+        //     regex: /public static List<string> exchanges =.+$/gm,
+        //     replacement: `public static List<string> exchanges = new List<string> { ${ids.map(i=>`"${i}"`).join(', ')} };`,
+        // },
     ]
 
     exportExchanges (replacements, unlimitedLog)

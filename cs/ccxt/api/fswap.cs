@@ -96,6 +96,11 @@ public partial class fswap : Exchange
         return await this.callAsync ("mixinPrivatePostSafeTransactions",parameters);
     }
 
+    public async Task<object> mixinPrivatePostSafeDepositEntries (object parameters = null)
+    {
+        return await this.callAsync ("mixinPrivatePostSafeDepositEntries",parameters);
+    }
+
     public async Task<object> ccxtProxyPost4swapPreorder (object parameters = null)
     {
         return await this.callAsync ("ccxtProxyPost4swapPreorder",parameters);
