@@ -6117,6 +6117,21 @@ export default class Exchange {
         return interests;
     }
 
+    parseBorrowRate (info, currency: Currency = undefined) {
+        throw new NotSupported (this.id + ' parseBorrowRate() is not supported yet');
+    }
+
+    parseBorrowRateHistory (response, code: Str, since: Int, limit: Int) {
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const borrowRate = this.parseBorrowRate (item);
+            result.push (borrowRate);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
+    }
+
     parseIsolatedBorrowRates (info: any): IsolatedBorrowRates {
         const result = {};
         for (let i = 0; i < info.length; i++) {

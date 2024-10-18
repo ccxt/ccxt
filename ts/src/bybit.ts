@@ -375,6 +375,7 @@ export default class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/account': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-margin-trade/interest-rate-history': 1,
                         // institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
@@ -7292,12 +7293,22 @@ export default class bybit extends Exchange {
         //         "timestamp": 1666734490778
         //     }
         //
+        // fetchBorrowRateHistory
+        //     {
+        //         "timestamp": 1721469600000,
+        //         "currency": "USDC",
+        //         "hourlyBorrowRate": "0.000014621596",
+        //         "vipLevel": "No VIP"
+        //     }
+        //
         const timestamp = this.safeInteger (info, 'timestamp');
-        const currencyId = this.safeString (info, 'coin');
+        const currencyId = this.safeString2 (info, 'coin', 'currency');
+        const hourlyBorrowRate = this.safeNumber (info, 'hourlyBorrowRate');
+        const period = (hourlyBorrowRate !== undefined) ? 3600000 : 86400000; // 1h or 1d
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'rate': this.safeNumber (info, 'interestRate'),
-            'period': 86400000, // Daily
+            'rate': this.safeNumber (info, 'interestRate', hourlyBorrowRate),
+            'period': period, // Daily
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
@@ -7349,6 +7360,67 @@ export default class bybit extends Exchange {
         const rows = this.safeList (data, 'loanAccountList', []);
         const interest = this.parseBorrowInterests (rows, undefined);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchBorrowRateHistory
+         * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
+         * @param {string} code unified currency code
+         * @param {int} [since] timestamp for the earliest borrow rate
+         * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'paginate');
+        if (paginate) {
+            if (since === undefined) {
+                since = this.milliseconds () - 86400000 * 30 * 6;
+            }
+            return await this.fetchPaginatedCallDynamic ('fetchBorrowRateHistory', code, since, limit, params);
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        if (since === undefined) {
+            since = this.milliseconds () - 86400000 * 30; // last 30 days
+        }
+        request['startTime'] = since;
+        let endTime = this.safeInteger2 (params, 'until', 'endTime');
+        params = this.omit (params, [ 'until' ]);
+        if (endTime === undefined) {
+            endTime = since + 86400000 * 30; // since + 30 days
+        }
+        request['endTime'] = endTime;
+        const response = await this.privateGetV5SpotMarginTradeInterestRateHistory (this.extend (request, params));
+        //
+        //   {
+        //       "retCode": 0,
+        //       "retMsg": "OK",
+        //       "result": {
+        //           "list": [
+        //               {
+        //                   "timestamp": 1721469600000,
+        //                   "currency": "USDC",
+        //                   "hourlyBorrowRate": "0.000014621596",
+        //                   "vipLevel": "No VIP"
+        //               }
+        //           ]
+        //       },
+        //       "retExtInfo": "{}",
+        //       "time": 1721899048991
+        //   }
+        //
+        const data = this.safeDict (response, 'result');
+        const rows = this.safeList (data, 'list', []);
+        return this.parseBorrowRateHistory (rows, code, since, limit);
     }
 
     parseBorrowInterest (info: Dict, market: Market = undefined) {

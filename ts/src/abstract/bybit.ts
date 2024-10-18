@@ -175,6 +175,7 @@ interface Exchange {
     privateGetV5SpotCrossMarginTradeAccount (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeOrders (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeRepayHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotMarginTradeInterestRateHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanProductInfos (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanEnsureTokensConvert (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanLoanOrder (params?: {}): Promise<implicitReturnType>;
