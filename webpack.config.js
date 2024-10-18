@@ -34,6 +34,10 @@ export default {
     extensionAlias: {
      '.js': [ '.js', '.ts' ],
     },
+    fallback: {
+      'crypto': false,
+      'buffer': false,
+    },
   },
   mode: 'production',
   target: 'web',
