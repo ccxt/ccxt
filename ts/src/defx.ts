@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported } from './base/errors.js';
-import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV } from './base/types.js';
+import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -775,6 +775,85 @@ export default class defx extends Exchange {
             this.safeNumber (ohlcv, 'close'),
             this.safeNumber (ohlcv, 'volume'),
         ];
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name defx#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://api-docs.defx.com/#5865452f-ea32-4f13-bfbc-03af5f5574fd
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 50;
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'limit': limit,
+        };
+        const response = await this.v1PublicGetSymbolsSymbolTrades (this.extend (request, params));
+        //
+        // [
+        //     {
+        //       "buyerMaker": "false",
+        //       "price": "2.0000",
+        //       "qty": "10.0000",
+        //       "symbol": "BTC_USDC",
+        //       "timestamp": "1702453663894"
+        //     }
+        // ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //       "buyerMaker": "false",
+        //       "price": "2.0000",
+        //       "qty": "10.0000",
+        //       "symbol": "BTC_USDC",
+        //       "timestamp": "1702453663894"
+        //     }
+        //
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'qty');
+        const id = this.safeString (trade, 'id');
+        const buyerMaker = this.safeString (trade, 'buyerMaker');
+        let side = undefined;
+        if (buyerMaker !== undefined) {
+            if (buyerMaker === 'true') {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
+        }
+        return this.safeTrade ({
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'type': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
     }
 
     nonce () {
