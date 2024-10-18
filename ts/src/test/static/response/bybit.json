@@ -2673,9 +2673,15 @@
                   "result": {
                     "list": [
                       {
+                        "timestamp": "1729245600000",
+                        "currency": "USDT",
+                        "hourlyBorrowRate": "0.000003433654",
+                        "vipLevel": "No VIP"
+                      },
+                      {
                         "timestamp": "1729242000000",
                         "currency": "USDT",
-                        "hourlyBorrowRate": "0.000003199144",
+                        "hourlyBorrowRate": "0.000003238239",
                         "vipLevel": "No VIP"
                       },
                       {
@@ -2687,18 +2693,37 @@
                     ]
                   },
                   "retExtInfo": "{}",
-                  "time": "1729244919978"
+                  "time": "1729247936685"
                 },
                 "parsedResponse": [
                   {
                     "currency": "USDT",
-                    "rate": 0.000003199144,
+                    "rate": 0.000003238239,
                     "period": 3600000,
                     "timestamp": 1729242000000,
-                    "datetime": "2024-10-18T09:00:00.000Z"
+                    "datetime": "2024-10-18T09:00:00.000Z",
+                    "info": {
+                      "timestamp": "1729242000000",
+                      "currency": "USDT",
+                      "hourlyBorrowRate": "0.000003238239",
+                      "vipLevel": "No VIP"
+                    }
+                  },
+                  {
+                    "currency": "USDT",
+                    "rate": 0.000003433654,
+                    "period": 3600000,
+                    "timestamp": 1729245600000,
+                    "datetime": "2024-10-18T10:00:00.000Z",
+                    "info": {
+                      "timestamp": "1729245600000",
+                      "currency": "USDT",
+                      "hourlyBorrowRate": "0.000003433654",
+                      "vipLevel": "No VIP"
+                    }
                   }
                 ]
-            }
+              }
         ]
     }
 }
