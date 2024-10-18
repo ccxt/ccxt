@@ -1352,7 +1352,8 @@
                 "method": "fetchBorrowRateHistory",
                 "url": "https://api-testnet.bybit.com/v5/spot-margin-trade/interest-rate-history?currency=USDT&startTime=1726652765781&endTime=1729244765781",
                 "input": [
-                  "USDT"
+                  "USDT",
+                  1726652765781
                 ]
             }
         ]
