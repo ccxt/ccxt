@@ -2,12 +2,24 @@
 import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { Exchange } from '../../../../ccxt.js';
+import { ConsumerFunction, Exchange, ExchangeError, Message } from '../../../../ccxt.js';
+
+
 
 async function testWatchTicker (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchTicker';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
+    const consumer = function consumer (message: Message) {
+        if (message.error) {
+            throw new ExchangeError (message.error);
+        }
+        if (!message.payload) {
+            throw new ExchangeError ("received null or undefined payload");
+        }
+        // TODO: add payload test
+    };
+    await exchange.subscribeTicker (symbol, consumer);
     while (now < ends) {
         let response = undefined;
         try {

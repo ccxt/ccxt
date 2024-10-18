@@ -159,6 +159,7 @@ export default class deribit extends deribitRest {
         const balance = this.parseBalance (data);
         this.balance[currencyCode] = balance;
         const messageHash = 'balance';
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -275,6 +276,7 @@ export default class deribit extends deribitRest {
         const ticker = this.parseTicker (data);
         const messageHash = this.safeString (params, 'channel');
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
@@ -440,6 +442,7 @@ export default class deribit extends deribitRest {
             const trade = trades[i];
             const parsed = this.parseTrade (trade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         this.trades[symbol] = stored;
         const messageHash = 'trades|' + symbol + '|' + interval;
@@ -523,12 +526,10 @@ export default class deribit extends deribitRest {
             cachedTrades = new ArrayCacheBySymbolById (limit);
         }
         const parsed = this.parseTrades (trades);
-        const marketIds: Dict = {};
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
             cachedTrades.append (trade);
-            const symbol = trade['symbol'];
-            marketIds[symbol] = true;
+            this.streamProduce ('myTrades', trade);
         }
         client.resolve (cachedTrades, channel);
     }
@@ -660,6 +661,7 @@ export default class deribit extends deribitRest {
         storedOrderBook['symbol'] = symbol;
         this.orderbooks[symbol] = storedOrderBook;
         const messageHash = 'book|' + symbol + '|' + descriptor;
+        this.streamProduce ('orderbooks', storedOrderBook);
         client.resolve (storedOrderBook, messageHash);
     }
 
@@ -785,6 +787,7 @@ export default class deribit extends deribitRest {
         }
         const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
+            this.streamProduce ('orders', orders[i]);
             cachedOrders.append (orders[i]);
         }
         client.resolve (this.orders, channel);
@@ -872,6 +875,8 @@ export default class deribit extends deribitRest {
         // data contains a single OHLCV candle
         const parsed = this.parseWsOHLCV (ohlcv, market);
         stored.append (parsed);
+        const ohlcvs = this.createStreamOHLCV (symbol, unifiedTimeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         this.ohlcvs[symbol][unifiedTimeframe] = stored;
         const resolveData = [ symbol, unifiedTimeframe, stored ];
         const messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe;
@@ -1000,9 +1005,12 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
+        this.streamProduce ('raw', message);
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
-            throw new ExchangeError (this.id + ' ' + this.json (error));
+            const err = new ExchangeError (this.id + ' ' + this.json (error));
+            this.streamProduce ('errors', undefined, err);
+            client.reject (err);
         }
         const params = this.safeValue (message, 'params');
         const channel = this.safeString (params, 'channel');
@@ -1027,7 +1035,9 @@ export default class deribit extends deribitRest {
                 handler.call (this, client, message);
                 return;
             }
-            throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
+            const err = new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
+            this.streamProduce ('errors', undefined, err);
+            client.reject (err);
         }
         const result = this.safeValue (message, 'result', {});
         const accessToken = this.safeString (result, 'access_token');

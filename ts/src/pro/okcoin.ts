@@ -169,6 +169,7 @@ export default class okcoin extends okcoinRest {
                 const symbol = order['symbol'];
                 const market = this.market (symbol);
                 marketIds[market['id']] = true;
+                this.streamProduce ('orders', order);
             }
             const keys = Object.keys (marketIds);
             for (let i = 0; i < keys.length; i++) {
@@ -221,6 +222,7 @@ export default class okcoin extends okcoinRest {
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
+            this.streamProduce ('trades', trade);
             client.resolve (stored, messageHash);
         }
         return message;
@@ -257,6 +259,7 @@ export default class okcoin extends okcoinRest {
             const marketId = this.safeString (ticker['info'], 'instrument_id');
             const messageHash = table + ':' + marketId;
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         return message;
@@ -328,6 +331,8 @@ export default class okcoin extends okcoinRest {
             }
             stored.append (parsed);
             const messageHash = table + ':' + marketId;
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
         }
     }
@@ -455,6 +460,7 @@ export default class okcoin extends okcoinRest {
                 this.orderbooks[symbol] = orderbook;
                 this.handleOrderBookMessage (client, update, orderbook);
                 const messageHash = table + ':' + marketId;
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, messageHash);
             }
         } else {
@@ -467,6 +473,7 @@ export default class okcoin extends okcoinRest {
                     const orderbook = this.orderbooks[symbol];
                     this.handleOrderBookMessage (client, update, orderbook);
                     const messageHash = table + ':' + marketId;
+                    this.streamProduce ('orderbooks', orderbook);
                     client.resolve (orderbook, messageHash);
                 }
             }
@@ -618,6 +625,7 @@ export default class okcoin extends okcoinRest {
             const oldBalance = this.safeValue (this.balance, type, {});
             const newBalance = this.deepExtend (oldBalance, balance);
             this.balance[type] = this.safeBalance (newBalance);
+            this.streamProduce ('balances', this.balance[type]);
             client.resolve (this.balance[type], table);
         }
     }
@@ -667,6 +675,7 @@ export default class okcoin extends okcoinRest {
                 }
             }
         } catch (e) {
+            this.streamProduce ('errors', undefined, e);
             if (e instanceof AuthenticationError) {
                 client.reject (e, 'authenticated');
                 const method = 'login';
@@ -680,6 +689,7 @@ export default class okcoin extends okcoinRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
