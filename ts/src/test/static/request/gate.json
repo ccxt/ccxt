@@ -650,6 +650,16 @@
                         "type": "option"
                     }
                 ]
+            },
+            {
+                "description": "Fetch the unified account balance",
+                "method": "fetchBalance",
+                "url": "https://api.gateio.ws/api/v4/unified/accounts",
+                "input": [
+                    {
+                        "unifiedAccount": true
+                    }
+                ]
             }
         ],
         "setLeverage": [
