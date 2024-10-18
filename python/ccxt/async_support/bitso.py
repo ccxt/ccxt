@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -53,6 +53,7 @@ class bitso(Exchange, ImplicitAPI):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -123,6 +124,12 @@ class bitso(Exchange, ImplicitAPI):
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'networks': {
+                    'TRC20': 'trx',
+                    'ERC20': 'erc20',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bep2',
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -1247,7 +1254,7 @@ class bitso(Exchange, ImplicitAPI):
         transactions = self.safe_list(response, 'payload', [])
         return self.parse_transactions(transactions, currency, since, limit, params)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1268,11 +1275,11 @@ class bitso(Exchange, ImplicitAPI):
             tag = self.safe_string(parts, 1)
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     async def fetch_transaction_fees(self, codes: Strings = None, params={}):
@@ -1547,18 +1554,6 @@ class bitso(Exchange, ImplicitAPI):
         first = self.safe_dict(payload, 0)
         return self.parse_transaction(first, currency)
 
-    def safe_network(self, networkId):
-        if networkId is None:
-            return None
-        networkId = networkId.upper()
-        networksById: dict = {
-            'trx': 'TRC20',
-            'erc20': 'ERC20',
-            'bsc': 'BEP20',
-            'bep2': 'BEP2',
-        }
-        return self.safe_string(networksById, networkId, networkId)
-
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # deposit
@@ -1605,12 +1600,14 @@ class bitso(Exchange, ImplicitAPI):
         networkId = self.safe_string_2(transaction, 'network', 'method')
         status = self.safe_string(transaction, 'status')
         withdrawId = self.safe_string(transaction, 'wid')
+        networkCode = self.network_id_to_code(networkId)
+        networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
         return {
             'id': self.safe_string_2(transaction, 'wid', 'fid'),
             'txid': self.safe_string(details, 'tx_hash'),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'network': self.safe_network(networkId),
+            'network': networkCodeUpper,
             'addressFrom': receivingAddress,
             'address': withdrawalAddress if (withdrawalAddress is not None) else receivingAddress,
             'addressTo': withdrawalAddress,

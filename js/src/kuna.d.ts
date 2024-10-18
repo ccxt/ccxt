@@ -1,5 +1,5 @@
 import Exchange from './abstract/kuna.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class kuna
  * @augments Exchange
@@ -9,31 +9,7 @@ export default class kuna extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrencies(currencies: any, params?: {}): Dict;
-    parseCurrency(currency: Dict): {
-        info: Dict;
-        id: string;
-        code: string;
-        type: any;
-        margin: any;
-        name: string;
-        active: any;
-        deposit: any;
-        withdraw: any;
-        fee: any;
-        precision: string;
-        limits: {
-            amount: {
-                min: any;
-                max: any;
-            };
-            withdraw: {
-                min: any;
-                max: any;
-            };
-        };
-        networks: {};
-    };
+    parseCurrency(currency: Dict): Currency;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -57,27 +33,9 @@ export default class kuna extends Exchange {
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        info: string;
-        currency: string;
-        network: any;
-        address: string;
-        tag: any;
-    }>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        info: string;
-        currency: string;
-        network: any;
-        address: string;
-        tag: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        info: string;
-        currency: string;
-        network: any;
-        address: string;
-        tag: any;
-    };
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     parseTransactionStatus(status: Str): string;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;

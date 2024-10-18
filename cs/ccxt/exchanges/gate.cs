@@ -100,6 +100,8 @@ public partial class gate : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -583,6 +585,8 @@ public partial class gate : Exchange
                 { "1w", "7d" },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "ORT", "XREATORS" },
+                { "ASS", "ASSF" },
                 { "88MPH", "MPH" },
                 { "AXIS", "AXISDEFI" },
                 { "BIFI", "BITCOINFILE" },
@@ -617,6 +621,8 @@ public partial class gate : Exchange
                 } },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
+                    { "LINEA", "LINEAETH" },
+                    { "KON", "KONET" },
                     { "AVAXC", "AVAX_C" },
                     { "BEP20", "BSC" },
                     { "EOS", "EOS" },
@@ -629,6 +635,9 @@ public partial class gate : Exchange
                     { "OPTIMISM", "OPETH" },
                     { "POLKADOT", "DOTSM" },
                     { "TRC20", "TRX" },
+                    { "LUNA", "LUNC" },
+                    { "BASE", "BASEEVM" },
+                    { "BRC20", "BTCBRC" },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
                     { "GTC", "gtc" },
@@ -1738,7 +1747,7 @@ public partial class gate : Exchange
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1847,6 +1856,7 @@ public partial class gate : Exchange
         object fundingRate = this.safeNumber(contract, "funding_rate");
         object fundingTime = this.safeTimestamp(contract, "funding_next_apply");
         object fundingRateIndicative = this.safeNumber(contract, "funding_rate_indicative");
+        object fundingInterval = Precise.stringMul("1000", this.safeString(contract, "funding_interval"));
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -1865,7 +1875,20 @@ public partial class gate : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(fundingInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async virtual Task<object> fetchNetworkDepositAddress(object code, object parameters = null)
@@ -1997,11 +2020,10 @@ public partial class gate : Exchange
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", response },
-            { "code", code },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
         };
     }
 
@@ -2671,6 +2693,8 @@ public partial class gate : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }
@@ -3871,32 +3895,61 @@ public partial class gate : Exchange
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
-        // deposits
+        // fetchDeposits
         //
-        //    {
-        //        "id": "d33361395",
-        //        "currency": "USDT_TRX",
-        //        "address": "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
-        //        "amount": "100",
-        //        "txid": "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
-        //        "timestamp": "1626345819",
-        //        "status": "DONE",
-        //        "memo": ""
-        //    }
+        //     {
+        //         "id": "d33361395",
+        //         "currency": "USDT_TRX",
+        //         "address": "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
+        //         "amount": "100",
+        //         "txid": "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
+        //         "timestamp": "1626345819",
+        //         "status": "DONE",
+        //         "memo": ""
+        //     }
         //
         // withdraw
         //
-        //    {
-        //        "id": "w13389675",
-        //        "currency": "USDT",
-        //        "amount": "50",
-        //        "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
-        //        "memo": null
-        //    }
+        //     {
+        //         "id":"w64413318",
+        //         "currency":"usdt",
+        //         "amount":"10150",
+        //         "address":"0x0ab891497116f7f5532a4c2f4f7b1784488628e1",
+        //         "memo":null,
+        //         "status":"REQUEST",
+        //         "chain":"eth",
+        //         "withdraw_order_id":"",
+        //         "fee_amount":"4.15000000"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id": "210496",
+        //         "timestamp": "1542000000",
+        //         "withdraw_order_id": "order_123456",
+        //         "currency": "USDT",
+        //         "address": "1HkxtBAMrA3tP5ENnYY2CZortjZvFDH5Cs",
+        //         "txid": "128988928203223323290",
+        //         "block_number": "41575382",
+        //         "amount": "222.61",
+        //         "fee": "0.01",
+        //         "memo": "",
+        //         "status": "DONE",
+        //         "chain": "TRX"
+        //     }
+        //
+        //     {
+        //         "id": "w13389675",
+        //         "currency": "USDT",
+        //         "amount": "50",
+        //         "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //         "memo": null
+        //     }
         //
         //     {
         //         "currency":"usdt",
-        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "address":"0x01c0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
         //         "amount":"1880",
         //         "chain":"eth"
         //     }
@@ -3916,7 +3969,7 @@ public partial class gate : Exchange
                 type = this.parseTransactionType(getValue(id, 0));
             }
         }
-        object feeCostString = this.safeString(transaction, "fee");
+        object feeCostString = this.safeString2(transaction, "fee", "fee_amount");
         if (isTrue(isEqual(type, "withdrawal")))
         {
             amountString = Precise.stringSub(amountString, feeCostString);
@@ -4996,6 +5049,7 @@ public partial class gate : Exchange
         * @name gate#fetchOpenOrders
         * @description fetch all unfilled currently open orders
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
+        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -5022,6 +5076,7 @@ public partial class gate : Exchange
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -5029,13 +5084,51 @@ public partial class gate : Exchange
         * @param {bool} [params.stop] true for fetching stop orders
         * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+        * @param {boolean} [params.historical] *swap only* true for using historical endpoint
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByStatus("finished", symbol, since, limit, parameters);
+        await this.loadMarkets();
+        object until = this.safeInteger(parameters, "until");
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+        }
+        object res = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+        object type = this.safeString(res, 0);
+        object useHistorical = false;
+        var useHistoricalparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "historical", false);
+        useHistorical = ((IList<object>)useHistoricalparametersVariable)[0];
+        parameters = ((IList<object>)useHistoricalparametersVariable)[1];
+        if (isTrue(!isTrue(useHistorical) && isTrue((isTrue((isTrue(isEqual(since, null)) && isTrue(isEqual(until, null)))) || isTrue((!isEqual(type, "swap")))))))
+        {
+            return await this.fetchOrdersByStatus("finished", symbol, since, limit, parameters);
+        }
+        parameters = this.omit(parameters, "type");
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.prepareRequest(market, type, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.privateFuturesGetSettleOrdersTimerange(this.extend(request, parameters));
+        return this.parseOrders(response, market, since, limit);
     }
 
-    public virtual object fetchOrdersByStatusRequest(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public virtual object prepareOrdersByStatusRequest(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = null;
@@ -5046,13 +5139,15 @@ public partial class gate : Exchange
         }
         object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        var typequeryVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
-        var type = ((IList<object>) typequeryVariable)[0];
-        var query = ((IList<object>) typequeryVariable)[1];
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
-        var requestrequestParamsVariable = ((bool) isTrue(spot)) ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
-        var request = ((IList<object>) requestrequestParamsVariable)[0];
-        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = ((bool) isTrue(spot)) ? this.multiOrderSpotPrepareRequest(market, stop, parameters) : this.prepareRequest(market, type, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(isEqual(status, "closed")))
         {
             status = "finished";
@@ -5062,11 +5157,20 @@ public partial class gate : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (isTrue(isTrue(!isEqual(since, null)) && isTrue(spot)))
+        if (isTrue(spot))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            if (isTrue(!isEqual(since, null)))
+            {
+                ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            }
+            object until = this.safeInteger(parameters, "until");
+            if (isTrue(!isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+            }
         }
-        var lastIdfinalParamsVariable = this.handleParamString2(requestParams, "lastId", "last_id");
+        var lastIdfinalParamsVariable = this.handleParamString2(parameters, "lastId", "last_id");
         var lastId = ((IList<object>) lastIdfinalParamsVariable)[0];
         var finalParams = ((IList<object>) lastIdfinalParamsVariable)[1];
         if (isTrue(!isEqual(lastId, null)))
@@ -5091,7 +5195,7 @@ public partial class gate : Exchange
         object res = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
         object type = this.safeString(res, 0);
         ((IDictionary<string,object>)parameters)["type"] = type;
-        var requestrequestParamsVariable = this.fetchOrdersByStatusRequest(status, symbol, since, limit, parameters);
+        var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));

@@ -671,7 +671,7 @@ public partial class paradex : Exchange
             { "low", null },
             { "bid", this.safeString(ticker, "bid") },
             { "bidVolume", null },
-            { "ask", this.safeString(ticker, "sdk") },
+            { "ask", this.safeString(ticker, "ask") },
             { "askVolume", null },
             { "vwap", null },
             { "open", null },
@@ -683,6 +683,7 @@ public partial class paradex : Exchange
             { "average", null },
             { "baseVolume", null },
             { "quoteVolume", this.safeString(ticker, "volume_24h") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
             { "info", ticker },
         }, market);
     }

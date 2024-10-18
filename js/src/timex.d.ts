@@ -1,5 +1,5 @@
 import Exchange from './abstract/timex.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class timex
  * @augments Exchange
@@ -31,47 +31,13 @@ export default class timex extends Exchange {
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     parseMarket(market: Dict): Market;
-    parseCurrency(currency: Dict): {
-        id: string;
-        code: string;
-        info: Dict;
-        type: any;
-        name: string;
-        active: any;
-        deposit: any;
-        withdraw: any;
-        fee: any;
-        precision: number;
-        limits: {
-            withdraw: {
-                min: any;
-                max: any;
-            };
-            amount: {
-                min: any;
-                max: any;
-            };
-        };
-        networks: {};
-    };
+    parseCurrency(currency: Dict): Currency;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseTrade(trade: Dict, market?: Market): Trade;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseOrder(order: Dict, market?: Market): Order;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-        currency: string;
-        address: string;
-        tag: any;
-        network: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        info: any;
-        currency: string;
-        address: string;
-        tag: any;
-        network: any;
-    };
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

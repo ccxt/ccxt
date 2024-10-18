@@ -1242,6 +1242,7 @@ class vertex extends vertex$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRate(symbol, params = {}) {
@@ -1279,7 +1280,7 @@ class vertex extends vertex$1 {
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
          * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2945,6 +2946,17 @@ class vertex extends vertex$1 {
         else {
             if (Object.keys(params).length) {
                 url += '?' + this.urlencode(params);
+            }
+        }
+        if (path !== 'execute') {
+            // required encoding for public methods
+            if (headers !== undefined) {
+                headers['Accept-Encoding'] = 'gzip';
+            }
+            else {
+                headers = {
+                    'Accept-Encoding': 'gzip',
+                };
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

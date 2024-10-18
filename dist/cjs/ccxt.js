@@ -145,6 +145,7 @@ var blofin$1 = require('./src/pro/blofin.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
+var coinbaseadvanced$1 = require('./src/pro/coinbaseadvanced.js');
 var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
 var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
@@ -194,7 +195,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.4.3';
+const version = '4.4.20';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -332,6 +333,7 @@ const pro = {
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
+    'coinbaseadvanced': coinbaseadvanced$1,
     'coinbaseexchange': coinbaseexchange$1,
     'coinbaseinternational': coinbaseinternational$1,
     'coincheck': coincheck$1,

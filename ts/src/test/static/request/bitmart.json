@@ -262,6 +262,38 @@
                   }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"market\",\"size\":1,\"trigger_price\":\"55\",\"price_type\":1,\"price_way\":1,\"side\":1,\"open_type\":\"cross\",\"leverage\":\"1\"}"
+            },
+            {
+                "description": "swap stop loss order",
+                "method": "createOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-tp-sl-order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  50000,
+                  {
+                    "stopLossPrice": "51000"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"stop_loss\",\"size\":1,\"price_type\":1,\"executive_price\":\"50000\",\"trigger_price\":\"51000\",\"side\":3}"
+            },
+            {
+                "description": "swap take profit order",
+                "method": "createOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-tp-sl-order",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  70000,
+                  {
+                    "takeProfitPrice": "71000"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"take_profit\",\"size\":1,\"price_type\":1,\"executive_price\":\"70000\",\"trigger_price\":\"71000\",\"side\":3}"
             }
         ],
         "createOrders": [
@@ -651,6 +683,61 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit a stopLossPrice order",
+                "method": "editOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-tp-sl-order",
+                "input": [
+                  "3000023150003480",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  50000,
+                  {
+                    "stopLossPrice": "52000"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"3000023150003480\",\"price_type\":1,\"executive_price\":\"50000\",\"category\":\"limit\",\"trigger_price\":\"52000\"}"
+            },
+            {
+                "description": "edit a stopLoss order",
+                "method": "editOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-preset-plan-order",
+                "input": [
+                  "3000023150003496",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  50000,
+                  {
+                    "stopLoss": {
+                      "triggerPrice": "52000"
+                    }
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"3000023150003496\",\"preset_stop_loss_price_type\":1,\"preset_stop_loss_price\":\"52000\"}"
+            },
+            {
+                "description": "edit a triggerPrice order",
+                "method": "editOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-plan-order",
+                "input": [
+                  "3000023150003503",
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1,
+                  71000,
+                  {
+                    "triggerPrice": "70500"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"3000023150003503\",\"price_type\":1,\"executive_price\":\"71000\",\"type\":\"limit\",\"trigger_price\":\"70500\"}"
             }
         ]
     }

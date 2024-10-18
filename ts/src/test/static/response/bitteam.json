@@ -707,6 +707,8 @@
                     "average": null,
                     "baseVolume": 0.82951204,
                     "quoteVolume": 55936.2068016359,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "id": "22",
                         "name": "btc_usdt",

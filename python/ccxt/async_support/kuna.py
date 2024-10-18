@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kuna import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -58,6 +58,8 @@ class kuna(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
@@ -460,15 +462,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_currencies(data)
 
-    def parse_currencies(self, currencies, params={}):
-        currencies = self.to_array(currencies)
-        result: dict = {}
-        for i in range(0, len(currencies)):
-            currency = self.parse_currency(currencies[i])
-            result[currency['code']] = currency
-        return result
-
-    def parse_currency(self, currency: dict):
+    def parse_currency(self, currency: dict) -> Currency:
         #
         #    {
         #        "code": "BTC",
@@ -492,7 +486,7 @@ class kuna(Exchange, ImplicitAPI):
         currencyId = self.safe_string(currency, 'code')
         precision = self.safe_string(currency, 'precision')
         tradePrecision = self.safe_string(currency, 'tradePrecision')
-        return {
+        return self.safe_currency_structure({
             'info': currency,
             'id': currencyId,
             'code': self.safe_currency_code(currencyId),
@@ -503,7 +497,7 @@ class kuna(Exchange, ImplicitAPI):
             'deposit': None,
             'withdraw': None,
             'fee': None,
-            'precision': Precise.string_min(precision, tradePrecision),
+            'precision': self.parse_number(Precise.string_min(precision, tradePrecision)),
             'limits': {
                 'amount': {
                     'min': None,
@@ -515,7 +509,7 @@ class kuna(Exchange, ImplicitAPI):
                 },
             },
             'networks': {},
-        }
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1511,7 +1505,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.kuna.io/docs/find-crypto-address-for-deposit
@@ -1537,7 +1531,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        "id": "c52b6646-fb91-4760-b147-a4f952e8652c",             # ID of the address.

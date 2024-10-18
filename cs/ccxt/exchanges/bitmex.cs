@@ -44,7 +44,7 @@ public partial class bitmex : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
-                { "fetchFundingRate", false },
+                { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -1530,6 +1530,7 @@ public partial class bitmex : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "homeNotional24h") },
             { "quoteVolume", this.safeString(ticker, "foreignNotional24h") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }
@@ -2672,7 +2673,7 @@ public partial class bitmex : Exchange
         * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2711,7 +2712,7 @@ public partial class bitmex : Exchange
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
-            { "fundingTimestamp", this.iso8601(fundingDatetime) },
+            { "fundingTimestamp", this.parseToNumeric(this.iso8601(fundingDatetime)) },
             { "fundingDatetime", fundingDatetime },
             { "nextFundingRate", this.safeNumber(contract, "indicativeFundingRate") },
             { "nextFundingTimestamp", null },
@@ -2719,6 +2720,7 @@ public partial class bitmex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -2922,11 +2924,11 @@ public partial class bitmex : Exchange
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", ((string)((string)response).Replace((string)"\"", (string)"")).Replace((string)"\"", (string)"") },
             { "tag", null },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 

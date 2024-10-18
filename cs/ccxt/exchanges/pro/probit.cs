@@ -480,7 +480,8 @@ public partial class probit : ccxt.probit
             filters = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
             if (!isTrue((inOp(filters, filter))))
             {
-
+                // resubscribe
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscriptionHash);
             }
         }
         ((IDictionary<string,object>)filters)[(string)filter] = true;
@@ -592,7 +593,7 @@ public partial class probit : ccxt.probit
         } else
         {
             ((Future)future).reject(message);
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
         }
     }
 

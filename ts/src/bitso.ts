@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadReq
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -47,6 +47,7 @@ export default class bitso extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -117,6 +118,12 @@ export default class bitso extends Exchange {
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'networks': {
+                    'TRC20': 'trx',
+                    'ERC20': 'erc20',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bep2',
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -1334,7 +1341,7 @@ export default class bitso extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit, params);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bitso#fetchDepositAddress
@@ -1358,12 +1365,12 @@ export default class bitso extends Exchange {
         }
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async fetchTransactionFees (codes: Strings = undefined, params = {}) {
@@ -1658,20 +1665,6 @@ export default class bitso extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
-    safeNetwork (networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        }
-        networkId = networkId.toUpperCase ();
-        const networksById: Dict = {
-            'trx': 'TRC20',
-            'erc20': 'ERC20',
-            'bsc': 'BEP20',
-            'bep2': 'BEP2',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // deposit
@@ -1718,12 +1711,14 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2 (transaction, 'network', 'method');
         const status = this.safeString (transaction, 'status');
         const withdrawId = this.safeString (transaction, 'wid');
+        const networkCode = this.networkIdToCode (networkId);
+        const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
         return {
             'id': this.safeString2 (transaction, 'wid', 'fid'),
             'txid': this.safeString (details, 'tx_hash'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'network': this.safeNetwork (networkId),
+            'network': networkCodeUpper,
             'addressFrom': receivingAddress,
             'address': (withdrawalAddress !== undefined) ? withdrawalAddress : receivingAddress,
             'addressTo': withdrawalAddress,

@@ -2158,6 +2158,10 @@ public partial class hyperliquid : Exchange
         object statuses = new Dictionary<string, object>() {
             { "triggered", "open" },
             { "filled", "closed" },
+            { "open", "open" },
+            { "canceled", "canceled" },
+            { "rejected", "rejected" },
+            { "marginCanceled", "canceled" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -2219,6 +2223,7 @@ public partial class hyperliquid : Exchange
         //             "crossed": true,
         //             "dir": "Close Long",
         //             "fee": "0.050062",
+        //             "feeToken": "USDC",
         //             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
         //             "liquidationMarkPx": null,
         //             "oid": 3929354691,
@@ -2283,7 +2288,8 @@ public partial class hyperliquid : Exchange
             { "cost", null },
             { "fee", new Dictionary<string, object>() {
                 { "cost", fee },
-                { "currency", "USDC" },
+                { "currency", this.safeString(trade, "feeToken") },
+                { "rate", null },
             } },
         }, market);
     }
@@ -2417,12 +2423,13 @@ public partial class hyperliquid : Exchange
         market = this.safeMarket(marketId, null);
         object symbol = getValue(market, "symbol");
         object leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
-        object isIsolated = (isEqual(this.safeString(leverage, "type"), "isolated"));
-        object quantity = this.safeNumber(leverage, "rawUsd");
+        object marginMode = this.safeString(leverage, "type");
+        object isIsolated = (isEqual(marginMode, "isolated"));
+        object size = this.safeNumber(entry, "szi");
         object side = null;
-        if (isTrue(!isEqual(quantity, null)))
+        if (isTrue(!isEqual(size, null)))
         {
-            side = ((bool) isTrue((isGreaterThan(quantity, 0)))) ? "short" : "long";
+            side = ((bool) isTrue((isGreaterThan(size, 0)))) ? "long" : "short";
         }
         object unrealizedPnl = this.safeNumber(entry, "unrealizedPnl");
         object initialMargin = this.safeNumber(entry, "marginUsed");
@@ -2436,20 +2443,20 @@ public partial class hyperliquid : Exchange
             { "isolated", isIsolated },
             { "hedged", null },
             { "side", side },
-            { "contracts", this.safeNumber(entry, "szi") },
+            { "contracts", size },
             { "contractSize", null },
             { "entryPrice", this.safeNumber(entry, "entryPx") },
             { "markPrice", null },
             { "notional", this.safeNumber(entry, "positionValue") },
             { "leverage", this.safeNumber(leverage, "value") },
-            { "collateral", null },
+            { "collateral", this.safeNumber(entry, "marginUsed") },
             { "initialMargin", initialMargin },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
             { "unrealizedPnl", unrealizedPnl },
             { "liquidationPrice", this.safeNumber(entry, "liquidationPx") },
-            { "marginMode", null },
+            { "marginMode", marginMode },
             { "percentage", percentage },
         });
     }
@@ -3245,7 +3252,7 @@ public partial class hyperliquid : Exchange
         {
             return new List<object>() {this.walletAddress, parameters};
         }
-        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside \'params\' or the wallet address set")) ;
+        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside 'params' or the wallet address set")) ;
     }
 
     public virtual object coinToMarketId(object coin)

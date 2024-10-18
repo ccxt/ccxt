@@ -49,6 +49,7 @@ class bitso extends Exchange {
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -119,6 +120,12 @@ class bitso extends Exchange {
                     'TUSD' => 0.01,
                 ),
                 'defaultPrecision' => 0.00000001,
+                'networks' => array(
+                    'TRC20' => 'trx',
+                    'ERC20' => 'erc20',
+                    'BEP20' => 'bsc',
+                    'BEP2' => 'bep2',
+                ),
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -1336,7 +1343,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1359,11 +1366,11 @@ class bitso extends Exchange {
             }
             $this->check_address($address);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => null,
                 'address' => $address,
                 'tag' => $tag,
-                'network' => null,
-                'info' => $response,
             );
         }) ();
     }
@@ -1660,20 +1667,6 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function safe_network($networkId) {
-        if ($networkId === null) {
-            return null;
-        }
-        $networkId = strtoupper($networkId);
-        $networksById = array(
-            'trx' => 'TRC20',
-            'erc20' => 'ERC20',
-            'bsc' => 'BEP20',
-            'bep2' => 'BEP2',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
-    }
-
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // deposit
@@ -1720,12 +1713,14 @@ class bitso extends Exchange {
         $networkId = $this->safe_string_2($transaction, 'network', 'method');
         $status = $this->safe_string($transaction, 'status');
         $withdrawId = $this->safe_string($transaction, 'wid');
+        $networkCode = $this->network_id_to_code($networkId);
+        $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
         return array(
             'id' => $this->safe_string_2($transaction, 'wid', 'fid'),
             'txid' => $this->safe_string($details, 'tx_hash'),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'network' => $this->safe_network($networkId),
+            'network' => $networkCodeUpper,
             'addressFrom' => $receivingAddress,
             'address' => ($withdrawalAddress !== null) ? $withdrawalAddress : $receivingAddress,
             'addressTo' => $withdrawalAddress,

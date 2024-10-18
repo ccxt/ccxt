@@ -1879,6 +1879,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         statuses: dict = {
             'triggered': 'open',
             'filled': 'closed',
+            'open': 'open',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'marginCanceled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1926,6 +1930,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #             "crossed": True,
         #             "dir": "Close Long",
         #             "fee": "0.050062",
+        #             "feeToken": "USDC",
         #             "hash": "0x09d77c96791e98b5775a04092584ab010d009445119c71e4005c0d634ea322bc",
         #             "liquidationMarkPx": null,
         #             "oid": 3929354691,
@@ -1984,7 +1989,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             'price': price,
             'amount': amount,
             'cost': None,
-            'fee': {'cost': fee, 'currency': 'USDC'},
+            'fee': {
+                'cost': fee,
+                'currency': self.safe_string(trade, 'feeToken'),
+                'rate': None,
+            },
         }, market)
 
     def fetch_position(self, symbol: str, params={}):
@@ -2101,11 +2110,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, None)
         symbol = market['symbol']
         leverage = self.safe_dict(entry, 'leverage', {})
-        isIsolated = (self.safe_string(leverage, 'type') == 'isolated')
-        quantity = self.safe_number(leverage, 'rawUsd')
+        marginMode = self.safe_string(leverage, 'type')
+        isIsolated = (marginMode == 'isolated')
+        size = self.safe_number(entry, 'szi')
         side = None
-        if quantity is not None:
-            side = 'short' if (quantity > 0) else 'long'
+        if size is not None:
+            side = 'long' if (size > 0) else 'short'
         unrealizedPnl = self.safe_number(entry, 'unrealizedPnl')
         initialMargin = self.safe_number(entry, 'marginUsed')
         percentage = unrealizedPnl / initialMargin * 100
@@ -2118,20 +2128,20 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isolated': isIsolated,
             'hedged': None,
             'side': side,
-            'contracts': self.safe_number(entry, 'szi'),
+            'contracts': size,
             'contractSize': None,
             'entryPrice': self.safe_number(entry, 'entryPx'),
             'markPrice': None,
             'notional': self.safe_number(entry, 'positionValue'),
             'leverage': self.safe_number(leverage, 'value'),
-            'collateral': None,
+            'collateral': self.safe_number(entry, 'marginUsed'),
             'initialMargin': initialMargin,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
             'unrealizedPnl': unrealizedPnl,
             'liquidationPrice': self.safe_number(entry, 'liquidationPx'),
-            'marginMode': None,
+            'marginMode': marginMode,
             'percentage': percentage,
         })
 

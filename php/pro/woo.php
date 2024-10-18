@@ -25,6 +25,7 @@ class woo extends \ccxt\async\woo {
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
                 'watchPositions' => true,
@@ -418,6 +419,80 @@ class woo extends \ccxt\async\woo {
             $result[] = $ticker;
         }
         $client->resolve ($result, $topic);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://docs.woox.io/#bbos
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $name = 'bbos';
+            $topic = $name;
+            $request = array(
+                'event' => 'subscribe',
+                'topic' => $topic,
+            );
+            $message = $this->extend($request, $params);
+            $tickers = Async\await($this->watch_public($topic, $message));
+            if ($this->newUpdates) {
+                return $tickers;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        //
+        //     {
+        //         "topic" => "bbos",
+        //         "ts" => 1618822376000,
+        //         "data" => array(
+        //             {
+        //                 "symbol" => "SPOT_FIL_USDT",
+        //                 "ask" => 159.0318,
+        //                 "askSize" => 370.43,
+        //                 "bid" => 158.9158,
+        //                 "bidSize" => 16
+        //             }
+        //         )
+        //     }
+        //
+        $topic = $this->safe_string($message, 'topic');
+        $data = $this->safe_list($message, 'data', array());
+        $timestamp = $this->safe_integer($message, 'ts');
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $ticker = $this->safe_dict($data, $i);
+            $ticker['ts'] = $timestamp;
+            $parsedTicker = $this->parse_ws_bid_ask($ticker);
+            $symbol = $parsedTicker['symbol'];
+            $this->bidsasks[$symbol] = $parsedTicker;
+            $result[$symbol] = $parsedTicker;
+        }
+        $client->resolve ($result, $topic);
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 'ts');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'askSize'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bidSize'),
+            'info' => $ticker,
+        ), $market);
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -1224,6 +1299,7 @@ class woo extends \ccxt\async\woo {
             'trade' => array($this, 'handle_trade'),
             'balance' => array($this, 'handle_balance'),
             'position' => array($this, 'handle_positions'),
+            'bbos' => array($this, 'handle_bid_ask'),
         );
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);

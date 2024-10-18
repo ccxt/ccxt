@@ -20,7 +20,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
                 { "watchOrders", true },
-                { "watchTicker", false },
+                { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", false },
@@ -255,6 +255,24 @@ public partial class hyperliquid : ccxt.hyperliquid
         (orderbook as IOrderBook).reset(snapshot);
         object messageHash = add("orderbook:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+    }
+
+    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#watchTicker
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
+        return getValue(tickers, symbol);
     }
 
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
@@ -941,7 +959,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
     }
 
@@ -956,7 +974,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.trades, symbol)))
         {
-
+            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
         }
     }
 
@@ -969,7 +987,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-
+            ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, i));
         }
     }
 
@@ -987,7 +1005,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
             {
-
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
             }
         }
     }

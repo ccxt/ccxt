@@ -199,6 +199,39 @@
                   }
                 ],
                 "output": "nonce=1723192431526&pair=LTCUSDT&type=buy&ordertype=limit&volume=0.5&price=20&oflags=fcib"
+            },
+            {
+                "description": "trailing percent order",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "market",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": 5
+                  }
+                ],
+                "output": "{\"nonce\":\"1727779183078\",\"pair\":\"XXBTZUSD\",\"type\":\"buy\",\"ordertype\":\"trailing-stop\",\"volume\":\"0.0001\",\"trigger\":\"last\",\"price\":\"+5%\"}"
+            },
+            {
+                "description": "trailing limit percent order",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
+                  "BTC/USD",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  null,
+                  {
+                    "trailingPercent": 5,
+                    "trailingLimitPercent": 4
+                  }
+                ],
+                "output": "{\"nonce\":\"1727849333383\",\"pair\":\"XXBTZUSD\",\"type\":\"buy\",\"ordertype\":\"trailing-stop-limit\",\"volume\":\"0.0001\",\"trigger\":\"last\",\"price\":\"+5%\",\"price2\":\"-4%\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [

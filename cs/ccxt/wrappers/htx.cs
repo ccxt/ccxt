@@ -6,6 +6,25 @@ namespace ccxt;
 
 public partial class htx
 {
+    /// <summary>
+    /// the latest known information on the availability of the exchange API
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
@@ -15,6 +34,8 @@ public partial class htx
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -34,6 +55,7 @@ public partial class htx
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -54,6 +76,21 @@ public partial class htx
         var res = await this.fetchTradingLimits(symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// undefined
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the limits object of a market structure.</returns>
     public async Task<Dictionary<string, object>> FetchTradingLimitsById(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingLimitsById(id, parameters);
@@ -87,6 +124,10 @@ public partial class htx
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -151,6 +192,10 @@ public partial class htx
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -177,6 +222,7 @@ public partial class htx
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -350,6 +396,7 @@ public partial class htx
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -406,6 +453,12 @@ public partial class htx
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1023,10 +1076,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -1043,10 +1096,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, object note = null, object networkCode = null, Dictionary<string, object> parameters = null)
     {
@@ -1091,6 +1144,7 @@ public partial class htx
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-for-existed-withdraws-and-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1182,6 +1236,7 @@ public partial class htx
     /// fetch the borrow interest rates of all currencies
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1242,6 +1297,8 @@ public partial class htx
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1252,15 +1309,17 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1270,16 +1329,18 @@ public partial class htx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetch the interest owed by the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1349,6 +1410,10 @@ public partial class htx
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1368,6 +1433,10 @@ public partial class htx
     /// fetch all open positions
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1405,6 +1474,10 @@ public partial class htx
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1584,6 +1657,9 @@ public partial class htx
     /// Fetches historical settlement records
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

@@ -1365,8 +1365,8 @@ public partial class indodax : Exchange
                 ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                     { "info", new Dictionary<string, object>() {} },
                     { "currency", code },
-                    { "address", address },
                     { "network", network },
+                    { "address", address },
                     { "tag", null },
                 };
             }

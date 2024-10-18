@@ -28,10 +28,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "currency": "USDT",
-                    "address": "ZXXfdfd",
-                    "tag": null,
-                    "network": "TRC20",
                     "info": {
                         "code": "0",
                         "data": {
@@ -45,7 +41,11 @@
                                 }
                             ]
                         }
-                    }
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "ZXXfdfd",
+                    "tag": null
                 }
             }
         ],
@@ -325,6 +325,8 @@
                     "average": 72619.59,
                     "baseVolume": 999.01458,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTC/USDT",
                         "open": "71865",
@@ -519,6 +521,8 @@
                         "average": 63664.55,
                         "baseVolume": null,
                         "quoteVolume": null,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "symbol": "BTC-PERP",
                             "open": "64152.2",
@@ -556,6 +560,8 @@
                         "average": 2719.54,
                         "baseVolume": null,
                         "quoteVolume": null,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "symbol": "ETH-PERP",
                             "open": "2764.76",
@@ -626,7 +632,8 @@
                     "nextFundingDatetime": null,
                     "fundingRate": 0.00034,
                     "fundingTimestamp": 1721376000000,
-                    "fundingDatetime": "2024-07-19T08:00:00.000Z"
+                    "fundingDatetime": "2024-07-19T08:00:00.000Z",
+                    "interval": null
                 }
             }
         ],
@@ -830,7 +837,8 @@
                         "nextFundingDatetime": null,
                         "fundingRate": 0.00034,
                         "fundingTimestamp": 1721376000000,
-                        "fundingDatetime": "2024-07-19T08:00:00.000Z"
+                        "fundingDatetime": "2024-07-19T08:00:00.000Z",
+                        "interval": null
                     }
                 }
             }

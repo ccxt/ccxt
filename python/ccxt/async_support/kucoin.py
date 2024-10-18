@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -79,6 +79,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': True,
@@ -98,6 +99,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrice': True,
+                'fetchMarkPrices': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': False,
@@ -643,6 +646,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'WAX': 'WAXP',
                 'ALT': 'APTOSLAUNCHTOKEN',
                 'KALT': 'ALT',  # ALTLAYER
+                'FUD': 'FTX Users\' Debt',
             },
             'options': {
                 'hf': False,
@@ -778,7 +782,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'hf': 'trade_hf',
                 },
                 'networks': {
-                    'BTC': 'btc',
+                    'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
                     'ERC20': 'eth',
                     'TRC20': 'trx',
@@ -1344,7 +1348,7 @@ class kucoin(Exchange, ImplicitAPI):
             for j in range(0, chainsLength):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chainId')
-                networkCode = self.network_id_to_code(chainId)
+                networkCode = self.network_id_to_code(chainId, code)
                 chainWithdrawEnabled = self.safe_bool(chain, 'isWithdrawEnabled', False)
                 if isWithdrawEnabled is None:
                     isWithdrawEnabled = chainWithdrawEnabled
@@ -1643,7 +1647,7 @@ class kucoin(Exchange, ImplicitAPI):
         symbol = market['symbol']
         baseVolume = self.safe_string(ticker, 'vol')
         quoteVolume = self.safe_string(ticker, 'volValue')
-        timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
+        timestamp = self.safe_integer_n(ticker, ['time', 'datetime', 'timePoint'])
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1664,6 +1668,7 @@ class kucoin(Exchange, ImplicitAPI):
             'average': self.safe_string(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': self.safe_string(ticker, 'value'),
             'info': ticker,
         }, market)
 
@@ -1718,6 +1723,20 @@ class kucoin(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
+    async def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches the mark price for multiple markets
+        :see: https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = await self.publicGetMarkPriceAllSymbols(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_tickers(data)
+
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -1754,6 +1773,24 @@ class kucoin(Exchange, ImplicitAPI):
         #             "makerCoefficient": "1"  # Maker Fee Coefficient
         #         }
         #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_ticker(data, market)
+
+    async def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches the mark price for a specific market
+        :see: https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetMarkPriceSymbolCurrent(self.extend(request, params))
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
@@ -1856,7 +1893,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.kucoin.com/#get-deposit-addresses-v2
@@ -1888,7 +1925,7 @@ class kucoin(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again')
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if address is not None:
@@ -1902,12 +1939,12 @@ class kucoin(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': code,
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain')),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
-            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain')),
         }
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         :see: https://docs.kucoin.com/#get-deposit-addresses-v2
         fetch the deposit address for a currency associated with self account
@@ -4688,7 +4725,7 @@ class kucoin(Exchange, ImplicitAPI):
         headers = headers if (headers is not None) else {}
         url = self.urls['api'][api]
         if not self.is_empty(query):
-            if (method == 'GET') or (method == 'DELETE'):
+            if ((method == 'GET') or (method == 'DELETE')) and (path != 'orders/multi-cancel'):
                 endpoint += '?' + self.rawencode(query)
             else:
                 body = self.json(query)

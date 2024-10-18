@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -48,6 +48,7 @@ export default class cex extends Exchange {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1602,7 +1603,7 @@ export default class cex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name cex#fetchDepositAddress
@@ -1648,12 +1649,12 @@ export default class cex extends Exchange {
         const address = this.safeString2 (addressObject, 'address', 'destination');
         this.checkAddress (address);
         return {
+            'info': data,
             'currency': code,
+            'network': this.networkIdToCode (selectedNetworkId),
             'address': address,
             'tag': this.safeString2 (addressObject, 'destinationTag', 'memo'),
-            'network': this.networkIdToCode (selectedNetworkId),
-            'info': data,
-        };
+        } as DepositAddress;
     }
 
     nonce () {
