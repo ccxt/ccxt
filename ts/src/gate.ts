@@ -633,7 +633,7 @@ export default class gate extends Exchange {
             },
             'options': {
                 'sandboxMode': false,
-                'unifiedAccount': undefined,
+                'enableUnifiedAccount': undefined,
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
@@ -895,6 +895,40 @@ export default class gate extends Exchange {
     setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
+    }
+
+    async isUnifiedEnabled (params = {}) {
+        /**
+         * @method
+         * @name gate#isUnifiedEnabled
+         * @description returns enableUnifiedAccount so the user can check if the unified account is enabled
+         * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
+         * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the enableUnifiedAccount option if it is undefined
+         */
+        const enableUnifiedAccount = this.safeBool (this.options, 'enableUnifiedAccount');
+        if (enableUnifiedAccount === undefined) {
+            const response = await this.privateAccountGetDetail (params);
+            //
+            //     {
+            //         "user_id": 10406147,
+            //         "ip_whitelist": [],
+            //         "currency_pairs": [],
+            //         "key": {
+            //             "mode": 1
+            //         },
+            //         "tier": 0,
+            //         "tier_expire_time": "0001-01-01T00:00:00Z",
+            //         "copy_trading_role": 0
+            //     }
+            //
+            const result = this.safeDict (response, 'key', {});
+            this.options['enableUnifiedAccount'] = this.safeInteger (result, 'mode') === 2;
+        }
+        return this.options['enableUnifiedAccount'];
+    }
+
+    async upgradeUnifiedTradeAccount (params = {}) {
+        return await this.privateUnifiedPutUnifiedMode (params);
     }
 
     createExpiredOptionMarket (symbol: string) {
@@ -2705,6 +2739,7 @@ export default class gate extends Exchange {
         params = this.omit (params, 'symbol');
         let isUnifiedAccount = false;
         [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'unifiedAccount');
+        const isUnifiedAccountEnabled = await this.isUnifiedEnabled ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const [ marginMode, requestQuery ] = this.getMarginMode (false, requestParams);
@@ -2713,7 +2748,7 @@ export default class gate extends Exchange {
             request['currency_pair'] = market['id'];
         }
         let response = undefined;
-        if (isUnifiedAccount) {
+        if (isUnifiedAccount || isUnifiedAccountEnabled) {
             response = await this.privateUnifiedGetAccounts (this.extend (request, params));
         } else if (type === 'spot') {
             if (marginMode === 'spot') {
