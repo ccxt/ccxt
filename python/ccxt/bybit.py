@@ -384,6 +384,7 @@ class bybit(Exchange, ImplicitAPI):
                         # spot leverage token
                         'v5/spot-lever-token/order-record': 1,  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
+                        'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1

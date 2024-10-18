@@ -335,6 +335,7 @@ public partial class bybit : Exchange
                         { "v5/user/del-submember", 5 },
                         { "v5/user/submembers", 5 },
                         { "v5/spot-lever-token/order-record", 1 },
+                        { "v5/spot-margin-trade/interest-rate-history", 5 },
                         { "v5/spot-margin-trade/state", 5 },
                         { "v5/spot-cross-margin-trade/loan-info", 1 },
                         { "v5/spot-cross-margin-trade/account", 1 },
