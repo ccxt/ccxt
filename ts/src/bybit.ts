@@ -376,7 +376,6 @@ export default class bybit extends Exchange {
                         'v5/spot-cross-margin-trade/account': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history': 1, // 50/s => cost = 50 / 50 = 1
-                        'v5/spot-margin-trade/interest-rate-history': 1,
                         // institutional lending
                         'v5/ins-loan/product-infos': 5,
                         'v5/ins-loan/ensure-tokens-convert': 5,
