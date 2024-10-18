@@ -1,8 +1,11 @@
 namespace ccxt;
+using System;
 using System.Security.Cryptography;
 using System.Text;
 
 using Cryptography.ECDSA;
+using System.Numerics;
+using System.Globalization;
 
 using MiniMessagePack;
 
@@ -102,10 +105,37 @@ public partial class Exchange
         return (string)a; // stub
     }
 
-    public object numberToBE(object n, object padding = null)
+    public byte[] hexToBytes(string hex) {
+        if (hex == null) throw new ArgumentNullException(nameof(hex));
+        if (hex.Length % 2 != 0) throw new ArgumentException("Hex string is invalid: unpadded.", nameof(hex));
+        byte[] array = new byte[hex.Length / 2];
+        for (int i = 0; i < array.Length; i++) {
+            int j = i * 2;
+            string hexByte = hex.Substring(j, 2);
+            byte b = Convert.ToByte(hexByte, 16);
+            array[i] = b;
+        }
+        return array;
+    }
+
+    public byte[] numberToBytesBE(BigInteger n, int len)
     {
-        // implement number to big endian
-        return (string)n; // stub
+        return hexToBytes(n.ToString("X").PadLeft(len * 2, '0'));
+    }
+
+    public byte[] numberToBytesLE(BigInteger n, int len)
+    {
+        return numberToBytesBE(n, len).Reverse().ToArray();
+    }
+
+    public byte[] numberToLE(object n, int padding)
+    {
+        return numberToBytesLE(new BigInteger((long)n), padding);
+    }
+
+    public byte[] numberToBE(object n, int padding)
+    {
+        return numberToBytesBE(new BigInteger((long)n), padding);
     }
 
     public static string binaryToHex(byte[] buff)
