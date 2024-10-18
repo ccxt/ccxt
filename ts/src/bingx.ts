@@ -4993,6 +4993,9 @@ export default class bingx extends Exchange {
         if (network !== undefined) {
             request['network'] = this.networkCodeToId (network);
         }
+        if (tag !== undefined) {
+            request['addressTag'] = tag;
+        }
         params = this.omit (params, [ 'walletType', 'network' ]);
         const response = await this.walletsV1PrivatePostCapitalWithdrawApply (this.extend (request, params));
         const data = this.safeValue (response, 'data');
