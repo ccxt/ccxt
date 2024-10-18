@@ -2821,6 +2821,47 @@
                   "fee": null
                 }
             }
+        ],
+        "fetchBorrowRateHistory":[
+            {
+                "description": "fetchBorrowRateHistory",
+                "method": "fetchBorrowRateHistory",
+                "input": [
+                  "USDT",
+                  1729241283000
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "list": [
+                      {
+                        "timestamp": "1729242000000",
+                        "currency": "USDT",
+                        "hourlyBorrowRate": "0.000003199144",
+                        "vipLevel": "No VIP"
+                      },
+                      {
+                        "timestamp": "1729238400000",
+                        "currency": "USDT",
+                        "hourlyBorrowRate": "0.000003140500",
+                        "vipLevel": "No VIP"
+                      }
+                    ]
+                  },
+                  "retExtInfo": "{}",
+                  "time": "1729244919978"
+                },
+                "parsedResponse": [
+                  {
+                    "currency": "USDT",
+                    "rate": 0.000003199144,
+                    "period": 3600000,
+                    "timestamp": 1729242000000,
+                    "datetime": "2024-10-18T09:00:00.000Z"
+                  }
+                ]
+            }
         ]
     }
 }
