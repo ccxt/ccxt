@@ -3089,7 +3089,7 @@ export default class kucoin extends Exchange {
             },
             'status': status,
             'lastTradeTimestamp': undefined,
-            'average': undefined,
+            'average': this.safeString (order, 'avgDealPrice'),
             'trades': undefined,
         }, market);
     }
