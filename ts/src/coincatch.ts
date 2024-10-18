@@ -2,11 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coincatch.js';
-import { ArgumentsRequired, BadRequest, BadSymbol, InvalidOrder, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DDoSProtection, ExchangeError, InvalidNonce, InsufficientFunds, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, DepositAddress, Dict, FundingRate, FundingRateHistory, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -357,21 +357,56 @@ export default class coincatch extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    // {"code":"40034","msg":"Parameter BTCUSDT_UMCBL does not exist","requestTime":1725380736387,"data":null}
-                    // {"code":"40808","msg":"Parameter verification exception size checkBDScale error value=0.00001 checkScale=4","requestTime":1725916628171,"data":null}
-                    // {"code":"45110","msg":"less than the minimum amount 1 USDT","requestTime":1726152020258,"data":null}
-                    // {"code":"40019","msg":"Parameter side cannot be empty","requestTime":1726160656036,"data":null}
+                    '22001': OrderNotFound, // No order to cancel
+                    '429': DDoSProtection, // Request is too frequent
+                    '40001': AuthenticationError, // The request header "ACCESS_KEY" cannot be empty
+                    '40002': AuthenticationError, // The request header "ACCESS_SIGN" cannot be empty
+                    '40003': AuthenticationError, // The request header "ACCESS_TIMESTAMP" cannot be empty
+                    '40005': InvalidNonce, // Invalid ACCESS_TIMESTAMP
+                    '40006': AuthenticationError, // Invalid ACCESS_KEY
+                    '40007': BadRequest, // Invalid Content_Type，please use“application/json”format
+                    '40008': InvalidNonce, // Request timestamp expired
+                    '40009': AuthenticationError, // api verification failed
+                    '40011': AuthenticationError, // The request header "ACCESS_PASSPHRASE" cannot be empty
+                    '40012': AuthenticationError, // apikey/passphrase is incorrect
+                    '40013': ExchangeError, // User has been frozen
+                    '40014': PermissionDenied, // Incorrect permissions
+                    '40015': ExchangeError, // System error
+                    '40016': PermissionDenied, // The user must bind a mobile phone or Google authenticator
+                    '40017': ExchangeError, // Parameter verification failed
+                    '40018': PermissionDenied, // Illegal IP request
+                    '40019': BadRequest, // Parameter {0} cannot be empty
+                    '40020': BadRequest, // Parameter orderIds or clientOids error
+                    '40034': BadRequest, // Parameter {0} does not exist
+                    '400172': BadRequest, // symbol cannot be empty
+                    '40912': BadRequest, // Batch processing orders can only process up to 50
+                    '40913': BadRequest, // orderId or clientOrderId must be passed one
+                    '40102': BadRequest, // The contract configuration does not exist, please check the parameters
+                    '40200': OnMaintenance, // Server upgrade, please try again later
+                    '40305': BadRequest, // client_oid length is not greater than 40, and cannot be Martian characters
+                    '40409': ExchangeError, // wrong format
+                    '40704': ExchangeError, // Only check the data of the last three months
+                    '40724': BadRequest, // Parameter is empty
+                    '40725': ExchangeError, // spot service return an error
+                    '40762': InsufficientFunds, // The order amount exceeds the balance
+                    '40774': BadRequest, // The order type for unilateral position must also be the unilateral position type.
+                    '40808': BadRequest, // Parameter verification exception {0}
+                    '43001': OrderNotFound, // The order does not exist
+                    '43002': InvalidOrder, // Pending order failed
+                    '43004': OrderNotFound, // There is no order to cancel
+                    '43005': RateLimitExceeded, // Exceeded the maximum order limit of transaction volume
+                    '43006': BadRequest, // The order quantity is less than the minimum transaction quantity
+                    '43007': BadRequest, // The order quantity is greater than the maximum transaction quantity
+                    '43008': BadRequest, // The current order price cannot be less than {0}
+                    '43009': BadRequest, // The current commission price exceeds the limit {0}
+                    '43010': BadRequest, // The transaction amount cannot be less than {0}
+                    '43011': BadRequest, // The current order price cannot be less than {0}
+                    '43117': InsufficientFunds, // Exceeds the maximum amount that can be transferred
+                    '43118': BadRequest, // clientOrderId duplicate
+                    '43122': BadRequest, // The purchase limit of this currency is {0}, and there is still {1} left
+                    '45006': InsufficientFunds, // Insufficient position
+                    '45110': BadRequest, // less than the minimum amount {0} {1}
                     // {"code":"40913","msg":"orderId or clientOrderId must be passed one","requestTime":1726160988275,"data":null}
-                    // {"code":"40019","msg":"Parameter spotCancelBatchOrderDTO cannot be empty","requestTime":1726490870921,"data":null}
-                    // {"code":"400172","msg":"symbol cannot be empty","requestTime":1726491190749,"data":null}
-                    // {"code":"43117","msg":"Exceeds the maximum amount that can be transferred","requestTime":1726665370746,"data":null}
-                    // {"code":"45006","msg":"Insufficient position","requestTime":1726750130410,"data":null}
-                    // {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1726919166747,"data":null}
-                    // {"code":"40762","msg":"The order amount exceeds the balance","requestTime":1726935546610,"data":null}
-                    // {"code":"40019","msg":"Parameter startTime cannot be empty","requestTime":1727968771287,"data":null}
-                    // {"code":"40020","msg":"Parameter orderIds or clientOids error","requestTime":1729101703824,"data":null}
-                    // {"code":"40808","msg":"Parameter verification exception margin mode == FIXED","requestTime":1729160569067,"data":null}
-                    // {"code":"22001","msg":"No order to cancel","requestTime":1729177061422,"data":null}
                 },
                 'broad': {},
             },
@@ -5203,6 +5238,23 @@ export default class coincatch extends Exchange {
             'burst_short_loss_query': 'trade', // todo check
         };
         return this.safeString (types, type, type);
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        const message = this.safeString (response, 'msg');
+        const feedback = this.id + ' ' + body;
+        const nonEmptyMessage = ((message !== undefined) && (message !== '') && (message !== 'success'));
+        if (nonEmptyMessage) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+        }
+        if (nonEmptyMessage) {
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
