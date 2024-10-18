@@ -14,7 +14,7 @@ interface Exchange {
     v1PublicGetSymbolsSymbolTrades (params?: {}): Promise<implicitReturnType>;
     v1PublicGetSymbolsSymbolPrices (params?: {}): Promise<implicitReturnType>;
     v1PublicGetSymbolsSymbolTicker24hr (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetSymbolsSymbolDepth5001 (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetSymbolsSymbolDepthLevelSlab (params?: {}): Promise<implicitReturnType>;
     v1PublicGetTicker24HrAgg (params?: {}): Promise<implicitReturnType>;
     v1PublicGetCMarkets (params?: {}): Promise<implicitReturnType>;
     v1PublicGetCMarketsMetadata (params?: {}): Promise<implicitReturnType>;

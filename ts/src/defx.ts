@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported } from './base/errors.js';
-import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV, Trade } from './base/types.js';
+import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV, Trade, OrderBook } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -164,7 +164,7 @@ export default class defx extends Exchange {
                             'symbols/{symbol}/trades': 1,
                             'symbols/{symbol}/prices': 1,
                             'symbols/{symbol}/ticker/24hr': 1,
-                            'symbols/{symbol}/depth/5/0.01': 1,
+                            'symbols/{symbol}/depth/{level}/{slab}': 1,
                             'ticker/24HrAgg': 1,
                             'c/markets': 1,
                             'c/markets/metadata': 1,
@@ -854,6 +854,54 @@ export default class defx extends Exchange {
             'fee': undefined,
             'info': trade,
         }, market);
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name defx#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://api-docs.defx.com/#6c1a2971-8325-4e7d-9962-e0bfcaacf9c4
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.slab] slab from market.info.depthSlabs
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 10;
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'level': limit,
+            'slab': 1,
+        };
+        const response = await this.v1PublicGetSymbolsSymbolDepthLevelSlab (this.extend (request, params));
+        //
+        // {
+        //     "symbol": "ETH_USDC",
+        //     "level": "5",
+        //     "slab": "1",
+        //     "lastTradeTimestamp": "1708313446812",
+        //     "timestamp": "1708313446812",
+        //     "bids": [
+        //       {
+        //         "price": "1646.16",
+        //         "qty": "0.001"
+        //       }
+        //     ],
+        //     "asks": [
+        //       {
+        //         "price": "1646.16",
+        //         "qty": "0.001"
+        //       }
+        //     ]
+        // }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'qty');
     }
 
     nonce () {
