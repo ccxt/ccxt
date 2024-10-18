@@ -6117,7 +6117,7 @@ export default class Exchange {
         return interests;
     }
 
-    parseBorrowRate (info, currency: Currency = undefined) {
+    parseBorrowRate (info, currency: Currency = undefined): Dict {
         throw new NotSupported (this.id + ' parseBorrowRate() is not supported yet');
     }
 
