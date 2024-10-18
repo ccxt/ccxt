@@ -50,17 +50,17 @@ export default class coincatch extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
-                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLoss': true,
                 'createPostOnlyOrder': true,
-                'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
-                'createStopLossOrder': false,
-                'createStopMarketOrder': false,
-                'createStopOrder': false,
-                'createTakeProfitOrder': false,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopLossOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
+                'createTakeProfitOrder': true,
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
-                'createTriggerOrder': true, // spot only
+                'createTriggerOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': true,
@@ -241,7 +241,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/plan/placePlan': 2, // done
                         'api/mix/v1/plan/modifyPlan': 1,
                         'api/mix/v1/plan/modifyPlanPreset': 1,
-                        'api/mix/v1/plan/placeTPSL': 1,
+                        'api/mix/v1/plan/placeTPSL': 2, // done
                         'api/mix/v1/plan/placeTrailStop': 1,
                         'api/mix/v1/plan/placePositionsTPSL': 1,
                         'api/mix/v1/plan/modifyTPSLPlan': 1,
@@ -2317,12 +2317,17 @@ export default class coincatch extends Exchange {
         params['methodName'] = this.safeString (params, 'methodName', 'createSwapOrder');
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
-        const isPlanOrer = this.safeString (request, 'triggerPrice') !== undefined;
+        let request = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
+        const endpointType = this.safeString (request, 'endpointType');
+        request = this.omit (request, 'endpointType');
         let response = undefined;
-        if (isPlanOrer) {
+        if (endpointType === 'trigger') {
             response = await this.privatePostApiMixV1PlanPlacePlan (request);
-        } else {
+        } else if (endpointType === 'tpsl') {
+            response = await this.privatePostApiMixV1PlanPlaceTPSL (request);
+        } else if (endpointType === 'trailing') {
+            response = await this.privatePostApiMixV1PlanPlaceTrailStop (request);
+        } else { // standard
             response = await this.privatePostApiMixV1OrderPlaceOrder (request);
         }
         //
@@ -2374,21 +2379,13 @@ export default class coincatch extends Exchange {
         let request: Dict = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'orderType': type,
             'size': this.amountToPrecision (symbol, amount),
         };
         [ request, params ] = this.handleOptionParamsAndRequest (params, methodName, 'clientOrderId', request, 'clientOid');
         const isMarketOrder = (type === 'market');
-        const triggerPrice = this.safeString (params, 'triggerPrice');
-        if (triggerPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            if (isMarketOrder) {
-                request['triggerType'] = 'market_price';
-            } else {
-                request['executePrice'] = this.priceToPrecision (symbol, price);
-                request['triggerType'] = 'fill_price';
-            }
-        } else {
+        params = this.handleTriggerStopLossAndTakeProfit (symbol, side, type, price, methodName, params);
+        const endpointType = this.safeString (params, 'endpointType');
+        if ((endpointType === undefined) || (endpointType === 'standard')) {
             const timeInForceAndParams = this.handleTimeInForceAndPostOnly (methodName, params, isMarketOrder); // only for non-trigger orders
             params = timeInForceAndParams['params'];
             const timeInForce = timeInForceAndParams['timeInForce'];
@@ -2399,42 +2396,105 @@ export default class coincatch extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        let stopLossPrice = this.safeString (params, 'stopLossPrice');
-        let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const stopLossParams = this.safeDict (params, 'stopLoss', {});
-        const takeProfitParams = this.safeDict (params, 'takeProfit', {});
-        stopLossPrice = this.safeString (stopLossParams, 'triggerPrice', stopLossPrice);
-        takeProfitPrice = this.safeString (takeProfitParams, 'triggerPrice', takeProfitPrice);
-        params = this.omit (params, [ 'stopLoss', 'takeProfit', 'stopLossPrice', 'takeProfitPrice' ]);
-        if (stopLossPrice !== undefined) {
-            request['presetStopLossPrice'] = stopLossPrice;
-        }
-        if (takeProfitPrice !== undefined) {
-            request['presetTakeProfitPrice'] = takeProfitPrice;
-        }
-        let hedged: Bool = false;
-        [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
-        // hedged and non-hedged orders have different side values and reduceOnly handling
-        if (hedged) {
+        if ((endpointType !== 'tpsl') && (endpointType !== 'trailing')) {
+            request['orderType'] = type;
+            let hedged: Bool = false;
+            [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
+            // hedged and non-hedged orders have different side values and reduceOnly handling
             let reduceOnly: Bool = false;
             [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly', reduceOnly);
-            if (reduceOnly) {
-                if (side === 'buy') {
-                    side = 'close_short';
-                } else if (side === 'sell') {
-                    side = 'close_long';
+            if (hedged) {
+                if (reduceOnly) {
+                    if (side === 'buy') {
+                        side = 'close_short';
+                    } else if (side === 'sell') {
+                        side = 'close_long';
+                    }
+                } else {
+                    if (side === 'buy') {
+                        side = 'open_long';
+                    } else if (side === 'sell') {
+                        side = 'open_short';
+                    }
                 }
             } else {
-                if (side === 'buy') {
-                    side = 'open_long';
-                } else if (side === 'sell') {
-                    side = 'open_short';
-                }
+                side = side.toLowerCase () + '_single';
             }
-        } else {
-            side = side.toLowerCase () + '_single';
+            request['side'] = side;
         }
-        request['side'] = side;
+        return this.extend (request, params);
+    }
+
+    handleTriggerStopLossAndTakeProfit (symbol, side, type, price, methodName = 'createOrder', params = {}) {
+        const request: Dict = {};
+        let endpointType = 'standard'; // standard, trigger, tpsl, trailing - to define the endpoint to use
+        let stopLossPrice = this.safeString (params, 'stopLossPrice');
+        let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        let requestTriggerPrice: Str = undefined;
+        const takeProfitParams = this.safeDict (params, 'takeProfit');
+        const stopLossParams = this.safeDict (params, 'stopLoss');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const isTrigger = (triggerPrice !== undefined);
+        let hasTPPrice = (takeProfitPrice !== undefined);
+        let hasSLPrice = (stopLossPrice !== undefined);
+        const hasTPParams = (takeProfitParams !== undefined);
+        if (hasTPParams && !hasTPPrice) {
+            takeProfitPrice = this.safeString (takeProfitParams, 'triggerPrice');
+            hasTPPrice = (takeProfitPrice !== undefined);
+        }
+        const hasSLParams = (stopLossParams !== undefined);
+        if (hasSLParams && !hasSLPrice) {
+            stopLossPrice = this.safeString (stopLossParams, 'triggerPrice');
+            hasSLPrice = (stopLossPrice !== undefined);
+        }
+        const hasBothTPAndSL = hasTPPrice && hasSLPrice;
+        const isMarketOrder = (type === 'market');
+        // handle with triggerPrice stopLossPrice and takeProfitPrice
+        if (hasBothTPAndSL || isTrigger || (methodName === 'createOrderWithTakeProfitAndStopLoss')) {
+            if (isTrigger) {
+                if (isMarketOrder) {
+                    request['triggerType'] = 'market_price';
+                } else {
+                    request['triggerType'] = 'fill_price';
+                    request['executePrice'] = this.priceToPrecision (symbol, price);
+                }
+                requestTriggerPrice = triggerPrice;
+                endpointType = 'trigger'; // if order also has triggerPrice we use endpoint for trigger orders
+            }
+            if (methodName === 'createOrders') {
+                endpointType = undefined; // we do not provide endpointType for createOrders
+            }
+            if (hasTPPrice) {
+                request['presetTakeProfitPrice'] = takeProfitPrice;
+            }
+            if (hasSLPrice) {
+                request['presetStopLossPrice'] = stopLossPrice;
+            }
+        } else if (hasTPPrice || hasSLPrice) {
+            if (type !== 'market') {
+                throw new NotSupported (this.id + ' ' + methodName + '() supports does not support ' + type + ' type of stop loss and take profit orders (only market type is supported for stop loss and take profit orders). To create a market order with stop loss or take profit attached use createOrderWithTakeProfitAndStopLoss()');
+            }
+            endpointType = 'tpsl'; // if order has only one of the two we use endpoint for tpsl orders
+            let holdSide = 'long';
+            if (side === 'buy') {
+                holdSide = 'short';
+            }
+            request['holdSide'] = holdSide;
+            if (hasTPPrice) { // take profit
+                requestTriggerPrice = takeProfitPrice;
+                request['planType'] = 'profit_plan';
+            } else { // stop loss
+                requestTriggerPrice = stopLossPrice;
+                request['planType'] = 'loss_plan';
+            }
+        }
+        if (isTrigger || hasTPPrice || hasSLPrice) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, requestTriggerPrice);
+        }
+        if (endpointType !== undefined) {
+            request['endpointType'] = endpointType;
+        }
+        params = this.omit (params, [ 'stopLoss', 'takeProfit', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
         return this.extend (request, params);
     }
 
@@ -2502,7 +2562,6 @@ export default class coincatch extends Exchange {
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             const triggerPrice = this.safeString (orderParams, 'triggerPrice');
             if (triggerPrice !== undefined) {
-                // todo add check for another tp and sl
                 throw new NotSupported (this.id + ' ' + methodName + '() does not support trigger orders');
             }
             const clientOrderId = this.safeString (orderRequest, 'clientOrderId');
@@ -2860,6 +2919,7 @@ export default class coincatch extends Exchange {
          * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
          * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
          * @param {string} [params.marginCoin] *swap only* the margin coin of the market to fetch entries for
+         * @param {string} [params.isPlan] *swap trigger only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'fetchOpenOrders';
@@ -3921,6 +3981,15 @@ export default class coincatch extends Exchange {
         if (timeInForce !== undefined) {
             postOnly = timeInForce === 'PO';
         }
+        const triggerPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
+        let takeProfitPrice = this.omitZero (this.safeString (order, 'presetTakeProfitPrice'));
+        let stopLossPrice = this.omitZero (this.safeString2 (order, 'presetTakeProfitPrice', 'presetTakeLossPrice'));
+        const planType = this.safeString (order, 'planType');
+        if (planType === 'loss_plan') {
+            stopLossPrice = triggerPrice;
+        } else if (planType === 'profit_plan') {
+            takeProfitPrice = triggerPrice;
+        }
         return this.safeOrder ({
             'id': this.safeString (order, 'orderId'),
             'clientOrderId': this.safeString2 (order, 'clientOrderId', 'clientOid'),
@@ -3939,9 +4008,9 @@ export default class coincatch extends Exchange {
             'filled': this.safeString2 (order, 'fillQuantity', 'filledQty'),
             'remaining': undefined,
             'stopPrice': undefined,
-            'triggerPrice': this.omitZero (this.safeString (order, 'triggerPrice')),
-            'takeProfitPrice': this.safeString2 (order, 'presetTakeProfitPrice', 'presetTakeLossPrice'),
-            'stopLossPrice': this.safeString (order, 'presetStopLossPrice'),
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'cost': this.safeString2 (order, 'fillTotalAmount', 'filledAmount'),
             'trades': undefined,
             'fee': {
