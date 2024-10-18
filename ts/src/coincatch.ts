@@ -242,8 +242,8 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/plan/modifyPlan': 1,
                         'api/mix/v1/plan/modifyPlanPreset': 1,
                         'api/mix/v1/plan/placeTPSL': 2, // done
-                        'api/mix/v1/plan/placeTrailStop': 1,
-                        'api/mix/v1/plan/placePositionsTPSL': 1,
+                        'api/mix/v1/plan/placeTrailStop': 2, // not used
+                        'api/mix/v1/plan/placePositionsTPSL': 2, // not used
                         'api/mix/v1/plan/modifyTPSLPlan': 1,
                         'api/mix/v1/plan/cancelPlan': 2, // done
                         'api/mix/v1/plan/cancelSymbolPlan': 2, // done
@@ -2325,8 +2325,6 @@ export default class coincatch extends Exchange {
             response = await this.privatePostApiMixV1PlanPlacePlan (request);
         } else if (endpointType === 'tpsl') {
             response = await this.privatePostApiMixV1PlanPlaceTPSL (request);
-        } else if (endpointType === 'trailing') {
-            response = await this.privatePostApiMixV1PlanPlaceTrailStop (request);
         } else { // standard
             response = await this.privatePostApiMixV1OrderPlaceOrder (request);
         }
@@ -2396,7 +2394,7 @@ export default class coincatch extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        if ((endpointType !== 'tpsl') && (endpointType !== 'trailing')) {
+        if ((endpointType !== 'tpsl')) {
             request['orderType'] = type;
             let hedged: Bool = false;
             [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
@@ -2435,6 +2433,8 @@ export default class coincatch extends Exchange {
         const stopLossParams = this.safeDict (params, 'stopLoss');
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const isTrigger = (triggerPrice !== undefined);
+        const trailingPercent = this.safeString (params, 'trailingPercent');
+        const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice');
         let hasTPPrice = (takeProfitPrice !== undefined);
         let hasSLPrice = (stopLossPrice !== undefined);
         const hasTPParams = (takeProfitParams !== undefined);
@@ -2448,6 +2448,7 @@ export default class coincatch extends Exchange {
             hasSLPrice = (stopLossPrice !== undefined);
         }
         const hasBothTPAndSL = hasTPPrice && hasSLPrice;
+        const isTrailingPercentOrder = (trailingPercent !== undefined);
         const isMarketOrder = (type === 'market');
         // handle with triggerPrice stopLossPrice and takeProfitPrice
         if (hasBothTPAndSL || isTrigger || (methodName === 'createOrderWithTakeProfitAndStopLoss')) {
@@ -2458,7 +2459,7 @@ export default class coincatch extends Exchange {
                     request['triggerType'] = 'fill_price';
                     request['executePrice'] = this.priceToPrecision (symbol, price);
                 }
-                requestTriggerPrice = triggerPrice;
+                request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 endpointType = 'trigger'; // if order also has triggerPrice we use endpoint for trigger orders
             }
             if (methodName === 'createOrders') {
@@ -2470,8 +2471,8 @@ export default class coincatch extends Exchange {
             if (hasSLPrice) {
                 request['presetStopLossPrice'] = stopLossPrice;
             }
-        } else if (hasTPPrice || hasSLPrice) {
-            if (type !== 'market') {
+        } else if (hasTPPrice || hasSLPrice || isTrailingPercentOrder) {
+            if (!isMarketOrder) {
                 throw new NotSupported (this.id + ' ' + methodName + '() supports does not support ' + type + ' type of stop loss and take profit orders (only market type is supported for stop loss and take profit orders). To create a market order with stop loss or take profit attached use createOrderWithTakeProfitAndStopLoss()');
             }
             endpointType = 'tpsl'; // if order has only one of the two we use endpoint for tpsl orders
@@ -2480,21 +2481,26 @@ export default class coincatch extends Exchange {
                 holdSide = 'short';
             }
             request['holdSide'] = holdSide;
-            if (hasTPPrice) { // take profit
+            if (isTrailingPercentOrder) {
+                if (trailingTriggerPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires the trailingTriggerPrice parameter for trailing stop orders');
+                }
+                requestTriggerPrice = trailingTriggerPrice;
+                request['rangeRate'] = trailingPercent;
+                request['planType'] = 'moving_plan';
+            } else if (hasTPPrice) { // take profit
                 requestTriggerPrice = takeProfitPrice;
                 request['planType'] = 'profit_plan';
             } else { // stop loss
                 requestTriggerPrice = stopLossPrice;
                 request['planType'] = 'loss_plan';
             }
-        }
-        if (isTrigger || hasTPPrice || hasSLPrice) {
             request['triggerPrice'] = this.priceToPrecision (symbol, requestTriggerPrice);
         }
         if (endpointType !== undefined) {
             request['endpointType'] = endpointType;
         }
-        params = this.omit (params, [ 'stopLoss', 'takeProfit', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
+        params = this.omit (params, [ 'stopLoss', 'takeProfit', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'trailingPercent', 'trailingTriggerPrice' ]);
         return this.extend (request, params);
     }
 
