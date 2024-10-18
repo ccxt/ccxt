@@ -1986,6 +1986,10 @@ export default class hyperliquid extends Exchange {
         const statuses = {
             'triggered': 'open',
             'filled': 'closed',
+            'open': 'open',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'marginCanceled': 'canceled',
         };
         return this.safeString(statuses, status, status);
     }

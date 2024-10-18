@@ -499,6 +499,7 @@ class bingx extends Exchange {
                 ),
                 'networks' => array(
                     'ARB' => 'ARBITRUM',
+                    'MATIC' => 'POLYGON',
                 ),
             ),
         ));

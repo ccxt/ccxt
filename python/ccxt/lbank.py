@@ -975,15 +975,15 @@ class lbank(Exchange, ImplicitAPI):
             limit = min(limit, 2000)
         if since is None:
             duration = self.parse_timeframe(timeframe)
-            since = self.milliseconds() - duration * 1000 * limit
+            since = self.milliseconds() - (duration * 1000 * limit)
         request: dict = {
             'symbol': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
             'time': self.parse_to_int(since / 1000),
-            'size': limit,  # max 2000
+            'size': min(limit + 1, 2000),  # max 2000
         }
         response = self.spotPublicGetKline(self.extend(request, params))
-        ohlcvs = self.safe_value(response, 'data', [])
+        ohlcvs = self.safe_list(response, 'data', [])
         #
         #
         # [

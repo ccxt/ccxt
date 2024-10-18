@@ -486,6 +486,7 @@ public partial class bingx : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "ARB", "ARBITRUM" },
+                    { "MATIC", "POLYGON" },
                 } },
             } },
         });

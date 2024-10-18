@@ -1254,6 +1254,16 @@ class htx(Exchange, ImplicitAPI):
         })
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  # contractPublicGetHeartbeat
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
         await self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchStatus', None, params)
@@ -1465,6 +1475,8 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1511,6 +1523,7 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -1554,6 +1567,13 @@ class htx(Exchange, ImplicitAPI):
         return result
 
     async def fetch_trading_limits_by_id(self, id: str, params={}):
+        """
+         * @ignore
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+        :param str id: market id
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the limits object of a market structure
+        """
         request: dict = {
             'symbol': id,
         }
