@@ -19,6 +19,7 @@ interface Exchange {
     publicGetMarkPriceSymbolCurrent(params?: {}): Promise<implicitReturnType>;
     publicGetMarkPriceAllSymbols(params?: {}): Promise<implicitReturnType>;
     publicGetMarginConfig(params?: {}): Promise<implicitReturnType>;
+    publicGetAnnouncements(params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic(params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;

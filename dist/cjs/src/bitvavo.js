@@ -447,9 +447,9 @@ class bitvavo extends bitvavo$1 {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
-    parseCurrencies(currencies) {
+    parseCurrenciesCustom(currencies) {
         //
         //     [
         //         {

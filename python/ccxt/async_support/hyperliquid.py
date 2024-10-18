@@ -1880,6 +1880,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         statuses: dict = {
             'triggered': 'open',
             'filled': 'closed',
+            'open': 'open',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'marginCanceled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 

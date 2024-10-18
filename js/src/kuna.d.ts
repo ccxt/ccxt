@@ -9,31 +9,7 @@ export default class kuna extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrencies(currencies: any, params?: {}): Dict;
-    parseCurrency(currency: Dict): {
-        info: Dict;
-        id: string;
-        code: string;
-        type: any;
-        margin: any;
-        name: string;
-        active: any;
-        deposit: any;
-        withdraw: any;
-        fee: any;
-        precision: string;
-        limits: {
-            amount: {
-                min: any;
-                max: any;
-            };
-            withdraw: {
-                min: any;
-                max: any;
-            };
-        };
-        networks: {};
-    };
+    parseCurrency(currency: Dict): Currency;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;

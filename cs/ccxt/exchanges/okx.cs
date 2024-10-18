@@ -90,6 +90,7 @@ public partial class okx : Exchange
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMarkPrice", true },
                 { "fetchMarkPrices", true },
                 { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
@@ -1973,6 +1974,42 @@ public partial class okx : Exchange
         return this.parseTickers(tickers, symbols);
     }
 
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchMarkPrice
+        * @description fetches mark price for the market
+        * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "instId", getValue(market, "id") },
+        };
+        object response = await this.publicGetPublicMarkPrice(this.extend(request, parameters));
+        //
+        // {
+        //     "code": "0",
+        //     "data": [
+        //         {
+        //             "instId": "ETH-USDT",
+        //             "instType": "MARGIN",
+        //             "markPx": "2403.98",
+        //             "ts": "1728578500703"
+        //         }
+        //     ],
+        //     "msg": ""
+        // }
+        //
+        object data = this.safeList(response, "data");
+        return this.parseTicker(this.safeDict(data, 0), market);
+    }
+
     public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
     {
         /**
@@ -2001,7 +2038,7 @@ public partial class okx : Exchange
             object currencyId = this.safeString2(parameters, "uly", "marketId", defaultUnderlying);
             if (isTrue(isEqual(currencyId, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires an underlying uly or marketId parameter for options markets")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " fetchMarkPrices() requires an underlying uly or marketId parameter for options markets")) ;
             } else
             {
                 ((IDictionary<string,object>)request)["uly"] = currencyId;
@@ -7653,6 +7690,7 @@ public partial class okx : Exchange
         //         "instType": "OPTION",
         //         "oi": "300",
         //         "oiCcy": "3",
+        //         "oiUsd": "3",
         //         "ts": "1684551166251"
         //     }
         //
@@ -7680,7 +7718,7 @@ public partial class okx : Exchange
         {
             baseVolume = this.safeNumber(interest, "oiCcy");
             openInterestAmount = this.safeNumber(interest, "oi");
-            openInterestValue = this.safeNumber(interest, "oiCcy");
+            openInterestValue = this.safeNumber(interest, "oiUsd");
         }
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(id) },

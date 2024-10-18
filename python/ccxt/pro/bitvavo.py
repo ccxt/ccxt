@@ -978,7 +978,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         action = self.safe_string(message, 'action')
         messageHash = self.build_message_hash(action, message)
         response = self.safe_value(message, 'response')
-        currencies = self.parseCurrencies(response)
+        currencies = self.parse_currencies(response)
         client.resolve(currencies, messageHash)
 
     def handle_trading_fees(self, client, message):

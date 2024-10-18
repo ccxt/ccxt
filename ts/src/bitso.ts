@@ -118,6 +118,12 @@ export default class bitso extends Exchange {
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'networks': {
+                    'TRC20': 'trx',
+                    'ERC20': 'erc20',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bep2',
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -1659,20 +1665,6 @@ export default class bitso extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
-    safeNetwork (networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        }
-        networkId = networkId.toUpperCase ();
-        const networksById: Dict = {
-            'trx': 'TRC20',
-            'erc20': 'ERC20',
-            'bsc': 'BEP20',
-            'bep2': 'BEP2',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // deposit
@@ -1719,12 +1711,14 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2 (transaction, 'network', 'method');
         const status = this.safeString (transaction, 'status');
         const withdrawId = this.safeString (transaction, 'wid');
+        const networkCode = this.networkIdToCode (networkId);
+        const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
         return {
             'id': this.safeString2 (transaction, 'wid', 'fid'),
             'txid': this.safeString (details, 'tx_hash'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'network': this.safeNetwork (networkId),
+            'network': networkCodeUpper,
             'addressFrom': receivingAddress,
             'address': (withdrawalAddress !== undefined) ? withdrawalAddress : receivingAddress,
             'addressTo': withdrawalAddress,

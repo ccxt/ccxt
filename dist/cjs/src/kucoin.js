@@ -163,7 +163,8 @@ class kucoin extends kucoin$1 {
                         // margin trading
                         'mark-price/{symbol}/current': 3,
                         'mark-price/all-symbols': 3,
-                        'margin/config': 25, // 25SW
+                        'margin/config': 25,
+                        'announcements': 20, // 20W
                     },
                     'post': {
                         // ws
@@ -653,6 +654,7 @@ class kucoin extends kucoin$1 {
                             'currencies/{currency}': 'v3',
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
+                            'announcements': 'v3',
                         },
                     },
                     'private': {
@@ -3091,7 +3093,7 @@ class kucoin extends kucoin$1 {
             },
             'status': status,
             'lastTradeTimestamp': undefined,
-            'average': undefined,
+            'average': this.safeString(order, 'avgDealPrice'),
             'trades': undefined,
         }, market);
     }
@@ -5037,7 +5039,7 @@ class kucoin extends kucoin$1 {
         headers = (headers !== undefined) ? headers : {};
         let url = this.urls['api'][api];
         if (!this.isEmpty(query)) {
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
                 endpoint += '?' + this.rawencode(query);
             }
             else {

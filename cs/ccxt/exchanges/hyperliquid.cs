@@ -2158,6 +2158,10 @@ public partial class hyperliquid : Exchange
         object statuses = new Dictionary<string, object>() {
             { "triggered", "open" },
             { "filled", "closed" },
+            { "open", "open" },
+            { "canceled", "canceled" },
+            { "rejected", "rejected" },
+            { "marginCanceled", "canceled" },
         };
         return this.safeString(statuses, status, status);
     }

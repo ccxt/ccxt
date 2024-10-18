@@ -1294,7 +1294,7 @@ class bitmart extends bitmart$1 {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,

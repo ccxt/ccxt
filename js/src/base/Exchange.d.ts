@@ -753,6 +753,8 @@ export default class Exchange {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTime(params?: {}): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
+    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrencies(rawCurrencies: any): Currencies;
     parseMarket(market: Dict): Market;
     parseMarkets(markets: any): Market[];
     parseTicker(ticker: Dict, market?: Market): Ticker;

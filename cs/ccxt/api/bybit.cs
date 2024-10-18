@@ -816,6 +816,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5SpotLeverTokenOrderRecord",parameters);
     }
 
+    public async Task<object> privateGetV5SpotMarginTradeInterestRateHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeInterestRateHistory",parameters);
+    }
+
     public async Task<object> privateGetV5SpotMarginTradeState (object parameters = null)
     {
         return await this.callAsync ("privateGetV5SpotMarginTradeState",parameters);

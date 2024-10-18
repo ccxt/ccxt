@@ -351,12 +351,7 @@ class timex extends timex$1 {
         //         },
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            result.push(this.parseCurrency(currency));
-        }
-        return this.indexBy(result, 'code');
+        return this.parseCurrencies(response);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1359,7 +1354,7 @@ class timex extends timex$1 {
                 fee = this.parseNumber(fraction + feeString);
             }
         }
-        return {
+        return this.safeCurrencyStructure({
             'id': code,
             'code': code,
             'info': currency,
@@ -1375,7 +1370,7 @@ class timex extends timex$1 {
                 'amount': { 'min': undefined, 'max': undefined },
             },
             'networks': {},
-        };
+        });
     }
     parseTicker(ticker, market = undefined) {
         //

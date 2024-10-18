@@ -454,11 +454,11 @@ class bitvavo extends Exchange {
             //         ),
             //     )
             //
-            return $this->parse_currencies($response);
+            return $this->parse_currencies_custom($response);
         }) ();
     }
 
-    public function parse_currencies($currencies) {
+    public function parse_currencies_custom($currencies) {
         //
         //     array(
         //         {

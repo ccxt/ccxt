@@ -1420,7 +1420,7 @@ class bitget extends Exchange {
                     'ARB' => 'ArbitrumOne',
                     'ZKSYNC' => 'zkSyncEra',
                     'STARKNET' => 'Starknet',
-                    'APT' => 'APTOS',
+                    'APT' => 'Aptos',
                     'MATIC' => 'Polygon',
                     'VIC' => 'VICTION',
                     'AVAXC' => 'C-Chain',

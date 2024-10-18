@@ -450,9 +450,9 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
-    parseCurrencies(currencies) {
+    parseCurrenciesCustom(currencies) {
         //
         //     [
         //         {

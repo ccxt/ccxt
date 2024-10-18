@@ -101,6 +101,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("publicGetMarginConfig",parameters);
     }
 
+    public async Task<object> publicGetAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAnnouncements",parameters);
+    }
+
     public async Task<object> publicPostBulletPublic (object parameters = null)
     {
         return await this.callAsync ("publicPostBulletPublic",parameters);

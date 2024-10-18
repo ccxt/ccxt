@@ -124,6 +124,12 @@ class bitso(Exchange, ImplicitAPI):
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'networks': {
+                    'TRC20': 'trx',
+                    'ERC20': 'erc20',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bep2',
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -1548,18 +1554,6 @@ class bitso(Exchange, ImplicitAPI):
         first = self.safe_dict(payload, 0)
         return self.parse_transaction(first, currency)
 
-    def safe_network(self, networkId):
-        if networkId is None:
-            return None
-        networkId = networkId.upper()
-        networksById: dict = {
-            'trx': 'TRC20',
-            'erc20': 'ERC20',
-            'bsc': 'BEP20',
-            'bep2': 'BEP2',
-        }
-        return self.safe_string(networksById, networkId, networkId)
-
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # deposit
@@ -1606,12 +1600,14 @@ class bitso(Exchange, ImplicitAPI):
         networkId = self.safe_string_2(transaction, 'network', 'method')
         status = self.safe_string(transaction, 'status')
         withdrawId = self.safe_string(transaction, 'wid')
+        networkCode = self.network_id_to_code(networkId)
+        networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
         return {
             'id': self.safe_string_2(transaction, 'wid', 'fid'),
             'txid': self.safe_string(details, 'tx_hash'),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'network': self.safe_network(networkId),
+            'network': networkCodeUpper,
             'addressFrom': receivingAddress,
             'address': withdrawalAddress if (withdrawalAddress is not None) else receivingAddress,
             'addressTo': withdrawalAddress,

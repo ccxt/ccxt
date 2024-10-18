@@ -458,9 +458,9 @@ class bitvavo(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_currencies(response)
+        return self.parse_currencies_custom(response)
 
-    def parse_currencies(self, currencies):
+    def parse_currencies_custom(self, currencies):
         #
         #     [
         #         {

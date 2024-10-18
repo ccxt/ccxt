@@ -19,6 +19,7 @@ interface kucoin {
     publicGetMarkPriceSymbolCurrent(params?: {}): Promise<implicitReturnType>;
     publicGetMarkPriceAllSymbols(params?: {}): Promise<implicitReturnType>;
     publicGetMarginConfig(params?: {}): Promise<implicitReturnType>;
+    publicGetAnnouncements(params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic(params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;
@@ -218,6 +219,7 @@ interface kucoin {
     futuresPrivateDeleteWithdrawalsWithdrawalId(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteCancelTransferOut(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteSubApiKey(params?: {}): Promise<implicitReturnType>;
+    futuresPrivateDeleteOrdersMultiCancel(params?: {}): Promise<implicitReturnType>;
     webExchangeGetCurrencyCurrencyChainInfo(params?: {}): Promise<implicitReturnType>;
     webExchangeGetContractSymbolFundingRates(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdInfo(params?: {}): Promise<implicitReturnType>;
