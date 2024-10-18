@@ -10,6 +10,7 @@ public partial class woo
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#orderbookupdate"/>  <br/>
     /// See <see href="https://docs.woo.org/#orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -22,6 +23,12 @@ public partial class woo
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
     /// </description>
     /// </item>
     /// </list>
@@ -70,6 +77,26 @@ public partial class woo
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woox.io/#bbos"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
         return new Tickers(res);
     }
     /// <summary>

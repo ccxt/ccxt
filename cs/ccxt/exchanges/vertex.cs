@@ -685,6 +685,14 @@ public partial class vertex : Exchange
         object amount = null;
         object side = null;
         object fee = null;
+        object feeCost = this.convertFromX18(this.safeString(trade, "fee"));
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", feeCost },
+                { "currency", null },
+            };
+        }
         object id = this.safeString2(trade, "trade_id", "submission_idx");
         object order = this.safeString(trade, "digest");
         object timestamp = this.safeTimestamp(trade, "timestamp");
@@ -704,10 +712,6 @@ public partial class vertex : Exchange
             object subOrder = this.safeDict(trade, "order", new Dictionary<string, object>() {});
             price = this.convertFromX18(this.safeString(subOrder, "priceX18"));
             amount = this.convertFromX18(this.safeString(trade, "base_filled"));
-            fee = new Dictionary<string, object>() {
-                { "cost", this.convertFromX18(this.safeString(trade, "fee")) },
-                { "currency", null },
-            };
             if (isTrue(Precise.stringLt(amount, "0")))
             {
                 side = "sell";
@@ -1289,6 +1293,7 @@ public partial class vertex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -1331,7 +1336,7 @@ public partial class vertex : Exchange
         * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
         * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2137,6 +2142,7 @@ public partial class vertex : Exchange
         * @name vertex#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3024,7 +3030,7 @@ public partial class vertex : Exchange
         {
             return new List<object>() {this.walletAddress, parameters};
         }
-        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside \'params\' or the wallet address set")) ;
+        throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a user parameter inside 'params' or the wallet address set")) ;
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
@@ -3071,6 +3077,19 @@ public partial class vertex : Exchange
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
+            }
+        }
+        if (isTrue(!isEqual(path, "execute")))
+        {
+            // required encoding for public methods
+            if (isTrue(!isEqual(headers, null)))
+            {
+                ((IDictionary<string,object>)headers)["Accept-Encoding"] = "gzip";
+            } else
+            {
+                headers = new Dictionary<string, object>() {
+                    { "Accept-Encoding", "gzip" },
+                };
             }
         }
         return new Dictionary<string, object>() {

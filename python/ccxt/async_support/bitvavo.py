@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -65,6 +65,8 @@ class bitvavo(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -284,6 +286,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW': 10000,  # default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
@@ -295,9 +298,6 @@ class bitvavo(Exchange, ImplicitAPI):
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
         })
-
-    def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], DECIMAL_PLACES)
 
     def amount_to_precision(self, symbol, amount):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
@@ -458,9 +458,9 @@ class bitvavo(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_currencies(response)
+        return self.parse_currencies_custom(response)
 
-    def parse_currencies(self, currencies):
+    def parse_currencies_custom(self, currencies):
         #
         #     [
         #         {
@@ -1000,7 +1000,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1023,11 +1023,11 @@ class bitvavo(Exchange, ImplicitAPI):
         tag = self.safe_string(response, 'paymentId')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1255,6 +1255,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

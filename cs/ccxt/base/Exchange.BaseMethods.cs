@@ -6,6 +6,336 @@ public partial class Exchange
 {
 
 
+    public virtual object describe()
+    {
+        return new Dictionary<string, object>() {
+            { "id", null },
+            { "name", null },
+            { "countries", null },
+            { "enableRateLimit", true },
+            { "rateLimit", 2000 },
+            { "timeout", this.timeout },
+            { "certified", false },
+            { "pro", false },
+            { "alias", false },
+            { "dex", false },
+            { "has", new Dictionary<string, object>() {
+                { "publicAPI", true },
+                { "privateAPI", true },
+                { "CORS", null },
+                { "sandbox", null },
+                { "spot", null },
+                { "margin", null },
+                { "swap", null },
+                { "future", null },
+                { "option", null },
+                { "addMargin", null },
+                { "borrowCrossMargin", null },
+                { "borrowIsolatedMargin", null },
+                { "borrowMargin", null },
+                { "cancelAllOrders", null },
+                { "cancelAllOrdersWs", null },
+                { "cancelOrder", true },
+                { "cancelOrderWs", null },
+                { "cancelOrders", null },
+                { "cancelOrdersWs", null },
+                { "closeAllPositions", null },
+                { "closePosition", null },
+                { "createDepositAddress", null },
+                { "createLimitBuyOrder", null },
+                { "createLimitBuyOrderWs", null },
+                { "createLimitOrder", true },
+                { "createLimitOrderWs", null },
+                { "createLimitSellOrder", null },
+                { "createLimitSellOrderWs", null },
+                { "createMarketBuyOrder", null },
+                { "createMarketBuyOrderWs", null },
+                { "createMarketBuyOrderWithCost", null },
+                { "createMarketBuyOrderWithCostWs", null },
+                { "createMarketOrder", true },
+                { "createMarketOrderWs", true },
+                { "createMarketOrderWithCost", null },
+                { "createMarketOrderWithCostWs", null },
+                { "createMarketSellOrder", null },
+                { "createMarketSellOrderWs", null },
+                { "createMarketSellOrderWithCost", null },
+                { "createMarketSellOrderWithCostWs", null },
+                { "createOrder", true },
+                { "createOrderWs", null },
+                { "createOrders", null },
+                { "createOrderWithTakeProfitAndStopLoss", null },
+                { "createOrderWithTakeProfitAndStopLossWs", null },
+                { "createPostOnlyOrder", null },
+                { "createPostOnlyOrderWs", null },
+                { "createReduceOnlyOrder", null },
+                { "createReduceOnlyOrderWs", null },
+                { "createStopLimitOrder", null },
+                { "createStopLimitOrderWs", null },
+                { "createStopLossOrder", null },
+                { "createStopLossOrderWs", null },
+                { "createStopMarketOrder", null },
+                { "createStopMarketOrderWs", null },
+                { "createStopOrder", null },
+                { "createStopOrderWs", null },
+                { "createTakeProfitOrder", null },
+                { "createTakeProfitOrderWs", null },
+                { "createTrailingAmountOrder", null },
+                { "createTrailingAmountOrderWs", null },
+                { "createTrailingPercentOrder", null },
+                { "createTrailingPercentOrderWs", null },
+                { "createTriggerOrder", null },
+                { "createTriggerOrderWs", null },
+                { "deposit", null },
+                { "editOrder", "emulated" },
+                { "editOrderWs", null },
+                { "fetchAccounts", null },
+                { "fetchBalance", true },
+                { "fetchBalanceWs", null },
+                { "fetchBidsAsks", null },
+                { "fetchBorrowInterest", null },
+                { "fetchBorrowRate", null },
+                { "fetchBorrowRateHistories", null },
+                { "fetchBorrowRateHistory", null },
+                { "fetchBorrowRates", null },
+                { "fetchBorrowRatesPerSymbol", null },
+                { "fetchCanceledAndClosedOrders", null },
+                { "fetchCanceledOrders", null },
+                { "fetchClosedOrder", null },
+                { "fetchClosedOrders", null },
+                { "fetchClosedOrdersWs", null },
+                { "fetchConvertCurrencies", null },
+                { "fetchConvertQuote", null },
+                { "fetchConvertTrade", null },
+                { "fetchConvertTradeHistory", null },
+                { "fetchCrossBorrowRate", null },
+                { "fetchCrossBorrowRates", null },
+                { "fetchCurrencies", "emulated" },
+                { "fetchCurrenciesWs", "emulated" },
+                { "fetchDeposit", null },
+                { "fetchDepositAddress", null },
+                { "fetchDepositAddresses", null },
+                { "fetchDepositAddressesByNetwork", null },
+                { "fetchDeposits", null },
+                { "fetchDepositsWithdrawals", null },
+                { "fetchDepositsWs", null },
+                { "fetchDepositWithdrawFee", null },
+                { "fetchDepositWithdrawFees", null },
+                { "fetchFundingHistory", null },
+                { "fetchFundingRate", null },
+                { "fetchFundingRateHistory", null },
+                { "fetchFundingInterval", null },
+                { "fetchFundingIntervals", null },
+                { "fetchFundingRates", null },
+                { "fetchGreeks", null },
+                { "fetchIndexOHLCV", null },
+                { "fetchIsolatedBorrowRate", null },
+                { "fetchIsolatedBorrowRates", null },
+                { "fetchMarginAdjustmentHistory", null },
+                { "fetchIsolatedPositions", null },
+                { "fetchL2OrderBook", true },
+                { "fetchL3OrderBook", null },
+                { "fetchLastPrices", null },
+                { "fetchLedger", null },
+                { "fetchLedgerEntry", null },
+                { "fetchLeverage", null },
+                { "fetchLeverages", null },
+                { "fetchLeverageTiers", null },
+                { "fetchLiquidations", null },
+                { "fetchMarginMode", null },
+                { "fetchMarginModes", null },
+                { "fetchMarketLeverageTiers", null },
+                { "fetchMarkets", true },
+                { "fetchMarketsWs", null },
+                { "fetchMarkOHLCV", null },
+                { "fetchMyLiquidations", null },
+                { "fetchMySettlementHistory", null },
+                { "fetchMyTrades", null },
+                { "fetchMyTradesWs", null },
+                { "fetchOHLCV", null },
+                { "fetchOHLCVWs", null },
+                { "fetchOpenInterest", null },
+                { "fetchOpenInterestHistory", null },
+                { "fetchOpenOrder", null },
+                { "fetchOpenOrders", null },
+                { "fetchOpenOrdersWs", null },
+                { "fetchOption", null },
+                { "fetchOptionChain", null },
+                { "fetchOrder", null },
+                { "fetchOrderBook", true },
+                { "fetchOrderBooks", null },
+                { "fetchOrderBookWs", null },
+                { "fetchOrders", null },
+                { "fetchOrdersByStatus", null },
+                { "fetchOrdersWs", null },
+                { "fetchOrderTrades", null },
+                { "fetchOrderWs", null },
+                { "fetchPosition", null },
+                { "fetchPositionHistory", null },
+                { "fetchPositionsHistory", null },
+                { "fetchPositionWs", null },
+                { "fetchPositionMode", null },
+                { "fetchPositions", null },
+                { "fetchPositionsWs", null },
+                { "fetchPositionsForSymbol", null },
+                { "fetchPositionsForSymbolWs", null },
+                { "fetchPositionsRisk", null },
+                { "fetchPremiumIndexOHLCV", null },
+                { "fetchSettlementHistory", null },
+                { "fetchStatus", null },
+                { "fetchTicker", true },
+                { "fetchTickerWs", null },
+                { "fetchTickers", null },
+                { "fetchMarkPrices", null },
+                { "fetchTickersWs", null },
+                { "fetchTime", null },
+                { "fetchTrades", true },
+                { "fetchTradesWs", null },
+                { "fetchTradingFee", null },
+                { "fetchTradingFees", null },
+                { "fetchTradingFeesWs", null },
+                { "fetchTradingLimits", null },
+                { "fetchTransactionFee", null },
+                { "fetchTransactionFees", null },
+                { "fetchTransactions", null },
+                { "fetchTransfer", null },
+                { "fetchTransfers", null },
+                { "fetchUnderlyingAssets", null },
+                { "fetchVolatilityHistory", null },
+                { "fetchWithdrawAddresses", null },
+                { "fetchWithdrawal", null },
+                { "fetchWithdrawals", null },
+                { "fetchWithdrawalsWs", null },
+                { "fetchWithdrawalWhitelist", null },
+                { "reduceMargin", null },
+                { "repayCrossMargin", null },
+                { "repayIsolatedMargin", null },
+                { "setLeverage", null },
+                { "setMargin", null },
+                { "setMarginMode", null },
+                { "setPositionMode", null },
+                { "signIn", null },
+                { "transfer", null },
+                { "watchBalance", null },
+                { "watchMyTrades", null },
+                { "watchOHLCV", null },
+                { "watchOHLCVForSymbols", null },
+                { "watchOrderBook", null },
+                { "watchOrderBookForSymbols", null },
+                { "watchOrders", null },
+                { "watchOrdersForSymbols", null },
+                { "watchPosition", null },
+                { "watchPositions", null },
+                { "watchStatus", null },
+                { "watchTicker", null },
+                { "watchTickers", null },
+                { "watchTrades", null },
+                { "watchTradesForSymbols", null },
+                { "watchLiquidations", null },
+                { "watchLiquidationsForSymbols", null },
+                { "watchMyLiquidations", null },
+                { "watchMyLiquidationsForSymbols", null },
+                { "withdraw", null },
+                { "ws", null },
+            } },
+            { "urls", new Dictionary<string, object>() {
+                { "logo", null },
+                { "api", null },
+                { "www", null },
+                { "doc", null },
+                { "fees", null },
+            } },
+            { "api", null },
+            { "requiredCredentials", new Dictionary<string, object>() {
+                { "apiKey", true },
+                { "secret", true },
+                { "uid", false },
+                { "accountId", false },
+                { "login", false },
+                { "password", false },
+                { "twofa", false },
+                { "privateKey", false },
+                { "walletAddress", false },
+                { "token", false },
+            } },
+            { "markets", null },
+            { "currencies", new Dictionary<string, object>() {} },
+            { "timeframes", null },
+            { "fees", new Dictionary<string, object>() {
+                { "trading", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "taker", null },
+                    { "maker", null },
+                } },
+                { "funding", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "withdraw", new Dictionary<string, object>() {} },
+                    { "deposit", new Dictionary<string, object>() {} },
+                } },
+            } },
+            { "status", new Dictionary<string, object>() {
+                { "status", "ok" },
+                { "updated", null },
+                { "eta", null },
+                { "url", null },
+            } },
+            { "exceptions", null },
+            { "httpExceptions", new Dictionary<string, object>() {
+                { "422", typeof(ExchangeError) },
+                { "418", typeof(DDoSProtection) },
+                { "429", typeof(RateLimitExceeded) },
+                { "404", typeof(ExchangeNotAvailable) },
+                { "409", typeof(ExchangeNotAvailable) },
+                { "410", typeof(ExchangeNotAvailable) },
+                { "451", typeof(ExchangeNotAvailable) },
+                { "500", typeof(ExchangeNotAvailable) },
+                { "501", typeof(ExchangeNotAvailable) },
+                { "502", typeof(ExchangeNotAvailable) },
+                { "520", typeof(ExchangeNotAvailable) },
+                { "521", typeof(ExchangeNotAvailable) },
+                { "522", typeof(ExchangeNotAvailable) },
+                { "525", typeof(ExchangeNotAvailable) },
+                { "526", typeof(ExchangeNotAvailable) },
+                { "400", typeof(ExchangeNotAvailable) },
+                { "403", typeof(ExchangeNotAvailable) },
+                { "405", typeof(ExchangeNotAvailable) },
+                { "503", typeof(ExchangeNotAvailable) },
+                { "530", typeof(ExchangeNotAvailable) },
+                { "408", typeof(RequestTimeout) },
+                { "504", typeof(RequestTimeout) },
+                { "401", typeof(AuthenticationError) },
+                { "407", typeof(AuthenticationError) },
+                { "511", typeof(AuthenticationError) },
+            } },
+            { "commonCurrencies", new Dictionary<string, object>() {
+                { "XBT", "BTC" },
+                { "BCC", "BCH" },
+                { "BCHSV", "BSV" },
+            } },
+            { "precisionMode", TICK_SIZE },
+            { "paddingMode", NO_PADDING },
+            { "limits", new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+        };
+    }
+
     public virtual object safeBoolN(object dictionaryOrList, object keys, object defaultValue = null)
     {
         /**
@@ -144,6 +474,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " handleDelta not supported yet")) ;
     }
 
+    public virtual void handleDeltasWithKeys(object bookSide, object deltas, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    {
+        priceKey ??= 0;
+        amountKey ??= 1;
+        countOrIdKey ??= 2;
+        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        {
+            object bidAsk = this.parseBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
+        }
+    }
+
     public virtual object getCacheIndex(object orderbook, object deltas)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
@@ -220,67 +562,49 @@ public partial class Exchange
         object httpsProxy = null;
         object socksProxy = null;
         // httpProxy
-        if (isTrue(this.valueIsDefined(this.httpProxy)))
+        object isHttpProxyDefined = this.valueIsDefined(this.httpProxy);
+        object isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
+        if (isTrue(isTrue(isHttpProxyDefined) || isTrue(isHttp_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("httpProxy");
-            httpProxy = this.httpProxy;
+            httpProxy = ((bool) isTrue(isHttpProxyDefined)) ? this.httpProxy : this.http_proxy;
         }
-        if (isTrue(this.valueIsDefined(this.http_proxy)))
-        {
-            ((IList<object>)usedProxies).Add("http_proxy");
-            httpProxy = this.http_proxy;
-        }
-        if (isTrue(!isEqual(this.httpProxyCallback, null)))
+        object ishttpProxyCallbackDefined = this.valueIsDefined(this.httpProxyCallback);
+        object ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
+        if (isTrue(isTrue(ishttpProxyCallbackDefined) || isTrue(ishttp_proxy_callback_defined)))
         {
             ((IList<object>)usedProxies).Add("httpProxyCallback");
-            httpProxy = callDynamically(this, "httpProxyCallback", new object[] { url, method, headers, body });
-        }
-        if (isTrue(!isEqual(this.http_proxy_callback, null)))
-        {
-            ((IList<object>)usedProxies).Add("http_proxy_callback");
-            httpProxy = callDynamically(this, "http_proxy_callback", new object[] { url, method, headers, body });
+            httpProxy = ((bool) isTrue(ishttpProxyCallbackDefined)) ? callDynamically(this, "httpProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "http_proxy_callback", new object[] { url, method, headers, body });
         }
         // httpsProxy
-        if (isTrue(this.valueIsDefined(this.httpsProxy)))
+        object isHttpsProxyDefined = this.valueIsDefined(this.httpsProxy);
+        object isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
+        if (isTrue(isTrue(isHttpsProxyDefined) || isTrue(isHttps_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("httpsProxy");
-            httpsProxy = this.httpsProxy;
+            httpsProxy = ((bool) isTrue(isHttpsProxyDefined)) ? this.httpsProxy : this.https_proxy;
         }
-        if (isTrue(this.valueIsDefined(this.https_proxy)))
-        {
-            ((IList<object>)usedProxies).Add("https_proxy");
-            httpsProxy = this.https_proxy;
-        }
-        if (isTrue(!isEqual(this.httpsProxyCallback, null)))
+        object ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
+        object ishttps_proxy_callback_defined = this.valueIsDefined(this.https_proxy_callback);
+        if (isTrue(isTrue(ishttpsProxyCallbackDefined) || isTrue(ishttps_proxy_callback_defined)))
         {
             ((IList<object>)usedProxies).Add("httpsProxyCallback");
-            httpsProxy = callDynamically(this, "httpsProxyCallback", new object[] { url, method, headers, body });
-        }
-        if (isTrue(!isEqual(this.https_proxy_callback, null)))
-        {
-            ((IList<object>)usedProxies).Add("https_proxy_callback");
-            httpsProxy = callDynamically(this, "https_proxy_callback", new object[] { url, method, headers, body });
+            httpsProxy = ((bool) isTrue(ishttpsProxyCallbackDefined)) ? callDynamically(this, "httpsProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "https_proxy_callback", new object[] { url, method, headers, body });
         }
         // socksProxy
-        if (isTrue(this.valueIsDefined(this.socksProxy)))
+        object isSocksProxyDefined = this.valueIsDefined(this.socksProxy);
+        object isSocks_proxy_defined = this.valueIsDefined(this.socks_proxy);
+        if (isTrue(isTrue(isSocksProxyDefined) || isTrue(isSocks_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("socksProxy");
-            socksProxy = this.socksProxy;
+            socksProxy = ((bool) isTrue(isSocksProxyDefined)) ? this.socksProxy : this.socks_proxy;
         }
-        if (isTrue(this.valueIsDefined(this.socks_proxy)))
-        {
-            ((IList<object>)usedProxies).Add("socks_proxy");
-            socksProxy = this.socks_proxy;
-        }
-        if (isTrue(!isEqual(this.socksProxyCallback, null)))
+        object issocksProxyCallbackDefined = this.valueIsDefined(this.socksProxyCallback);
+        object issocks_proxy_callback_defined = this.valueIsDefined(this.socks_proxy_callback);
+        if (isTrue(isTrue(issocksProxyCallbackDefined) || isTrue(issocks_proxy_callback_defined)))
         {
             ((IList<object>)usedProxies).Add("socksProxyCallback");
-            socksProxy = callDynamically(this, "socksProxyCallback", new object[] { url, method, headers, body });
-        }
-        if (isTrue(!isEqual(this.socks_proxy_callback, null)))
-        {
-            ((IList<object>)usedProxies).Add("socks_proxy_callback");
-            socksProxy = callDynamically(this, "socks_proxy_callback", new object[] { url, method, headers, body });
+            socksProxy = ((bool) isTrue(issocksProxyCallbackDefined)) ? callDynamically(this, "socksProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "socks_proxy_callback", new object[] { url, method, headers, body });
         }
         // check
         object length = getArrayLength(usedProxies);
@@ -347,6 +671,22 @@ public partial class Exchange
         {
             throw new InvalidProxySettings ((string)add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
         }
+    }
+
+    public virtual object checkAddress(object address = null)
+    {
+        if (isTrue(isEqual(address, null)))
+        {
+            throw new InvalidAddress ((string)add(this.id, " address is undefined")) ;
+        }
+        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        object uniqChars = (this.unique(this.stringToCharsArray(address)));
+        object length = getArrayLength(uniqChars); // py transpiler trick
+        if (isTrue(isTrue(isTrue(isEqual(length, 1)) || isTrue(isLessThan(((string)address).Length, this.minFundingAddressLength))) || isTrue(isGreaterThan(getIndexOf(address, " "), -1))))
+        {
+            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " address is invalid or has less than "), ((object)this.minFundingAddressLength).ToString()), " characters: \""), ((object)address).ToString()), "\"")) ;
+        }
+        return address;
     }
 
     public virtual object findMessageHashes(WebSocketClient client, object element)
@@ -526,7 +866,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "watchLiquidationsForSymbols")))
         {
-            return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+            return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
         }
         throw new NotSupported ((string)add(this.id, " watchLiquidations() is not supported yet")) ;
     }
@@ -659,6 +999,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchTradingLimits() is not supported yet")) ;
     }
 
+    public virtual object parseCurrency(object rawCurrency)
+    {
+        throw new NotSupported ((string)add(this.id, " parseCurrency() is not supported yet")) ;
+    }
+
+    public virtual object parseCurrencies(object rawCurrencies)
+    {
+        object result = new Dictionary<string, object>() {};
+        object arr = this.toArray(rawCurrencies);
+        for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
+        {
+            object parsed = this.parseCurrency(getValue(arr, i));
+            object code = getValue(parsed, "code");
+            ((IDictionary<string,object>)result)[(string)code] = parsed;
+        }
+        return result;
+    }
+
     public virtual object parseMarket(object market)
     {
         throw new NotSupported ((string)add(this.id, " parseMarket() is not supported yet")) ;
@@ -781,6 +1139,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchFundingRates() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchFundingIntervals(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchFundingIntervals() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchFundingRate(object symbol, object parameters = null)
@@ -982,6 +1346,9 @@ public partial class Exchange
                 { "CRO", new Dictionary<string, object>() {
                     { "CRC20", "CRONOS" },
                 } },
+                { "BRC20", new Dictionary<string, object>() {
+                    { "BRC20", "BTC" },
+                } },
             } },
         };
     }
@@ -1127,6 +1494,10 @@ public partial class Exchange
                     { "min", null },
                     { "max", null },
                 } },
+            } },
+            { "marginModes", new Dictionary<string, object>() {
+                { "cross", null },
+                { "isolated", null },
             } },
             { "created", null },
             { "info", null },
@@ -1810,57 +2181,75 @@ public partial class Exchange
             }
             cost = Precise.stringMul(multiplyPrice, amount);
         }
-        object parseFee = isEqual(this.safeValue(trade, "fee"), null);
-        object parseFees = isEqual(this.safeValue(trade, "fees"), null);
-        object shouldParseFees = isTrue(parseFee) || isTrue(parseFees);
-        object fees = new List<object>() {};
-        object fee = this.safeValue(trade, "fee");
-        if (isTrue(shouldParseFees))
-        {
-            object reducedFees = ((bool) isTrue(this.reduceFees)) ? this.reduceFeesByCurrency(fees) : fees;
-            object reducedLength = getArrayLength(reducedFees);
-            for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
-            {
-                ((IDictionary<string,object>)getValue(reducedFees, i))["cost"] = this.safeNumber(getValue(reducedFees, i), "cost");
-                if (isTrue(inOp(getValue(reducedFees, i), "rate")))
-                {
-                    ((IDictionary<string,object>)getValue(reducedFees, i))["rate"] = this.safeNumber(getValue(reducedFees, i), "rate");
-                }
-            }
-            if (isTrue(!isTrue(parseFee) && isTrue((isEqual(reducedLength, 0)))))
-            {
-                // copy fee to avoid modification by reference
-                object feeCopy = this.deepExtend(fee);
-                ((IDictionary<string,object>)feeCopy)["cost"] = this.safeNumber(feeCopy, "cost");
-                if (isTrue(inOp(feeCopy, "rate")))
-                {
-                    ((IDictionary<string,object>)feeCopy)["rate"] = this.safeNumber(feeCopy, "rate");
-                }
-                ((IList<object>)reducedFees).Add(feeCopy);
-            }
-            if (isTrue(parseFees))
-            {
-                ((IDictionary<string,object>)trade)["fees"] = reducedFees;
-            }
-            if (isTrue(isTrue(parseFee) && isTrue((isEqual(reducedLength, 1)))))
-            {
-                ((IDictionary<string,object>)trade)["fee"] = getValue(reducedFees, 0);
-            }
-            object tradeFee = this.safeValue(trade, "fee");
-            if (isTrue(!isEqual(tradeFee, null)))
-            {
-                ((IDictionary<string,object>)tradeFee)["cost"] = this.safeNumber(tradeFee, "cost");
-                if (isTrue(inOp(tradeFee, "rate")))
-                {
-                    ((IDictionary<string,object>)tradeFee)["rate"] = this.safeNumber(tradeFee, "rate");
-                }
-                ((IDictionary<string,object>)trade)["fee"] = tradeFee;
-            }
-        }
+        var resultFeeresultFeesVariable = this.parsedFeeAndFees(trade);
+        var resultFee = ((IList<object>) resultFeeresultFeesVariable)[0];
+        var resultFees = ((IList<object>) resultFeeresultFeesVariable)[1];
+        ((IDictionary<string,object>)trade)["fee"] = resultFee;
+        ((IDictionary<string,object>)trade)["fees"] = resultFees;
         ((IDictionary<string,object>)trade)["amount"] = this.parseNumber(amount);
         ((IDictionary<string,object>)trade)["price"] = this.parseNumber(price);
         ((IDictionary<string,object>)trade)["cost"] = this.parseNumber(cost);
         return trade;
+    }
+
+    public virtual object parsedFeeAndFees(object container)
+    {
+        object fee = this.safeDict(container, "fee");
+        object fees = this.safeList(container, "fees");
+        object feeDefined = !isEqual(fee, null);
+        object feesDefined = !isEqual(fees, null);
+        // parsing only if at least one of them is defined
+        object shouldParseFees = (isTrue(feeDefined) || isTrue(feesDefined));
+        if (isTrue(shouldParseFees))
+        {
+            if (isTrue(feeDefined))
+            {
+                fee = this.parseFeeNumeric(fee);
+            }
+            if (!isTrue(feesDefined))
+            {
+                // just set it directly, no further processing needed
+                fees = new List<object>() {fee};
+            }
+            // 'fees' were set, so reparse them
+            object reducedFees = ((bool) isTrue(this.reduceFees)) ? this.reduceFeesByCurrency(fees) : fees;
+            object reducedLength = getArrayLength(reducedFees);
+            for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
+            {
+                ((List<object>)reducedFees)[Convert.ToInt32(i)] = this.parseFeeNumeric(getValue(reducedFees, i));
+            }
+            fees = reducedFees;
+            if (isTrue(isEqual(reducedLength, 1)))
+            {
+                fee = getValue(reducedFees, 0);
+            } else if (isTrue(isEqual(reducedLength, 0)))
+            {
+                fee = null;
+            }
+        }
+        // in case `fee & fees` are undefined, set `fees` as empty array
+        if (isTrue(isEqual(fee, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", null },
+                { "currency", null },
+            };
+        }
+        if (isTrue(isEqual(fees, null)))
+        {
+            fees = new List<object>() {};
+        }
+        return new List<object>() {fee, fees};
+    }
+
+    public virtual object parseFeeNumeric(object fee)
+    {
+        ((IDictionary<string,object>)fee)["cost"] = this.safeNumber(fee, "cost"); // ensure numeric
+        if (isTrue(inOp(fee, "rate")))
+        {
+            ((IDictionary<string,object>)fee)["rate"] = this.safeNumber(fee, "rate");
+        }
+        return fee;
     }
 
     public virtual object findNearestCeiling(object arr, object providedValue)
@@ -1945,12 +2334,13 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = getValue(fees, i);
-            object feeCurrencyCode = this.safeString(fee, "currency");
+            object code = this.safeString(fee, "currency");
+            object feeCurrencyCode = ((bool) isTrue(!isEqual(code, null))) ? code : ((object)i).ToString();
             if (isTrue(!isEqual(feeCurrencyCode, null)))
             {
                 object rate = this.safeString(fee, "rate");
-                object cost = this.safeValue(fee, "cost");
-                if (isTrue(Precise.stringEq(cost, "0")))
+                object cost = this.safeString(fee, "cost");
+                if (isTrue(isEqual(cost, null)))
                 {
                     continue;
                 }
@@ -1965,7 +2355,7 @@ public partial class Exchange
                 } else
                 {
                     ((IDictionary<string,object>)getValue(reduced, feeCurrencyCode))[(string)rateKey] = new Dictionary<string, object>() {
-                        { "currency", feeCurrencyCode },
+                        { "currency", code },
                         { "cost", cost },
                     };
                     if (isTrue(!isEqual(rate, null)))
@@ -2015,7 +2405,17 @@ public partial class Exchange
             }
             if (isTrue(isEqual(average, null)))
             {
-                average = Precise.stringDiv(Precise.stringAdd(last, open), "2");
+                object precision = 18;
+                if (isTrue(isTrue(!isEqual(market, null)) && isTrue(this.isTickPrecision())))
+                {
+                    object marketPrecision = this.safeDict(market, "precision");
+                    object precisionPrice = this.safeString(marketPrecision, "price");
+                    if (isTrue(!isEqual(precisionPrice, null)))
+                    {
+                        precision = this.precisionFromString(precisionPrice);
+                    }
+                }
+                average = Precise.stringDiv(Precise.stringAdd(last, open), "2", precision);
             }
         }
         if (isTrue(isTrue(isTrue(isTrue((isEqual(percentage, null))) && isTrue((!isEqual(change, null)))) && isTrue((!isEqual(open, null)))) && isTrue(Precise.stringGt(open, "0"))))
@@ -2049,6 +2449,8 @@ public partial class Exchange
             { "baseVolume", this.parseNumber(baseVolume) },
             { "quoteVolume", this.parseNumber(quoteVolume) },
             { "previousClose", this.safeNumber(ticker, "previousClose") },
+            { "indexPrice", this.safeNumber(ticker, "indexPrice") },
+            { "markPrice", this.safeNumber(ticker, "markPrice") },
         });
     }
 
@@ -2420,7 +2822,7 @@ public partial class Exchange
                 object currencies = new List<object>(((IDictionary<string,object>)this.currencies).Values);
                 for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
                 {
-                    object currency = new List<object>() {i};
+                    object currency = getValue(currencies, i);
                     object networks = this.safeDict(currency, "networks");
                     object network = this.safeDict(networks, networkCode);
                     networkId = this.safeString(network, "id");
@@ -2519,7 +2921,7 @@ public partial class Exchange
         } else
         {
             // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            object defaultNetwork = this.safeDict(this.options, "defaultNetwork");
+            object defaultNetwork = this.safeString(this.options, "defaultNetwork");
             if (isTrue(!isEqual(defaultNetwork, null)))
             {
                 defaultNetworkCode = defaultNetwork;
@@ -2603,16 +3005,17 @@ public partial class Exchange
         });
     }
 
-    public virtual object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null)
+    public virtual object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null, object tail = null)
     {
         timeframe ??= "1m";
+        tail ??= false;
         object results = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
         {
             ((IList<object>)results).Add(this.parseOHLCV(getValue(ohlcvs, i), market));
         }
         object sorted = this.sortBy(results, 0);
-        return ((object)this.filterBySinceLimit(sorted, since, limit, 0));
+        return ((object)this.filterBySinceLimit(sorted, since, limit, 0, tail));
     }
 
     public virtual object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
@@ -2899,7 +3302,11 @@ public partial class Exchange
 
     public virtual object getListFromObjectValues(object objects, object key)
     {
-        object newArray = this.toArray(objects);
+        object newArray = objects;
+        if (!isTrue(((objects is IList<object>) || (objects.GetType().IsGenericType && objects.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            newArray = this.toArray(objects);
+        }
         object results = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(newArray)); postFixIncrement(ref i))
         {
@@ -3124,12 +3531,6 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         await this.cancelOrderWs(id, symbol);
         return await this.createOrderWs(symbol, type, side, amount, price, parameters);
-    }
-
-    public async virtual Task<object> fetchPermissions(object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchPermissions() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchPosition(object symbol, object parameters = null)
@@ -3701,6 +4102,29 @@ public partial class Exchange
         }
     }
 
+    public async virtual Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchMarkPrices")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            object tickers = await this.fetchMarkPrices(new List<object>() {symbol}, parameters);
+            object ticker = this.safeDict(tickers, symbol);
+            if (isTrue(isEqual(ticker, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchMarkPrices() could not find a ticker for "), symbol)) ;
+            } else
+            {
+                return ticker;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
+        }
+    }
+
     public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -3734,6 +4158,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)
@@ -4801,7 +5231,8 @@ public partial class Exchange
             return this.forceString(fee);
         } else
         {
-            return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
+            object roundingMode = this.safeInteger(this.options, "currencyToPrecisionRoundingMode", ROUND);
+            return this.decimalToPrecision(fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
     }
 
@@ -5201,7 +5632,7 @@ public partial class Exchange
         }
         if (isTrue(indexed))
         {
-            return this.indexBy(result, "currency");
+            result = this.filterByArray(result, "currency", null, indexed);
         }
         return result;
     }
@@ -5433,6 +5864,33 @@ public partial class Exchange
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchFundingRate () is not supported yet")) ;
+        }
+    }
+
+    public async virtual Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchFundingIntervals")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            if (!isTrue(getValue(market, "contract")))
+            {
+                throw new BadSymbol ((string)add(this.id, " fetchFundingInterval() supports contract markets only")) ;
+            }
+            object rates = await this.fetchFundingIntervals(new List<object>() {symbol}, parameters);
+            object rate = this.safeValue(rates, symbol);
+            if (isTrue(isEqual(rate, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchFundingInterval() returned no data for "), symbol)) ;
+            } else
+            {
+                return rate;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchFundingInterval() is not supported yet")) ;
         }
     }
 
@@ -5899,7 +6357,7 @@ public partial class Exchange
                     errors = 0;
                     result = this.arrayConcat(result, response);
                     object last = this.safeValue(response, subtract(responseLength, 1));
-                    paginationTimestamp = subtract(this.safeInteger(last, "timestamp"), 1);
+                    paginationTimestamp = add(this.safeInteger(last, "timestamp"), 1);
                     if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isGreaterThanOrEqual(paginationTimestamp, until)))))
                     {
                         break;
@@ -6027,6 +6485,8 @@ public partial class Exchange
         object i = 0;
         object errors = 0;
         object result = new List<object>() {};
+        object timeframe = this.safeString(parameters, "timeframe");
+        parameters = this.omit(parameters, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
         while (isLessThan(i, maxCalls))
         {
             try
@@ -6043,9 +6503,12 @@ public partial class Exchange
                 if (isTrue(isEqual(method, "fetchAccounts")))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
-                } else if (isTrue(isEqual(method, "getLeverageTiersPaginated")))
+                } else if (isTrue(isTrue(isEqual(method, "getLeverageTiersPaginated")) || isTrue(isEqual(method, "fetchPositions"))))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, parameters }));
+                } else if (isTrue(isEqual(method, "fetchOpenInterestHistory")))
+                {
+                    response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, maxEntriesPerRequest, parameters }));
                 } else
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));
@@ -6064,8 +6527,21 @@ public partial class Exchange
                     break;
                 }
                 result = this.arrayConcat(result, response);
-                object last = this.safeValue(response, subtract(responseLength, 1));
-                cursorValue = this.safeValue(getValue(last, "info"), cursorReceived);
+                object last = this.safeDict(response, subtract(responseLength, 1));
+                // cursorValue = this.safeValue (last['info'], cursorReceived);
+                cursorValue = null; // search for the cursor
+                for (object j = 0; isLessThan(j, responseLength); postFixIncrement(ref j))
+                {
+                    object index = subtract(subtract(responseLength, j), 1);
+                    object entry = this.safeDict(response, index);
+                    object info = this.safeDict(entry, "info");
+                    object cursor = this.safeValue(info, cursorReceived);
+                    if (isTrue(!isEqual(cursor, null)))
+                    {
+                        cursorValue = cursor;
+                        break;
+                    }
+                }
                 if (isTrue(isEqual(cursorValue, null)))
                 {
                     break;
@@ -6476,7 +6952,7 @@ public partial class Exchange
         if (isTrue(getValue(this.has, "fetchPositionsHistory")))
         {
             object positions = await this.fetchPositionsHistory(new List<object>() {symbol}, since, limit, parameters);
-            return this.safeDict(positions, 0);
+            return positions;
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchPositionHistory () is not supported yet")) ;
@@ -6520,6 +6996,87 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTransfers () is not supported yet")) ;
+    }
+
+    public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash)
+    {
+        if (isTrue(inOp(client.subscriptions, unsubHash)))
+        {
+            ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
+        }
+        if (isTrue(inOp(client.subscriptions, subHash)))
+        {
+            ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
+        }
+        if (isTrue(inOp(client.futures, subHash)))
+        {
+            var error = new UnsubscribeError(add(add(this.id, " "), subHash));
+            client.reject(error, subHash);
+        }
+        // client.resolve(true, unsubHash);
+    }
+
+    public virtual void cleanCache(object subscription)
+    {
+        object topic = this.safeString(subscription, "topic");
+        object symbols = this.safeList(subscription, "symbols", new List<object>() {});
+        object symbolsLength = getArrayLength(symbols);
+        if (isTrue(isEqual(topic, "ohlcv")))
+        {
+            object symbolsAndTimeFrames = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeFrames)); postFixIncrement(ref i))
+            {
+                object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
+                object symbol = this.safeString(symbolAndTimeFrame, 0);
+                object timeframe = this.safeString(symbolAndTimeFrame, 1);
+                if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+                {
+                    ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
+                }
+            }
+        } else if (isTrue(isGreaterThan(symbolsLength, 0)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                if (isTrue(isEqual(topic, "trades")))
+                {
+                    ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+                } else if (isTrue(isEqual(topic, "orderbook")))
+                {
+                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                } else if (isTrue(isEqual(topic, "ticker")))
+                {
+                    ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
+                }
+            }
+        } else
+        {
+            if (isTrue(isEqual(topic, "myTrades")))
+            {
+                // don't reset this.myTrades directly here
+                // because in c# we need to use a different object
+                object keys = new List<object>(((IDictionary<string,object>)this.myTrades).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+                {
+                    ((IDictionary<string,object>)this.myTrades).Remove((string)getValue(keys, i));
+                }
+            } else if (isTrue(isEqual(topic, "orders")))
+            {
+                object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
+                {
+                    ((IDictionary<string,object>)this.orders).Remove((string)getValue(orderSymbols, i));
+                }
+            } else if (isTrue(isEqual(topic, "ticker")))
+            {
+                object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
+                {
+                    ((IDictionary<string,object>)this.tickers).Remove((string)getValue(tickerSymbols, i));
+                }
+            }
+        }
     }
 }
 

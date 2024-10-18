@@ -31,7 +31,7 @@ class Client {
     public $subscriptions = array();
     public $rejections = array();
     public $message_queue = array();
-    public $useMessageQueue = true;
+    public $useMessageQueue = false;
     public $options = array();
 
     public $on_message_callback;

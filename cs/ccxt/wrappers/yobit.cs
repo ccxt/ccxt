@@ -100,6 +100,11 @@ public partial class yobit
         var res = await this.fetchOrderBooks(symbols, limit, parameters);
         return ((Dictionary<string, OrderBook>)res);
     }
+    public async Task<Tickers> FetchTickersHelper(string idsString, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickersHelper(idsString, parameters);
+        return new Tickers(res);
+    }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
@@ -110,6 +115,12 @@ public partial class yobit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.all</term>
+    /// <description>
+    /// object : you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
     /// </description>
     /// </item>
     /// </list>
@@ -364,10 +375,10 @@ public partial class yobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// make a withdrawal

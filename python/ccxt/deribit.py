@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -65,6 +65,8 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingRate': True,
@@ -1019,7 +1021,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.deribit.com/#private-get_current_deposit_address
@@ -1054,11 +1056,11 @@ class deribit(Exchange, ImplicitAPI):
         address = self.safe_string(result, 'address')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': None,
-            'network': None,
-            'info': response,
         }
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1133,6 +1135,8 @@ class deribit(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_string(stats, 'volume'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
         }, market)
 
@@ -2618,7 +2622,7 @@ class deribit(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :see: https://docs.deribit.com/#private-get_transfers
@@ -2852,7 +2856,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'result', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def fetch_funding_rate(self, symbol: str, params={}):
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://docs.deribit.com/#public-get_funding_rate_value
@@ -2932,7 +2936,7 @@ class deribit(Exchange, ImplicitAPI):
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #   {
         #       "jsonrpc":"2.0",
@@ -2972,6 +2976,7 @@ class deribit(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': '8h',
         }
 
     def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):

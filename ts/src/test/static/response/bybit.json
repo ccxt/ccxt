@@ -906,7 +906,8 @@
                         "side": "long",
                         "percentage": null,
                         "stopLossPrice": null,
-                        "takeProfitPrice": null
+                        "takeProfitPrice": null,
+                        "hedged": false
                     }
                 ]
             }
@@ -1022,7 +1023,8 @@
                     "side": null,
                     "percentage": null,
                     "stopLossPrice": null,
-                    "takeProfitPrice": null
+                    "takeProfitPrice": null,
+                    "hedged": false
                 }
             }
         ],
@@ -1784,7 +1786,7 @@
                         "price": 51444.4,
                         "amount": 0.972,
                         "cost": 50003.9568,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -1851,9 +1853,11 @@
                     "previousClose": null,
                     "change": 1296.9,
                     "percentage": 2.5861,
-                    "average": 50795.95,
+                    "average": 50795.9,
                     "baseVolume": 47293.887,
                     "quoteVolume": 2352063794.0035,
+                    "markPrice": 51444.40,
+                    "indexPrice": 51469.95,
                     "info": {
                         "symbol": "BTCUSDT",
                         "lastPrice": "51444.40",
@@ -1933,11 +1937,14 @@
                         "account": null,
                         "referenceAccount": null,
                         "referenceId": null,
-                        "status": null,
+                        "status": "ok",
                         "amount": 0.0006935,
                         "before": 94.05001087,
                         "after": 94.05070437,
-                        "fee": 0,
+                        "fee": {
+                            "currency":"USDT",
+                            "cost":0
+                        },
                         "direction": "out",
                         "timestamp": 1707897600000,
                         "datetime": "2024-02-14T08:00:00.000Z",
@@ -2506,6 +2513,148 @@
                     "id": "89102b18-96c4-42d2-bc26-131699036635",
                     "amount": 0.1,
                     "rate": -0.000881
+                  }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "success",
+                  "result": {
+                    "list": [
+                      {
+                        "transferId": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                        "coin": "USDT",
+                        "amount": "10",
+                        "fromAccountType": "UNIFIED",
+                        "toAccountType": "FUND",
+                        "timestamp": "1722865698000",
+                        "status": "SUCCESS",
+                        "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                      }
+                    ],
+                    "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                  },
+                  "retExtInfo": {},
+                  "time": "1722866135254"
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "transferId": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                      "coin": "USDT",
+                      "amount": "10",
+                      "fromAccountType": "UNIFIED",
+                      "toAccountType": "FUND",
+                      "timestamp": "1722865698000",
+                      "status": "SUCCESS",
+                      "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                    },
+                    "id": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                    "timestamp": 1722865698000,
+                    "datetime": "2024-08-05T13:48:18.000Z",
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "unified",
+                    "toAccount": "fund",
+                    "status": "ok"
+                  }
+                ]
+            }
+        ],
+        "fetchPositionHistory": [
+            {
+                "description": "position history",
+                "method": "fetchPositionHistory",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "nextPageCursor": "bcb03fc1-6bfe-4464-954c-4b017aea5286%3A1724408566765%2Cbcb03fc1-6bfe-4464-954c-4b017aea5286%3A1724408566765",
+                    "category": "linear",
+                    "list": [
+                      {
+                        "symbol": "BTCUSDT",
+                        "orderType": "Market",
+                        "leverage": "10",
+                        "updatedTime": "1724408566765",
+                        "side": "Sell",
+                        "orderId": "bcb03fc1-6bfe-4464-954c-4b017aea5286",
+                        "closedPnl": "-0.43582528",
+                        "avgEntryPrice": "55937.5",
+                        "qty": "0.001",
+                        "cumEntryValue": "55.9375",
+                        "createdTime": "1724408566762",
+                        "orderPrice": "52784.9",
+                        "closedSize": "0.001",
+                        "avgExitPrice": "55563",
+                        "execType": "Trade",
+                        "fillCount": "1",
+                        "cumExitValue": "55.563"
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1724408577788"
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "BTCUSDT",
+                      "orderType": "Market",
+                      "leverage": "10",
+                      "updatedTime": "1724408566765",
+                      "side": "Sell",
+                      "orderId": "bcb03fc1-6bfe-4464-954c-4b017aea5286",
+                      "closedPnl": "-0.43582528",
+                      "avgEntryPrice": "55937.5",
+                      "qty": "0.001",
+                      "cumEntryValue": "55.9375",
+                      "createdTime": "1724408566762",
+                      "orderPrice": "52784.9",
+                      "closedSize": "0.001",
+                      "avgExitPrice": "55563",
+                      "execType": "Trade",
+                      "fillCount": "1",
+                      "cumExitValue": "55.563"
+                    },
+                    "id": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1724408566762,
+                    "datetime": "2024-08-23T10:22:46.762Z",
+                    "lastUpdateTimestamp": 1724408566765,
+                    "initialMargin": 55.9375,
+                    "initialMarginPercentage": 1.0067400968270253,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "entryPrice": 55937.5,
+                    "notional": 55.563,
+                    "leverage": 10,
+                    "unrealizedPnl": null,
+                    "realizedPnl": -0.43582528,
+                    "contracts": 0.001,
+                    "contractSize": 1,
+                    "marginRatio": null,
+                    "liquidationPrice": null,
+                    "markPrice": null,
+                    "lastPrice": 55563,
+                    "collateral": null,
+                    "marginMode": null,
+                    "side": "long",
+                    "percentage": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "hedged": false
                   }
                 ]
             }

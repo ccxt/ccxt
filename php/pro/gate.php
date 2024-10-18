@@ -357,7 +357,7 @@ class gate extends \ccxt\async\gate {
                     throw new NotSupported($this->id . ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
                 }
             }
-            list($request, $requestParams) = $this->fetchOrdersByStatusRequest ($status, $symbol, $since, $limit, $params);
+            list($request, $requestParams) = $this->prepareOrdersByStatusRequest ($status, $symbol, $since, $limit, $params);
             $newRequest = $this->omit($request, array( 'settle' ));
             $messageType = $this->get_type_by_market($market);
             $channel = $messageType . '.order_list';
@@ -401,6 +401,35 @@ class gate extends \ccxt\async\gate {
             );
             $orderbook = Async\await($this->subscribe_public($url, $messageHash, $payload, $channel, $query, $subscription));
             return $orderbook->limit ();
+        }) ();
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $marketId = $market['id'];
+            $interval = '100ms';
+            list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $interval);
+            $messageType = $this->get_type_by_market($market);
+            $channel = $messageType . '.order_book_update';
+            $subMessageHash = 'orderbook' . ':' . $symbol;
+            $messageHash = 'unsubscribe:orderbook' . ':' . $symbol;
+            $url = $this->get_url_by_market($market);
+            $payload = array( $marketId, $interval );
+            $limit = $this->safe_integer($params, 'limit', 100);
+            if ($market['contract']) {
+                $stringLimit = (string) $limit;
+                $payload[] = $stringLimit;
+            }
+            return Async\await($this->un_subscribe_public_multiple($url, 'orderbook', array( $symbol ), array( $messageHash ), array( $subMessageHash ), $payload, $channel, $params));
         }) ();
     }
 
@@ -743,6 +772,44 @@ class gate extends \ccxt\async\gate {
                 $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $market = $this->market($symbols[0]);
+            $messageType = $this->get_type_by_market($market);
+            $channel = $messageType . '.trades';
+            $subMessageHashes = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $subMessageHashes[] = 'trades:' . $symbol;
+                $messageHashes[] = 'unsubscribe:trades:' . $symbol;
+            }
+            $url = $this->get_url_by_market($market);
+            return Async\await($this->un_subscribe_public_multiple($url, 'trades', $symbols, $messageHashes, $subMessageHashes, $marketIds, $channel, $params));
+        }) ();
+    }
+
+    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
         }) ();
     }
 
@@ -1121,7 +1188,7 @@ class gate extends \ccxt\async\gate {
             $client = $this->client($url);
             $this->set_positions_cache($client, $type, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             $cache = $this->safe_value($this->positions, $type);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
                 return Async\await($client->future ($type . ':fetchPositionsSnapshot'));
@@ -1557,7 +1624,7 @@ class gate extends \ccxt\async\gate {
         $errs = $this->safe_dict($data, 'errs');
         $error = $this->safe_dict($message, 'error', $errs);
         $code = $this->safe_string_2($error, 'code', 'label');
-        $id = $this->safe_string_2($message, 'id', 'requestId');
+        $id = $this->safe_string_n($message, array( 'id', 'requestId', 'request_id' ));
         if ($error !== null) {
             $messageHash = $this->safe_string($client->subscriptions, $id);
             try {
@@ -1572,7 +1639,7 @@ class gate extends \ccxt\async\gate {
                     unset($client->subscriptions[$messageHash]);
                 }
             }
-            if ($id !== null) {
+            if (($id !== null) && (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions))) {
                 unset($client->subscriptions[$id]);
             }
             return true;
@@ -1600,6 +1667,86 @@ class gate extends \ccxt\async\gate {
         }
         if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
             unset($client->subscriptions[$id]);
+        }
+    }
+
+    public function handle_un_subscribe(Client $client, $message) {
+        //
+        // {
+        //     "time":1725534679,
+        //     "time_ms":1725534679786,
+        //     "id":2,
+        //     "conn_id":"fac539b443fd7002",
+        //     "trace_id":"efe1d282b630b4aa266b84bee177791a",
+        //     "channel":"spot.trades",
+        //     "event":"unsubscribe",
+        //     "payload":array(
+        //        "LTC_USDT"
+        //     ),
+        //     "result":array(
+        //        "status":"success"
+        //     ),
+        //     "requestId":"efe1d282b630b4aa266b84bee177791a"
+        // }
+        //
+        $id = $this->safe_string($message, 'id');
+        $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $messageHash = $keys[$i];
+            if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                continue;
+                // the previous iteration can have deleted the $messageHash from the subscriptions
+            }
+            if (str_starts_with($messageHash, 'unsubscribe')) {
+                $subscription = $client->subscriptions[$messageHash];
+                $subId = $this->safe_string($subscription, 'id');
+                if ($id !== $subId) {
+                    continue;
+                }
+                $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+                $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
+                for ($j = 0; $j < count($messageHashes); $j++) {
+                    $unsubHash = $messageHashes[$j];
+                    $subHash = $subMessageHashes[$j];
+                    $this->clean_unsubscription($client, $subHash, $unsubHash);
+                }
+                $this->clean_cache($subscription);
+            }
+        }
+    }
+
+    public function clean_cache(array $subscription) {
+        $topic = $this->safe_string($subscription, 'topic', '');
+        $symbols = $this->safe_list($subscription, 'symbols', array());
+        $symbolsLength = count($symbols);
+        if ($topic === 'ohlcv') {
+            $symbolsAndTimeFrames = $this->safe_list($subscription, 'symbolsAndTimeframes', array());
+            for ($i = 0; $i < count($symbolsAndTimeFrames); $i++) {
+                $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
+                $symbol = $this->safe_string($symbolAndTimeFrame, 0);
+                $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
+                unset($this->ohlcvs[$symbol][$timeframe]);
+            }
+        } elseif ($symbolsLength > 0) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                if (str_ends_with($topic, 'trades')) {
+                    unset($this->trades[$symbol]);
+                } elseif ($topic === 'orderbook') {
+                    unset($this->orderbooks[$symbol]);
+                } elseif ($topic === 'ticker') {
+                    unset($this->tickers[$symbol]);
+                }
+            }
+        } else {
+            if (str_ends_with($topic, 'trades')) {
+                // don't reset $this->myTrades directly here
+                // because in c# we need to use a different object
+                $keys = is_array($this->trades) ? array_keys($this->trades) : array();
+                for ($i = 0; $i < count($keys); $i++) {
+                    unset($this->trades[$keys[$i]]);
+                }
+            }
         }
     }
 
@@ -1699,6 +1846,10 @@ class gate extends \ccxt\async\gate {
         $event = $this->safe_string($message, 'event');
         if ($event === 'subscribe') {
             $this->handle_subscription_status($client, $message);
+            return;
+        }
+        if ($event === 'unsubscribe') {
+            $this->handle_un_subscribe($client, $message);
             return;
         }
         $channel = $this->safe_string($message, 'channel', '');
@@ -1828,6 +1979,30 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
+    public function un_subscribe_public_multiple($url, $topic, $symbols, $messageHashes, $subMessageHashes, $payload, $channel, $params = array ()) {
+        return Async\async(function () use ($url, $topic, $symbols, $messageHashes, $subMessageHashes, $payload, $channel, $params) {
+            $requestId = $this->request_id();
+            $time = $this->seconds();
+            $request = array(
+                'id' => $requestId,
+                'time' => $time,
+                'channel' => $channel,
+                'event' => 'unsubscribe',
+                'payload' => $payload,
+            );
+            $sub = array(
+                'id' => (string) $requestId,
+                'topic' => $topic,
+                'unsubscribe' => true,
+                'messageHashes' => $messageHashes,
+                'subMessageHashes' => $subMessageHashes,
+                'symbols' => $symbols,
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $sub));
+        }) ();
+    }
+
     public function authenticate($url, $messageType) {
         return Async\async(function () use ($url, $messageType) {
             $channel = $messageType . '.login';
@@ -1876,7 +2051,7 @@ class gate extends \ccxt\async\gate {
                 'event' => $event,
                 'payload' => $payload,
             );
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $requestId));
         }) ();
     }
 
@@ -1922,7 +2097,7 @@ class gate extends \ccxt\async\gate {
                 $client->subscriptions[$tempSubscriptionHash] = $messageHash;
             }
             $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $messageHash));
         }) ();
     }
 }

@@ -53,6 +53,8 @@ class lbank extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -1016,16 +1018,16 @@ class lbank extends Exchange {
             }
             if ($since === null) {
                 $duration = $this->parse_timeframe($timeframe);
-                $since = $this->milliseconds() - $duration * 1000 * $limit;
+                $since = $this->milliseconds() - ($duration * 1000 * $limit);
             }
             $request = array(
                 'symbol' => $market['id'],
                 'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'time' => $this->parse_to_int($since / 1000),
-                'size' => $limit, // max 2000
+                'size' => min ($limit + 1, 2000), // max 2000
             );
             $response = Async\await($this->spotPublicGetKline ($this->extend($request, $params)));
-            $ohlcvs = $this->safe_value($response, 'data', array());
+            $ohlcvs = $this->safe_list($response, 'data', array());
             //
             //
             // array(
@@ -1958,7 +1960,7 @@ class lbank extends Exchange {
         return $network;
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
@@ -1983,7 +1985,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address_default(string $code, $params = array ()) {
+    public function fetch_deposit_address_default(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2016,16 +2018,16 @@ class lbank extends Exchange {
             $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
             $networkCode = $this->safe_string_upper($inverseNetworks, $networkId, $networkId);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $networkCode,
                 'address' => $address,
                 'tag' => $tag,
-                'network' => $networkCode,
-                'info' => $response,
             );
         }) ();
     }
 
-    public function fetch_deposit_address_supplement(string $code, $params = array ()) {
+    public function fetch_deposit_address_supplement(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             // returns the $address for whatever the default $network is...
             Async\await($this->load_markets());
@@ -2059,11 +2061,11 @@ class lbank extends Exchange {
             $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
             $networkCode = $this->safe_string_upper($inverseNetworks, $network, $network);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $networkCode, // will be null if not specified in $request
                 'address' => $address,
                 'tag' => $tag,
-                'network' => $networkCode, // will be null if not specified in $request
-                'info' => $response,
             );
         }) ();
     }
@@ -2507,7 +2509,7 @@ class lbank extends Exchange {
              * when using private endpoint, only returns information for currencies with non-zero balance, use public $method by specifying $this->options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
              * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
              * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
-             * @param {string[]|null} $codes array of unified currency $codes
+             * @param {string[]} [$codes] array of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
@@ -2520,12 +2522,12 @@ class lbank extends Exchange {
                 $method = $this->safe_string($params, 'method', $defaultMethod);
                 $params = $this->omit($params, 'method');
                 if ($method === 'fetchPublicDepositWithdrawFees') {
-                    Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
+                    $response = Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
                 } else {
-                    Async\await($this->fetch_private_deposit_withdraw_fees($codes, $params));
+                    $response = Async\await($this->fetch_private_deposit_withdraw_fees($codes, $params));
                 }
             } else {
-                Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
+                $response = Async\await($this->fetch_public_deposit_withdraw_fees($codes, $params));
             }
             return $response;
         }) ();

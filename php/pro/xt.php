@@ -20,6 +20,7 @@ class xt extends \ccxt\async\xt {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,

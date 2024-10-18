@@ -32,6 +32,8 @@ public partial class bitbank : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -727,6 +729,7 @@ public partial class bitbank : Exchange
         * @name bitbank#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -858,11 +861,11 @@ public partial class bitbank : Exchange
         object firstAccount = this.safeValue(accounts, 0, new Dictionary<string, object>() {});
         object address = this.safeString(firstAccount, "address");
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", currency },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
-            { "info", response },
         };
     }
 

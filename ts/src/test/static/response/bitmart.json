@@ -382,7 +382,7 @@
                     "amount": 0.218,
                     "cost": 18.1877182,
                     "takerOrMaker": null,
-                    "fee": null,
+                    "fee": {"cost": null, "currency": null },
                     "fees": []
                   }
                 ]
@@ -430,11 +430,13 @@
                     "close": 71257.99,
                     "last": 71257.99,
                     "previousClose": null,
-                    "change": 0.00516,
+                    "change": 365.74,
                     "percentage": 0.516,
                     "average": 71075.12,
                     "baseVolume": 8222.21532,
                     "quoteVolume": 583939083.43,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTC_USDT",
                         "last": "71257.99",
@@ -489,6 +491,448 @@
                         94.52076
                     ]
                 ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "spot balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                  "message": "OK",
+                  "code": "1000",
+                  "trace": "d536b57d32174fa688417c03c10826f2.116.17230279959966225",
+                  "data": {
+                    "wallet": [
+                      {
+                        "id": "TRX",
+                        "name": "TRON",
+                        "available": "0.00016000",
+                        "frozen": "0.00000000",
+                        "total": "0.00016000"
+                      },
+                      {
+                        "id": "ADA",
+                        "name": "Cardano",
+                        "available": "0.71091660",
+                        "frozen": "0.00000000",
+                        "total": "0.71091660"
+                      },
+                      {
+                        "id": "USDT",
+                        "name": "Tether USD",
+                        "available": "19.62994956",
+                        "frozen": "0.00000000",
+                        "total": "19.62994956"
+                      },
+                      {
+                        "id": "LTC",
+                        "name": "LiteCoin",
+                        "available": "0.55900000",
+                        "frozen": "0.00000000",
+                        "total": "0.55900000"
+                      },
+                      {
+                        "id": "BTC",
+                        "name": "Bitcoin",
+                        "available": "0.00039000",
+                        "frozen": "0.00000000",
+                        "total": "0.00039000"
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "message": "OK",
+                    "code": "1000",
+                    "trace": "d536b57d32174fa688417c03c10826f2.116.17230279959966225",
+                    "data": {
+                      "wallet": [
+                        {
+                          "id": "TRX",
+                          "name": "TRON",
+                          "available": "0.00016000",
+                          "frozen": "0.00000000",
+                          "total": "0.00016000"
+                        },
+                        {
+                          "id": "ADA",
+                          "name": "Cardano",
+                          "available": "0.71091660",
+                          "frozen": "0.00000000",
+                          "total": "0.71091660"
+                        },
+                        {
+                          "id": "USDT",
+                          "name": "Tether USD",
+                          "available": "19.62994956",
+                          "frozen": "0.00000000",
+                          "total": "19.62994956"
+                        },
+                        {
+                          "id": "LTC",
+                          "name": "LiteCoin",
+                          "available": "0.55900000",
+                          "frozen": "0.00000000",
+                          "total": "0.55900000"
+                        },
+                        {
+                          "id": "BTC",
+                          "name": "Bitcoin",
+                          "available": "0.00039000",
+                          "frozen": "0.00000000",
+                          "total": "0.00039000"
+                        }
+                      ]
+                    }
+                  },
+                  "TRX": {
+                    "free": 0.00016,
+                    "used": 0,
+                    "total": 0.00016
+                  },
+                  "ADA": {
+                    "free": 0.7109166,
+                    "used": 0,
+                    "total": 0.7109166
+                  },
+                  "USDT": {
+                    "free": 19.62994956,
+                    "used": 0,
+                    "total": 19.62994956
+                  },
+                  "LTC": {
+                    "free": 0.559,
+                    "used": 0,
+                    "total": 0.559
+                  },
+                  "BTC": {
+                    "free": 0.00039,
+                    "used": 0,
+                    "total": 0.00039
+                  },
+                  "free": {
+                    "TRX": 0.00016,
+                    "ADA": 0.7109166,
+                    "USDT": 19.62994956,
+                    "LTC": 0.559,
+                    "BTC": 0.00039
+                  },
+                  "used": {
+                    "TRX": 0,
+                    "ADA": 0,
+                    "USDT": 0,
+                    "LTC": 0,
+                    "BTC": 0
+                  },
+                  "total": {
+                    "TRX": 0.00016,
+                    "ADA": 0.7109166,
+                    "USDT": 19.62994956,
+                    "LTC": 0.559,
+                    "BTC": 0.00039
+                  }
+                }
+            },
+            {
+                "description": "swap balance",
+                "method": "fetchBalance",
+                "input": [
+                  {
+                    "type": "swap"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "1000",
+                  "message": "Ok",
+                  "data": [
+                    {
+                      "currency": "USDT",
+                      "available_balance": "5",
+                      "frozen_balance": "0",
+                      "unrealized": "0",
+                      "equity": "5",
+                      "position_deposit": "0"
+                    },
+                    {
+                      "currency": "BTC",
+                      "available_balance": "0",
+                      "frozen_balance": "0",
+                      "unrealized": "0",
+                      "equity": "0",
+                      "position_deposit": "0"
+                    },
+                    {
+                      "currency": "ETH",
+                      "available_balance": "0",
+                      "frozen_balance": "0",
+                      "unrealized": "0",
+                      "equity": "0",
+                      "position_deposit": "0"
+                    }
+                  ],
+                  "trace": "d536b57d32174fa688417c03c10826f2.115.17230279047760209"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "code": "1000",
+                    "message": "Ok",
+                    "data": [
+                      {
+                        "currency": "USDT",
+                        "available_balance": "5",
+                        "frozen_balance": "0",
+                        "unrealized": "0",
+                        "equity": "5",
+                        "position_deposit": "0"
+                      },
+                      {
+                        "currency": "BTC",
+                        "available_balance": "0",
+                        "frozen_balance": "0",
+                        "unrealized": "0",
+                        "equity": "0",
+                        "position_deposit": "0"
+                      },
+                      {
+                        "currency": "ETH",
+                        "available_balance": "0",
+                        "frozen_balance": "0",
+                        "unrealized": "0",
+                        "equity": "0",
+                        "position_deposit": "0"
+                      }
+                    ],
+                    "trace": "d536b57d32174fa688417c03c10826f2.115.17230279047760209"
+                  },
+                  "USDT": {
+                    "free": 5,
+                    "used": 0,
+                    "total": 5
+                  },
+                  "BTC": {
+                    "free": 0,
+                    "used": 0,
+                    "total": 0
+                  },
+                  "ETH": {
+                    "free": 0,
+                    "used": 0,
+                    "total": 0
+                  },
+                  "free": {
+                    "USDT": 5,
+                    "BTC": 0,
+                    "ETH": 0
+                  },
+                  "used": {
+                    "USDT": 0,
+                    "BTC": 0,
+                    "ETH": 0
+                  },
+                  "total": {
+                    "USDT": 5,
+                    "BTC": 0,
+                    "ETH": 0
+                  }
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                  "3000013086011694",
+                  "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "1000",
+                  "message": "Ok",
+                  "data": {
+                    "symbol": "LTCUSDT",
+                    "order_id": "3000013086011694",
+                    "client_order_id": "",
+                    "side": "1",
+                    "type": "market",
+                    "leverage": "1",
+                    "open_type": "cross",
+                    "deal_avg_price": "58.45",
+                    "deal_size": "1",
+                    "price": "58.48",
+                    "size": "1",
+                    "state": "4",
+                    "activation_price": "",
+                    "callback_rate": "",
+                    "activation_price_type": "0",
+                    "executive_order_id": "",
+                    "preset_take_profit_price_type": "0",
+                    "preset_stop_loss_price_type": "0",
+                    "preset_take_profit_price": "",
+                    "preset_stop_loss_price": "",
+                    "create_time": "1723028432693",
+                    "update_time": "1723028432793"
+                  },
+                  "trace": "d536b57d32174fa688417c03c10826f2.97.17230286752111635"
+                },
+                "parsedResponse": {
+                  "id": "3000013086011694",
+                  "clientOrderId": null,
+                  "info": {
+                    "symbol": "LTCUSDT",
+                    "order_id": "3000013086011694",
+                    "client_order_id": "",
+                    "side": "1",
+                    "type": "market",
+                    "leverage": "1",
+                    "open_type": "cross",
+                    "deal_avg_price": "58.45",
+                    "deal_size": "1",
+                    "price": "58.48",
+                    "size": "1",
+                    "state": "4",
+                    "activation_price": "",
+                    "callback_rate": "",
+                    "activation_price_type": "0",
+                    "executive_order_id": "",
+                    "preset_take_profit_price_type": "0",
+                    "preset_stop_loss_price_type": "0",
+                    "preset_take_profit_price": "",
+                    "preset_stop_loss_price": "",
+                    "create_time": "1723028432693",
+                    "update_time": "1723028432793"
+                  },
+                  "timestamp": 1723028432693,
+                  "datetime": "2024-08-07T11:00:32.693Z",
+                  "lastTradeTimestamp": 1723028432793,
+                  "symbol": "LTC/USDT:USDT",
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "postOnly": null,
+                  "side": "buy",
+                  "price": 58.48,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "amount": 1,
+                  "cost": 0.05845,
+                  "average": 58.45,
+                  "filled": 1,
+                  "remaining": 0,
+                  "status": "closed",
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "lastUpdateTimestamp": null,
+                  "reduceOnly": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "input": [
+                  "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "1000",
+                  "message": "Ok",
+                  "data": [
+                    {
+                      "symbol": "LTCUSDT",
+                      "leverage": "1",
+                      "timestamp": "1723028824417",
+                      "current_fee": "0",
+                      "open_timestamp": "1723028586053",
+                      "current_value": "0.05825",
+                      "mark_price": "0.05824406044",
+                      "position_value": "0.05827",
+                      "position_cross": "0.058339924",
+                      "maintenance_margin": "0.00145675",
+                      "close_vol": "0",
+                      "close_avg_price": "0",
+                      "open_avg_price": "58.27",
+                      "entry_price": "58.27",
+                      "current_amount": "1",
+                      "unrealized_value": "0.00002",
+                      "realized_value": "-0.000034962",
+                      "position_type": "2"
+                    },
+                    {
+                      "symbol": "LTCUSDT",
+                      "leverage": "1",
+                      "timestamp": "1723028824417",
+                      "current_fee": "0",
+                      "open_timestamp": "1723028432792",
+                      "current_value": "0.05825",
+                      "mark_price": "0.05824406044",
+                      "position_value": "0.05845",
+                      "position_cross": "0.05848507",
+                      "maintenance_margin": "0.00146125",
+                      "close_vol": "0",
+                      "close_avg_price": "0",
+                      "open_avg_price": "58.45",
+                      "entry_price": "58.45",
+                      "current_amount": "1",
+                      "unrealized_value": "-0.0002",
+                      "realized_value": "-0.00003507",
+                      "position_type": "1"
+                    }
+                  ],
+                  "trace": "d536b57d32174fa688417c03c10826f2.97.17230288243562267"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "LTCUSDT",
+                    "leverage": "1",
+                    "timestamp": "1723028824417",
+                    "current_fee": "0",
+                    "open_timestamp": "1723028586053",
+                    "current_value": "0.05825",
+                    "mark_price": "0.05824406044",
+                    "position_value": "0.05827",
+                    "position_cross": "0.058339924",
+                    "maintenance_margin": "0.00145675",
+                    "close_vol": "0",
+                    "close_avg_price": "0",
+                    "open_avg_price": "58.27",
+                    "entry_price": "58.27",
+                    "current_amount": "1",
+                    "unrealized_value": "0.00002",
+                    "realized_value": "-0.000034962",
+                    "position_type": "2"
+                  },
+                  "id": null,
+                  "symbol": "LTC/USDT:USDT",
+                  "timestamp": 1723028824417,
+                  "datetime": "2024-08-07T11:07:04.417Z",
+                  "lastUpdateTimestamp": null,
+                  "hedged": null,
+                  "side": "short",
+                  "contracts": 1,
+                  "contractSize": 0.001,
+                  "entryPrice": 58.27,
+                  "markPrice": 0.05824406044,
+                  "lastPrice": null,
+                  "notional": 0.05825,
+                  "leverage": 1,
+                  "collateral": 0.058339924,
+                  "initialMargin": null,
+                  "initialMarginPercentage": null,
+                  "maintenanceMargin": 0.00145675,
+                  "maintenanceMarginPercentage": 0.025008583690987123,
+                  "unrealizedPnl": 0.00002,
+                  "realizedPnl": -0.000034962,
+                  "liquidationPrice": null,
+                  "marginMode": null,
+                  "percentage": null,
+                  "marginRatio": 0.024970035956851776,
+                  "stopLossPrice": null,
+                  "takeProfitPrice": null
+                }
             }
         ]
     }

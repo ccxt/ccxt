@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, RateLimitExceeded, UnsubscribeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -37,6 +37,7 @@ export default class bitget extends bitgetRest {
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchPositions': true,
@@ -134,6 +135,19 @@ export default class bitget extends bitgetRest {
         };
         return await this.watchPublic(messageHash, args, params);
     }
+    async unWatchTicker(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#unWatchTicker
+         * @description unsubscribe from the ticker channel
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+         * @param {string} symbol unified symbol of the market to unwatch the ticker for
+         * @returns {any} status of the unwatch request
+         */
+        await this.loadMarkets();
+        return await this.unWatchChannel(symbol, 'ticker', 'ticker', params);
+    }
     async watchTickers(symbols = undefined, params = {}) {
         /**
          * @method
@@ -202,6 +216,7 @@ export default class bitget extends bitgetRest {
         //         "ts": 1701842994341
         //     }
         //
+        this.handleBidAsk(client, message);
         const ticker = this.parseWsTicker(message);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
@@ -313,6 +328,70 @@ export default class bitget extends bitgetRest {
             'info': ticker,
         }, market);
     }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#watchBidsAsks
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const market = this.market(symbols[0]);
+        let instType = undefined;
+        [instType, params] = this.getInstType(market, params);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketInner = this.market(symbol);
+            const args = {
+                'instType': instType,
+                'channel': 'ticker',
+                'instId': marketInner['id'],
+            };
+            topics.push(args);
+            messageHashes.push('bidask:' + symbol);
+        }
+        const tickers = await this.watchPublicMultiple(messageHashes, topics, params);
+        if (this.newUpdates) {
+            const result = {};
+            result[tickers['symbol']] = tickers;
+            return result;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    handleBidAsk(client, message) {
+        const ticker = this.parseWsBidAsk(message);
+        const symbol = ticker['symbol'];
+        this.bidsasks[symbol] = ticker;
+        const messageHash = 'bidask:' + symbol;
+        client.resolve(ticker, messageHash);
+    }
+    parseWsBidAsk(message, market = undefined) {
+        const arg = this.safeValue(message, 'arg', {});
+        const data = this.safeValue(message, 'data', []);
+        const ticker = this.safeValue(data, 0, {});
+        const timestamp = this.safeInteger(ticker, 'ts');
+        const instType = this.safeString(arg, 'instType');
+        const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
+        const marketId = this.safeString(ticker, 'instId');
+        market = this.safeMarket(marketId, market, undefined, marketType);
+        return this.safeTicker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeString(ticker, 'askPr'),
+            'askVolume': this.safeString(ticker, 'askSz'),
+            'bid': this.safeString(ticker, 'bidPr'),
+            'bidVolume': this.safeString(ticker, 'bidSz'),
+            'info': ticker,
+        }, market);
+    }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -345,6 +424,22 @@ export default class bitget extends bitgetRest {
             limit = ohlcv.getLimit(symbol, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+    }
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        /**
+         * @method
+         * @name bitget#unWatchOHLCV
+         * @description unsubscribe from the ohlcv channel
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+         * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        const timeframes = this.safeDict(this.options, 'timeframes');
+        const interval = this.safeString(timeframes, timeframe);
+        const channel = 'candle' + interval;
+        return await this.unWatchChannel(symbol, channel, 'candles:' + timeframe, params);
     }
     handleOHLCV(client, message) {
         //
@@ -441,6 +536,39 @@ export default class bitget extends bitgetRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         return await this.watchOrderBookForSymbols([symbol], limit, params);
+    }
+    async unWatchOrderBook(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#unWatchOrderBook
+         * @description unsubscribe from the orderbook channel
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [params.limit] orderbook limit, default is undefined
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        let channel = 'books';
+        const limit = this.safeInteger(params, 'limit');
+        if ((limit === 1) || (limit === 5) || (limit === 15)) {
+            params = this.omit(params, 'limit');
+            channel += limit.toString();
+        }
+        return await this.unWatchChannel(symbol, channel, 'orderbook', params);
+    }
+    async unWatchChannel(symbol, channel, messageHashTopic, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol'];
+        let instType = undefined;
+        [instType, params] = this.getInstType(market, params);
+        const args = {
+            'instType': instType,
+            'channel': channel,
+            'instId': market['id'],
+        };
+        return await this.unWatchPublic(messageHash, args, params);
     }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
@@ -565,10 +693,11 @@ export default class bitget extends bitgetRest {
                 const calculatedChecksum = this.crc32(payload, true);
                 const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
-                    delete client.subscriptions[messageHash];
-                    delete this.orderbooks[symbol];
-                    const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
-                    client.reject(error, messageHash);
+                    // if (messageHash in client.subscriptions) {
+                    //     // delete client.subscriptions[messageHash];
+                    //     // delete this.orderbooks[symbol];
+                    // }
+                    this.spawn(this.handleCheckSumError, client, symbol, messageHash);
                     return;
                 }
             }
@@ -580,6 +709,11 @@ export default class bitget extends bitgetRest {
             this.orderbooks[symbol] = orderbook;
         }
         client.resolve(this.orderbooks[symbol], messageHash);
+    }
+    async handleCheckSumError(client, symbol, messageHash) {
+        await this.unWatchOrderBook(symbol);
+        const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+        client.reject(error, messageHash);
     }
     handleDelta(bookside, delta) {
         const bidAsk = this.parseBidAsk(delta, 0, 1);
@@ -649,6 +783,19 @@ export default class bitget extends bitgetRest {
             limit = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
+    async unWatchTrades(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#unWatchTrades
+         * @description unsubscribe from the trades channel
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+         * @param {string} symbol unified symbol of the market to unwatch the trades for
+         * @returns {any} status of the unwatch request
+         */
+        await this.loadMarkets();
+        return await this.unWatchChannel(symbol, 'trade', 'trade', params);
     }
     handleTrades(client, message) {
         //
@@ -996,7 +1143,7 @@ export default class bitget extends bitgetRest {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchOrders', market, params, 'linear');
         if ((type === 'spot' || type === 'margin') && (symbol === undefined)) {
-            throw new ArgumentsRequired(this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
+            marketId = 'default';
         }
         if ((productType === undefined) && (type !== 'spot') && (symbol === undefined)) {
             messageHash = messageHash + ':' + subType;
@@ -1011,7 +1158,12 @@ export default class bitget extends bitgetRest {
             messageHash = messageHash + ':usdcfutures'; // non unified channel
         }
         let instType = undefined;
-        [instType, params] = this.getInstType(market, params);
+        if (market === undefined && type === 'spot') {
+            instType = 'SPOT';
+        }
+        else {
+            [instType, params] = this.getInstType(market, params);
+        }
         if (type === 'spot') {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
@@ -1387,8 +1539,15 @@ export default class bitget extends bitgetRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         let instType = undefined;
-        [instType, params] = this.getInstType(market, params);
+        if (market === undefined && type === 'spot') {
+            instType = 'SPOT';
+        }
+        else {
+            [instType, params] = this.getInstType(market, params);
+        }
         const subscriptionHash = 'fill:' + instType;
         const args = {
             'instType': instType,
@@ -1627,6 +1786,15 @@ export default class bitget extends bitgetRest {
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash);
     }
+    async unWatchPublic(messageHash, args, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request = {
+            'op': 'unsubscribe',
+            'args': [args],
+        };
+        const message = this.extend(request, params);
+        return await this.watch(url, messageHash, message, messageHash);
+    }
     async watchPublicMultiple(messageHashes, argsArray, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const request = {
@@ -1747,6 +1915,17 @@ export default class bitget extends bitgetRest {
         //        "event": "subscribe",
         //        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         //    }
+        // unsubscribe
+        //    {
+        //        "op":"unsubscribe",
+        //        "args":[
+        //          {
+        //            "instType":"USDT-FUTURES",
+        //            "channel":"ticker",
+        //            "instId":"BTCUSDT"
+        //          }
+        //        ]
+        //    }
         //
         if (this.handleErrorMessage(client, message)) {
             return;
@@ -1767,6 +1946,10 @@ export default class bitget extends bitgetRest {
         }
         if (event === 'subscribe') {
             this.handleSubscriptionStatus(client, message);
+            return;
+        }
+        if (event === 'unsubscribe') {
+            this.handleUnSubscriptionStatus(client, message);
             return;
         }
         const methods = {
@@ -1810,6 +1993,147 @@ export default class bitget extends bitgetRest {
         //        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         //    }
         //
+        return message;
+    }
+    handleOrderBookUnSubscription(client, message) {
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
+        //
+        const arg = this.safeDict(message, 'arg', {});
+        const instType = this.safeStringLower(arg, 'instType');
+        const type = (instType === 'spot') ? 'spot' : 'contract';
+        const instId = this.safeString(arg, 'instId');
+        const market = this.safeMarket(instId, undefined, undefined, type);
+        const symbol = market['symbol'];
+        const messageHash = 'unsubscribe:orderbook:' + market['symbol'];
+        const subMessageHash = 'orderbook:' + symbol;
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        const error = new UnsubscribeError(this.id + 'orderbook ' + symbol);
+        client.reject(error, subMessageHash);
+        client.resolve(true, messageHash);
+    }
+    handleTradesUnSubscription(client, message) {
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
+        //
+        const arg = this.safeDict(message, 'arg', {});
+        const instType = this.safeStringLower(arg, 'instType');
+        const type = (instType === 'spot') ? 'spot' : 'contract';
+        const instId = this.safeString(arg, 'instId');
+        const market = this.safeMarket(instId, undefined, undefined, type);
+        const symbol = market['symbol'];
+        const messageHash = 'unsubscribe:trade:' + market['symbol'];
+        const subMessageHash = 'trade:' + symbol;
+        if (symbol in this.trades) {
+            delete this.trades[symbol];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        const error = new UnsubscribeError(this.id + 'trades ' + symbol);
+        client.reject(error, subMessageHash);
+        client.resolve(true, messageHash);
+    }
+    handleTickerUnSubscription(client, message) {
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
+        //
+        const arg = this.safeDict(message, 'arg', {});
+        const instType = this.safeStringLower(arg, 'instType');
+        const type = (instType === 'spot') ? 'spot' : 'contract';
+        const instId = this.safeString(arg, 'instId');
+        const market = this.safeMarket(instId, undefined, undefined, type);
+        const symbol = market['symbol'];
+        const messageHash = 'unsubscribe:ticker:' + market['symbol'];
+        const subMessageHash = 'ticker:' + symbol;
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        const error = new UnsubscribeError(this.id + 'ticker ' + symbol);
+        client.reject(error, subMessageHash);
+        client.resolve(true, messageHash);
+    }
+    handleOHLCVUnSubscription(client, message) {
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
+        //
+        const arg = this.safeDict(message, 'arg', {});
+        const instType = this.safeStringLower(arg, 'instType');
+        const type = (instType === 'spot') ? 'spot' : 'contract';
+        const instId = this.safeString(arg, 'instId');
+        const channel = this.safeString(arg, 'channel');
+        const interval = channel.replace('candle', '');
+        const timeframes = this.safeValue(this.options, 'timeframes');
+        const timeframe = this.findTimeframe(interval, timeframes);
+        const market = this.safeMarket(instId, undefined, undefined, type);
+        const symbol = market['symbol'];
+        const messageHash = 'unsubscribe:candles:' + timeframe + ':' + market['symbol'];
+        const subMessageHash = 'candles:' + timeframe + ':' + symbol;
+        if (symbol in this.ohlcvs) {
+            if (timeframe in this.ohlcvs[symbol]) {
+                delete this.ohlcvs[symbol][timeframe];
+            }
+        }
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+    }
+    handleUnSubscriptionStatus(client, message) {
+        //
+        //  {
+        //      "op":"unsubscribe",
+        //      "args":[
+        //        {
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"ticker",
+        //          "instId":"BTCUSDT"
+        //        },
+        //        {
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"candle1m",
+        //          "instId":"BTCUSDT"
+        //        }
+        //      ]
+        //  }
+        //  or
+        // {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
+        //
+        let argsList = this.safeList(message, 'args');
+        if (argsList === undefined) {
+            argsList = [this.safeDict(message, 'arg', {})];
+        }
+        for (let i = 0; i < argsList.length; i++) {
+            const arg = argsList[i];
+            const channel = this.safeString(arg, 'channel');
+            if (channel === 'books') {
+                // for now only unWatchOrderBook is supporteod
+                this.handleOrderBookUnSubscription(client, message);
+            }
+            else if (channel === 'trade') {
+                this.handleTradesUnSubscription(client, message);
+            }
+            else if (channel === 'ticker') {
+                this.handleTickerUnSubscription(client, message);
+            }
+            else if (channel.startsWith('candle')) {
+                this.handleOHLCVUnSubscription(client, message);
+            }
+        }
         return message;
     }
 }

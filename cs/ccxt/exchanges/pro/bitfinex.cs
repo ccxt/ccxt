@@ -16,6 +16,7 @@ public partial class bitfinex : ccxt.bitfinex
                 { "watchTickers", false },
                 { "watchOrderBook", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchBalance", false },
                 { "watchOHLCV", false },
             } },
@@ -61,6 +62,7 @@ public partial class bitfinex : ccxt.bitfinex
         * @method
         * @name bitfinex#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://docs.bitfinex.com/v1/reference/ws-public-trades
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -84,6 +86,7 @@ public partial class bitfinex : ccxt.bitfinex
         * @method
         * @name bitfinex#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://docs.bitfinex.com/v1/reference/ws-public-ticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -242,15 +245,15 @@ public partial class bitfinex : ccxt.bitfinex
         {
             open = Precise.stringSub(last, change);
         }
-        object result = new Dictionary<string, object>() {
+        object result = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
-            { "high", this.safeFloat(message, 9) },
-            { "low", this.safeFloat(message, 10) },
-            { "bid", this.safeFloat(message, 1) },
+            { "high", this.safeString(message, 9) },
+            { "low", this.safeString(message, 10) },
+            { "bid", this.safeString(message, 1) },
             { "bidVolume", null },
-            { "ask", this.safeFloat(message, 3) },
+            { "ask", this.safeString(message, 3) },
             { "askVolume", null },
             { "vwap", null },
             { "open", this.parseNumber(open) },
@@ -258,12 +261,12 @@ public partial class bitfinex : ccxt.bitfinex
             { "last", this.parseNumber(last) },
             { "previousClose", null },
             { "change", this.parseNumber(change) },
-            { "percentage", this.safeFloat(message, 6) },
+            { "percentage", this.safeString(message, 6) },
             { "average", null },
-            { "baseVolume", this.safeFloat(message, 8) },
+            { "baseVolume", this.safeString(message, 8) },
             { "quoteVolume", null },
             { "info", message },
-        };
+        });
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, messageHash});
     }
@@ -274,6 +277,7 @@ public partial class bitfinex : ccxt.bitfinex
         * @method
         * @name bitfinex#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://docs.bitfinex.com/v1/reference/ws-public-order-books
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -488,7 +492,7 @@ public partial class bitfinex : ccxt.bitfinex
             object method = this.safeString(message, "event");
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
             }
         }
     }
@@ -508,6 +512,8 @@ public partial class bitfinex : ccxt.bitfinex
         * @method
         * @name bitfinex#watchOrders
         * @description watches information on multiple orders made by the user
+        * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-updates
+        * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve

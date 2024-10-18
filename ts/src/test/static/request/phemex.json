@@ -124,6 +124,40 @@
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"myordr2\",\"stopPxRp\":\"60\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"55\"}"
+            },
+            {
+                "description": "Swap sell hedged reduceOnly order",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  0.001,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"ordType\":\"Market\",\"clOrdID\":\"CCXT1234569a4fe87934c6ab0c\",\"posSide\":\"Long\",\"orderQtyRq\":0.001}"
+            },
+            {
+                "description": "Swap buy hedged reduceOnly order",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.001,
+                  null,
+                  {
+                    "hedged": true,
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"CCXT123456f0ddc1de04ee9efb\",\"posSide\":\"Short\",\"orderQtyRq\":0.001}"
             }
         ],
         "editOrder": [
@@ -176,6 +210,15 @@
         ],
         "fetchOrder": [
             {
+                "description": "spot",
+                "method": "fetchOrder",
+                "url": "https://api.phemex.com/api-data/spots/orders/by-order-id?symbol=sBTCUSDT&orderID=123",
+                "input": [
+                  "123",
+                  "BTC/USDT"
+                ]
+            },
+            {
                 "description": "usdt order",
                 "method": "fetchOrder",
                 "url": "https://testnet-api.phemex.com/api-data/g-futures/orders/by-order-id?symbol=LTCUSDT&orderID=a630814b-0b2c-4b84-86fe-62e18b4daba8",
@@ -187,11 +230,11 @@
         ],
         "fetchOrders": [
             {
-                "description": "Spot orders",
+                "description": "spot",
                 "method": "fetchOrders",
-                "url": "https://api.phemex.com/spot/orders?symbol=sLTCUSDT",
+                "url": "https://api.phemex.com/api-data/spots/orders?symbol=sBTCUSDT",
                 "input": [
-                    "LTC/USDT"
+                    "BTC/USDT"
                 ]
             },
             {
@@ -705,6 +748,16 @@
                 "url": "https://api.phemex.com/md/v2/ticker/24hr?symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.phemex.com/md/v2/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                "BTC/USDT:USDT"
                 ]
             }
         ]

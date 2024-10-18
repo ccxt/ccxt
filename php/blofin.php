@@ -17,6 +17,7 @@ class blofin extends Exchange {
             'countries' => array( 'US' ),
             'version' => 'v1',
             'rateLimit' => 100,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -91,12 +92,11 @@ class blofin extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => true,
+                'fetchOrder' => null,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
-                'fetchPermissions' => null,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => false,
@@ -141,11 +141,12 @@ class blofin extends Exchange {
                 '2h' => '2H',
                 '4h' => '4H',
                 '6h' => '6H',
+                '8h' => '8H',
                 '12h' => '12H',
                 '1d' => '1D',
+                '3d' => '3D',
                 '1w' => '1W',
                 '1M' => '1M',
-                '3M' => '3M',
             ),
             'hostname' => 'www.blofin.com',
             'urls' => array(
@@ -486,6 +487,25 @@ class blofin extends Exchange {
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        // response similar for REST & WS
+        //
+        //     {
+        //         instId => "ADA-USDT",
+        //         ts => "1707736811486",
+        //         $last => "0.5315",
+        //         lastSize => "4",
+        //         askPrice => "0.5318",
+        //         askSize => "248",
+        //         bidPrice => "0.5315",
+        //         bidSize => "63",
+        //         open24h => "0.5555",
+        //         high24h => "0.5563",
+        //         low24h => "0.5315",
+        //         volCurrency24h => "198560100",
+        //         vol24h => "1985601",
+        //     }
+        //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
@@ -517,6 +537,8 @@ class blofin extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -540,6 +562,26 @@ class blofin extends Exchange {
         return $this->parse_ticker($first, $market);
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()): array {
+        /**
+         * fetches mark price for the $market
+         * @see https://docs.blofin.com/index.html#get-mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] "linear" or "inverse"
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetMarketMarkPrice ($this->extend($request, $params));
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
+        return $this->parse_ticker($first, $market);
+    }
+
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -557,7 +599,8 @@ class blofin extends Exchange {
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
-        // fetch trades
+        // fetch trades (response similar for REST & WS)
+        //
         //   {
         //       "tradeId" => "3263934920",
         //       "instId" => "LTC-USDT",
@@ -566,6 +609,7 @@ class blofin extends Exchange {
         //       "side" => "buy",
         //       "ts" => "1707232020854"
         //   }
+        //
         // my trades
         //   {
         //       "instId" => "LTC-USDT",
@@ -760,23 +804,16 @@ class blofin extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate" => "0.00027815",
         //        "fundingTime" => "1634256000000",
         //        "instId" => "BTC-USD-SWAP",
-        //        "instType" => "SWAP",
-        //        "nextFundingRate" => "0.00017",
-        //        "nextFundingTime" => "1634284800000"
         //    }
         //
-        // in the response above $nextFundingRate is actually two funding rates from now
-        //
-        $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         $marketId = $this->safe_string($contract, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
-        $nextFundingRate = $this->safe_number($contract, 'nextFundingRate');
         $fundingTime = $this->safe_integer($contract, 'fundingTime');
         // > The current interest is 0.
         return array(
@@ -791,16 +828,17 @@ class blofin extends Exchange {
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
             'fundingTimestamp' => $fundingTime,
             'fundingDatetime' => $this->iso8601($fundingTime),
-            'nextFundingRate' => $nextFundingRate,
-            'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://blofin.com/docs#get-funding-rate
@@ -825,9 +863,6 @@ class blofin extends Exchange {
         //                "fundingRate" => "0.00027815",
         //                "fundingTime" => "1634256000000",
         //                "instId" => "BTC-USD-SWAP",
-        //                "instType" => "SWAP",
-        //                "nextFundingRate" => "0.00017",
-        //                "nextFundingTime" => "1634284800000"
         //            }
         //        ),
         //        "msg" => ""
@@ -842,11 +877,13 @@ class blofin extends Exchange {
         if ($type) {
             return $this->parse_funding_balance($response);
         } else {
-            return $this->parse_trading_balance($response);
+            return $this->parse_balance($response);
         }
     }
 
-    public function parse_trading_balance($response) {
+    public function parse_balance($response) {
+        //
+        // "data" similar for REST & WS
         //
         // {
         //     "code" => "0",
@@ -868,7 +905,8 @@ class blofin extends Exchange {
         //                 "orderFrozen" => "14920.994472632597427761",
         //                 "equityUsd" => "10011254.077985990315787910",
         //                 "isolatedUnrealizedPnl" => "-22.151999999999999999952",
-        //                 "bonus" => "0"
+        //                 "bonus" => "0" // present only in REST
+        //                 "unrealizedPnl" => "0" // present only in WS
         //             }
         //         )
         //     }
@@ -1033,6 +1071,8 @@ class blofin extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
+        // response similar for REST & WS
+        //
         // {
         //     "orderId" => "2075628533",
         //     "clientOrderId" => "",
@@ -1060,6 +1100,9 @@ class blofin extends Exchange {
         //     "cancelSource" => "not_canceled",
         //     "cancelSourceReason" => null,
         //     "brokerId" => "ec6dd3a7dd982d0b"
+        //     "filled_amount" => "1.000000000000000000", // filledAmount in "ws" watchOrders
+        //     "cancelSource" => "", // only in WS
+        //     "instType" => "SWAP", // only in WS
         // }
         //
         $id = $this->safe_string_2($order, 'tpslId', 'orderId');
@@ -1456,17 +1499,17 @@ class blofin extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://blofin.com/docs#get-funds-transfer-history
-         * @param {string} $code unified $currency $code, default is null
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated'
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
@@ -1605,30 +1648,28 @@ class blofin extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
-        $id = $this->safe_string($item, 'transferId');
-        $referenceId = $this->safe_string($item, 'clientId');
-        $fromAccount = $this->safe_string($item, 'fromAccount');
-        $toAccount = $this->safe_string($item, 'toAccount');
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
-        $code = $this->safe_currency_code($this->safe_string($item, 'currency'), $currency);
-        $amountString = $this->safe_string($item, 'amount');
-        $amount = $this->parse_number($amountString);
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
+        $currencyId = $this->safe_string($item, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'ts');
-        $status = 'ok';
-        return array(
-            'id' => $id,
+        return $this->safe_ledger_entry(array(
             'info' => $item,
+            'id' => $this->safe_string($item, 'transferId'),
+            'direction' => null,
+            'account' => null,
+            'referenceId' => $this->safe_string($item, 'clientId'),
+            'referenceAccount' => null,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'currency' => $code,
+            'amount' => $this->safe_number($item, 'amount'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
-            'type' => $type,
-            'currency' => $code,
-            'amount' => $amount,
-            'clientId' => $referenceId, // balance before
-            'status' => $status,
-        );
+            'before' => null,
+            'after' => null,
+            'status' => 'ok',
+            'fee' => null,
+        ), $currency);
     }
 
     public function parse_ids($ids) {
@@ -1794,6 +1835,32 @@ class blofin extends Exchange {
     }
 
     public function parse_position(array $position, ?array $market = null) {
+        //
+        // response similar for REST & WS
+        //
+        //     {
+        //         instType => 'SWAP',
+        //         instId => 'LTC-USDT',
+        //         $marginMode => 'cross',
+        //         positionId => '644159',
+        //         positionSide => 'net',
+        //         positions => '1',
+        //         availablePositions => '1',
+        //         averagePrice => '68.16',
+        //         unrealizedPnl => '0.80631223',
+        //         unrealizedPnlRatio => '0.03548909463028169',
+        //         leverage => '3',
+        //         $liquidationPrice => '10.116655172370356435',
+        //         markPrice => '68.96',
+        //         initialMargin => '22.988770743333333333',
+        //         margin => '', // this field might not exist in rest response
+        //         $marginRatio => '152.523509620342499273',
+        //         $maintenanceMargin => '0.34483156115',
+        //         adl => '4',
+        //         createTime => '1707235776528',
+        //         updateTime => '1707235776528'
+        //     }
+        //
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];

@@ -46,6 +46,7 @@ class cex extends cex$1 {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1216,6 +1217,7 @@ class cex extends cex$1 {
          * @name cex#fetchOrder
          * @see https://docs.cex.io/?python#get-order-details
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol not used by cex fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1634,11 +1636,11 @@ class cex extends cex$1 {
         const address = this.safeString2(addressObject, 'address', 'destination');
         this.checkAddress(address);
         return {
+            'info': data,
             'currency': code,
+            'network': this.networkIdToCode(selectedNetworkId),
             'address': address,
             'tag': this.safeString2(addressObject, 'destinationTag', 'memo'),
-            'network': this.networkIdToCode(selectedNetworkId),
-            'info': data,
         };
     }
     nonce() {

@@ -597,6 +597,7 @@ public partial class btcbox : Exchange
         * @name btcbox#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://blog.btcbox.jp/en/archives/8762#toc16
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -729,7 +730,7 @@ public partial class btcbox : Exchange
                 { "nonce", nonce },
             }, parameters);
             object request = this.urlencode(query);
-            object secret = this.hash(this.encode(this.secret), sha256);
+            object secret = this.hash(this.encode(this.secret), md5);
             ((IDictionary<string,object>)query)["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
             body = this.urlencode(query);
             headers = new Dictionary<string, object>() {

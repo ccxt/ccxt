@@ -50,6 +50,7 @@ class cex extends Exchange {
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
@@ -1230,6 +1231,7 @@ class cex extends Exchange {
             /**
              * @see https://docs.cex.io/?python#get-order-details
              * fetches information on an order made by the user
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by cex fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1605,7 +1607,7 @@ class cex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * @see https://docs.cex.io/#get-crypto-$address
@@ -1650,11 +1652,11 @@ class cex extends Exchange {
             $address = $this->safe_string_2($addressObject, 'address', 'destination');
             $this->check_address($address);
             return array(
+                'info' => $data,
                 'currency' => $code,
+                'network' => $this->network_id_to_code($selectedNetworkId),
                 'address' => $address,
                 'tag' => $this->safe_string_2($addressObject, 'destinationTag', 'memo'),
-                'network' => $this->network_id_to_code($selectedNetworkId),
-                'info' => $data,
             );
         }) ();
     }

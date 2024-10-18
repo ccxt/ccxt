@@ -320,6 +320,10 @@ class NewTranspiler {
             return `Task<ccxt.pro.IOrderBook>`;
         }
 
+        if (name === 'watchOHLCVForSymbols') {
+            return `Task<Dictionary<string, Dictionary<string, List<OHLCV>>>>`;
+        }
+
         if (name === 'fetchTime'){
             return `Task<Int64>`; // custom handling for now
         }
@@ -508,6 +512,10 @@ class NewTranspiler {
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
             return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+        }
+
+        if (methodName === 'watchOHLCVForSymbols') {
+            return `return Helper.ConvertToDictionaryOHLCVList(res);`
         }
 
         // custom handling for now
@@ -720,6 +728,7 @@ class NewTranspiler {
         baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
         baseClass = baseClass.replaceAll("client.resolve", "// client.resolve"); // tmp fix for c#
         baseClass = baseClass.replaceAll("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
+        baseClass = baseClass.replaceAll(/(\w+)(\.storeArray\(.+\))/gm, '($1 as ccxt.pro.IOrderBookSide)$2'); // tmp fix for c#
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
@@ -999,8 +1008,8 @@ class NewTranspiler {
     // ---------------------------------------------------------------------------------------------
     transpileWsOrderbookTestsToCSharp (outDir: string) {
 
-        const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
-        const csharpFile = `${outDir}/Orderbook.cs`;
+        const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
+        const csharpFile = `${outDir}/Ws/test.orderBook.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1039,8 +1048,8 @@ class NewTranspiler {
     // ---------------------------------------------------------------------------------------------
     transpileWsCacheTestsToCSharp (outDir: string) {
 
-        const jsFile = './ts/src/pro/test/base/test.Cache.ts';
-        const csharpFile = `${outDir}/Cache.cs`;
+        const jsFile = './ts/src/pro/test/base/test.cache.ts';
+        const csharpFile = `${outDir}/Ws/test.cache.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1081,7 +1090,7 @@ class NewTranspiler {
     transpileCryptoTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
-        const csharpFile = `${outDir}/Cryptography.cs`;
+        const csharpFile = `${outDir}/test.cryptography.cs`;
 
         log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
 
@@ -1183,9 +1192,8 @@ class NewTranspiler {
             if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
                 continue;
             }
-                
-            const csFileName = this.capitalize(testName.replace ('test.', ''));
-            const csharpFile = `${outDir}/${csFileName}.cs`;
+
+            const csharpFile = `${outDir}/${testName}.cs`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 
@@ -1195,7 +1203,7 @@ class NewTranspiler {
                 [/object  = functions;/g, '' ], // tmp fix
                 [/assert/g, 'Assert'],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-
+                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
             ]).trim ()
 
             const contentLines = content.split ('\n');
@@ -1243,7 +1251,7 @@ class NewTranspiler {
             [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
             [ /object exchange =/g, 'Exchange exchange =' ],
             [ /throw new Error/g, 'throw new Exception' ],
-            [/class testMainClass : baseMainTestClass/g, 'public partial class testMainClass : BaseTest'],
+            [/class testMainClass/g, 'public partial class testMainClass'],
         ])
 
         const file = [

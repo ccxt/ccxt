@@ -22,6 +22,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                 'watchTickers' => false,
                 'watchOrderBook' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => false, // for now
                 'watchOHLCV' => false, // missing on the exchange side in v1
             ),
@@ -65,6 +66,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://docs.bitfinex.com/v1/reference/ws-public-$trades
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -85,6 +87,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @see https://docs.bitfinex.com/v1/reference/ws-public-ticker
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -230,15 +233,15 @@ class bitfinex extends \ccxt\async\bitfinex {
         if (($last !== null) && ($change !== null)) {
             $open = Precise::string_sub($last, $change);
         }
-        $result = array(
+        $result = $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $this->safe_float($message, 9),
-            'low' => $this->safe_float($message, 10),
-            'bid' => $this->safe_float($message, 1),
+            'high' => $this->safe_string($message, 9),
+            'low' => $this->safe_string($message, 10),
+            'bid' => $this->safe_string($message, 1),
             'bidVolume' => null,
-            'ask' => $this->safe_float($message, 3),
+            'ask' => $this->safe_string($message, 3),
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->parse_number($open),
@@ -246,12 +249,12 @@ class bitfinex extends \ccxt\async\bitfinex {
             'last' => $this->parse_number($last),
             'previousClose' => null,
             'change' => $this->parse_number($change),
-            'percentage' => $this->safe_float($message, 6),
+            'percentage' => $this->safe_string($message, 6),
             'average' => null,
-            'baseVolume' => $this->safe_float($message, 8),
+            'baseVolume' => $this->safe_string($message, 8),
             'quoteVolume' => null,
             'info' => $message,
-        );
+        ));
         $this->tickers[$symbol] = $result;
         $client->resolve ($result, $messageHash);
     }
@@ -260,6 +263,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.bitfinex.com/v1/reference/ws-public-order-books
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -477,6 +481,8 @@ class bitfinex extends \ccxt\async\bitfinex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-updates
+             * @see https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve

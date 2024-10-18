@@ -174,11 +174,17 @@ public partial class kraken
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -188,7 +194,7 @@ public partial class kraken
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -203,25 +209,31 @@ public partial class kraken
     /// int : timestamp in ms of the latest ledger entry
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest ledger entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
-    public async Task<Dictionary<string, object>> FetchLedgerEntriesByIds(object ids, string code = null, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedgerEntriesByIds(object ids, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLedgerEntriesByIds(ids, code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
-    public async Task<Dictionary<string, object>> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
+    public async Task<LedgerEntry> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLedgerEntry(id, code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LedgerEntry(res);
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
@@ -281,7 +293,7 @@ public partial class kraken
     /// create a market order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -301,7 +313,7 @@ public partial class kraken
     /// create a market buy order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -321,7 +333,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/rest-api/add-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -366,9 +378,21 @@ public partial class kraken
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.trailingPercent</term>
+    /// <description>
+    /// string : *margin only* the percent to trail away from the current market price
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.trailingLimitAmount</term>
     /// <description>
     /// string : *margin only* the quote amount away from the trailingAmount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingLimitPercent</term>
+    /// <description>
+    /// string : *margin only* the percent away from the trailingAmount
     /// </description>
     /// </item>
     /// <item>
@@ -396,7 +420,7 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/editOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -552,6 +576,18 @@ public partial class kraken
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest trade entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest trade entry
     /// </description>
     /// </item>
     /// </list>
@@ -742,6 +778,18 @@ public partial class kraken
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest transaction entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest transaction entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
@@ -797,15 +845,21 @@ public partial class kraken
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest transaction entry
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.end</term>
     /// <description>
-    /// object : End timestamp, withdrawals created strictly after will be not be included in the response
+    /// int : timestamp in seconds of the latest transaction entry
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean :  default false, when true will automatically paginate by calling this endpoint multiple times
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times
     /// </description>
     /// </item>
     /// </list>
@@ -833,10 +887,10 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch deposit methods for a currency associated with this account
@@ -873,10 +927,10 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// make a withdrawal

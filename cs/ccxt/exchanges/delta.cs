@@ -33,6 +33,8 @@ public partial class delta : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", null },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", null },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", true },
@@ -927,6 +929,8 @@ public partial class delta : Exchange
             { "average", null },
             { "baseVolume", this.safeNumber(ticker, "volume") },
             { "quoteVolume", this.safeNumber(ticker, "turnover") },
+            { "markPrice", this.safeNumber(ticker, "mark_price") },
+            { "indexPrice", this.safeNumber(ticker, "spot_price") },
             { "info", ticker },
         }, market);
     }
@@ -2209,11 +2213,11 @@ public partial class delta : Exchange
         /**
         * @method
         * @name delta#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.delta.exchange/#get-wallet-transactions
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -2311,7 +2315,7 @@ public partial class delta : Exchange
         object after = this.safeString(item, "balance");
         object before = Precise.stringMax("0", Precise.stringSub(after, amount));
         object status = "ok";
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
             { "direction", direction },
@@ -2327,7 +2331,7 @@ public partial class delta : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "fee", null },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
@@ -2396,11 +2400,11 @@ public partial class delta : Exchange
         object networkId = this.safeString(depositAddress, "network");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", this.safeCurrencyCode(marketId, currency) },
+            { "network", this.networkIdToCode(networkId) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
-            { "network", this.networkIdToCode(networkId) },
-            { "info", depositAddress },
         };
     }
 
@@ -2484,7 +2488,7 @@ public partial class delta : Exchange
         * @see https://docs.delta.exchange/#get-tickers-for-products
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2611,6 +2615,7 @@ public partial class delta : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

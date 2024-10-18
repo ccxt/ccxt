@@ -8,7 +8,7 @@ from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -345,6 +345,7 @@ class bitrue(Exchange, ImplicitAPI):
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -356,6 +357,67 @@ class bitrue(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
+                    'AETERNITY': 'Aeternity',
+                    'AION': 'AION',
+                    'ALGO': 'Algorand',
+                    'ASK': 'ASK',
+                    'ATOM': 'ATOM',
+                    'AVAXC': 'AVAX C-Chain',
+                    'BCH': 'BCH',
+                    'BEP2': 'BEP2',
+                    'BEP20': 'BEP20',
+                    'Bitcoin': 'Bitcoin',
+                    'BRP20': 'BRP20',
+                    'ADA': 'Cardano',
+                    'CASINOCOIN': 'CasinoCoin',
+                    'CASINOCOIN-XRPL': 'CasinoCoin XRPL',
+                    'CONTENTOS': 'Contentos',
+                    'DASH': 'Dash',
+                    'DECOIN': 'Decoin',
+                    'DFI': 'DeFiChain',
+                    'DGB': 'DGB',
+                    'DIVI': 'Divi',
+                    'DOGE': 'dogecoin',
+                    'EOS': 'EOS',
+                    'ETC': 'ETC',
+                    'FILECOIN': 'Filecoin',
+                    'FREETON': 'FREETON',
+                    'HBAR': 'HBAR',
+                    'HEDERA': 'Hedera Hashgraph',
+                    'HRC20': 'HRC20',
+                    'ICON': 'ICON',
+                    'ICP': 'ICP',
+                    'IGNIS': 'Ignis',
+                    'INTERNETCOMPUTER': 'Internet Computer',
+                    'IOTA': 'IOTA',
+                    'KAVA': 'KAVA',
+                    'KSM': 'KSM',
+                    'LTC': 'LiteCoin',
+                    'LUNA': 'Luna',
+                    'MATIC': 'MATIC',
+                    'MOBILECOIN': 'Mobile Coin',
+                    'MONACOIN': 'MonaCoin',
+                    'XMR': 'Monero',
+                    'NEM': 'NEM',
+                    'NEP5': 'NEP5',
+                    'OMNI': 'OMNI',
+                    'PAC': 'PAC',
+                    'DOT': 'Polkadot',
+                    'RAVEN': 'Ravencoin',
+                    'SAFEX': 'Safex',
+                    'SOL': 'SOLANA',
+                    'SGB': 'Songbird',
+                    'XML': 'Stellar Lumens',
+                    'XYM': 'Symbol',
+                    'XTZ': 'Tezos',
+                    'theta': 'theta',
+                    'THETA': 'THETA',
+                    'VECHAIN': 'VeChain',
+                    'WANCHAIN': 'Wanchain',
+                    'XINFIN': 'XinFin Network',
+                    'XRP': 'XRP',
+                    'XRPL': 'XRPL',
+                    'ZIL': 'ZIL',
                 },
                 'defaultType': 'spot',
                 'timeframes': {
@@ -473,13 +535,6 @@ class bitrue(Exchange, ImplicitAPI):
             },
         })
 
-    def currency_to_precision(self, code, fee, networkCode=None):
-        # info is available in currencies only if the user has configured his api keys
-        if self.safe_value(self.currencies[code], 'precision') is not None:
-            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
-        else:
-            return self.number_to_string(fee)
-
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -521,77 +576,6 @@ class bitrue(Exchange, ImplicitAPI):
         #     }
         #
         return self.safe_integer(response, 'serverTime')
-
-    def safe_network(self, networkId):
-        uppercaseNetworkId = networkId.upper()
-        networksById: dict = {
-            'Aeternity': 'Aeternity',
-            'AION': 'AION',
-            'Algorand': 'Algorand',
-            'ASK': 'ASK',
-            'ATOM': 'ATOM',
-            'AVAX C-Chain': 'AVAX C-Chain',
-            'bch': 'bch',
-            'BCH': 'BCH',
-            'BEP2': 'BEP2',
-            'BEP20': 'BEP20',
-            'Bitcoin': 'Bitcoin',
-            'BRP20': 'BRP20',
-            'Cardano': 'ADA',
-            'CasinoCoin': 'CasinoCoin',
-            'CasinoCoin XRPL': 'CasinoCoin XRPL',
-            'Contentos': 'Contentos',
-            'Dash': 'Dash',
-            'Decoin': 'Decoin',
-            'DeFiChain': 'DeFiChain',
-            'DGB': 'DGB',
-            'Divi': 'Divi',
-            'dogecoin': 'DOGE',
-            'EOS': 'EOS',
-            'ERC20': 'ERC20',
-            'ETC': 'ETC',
-            'Filecoin': 'Filecoin',
-            'FREETON': 'FREETON',
-            'HBAR': 'HBAR',
-            'Hedera Hashgraph': 'Hedera Hashgraph',
-            'HRC20': 'HRC20',
-            'ICON': 'ICON',
-            'ICP': 'ICP',
-            'Ignis': 'Ignis',
-            'Internet Computer': 'Internet Computer',
-            'IOTA': 'IOTA',
-            'KAVA': 'KAVA',
-            'KSM': 'KSM',
-            'LiteCoin': 'LiteCoin',
-            'Luna': 'Luna',
-            'MATIC': 'MATIC',
-            'Mobile Coin': 'Mobile Coin',
-            'MonaCoin': 'MonaCoin',
-            'Monero': 'Monero',
-            'NEM': 'NEM',
-            'NEP5': 'NEP5',
-            'OMNI': 'OMNI',
-            'PAC': 'PAC',
-            'Polkadot': 'Polkadot',
-            'Ravencoin': 'Ravencoin',
-            'Safex': 'Safex',
-            'SOLANA': 'SOL',
-            'Songbird': 'Songbird',
-            'Stellar Lumens': 'Stellar Lumens',
-            'Symbol': 'Symbol',
-            'Tezos': 'XTZ',
-            'theta': 'theta',
-            'THETA': 'THETA',
-            'TRC20': 'TRC20',
-            'VeChain': 'VeChain',
-            'VECHAIN': 'VECHAIN',
-            'Wanchain': 'Wanchain',
-            'XinFin Network': 'XinFin Network',
-            'XRP': 'XRP',
-            'XRPL': 'XRPL',
-            'ZIL': 'ZIL',
-        }
-        return self.safe_string_2(networksById, networkId, uppercaseNetworkId, networkId)
 
     async def fetch_currencies(self, params={}) -> Currencies:
         """
@@ -1942,6 +1926,7 @@ class bitrue(Exchange, ImplicitAPI):
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
         :see: https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
         :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2728,7 +2713,7 @@ class bitrue(Exchange, ImplicitAPI):
             'status': 'ok',
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :see: https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256

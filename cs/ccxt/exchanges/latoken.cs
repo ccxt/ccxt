@@ -200,7 +200,7 @@ public partial class latoken : Exchange
                     { "request expired or bad", typeof(InvalidNonce) },
                     { "For input string", typeof(BadRequest) },
                     { "Unable to resolve currency by tag", typeof(BadSymbol) },
-                    { "Can\'t find currency with tag", typeof(BadSymbol) },
+                    { "Can't find currency with tag", typeof(BadSymbol) },
                     { "Unable to place order because pair is in inactive state", typeof(BadSymbol) },
                     { "API keys are not available for", typeof(AccountSuspended) },
                 } },
@@ -1627,6 +1627,7 @@ public partial class latoken : Exchange
         object statuses = new Dictionary<string, object>() {
             { "TRANSACTION_STATUS_CONFIRMED", "ok" },
             { "TRANSACTION_STATUS_EXECUTED", "ok" },
+            { "TRANSACTION_STATUS_CHECKING", "pending" },
             { "TRANSACTION_STATUS_CANCELLED", "canceled" },
         };
         return this.safeString(statuses, status, status);

@@ -41,6 +41,8 @@ public partial class phemex : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", true },
@@ -57,6 +59,7 @@ public partial class phemex : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
@@ -2607,6 +2610,8 @@ public partial class phemex : Exchange
         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
         * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+        * @param {string} [params.posSide] *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+        * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2698,17 +2703,25 @@ public partial class phemex : Exchange
             }
         } else if (isTrue(getValue(market, "swap")))
         {
+            object hedged = this.safeBool(parameters, "hedged", false);
+            parameters = this.omit(parameters, "hedged");
             object posSide = this.safeStringLower(parameters, "posSide");
             if (isTrue(isEqual(posSide, null)))
             {
-                posSide = "Merged";
+                if (isTrue(hedged))
+                {
+                    if (isTrue(reduceOnly))
+                    {
+                        side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+                    }
+                    posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "Long" : "Short";
+                } else
+                {
+                    posSide = "Merged";
+                }
             }
             posSide = this.capitalize(posSide);
             ((IDictionary<string,object>)request)["posSide"] = posSide;
-            if (isTrue(!isEqual(reduceOnly, null)))
-            {
-                ((IDictionary<string,object>)request)["reduceOnly"] = reduceOnly;
-            }
             if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
             {
                 ((IDictionary<string,object>)request)["orderQtyRq"] = amount;
@@ -3111,6 +3124,7 @@ public partial class phemex : Exchange
         * @name phemex#fetchOrder
         * @see https://phemex-docs.github.io/#query-orders-by-ids
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3140,7 +3154,7 @@ public partial class phemex : Exchange
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, parameters));
         } else if (isTrue(getValue(market, "spot")))
         {
-            response = await this.privateGetSpotOrdersActive(this.extend(request, parameters));
+            response = await this.privateGetApiDataSpotsOrdersByOrderId(this.extend(request, parameters));
         } else
         {
             response = await this.privateGetExchangeOrder(this.extend(request, parameters));
@@ -3160,7 +3174,11 @@ public partial class phemex : Exchange
                     throw new OrderNotFound ((string)add(add(add(add(add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
                 }
             }
-            order = this.safeValue(data, 0, new Dictionary<string, object>() {});
+            order = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        } else if (isTrue(getValue(market, "spot")))
+        {
+            object rows = this.safeList(data, "rows", new List<object>() {});
+            order = this.safeDict(rows, 0, new Dictionary<string, object>() {});
         }
         return this.parseOrder(order, market);
     }
@@ -3206,7 +3224,7 @@ public partial class phemex : Exchange
             response = await this.privateGetExchangeOrderList(this.extend(request, parameters));
         } else
         {
-            response = await this.privateGetSpotOrders(this.extend(request, parameters));
+            response = await this.privateGetApiDataSpotsOrders(this.extend(request, parameters));
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", data);
@@ -3555,9 +3573,9 @@ public partial class phemex : Exchange
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
+        object defaultNetworks = this.safeDict(this.options, "defaultNetworks");
         object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeStringUpper(parameters, "network", defaultNetwork);
         network = this.safeString(networks, network, network);
         if (isTrue(isEqual(network, null)))
@@ -3583,11 +3601,11 @@ public partial class phemex : Exchange
         object tag = this.safeString(data, "tag");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 
@@ -4348,6 +4366,7 @@ public partial class phemex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -5154,6 +5173,86 @@ public partial class phemex : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
+    }
+
+    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name phemex#fetchOpenInterest
+        * @description retrieves the open interest of a trading pair
+        * @see https://phemex-docs.github.io/#query-24-hours-ticker
+        * @param {string} symbol unified CCXT market symbol
+        * @param {object} [params] exchange specific parameters
+        * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "contract")))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchOpenInterest is only supported for contract markets.")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v2GetMdV2Ticker24hr(this.extend(request, parameters));
+        //
+        //    {
+        //        error: null,
+        //        id: '0',
+        //        result: {
+        //          closeRp: '67550.1',
+        //          fundingRateRr: '0.0001',
+        //          highRp: '68400',
+        //          indexPriceRp: '67567.15389794',
+        //          lowRp: '66096.4',
+        //          markPriceRp: '67550.1',
+        //          openInterestRv: '1848.1144186',
+        //          openRp: '66330',
+        //          predFundingRateRr: '0.0001',
+        //          symbol: 'BTCUSDT',
+        //          timestamp: '1729114315443343001',
+        //          turnoverRv: '228863389.3237532',
+        //          volumeRq: '3388.5600312'
+        //        }
+        //    }
+        //
+        object result = this.safeDict(response, "result");
+        return this.parseOpenInterest(result, market);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //    {
+        //        closeRp: '67550.1',
+        //        fundingRateRr: '0.0001',
+        //        highRp: '68400',
+        //        indexPriceRp: '67567.15389794',
+        //        lowRp: '66096.4',
+        //        markPriceRp: '67550.1',
+        //        openInterestRv: '1848.1144186',
+        //        openRp: '66330',
+        //        predFundingRateRr: '0.0001',
+        //        symbol: 'BTCUSDT',
+        //        timestamp: '1729114315443343001',
+        //        turnoverRv: '228863389.3237532',
+        //        volumeRq: '3388.5600312'
+        //    }
+        //
+        object timestamp = divide(this.safeInteger(interest, "timestamp"), 1000000);
+        object id = this.safeString(interest, "symbol");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "info", interest },
+            { "symbol", this.safeSymbol(id, market) },
+            { "baseVolume", this.safeString(interest, "volumeRq") },
+            { "quoteVolume", null },
+            { "openInterestAmount", this.safeString(interest, "openInterestRv") },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        }, market);
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

@@ -25,14 +25,16 @@ class woo extends \ccxt\async\woo {
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPositions' => true,
             ),
             'urls' => array(
                 'api' => array(
                     'ws' => array(
                         'public' => 'wss://wss.woo.org/ws/stream',
-                        'private' => 'wss://wss.woo.network/v2/ws/private/stream',
+                        'private' => 'wss://wss.woo.org/v2/ws/private/stream',
                     ),
                 ),
                 'test' => array(
@@ -80,7 +82,8 @@ class woo extends \ccxt\async\woo {
 
     public function watch_public($messageHash, $message) {
         return Async\async(function () use ($messageHash, $message) {
-            $url = $this->urls['api']['ws']['public'] . '/' . $this->uid;
+            $urlUid = ($this->uid) ? '/' . $this->uid : '';
+            $url = $this->urls['api']['ws']['public'] . $urlUid;
             $requestId = $this->request_id($url);
             $subscribe = array(
                 'id' => $requestId,
@@ -93,23 +96,39 @@ class woo extends \ccxt\async\woo {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://docs.woo.org/#orderbookupdate
              * @see https://docs.woo.org/#$orderbook
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
-            $name = 'orderbook';
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'method', 'orderbook');
             $market = $this->market($symbol);
-            $topic = $market['id'] . '@' . $name;
+            $topic = $market['id'] . '@' . $method;
+            $urlUid = ($this->uid) ? '/' . $this->uid : '';
+            $url = $this->urls['api']['ws']['public'] . $urlUid;
+            $requestId = $this->request_id($url);
             $request = array(
                 'event' => 'subscribe',
                 'topic' => $topic,
+                'id' => $requestId,
             );
-            $message = $this->extend($request, $params);
-            $orderbook = Async\await($this->watch_public($topic, $message));
+            $subscription = array(
+                'id' => (string) $requestId,
+                'name' => $method,
+                'symbol' => $symbol,
+                'limit' => $limit,
+                'params' => $params,
+            );
+            if ($method === 'orderbookupdate') {
+                $subscription['method'] = array($this, 'handle_order_book_subscription');
+            }
+            $orderbook = Async\await($this->watch($url, $topic, $this->extend($request, $params), $topic, $subscription));
             return $orderbook->limit ();
         }) ();
     }
@@ -117,10 +136,11 @@ class woo extends \ccxt\async\woo {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         "topic" => "PERP_BTC_USDT@$orderbook",
-        //         "ts" => 1650121915308,
+        //         "topic" => "PERP_BTC_USDT@orderbookupdate",
+        //         "ts" => 1722500373999,
         //         "data" => {
         //             "symbol" => "PERP_BTC_USDT",
+        //             "prevTs" => 1722500373799,
         //             "bids" => array(
         //                 array(
         //                     0.30891,
@@ -141,14 +161,108 @@ class woo extends \ccxt\async\woo {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $topic = $this->safe_string($message, 'topic');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
-            $this->orderbooks[$symbol] = $this->order_book(array());
+        $method = $this->safe_string(explode('@', $topic), 1);
+        if ($method === 'orderbookupdate') {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                return;
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $timestamp = $this->safe_integer($orderbook, 'timestamp');
+            if ($timestamp === null) {
+                $orderbook->cache[] = $message;
+            } else {
+                try {
+                    $ts = $this->safe_integer($message, 'ts');
+                    if ($ts > $timestamp) {
+                        $this->handle_order_book_message($client, $message, $orderbook);
+                        $client->resolve ($orderbook, $topic);
+                    }
+                } catch (Exception $e) {
+                    unset($this->orderbooks[$symbol]);
+                    unset($client->subscriptions[$topic]);
+                    $client->reject ($e, $topic);
+                }
+            }
+        } else {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
+                $subscription = $client->subscriptions[$topic];
+                $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $timestamp = $this->safe_integer($message, 'ts');
+            $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
+            $orderbook->reset ($snapshot);
+            $client->resolve ($orderbook, $topic);
         }
-        $orderbook = $this->orderbooks[$symbol];
+    }
+
+    public function handle_order_book_subscription(Client $client, $message, $subscription) {
+        $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
+        $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
+        $symbol = $this->safe_string($subscription, 'symbol'); // watchOrderBook
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            unset($this->orderbooks[$symbol]);
+        }
+        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+    }
+
+    public function fetch_order_book_snapshot($client, $message, $subscription) {
+        return Async\async(function () use ($client, $message, $subscription) {
+            $symbol = $this->safe_string($subscription, 'symbol');
+            $messageHash = $this->safe_string($message, 'topic');
+            try {
+                $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
+                $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
+                $params = $this->safe_value($subscription, 'params');
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
+                if ($this->safe_value($this->orderbooks, $symbol) === null) {
+                    // if the $orderbook is dropped before the $snapshot is received
+                    return;
+                }
+                $orderbook = $this->orderbooks[$symbol];
+                $orderbook->reset ($snapshot);
+                $messages = $orderbook->cache;
+                for ($i = 0; $i < count($messages); $i++) {
+                    $messageItem = $messages[$i];
+                    $ts = $this->safe_integer($messageItem, 'ts');
+                    if ($ts < $orderbook['timestamp']) {
+                        continue;
+                    } else {
+                        $this->handle_order_book_message($client, $messageItem, $orderbook);
+                    }
+                }
+                $this->orderbooks[$symbol] = $orderbook;
+                $client->resolve ($orderbook, $messageHash);
+            } catch (Exception $e) {
+                unset($client->subscriptions[$messageHash]);
+                $client->reject ($e, $messageHash);
+            }
+        }) ();
+    }
+
+    public function handle_order_book_message(Client $client, $message, $orderbook) {
+        $data = $this->safe_dict($message, 'data');
+        $this->handle_deltas($orderbook['asks'], $this->safe_value($data, 'asks', array()));
+        $this->handle_deltas($orderbook['bids'], $this->safe_value($data, 'bids', array()));
         $timestamp = $this->safe_integer($message, 'ts');
-        $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
-        $orderbook->reset ($snapshot);
-        $client->resolve ($orderbook, $topic);
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
+        return $orderbook;
+    }
+
+    public function handle_delta($bookside, $delta) {
+        $price = $this->safe_float_2($delta, 'price', 0);
+        $amount = $this->safe_float_2($delta, 'quantity', 1);
+        $bookside->store ($price, $amount);
+    }
+
+    public function handle_deltas($bookside, $deltas) {
+        for ($i = 0; $i < count($deltas); $i++) {
+            $this->handle_delta($bookside, $deltas[$i]);
+        }
     }
 
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
@@ -305,6 +419,80 @@ class woo extends \ccxt\async\woo {
             $result[] = $ticker;
         }
         $client->resolve ($result, $topic);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://docs.woox.io/#bbos
+             * watches best bid & ask for $symbols
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $name = 'bbos';
+            $topic = $name;
+            $request = array(
+                'event' => 'subscribe',
+                'topic' => $topic,
+            );
+            $message = $this->extend($request, $params);
+            $tickers = Async\await($this->watch_public($topic, $message));
+            if ($this->newUpdates) {
+                return $tickers;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        //
+        //     {
+        //         "topic" => "bbos",
+        //         "ts" => 1618822376000,
+        //         "data" => array(
+        //             {
+        //                 "symbol" => "SPOT_FIL_USDT",
+        //                 "ask" => 159.0318,
+        //                 "askSize" => 370.43,
+        //                 "bid" => 158.9158,
+        //                 "bidSize" => 16
+        //             }
+        //         )
+        //     }
+        //
+        $topic = $this->safe_string($message, 'topic');
+        $data = $this->safe_list($message, 'data', array());
+        $timestamp = $this->safe_integer($message, 'ts');
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $ticker = $this->safe_dict($data, $i);
+            $ticker['ts'] = $timestamp;
+            $parsedTicker = $this->parse_ws_bid_ask($ticker);
+            $symbol = $parsedTicker['symbol'];
+            $this->bidsasks[$symbol] = $parsedTicker;
+            $result[$symbol] = $parsedTicker;
+        }
+        $client->resolve ($result, $topic);
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 'ts');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'askSize'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bidSize'),
+            'info' => $ticker,
+        ), $market);
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -487,7 +675,7 @@ class woo extends \ccxt\async\woo {
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $price = $this->safe_string($trade, 'executedPrice', 'price');
+        $price = $this->safe_string_2($trade, 'executedPrice', 'price');
         $amount = $this->safe_string_2($trade, 'executedQuantity', 'size');
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
@@ -526,7 +714,7 @@ class woo extends \ccxt\async\woo {
     public function check_required_uid($error = true) {
         if (!$this->uid) {
             if ($error) {
-                throw new AuthenticationError($this->id . ' requires `uid` credential');
+                throw new AuthenticationError($this->id . ' requires `uid` credential (woox calls it `application_id`)');
             } else {
                 return false;
             }
@@ -556,7 +744,7 @@ class woo extends \ccxt\async\woo {
                     ),
                 );
                 $message = $this->extend($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
+                $this->watch($url, $messageHash, $message, $messageHash, $message);
             }
             return Async\await($future);
         }) ();
@@ -892,7 +1080,7 @@ class woo extends \ccxt\async\woo {
             $client = $this->client($url);
             $this->set_positions_cache($client, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
@@ -1101,6 +1289,7 @@ class woo extends \ccxt\async\woo {
             'pong' => array($this, 'handle_pong'),
             'subscribe' => array($this, 'handle_subscribe'),
             'orderbook' => array($this, 'handle_order_book'),
+            'orderbookupdate' => array($this, 'handle_order_book'),
             'ticker' => array($this, 'handle_ticker'),
             'tickers' => array($this, 'handle_tickers'),
             'kline' => array($this, 'handle_ohlcv'),
@@ -1110,6 +1299,7 @@ class woo extends \ccxt\async\woo {
             'trade' => array($this, 'handle_trade'),
             'balance' => array($this, 'handle_balance'),
             'position' => array($this, 'handle_positions'),
+            'bbos' => array($this, 'handle_bid_ask'),
         );
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);
@@ -1170,6 +1360,13 @@ class woo extends \ccxt\async\woo {
         //         "ts" => 1657117712212
         //     }
         //
+        $id = $this->safe_string($message, 'id');
+        $subscriptionsById = $this->index_by($client->subscriptions, 'id');
+        $subscription = $this->safe_value($subscriptionsById, $id, array());
+        $method = $this->safe_value($subscription, 'method');
+        if ($method !== null) {
+            $method($client, $message, $subscription);
+        }
         return $message;
     }
 

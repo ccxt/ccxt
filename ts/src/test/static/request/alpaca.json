@@ -65,6 +65,15 @@
                 "input": [
                     "BTC/USD"
                 ]
+            },
+            {
+                "description": "fetch order book with limit",
+                "method": "fetchOrderBook",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/latest/orderbooks?symbols=BTC%2FUSDT",
+                "input": [
+                  "BTC/USDT",
+                  1
+                ]
             }
         ],
         "fetchOHLCV": [

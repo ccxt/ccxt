@@ -43,6 +43,8 @@ class bit2c extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -510,6 +512,7 @@ class bit2c extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://bit2c.co.il/home/api#getoid
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -835,7 +838,7 @@ class bit2c extends Exchange {
         return $code === 'NIS';
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -863,7 +866,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -874,11 +877,11 @@ class bit2c extends Exchange {
         $this->check_address($address);
         $code = $this->safe_currency_code(null, $currency);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
             'network' => null,
             'address' => $address,
             'tag' => null,
-            'info' => $depositAddress,
         );
     }
 

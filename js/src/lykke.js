@@ -46,6 +46,8 @@ export default class lykke extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -681,9 +683,9 @@ export default class lykke extends Exchange {
             const currencyId = this.safeString(balance, 'assetId');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            const free = this.safeString(balance, 'available');
+            const total = this.safeString(balance, 'available');
             const used = this.safeString(balance, 'reserved');
-            account['free'] = free;
+            account['total'] = total;
             account['used'] = used;
             result[code] = account;
         }
@@ -1145,11 +1147,11 @@ export default class lykke extends Exchange {
         const tag = this.safeString(response, 'addressExtension');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     parseTransaction(transaction, currency = undefined) {

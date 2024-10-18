@@ -31,6 +31,7 @@ class bitmart(ccxt.async_support.bitmart):
                 'watchBalance': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
@@ -48,8 +49,8 @@ class bitmart(ccxt.async_support.bitmart):
                             'private': 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
                         },
                         'swap': {
-                            'public': 'wss://openapi-ws.{hostname}/api?protocol=1.1',
-                            'private': 'wss://openapi-ws.{hostname}/user?protocol=1.1',
+                            'public': 'wss://openapi-ws-v2.{hostname}/api?protocol=1.1',
+                            'private': 'wss://openapi-ws-v2.{hostname}/user?protocol=1.1',
                         },
                     },
                 },
@@ -137,7 +138,7 @@ class bitmart(ccxt.async_support.bitmart):
     async def watch_balance(self, params={}) -> Balances:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#private-balance-change
-        :see: https://developer-pro.bitmart.com/en/futures/#private-assets-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -257,7 +258,7 @@ class bitmart(ccxt.async_support.bitmart):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-trade-channel
-        :see: https://developer-pro.bitmart.com/en/futures/#public-trade-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -301,6 +302,7 @@ class bitmart(ccxt.async_support.bitmart):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -313,7 +315,8 @@ class bitmart(ccxt.async_support.bitmart):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://developer-pro.bitmart.com/en/futures/#overview
+        :see: https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -330,11 +333,80 @@ class bitmart(ccxt.async_support.bitmart):
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        firstMarket = self.get_market_from_symbols(symbols)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
+        url = self.implode_hostname(self.urls['api']['ws'][marketType]['public'])
+        channelType = 'spot' if (marketType == 'spot') else 'futures'
+        actionType = 'op' if (marketType == 'spot') else 'action'
+        rawSubscriptions = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            rawSubscriptions.append(channelType + '/ticker:' + market['id'])
+            messageHashes.append('bidask:' + symbols[i])
+        if marketType != 'spot':
+            rawSubscriptions = [channelType + '/ticker']
+        request: dict = {
+            'args': rawSubscriptions,
+        }
+        request[actionType] = 'subscribe'
+        newTickers = await self.watch_multiple(url, messageHashes, request, rawSubscriptions)
+        if self.newUpdates:
+            tickers: dict = {}
+            tickers[newTickers['symbol']] = newTickers
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        table = self.safe_string(message, 'table')
+        isSpot = (table is not None)
+        rawTickers = []
+        if isSpot:
+            rawTickers = self.safe_list(message, 'data', [])
+        else:
+            rawTickers = [self.safe_value(message, 'data', {})]
+        if not len(rawTickers):
+            return
+        for i in range(0, len(rawTickers)):
+            ticker = self.parse_ws_bid_ask(rawTickers[i])
+            symbol = ticker['symbol']
+            self.bidsasks[symbol] = ticker
+            messageHash = 'bidask:' + symbol
+            client.resolve(ticker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 'ms_t')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string_2(ticker, 'ask_px', 'ask_price'),
+            'askVolume': self.safe_string_2(ticker, 'ask_sz', 'ask_vol'),
+            'bid': self.safe_string_2(ticker, 'bid_px', 'bid_price'),
+            'bidVolume': self.safe_string_2(ticker, 'bid_sz', 'bid_vol'),
+            'info': ticker,
+        }, market)
+
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
         :see: https://developer-pro.bitmart.com/en/spot/#private-order-progress
-        :see: https://developer-pro.bitmart.com/en/futures/#private-order-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -877,6 +949,7 @@ class bitmart(ccxt.async_support.bitmart):
         #            }
         #    }
         #
+        self.handle_bid_ask(client, message)
         table = self.safe_string(message, 'table')
         isSpot = (table is not None)
         rawTickers = []
@@ -933,7 +1006,7 @@ class bitmart(ccxt.async_support.bitmart):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-kline-channel
-        :see: https://developer-pro.bitmart.com/en/futures/#public-klinebin-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1049,7 +1122,7 @@ class bitmart(ccxt.async_support.bitmart):
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
         :see: https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
-        :see: https://developer-pro.bitmart.com/en/futures/#public-depth-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return

@@ -13,6 +13,7 @@ public partial class blofin : Exchange
             { "countries", new List<object>() {"US"} },
             { "version", "v1" },
             { "rateLimit", 100 },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", false },
@@ -87,12 +88,11 @@ public partial class blofin : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", true },
-                { "fetchOrder", true },
+                { "fetchOrder", null },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
-                { "fetchPermissions", null },
                 { "fetchPosition", true },
                 { "fetchPositions", true },
                 { "fetchPositionsForSymbol", false },
@@ -137,11 +137,12 @@ public partial class blofin : Exchange
                 { "2h", "2H" },
                 { "4h", "4H" },
                 { "6h", "6H" },
+                { "8h", "8H" },
                 { "12h", "12H" },
                 { "1d", "1D" },
+                { "3d", "3D" },
                 { "1w", "1W" },
                 { "1M", "1M" },
-                { "3M", "3M" },
             } },
             { "hostname", "www.blofin.com" },
             { "urls", new Dictionary<string, object>() {
@@ -491,6 +492,25 @@ public partial class blofin : Exchange
 
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        // response similar for REST & WS
+        //
+        //     {
+        //         instId: "ADA-USDT",
+        //         ts: "1707736811486",
+        //         last: "0.5315",
+        //         lastSize: "4",
+        //         askPrice: "0.5318",
+        //         askSize: "248",
+        //         bidPrice: "0.5315",
+        //         bidSize: "63",
+        //         open24h: "0.5555",
+        //         high24h: "0.5563",
+        //         low24h: "0.5315",
+        //         volCurrency24h: "198560100",
+        //         vol24h: "1985601",
+        //     }
+        //
         object timestamp = this.safeInteger(ticker, "ts");
         object marketId = this.safeString(ticker, "instId");
         market = this.safeMarket(marketId, market, "-");
@@ -522,6 +542,8 @@ public partial class blofin : Exchange
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }
@@ -549,6 +571,30 @@ public partial class blofin : Exchange
         return this.parseTicker(first, market);
     }
 
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name blofin#fetchMarkPrice
+        * @description fetches mark price for the market
+        * @see https://docs.blofin.com/index.html#get-mark-price
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.publicGetMarketMarkPrice(this.extend(request, parameters));
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseTicker(first, market);
+    }
+
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         /**
@@ -571,7 +617,8 @@ public partial class blofin : Exchange
     public override object parseTrade(object trade, object market = null)
     {
         //
-        // fetch trades
+        // fetch trades (response similar for REST & WS)
+        //
         //   {
         //       "tradeId": "3263934920",
         //       "instId": "LTC-USDT",
@@ -580,6 +627,7 @@ public partial class blofin : Exchange
         //       "side": "buy",
         //       "ts": "1707232020854"
         //   }
+        //
         // my trades
         //   {
         //       "instId": "LTC-USDT",
@@ -808,17 +856,10 @@ public partial class blofin : Exchange
         //        "fundingRate": "0.00027815",
         //        "fundingTime": "1634256000000",
         //        "instId": "BTC-USD-SWAP",
-        //        "instType": "SWAP",
-        //        "nextFundingRate": "0.00017",
-        //        "nextFundingTime": "1634284800000"
         //    }
         //
-        // in the response above nextFundingRate is actually two funding rates from now
-        //
-        object nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
         object marketId = this.safeString(contract, "instId");
         object symbol = this.safeSymbol(marketId, market);
-        object nextFundingRate = this.safeNumber(contract, "nextFundingRate");
         object fundingTime = this.safeInteger(contract, "fundingTime");
         // > The current interest is 0.
         return new Dictionary<string, object>() {
@@ -833,12 +874,13 @@ public partial class blofin : Exchange
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
             { "fundingTimestamp", fundingTime },
             { "fundingDatetime", this.iso8601(fundingTime) },
-            { "nextFundingRate", nextFundingRate },
-            { "nextFundingTimestamp", nextFundingRateTimestamp },
-            { "nextFundingDatetime", this.iso8601(nextFundingRateTimestamp) },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -872,9 +914,6 @@ public partial class blofin : Exchange
         //                "fundingRate": "0.00027815",
         //                "fundingTime": "1634256000000",
         //                "instId": "BTC-USD-SWAP",
-        //                "instType": "SWAP",
-        //                "nextFundingRate": "0.00017",
-        //                "nextFundingTime": "1634284800000"
         //            }
         //        ],
         //        "msg": ""
@@ -892,12 +931,14 @@ public partial class blofin : Exchange
             return this.parseFundingBalance(response);
         } else
         {
-            return this.parseTradingBalance(response);
+            return this.parseBalance(response);
         }
     }
 
-    public virtual object parseTradingBalance(object response)
+    public override object parseBalance(object response)
     {
+        //
+        // "data" similar for REST & WS
         //
         // {
         //     "code": "0",
@@ -919,7 +960,8 @@ public partial class blofin : Exchange
         //                 "orderFrozen": "14920.994472632597427761",
         //                 "equityUsd": "10011254.077985990315787910",
         //                 "isolatedUnrealizedPnl": "-22.151999999999999999952",
-        //                 "bonus": "0"
+        //                 "bonus": "0" // present only in REST
+        //                 "unrealizedPnl": "0" // present only in WS
         //             }
         //         ]
         //     }
@@ -1112,6 +1154,8 @@ public partial class blofin : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
+        // response similar for REST & WS
+        //
         // {
         //     "orderId": "2075628533",
         //     "clientOrderId": "",
@@ -1139,6 +1183,9 @@ public partial class blofin : Exchange
         //     "cancelSource": "not_canceled",
         //     "cancelSourceReason": null,
         //     "brokerId": "ec6dd3a7dd982d0b"
+        //     "filled_amount": "1.000000000000000000", // filledAmount in "ws" watchOrders
+        //     "cancelSource": "", // only in WS
+        //     "instType": "SWAP", // only in WS
         // }
         //
         object id = this.safeString2(order, "tpslId", "orderId");
@@ -1623,15 +1670,15 @@ public partial class blofin : Exchange
         /**
         * @method
         * @name blofin#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://blofin.com/docs#get-funds-transfer-history
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'
         * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1784,29 +1831,27 @@ public partial class blofin : Exchange
 
     public override object parseLedgerEntry(object item, object currency = null)
     {
-        object id = this.safeString(item, "transferId");
-        object referenceId = this.safeString(item, "clientId");
-        object fromAccount = this.safeString(item, "fromAccount");
-        object toAccount = this.safeString(item, "toAccount");
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "currency"), currency);
-        object amountString = this.safeString(item, "amount");
-        object amount = this.parseNumber(amountString);
+        object currencyId = this.safeString(item, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "ts");
-        object status = "ok";
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", this.safeString(item, "transferId") },
+            { "direction", null },
+            { "account", null },
+            { "referenceId", this.safeString(item, "clientId") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
+            { "currency", code },
+            { "amount", this.safeNumber(item, "amount") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-            { "type", type },
-            { "currency", code },
-            { "amount", amount },
-            { "clientId", referenceId },
-            { "status", status },
-        };
+            { "before", null },
+            { "after", null },
+            { "status", "ok" },
+            { "fee", null },
+        }, currency);
     }
 
     public virtual object parseIds(object ids)
@@ -2008,6 +2053,32 @@ public partial class blofin : Exchange
 
     public override object parsePosition(object position, object market = null)
     {
+        //
+        // response similar for REST & WS
+        //
+        //     {
+        //         instType: 'SWAP',
+        //         instId: 'LTC-USDT',
+        //         marginMode: 'cross',
+        //         positionId: '644159',
+        //         positionSide: 'net',
+        //         positions: '1',
+        //         availablePositions: '1',
+        //         averagePrice: '68.16',
+        //         unrealizedPnl: '0.80631223',
+        //         unrealizedPnlRatio: '0.03548909463028169',
+        //         leverage: '3',
+        //         liquidationPrice: '10.116655172370356435',
+        //         markPrice: '68.96',
+        //         initialMargin: '22.988770743333333333',
+        //         margin: '', // this field might not exist in rest response
+        //         marginRatio: '152.523509620342499273',
+        //         maintenanceMargin: '0.34483156115',
+        //         adl: '4',
+        //         createTime: '1707235776528',
+        //         updateTime: '1707235776528'
+        //     }
+        //
         object marketId = this.safeString(position, "instId");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");

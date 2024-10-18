@@ -668,9 +668,10 @@ public partial class btcturk : Exchange
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
-    public override object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null)
+    public override object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null, object tail = null)
     {
         timeframe ??= "1m";
+        tail ??= false;
         object results = new List<object>() {};
         object timestamp = this.safeValue(ohlcvs, "t");
         object high = this.safeValue(ohlcvs, "h");
@@ -691,7 +692,7 @@ public partial class btcturk : Exchange
             ((IList<object>)results).Add(this.parseOHLCV(ohlcv, market));
         }
         object sorted = this.sortBy(results, 0);
-        return this.filterBySinceLimit(sorted, since, limit, 0);
+        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
 
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)

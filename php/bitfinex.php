@@ -35,6 +35,8 @@ class bitfinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -555,11 +557,11 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $ids = $this->publicGetSymbols ();
+        $idsPromise = $this->publicGetSymbols ();
         //
         //     array( "btcusd", "ltcusd", "ltcbtc" )
         //
-        $details = $this->publicGetSymbolsDetails ();
+        $detailsPromise = $this->publicGetSymbolsDetails ();
         //
         //     array(
         //         array(
@@ -574,6 +576,7 @@ class bitfinex extends Exchange {
         //         ),
         //     )
         //
+        list($ids, $details) = array( $idsPromise, $detailsPromise );
         $result = array();
         for ($i = 0; $i < count($details); $i++) {
             $market = $details[$i];
@@ -842,7 +845,7 @@ class bitfinex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
@@ -851,7 +854,7 @@ class bitfinex extends Exchange {
         $response = $this->publicGetTickers ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $ticker = $this->parse_ticker(array( 'result' => $response[$i] ));
+            $ticker = $this->parse_ticker($response[$i]);
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
@@ -1316,6 +1319,7 @@ class bitfinex extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+         * @param {string} $id the order $id
          * @param {string} $symbol not used by bitfinex fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1411,7 +1415,7 @@ class bitfinex extends Exchange {
         return $this->fetch_deposit_address($code, $this->extend($request, $params));
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a currency associated with this account
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-deposit

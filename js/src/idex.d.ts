@@ -1,5 +1,5 @@
 import Exchange from './abstract/idex.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class idex
  * @augments Exchange
@@ -50,20 +50,8 @@ export default class idex extends Exchange {
     parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
-    fetchDepositAddress(code?: Str, params?: {}): Promise<{
-        info: any;
-        currency: any;
-        address: string;
-        tag: any;
-        network: string;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        info: any;
-        currency: any;
-        address: string;
-        tag: any;
-        network: string;
-    };
+    fetchDepositAddress(code?: Str, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

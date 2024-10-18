@@ -10,6 +10,7 @@ public partial class alpaca
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#quotes"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class alpaca
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#bars"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -62,6 +64,7 @@ public partial class alpaca
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -88,6 +91,7 @@ public partial class alpaca
     /// watches information on multiple trades made in a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/docs/real-time-crypto-pricing-data#trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -121,6 +125,7 @@ public partial class alpaca
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/docs/websocket-streaming#trade-updates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -181,7 +186,7 @@ public partial class alpaca
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure.</returns>
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

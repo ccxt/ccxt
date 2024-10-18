@@ -2071,6 +2071,11 @@ public partial class binanceusdm : binance
         return await this.callAsync ("dapiPublicGetOpenInterest",parameters);
     }
 
+    public async Task<object> dapiPublicGetFundingInfo (object parameters = null)
+    {
+        return await this.callAsync ("dapiPublicGetFundingInfo",parameters);
+    }
+
     public async Task<object> dapiDataGetDeliveryPrice (object parameters = null)
     {
         return await this.callAsync ("dapiDataGetDeliveryPrice",parameters);
@@ -2406,6 +2411,11 @@ public partial class binanceusdm : binance
         return await this.callAsync ("fapiPublicGetLvtKlines",parameters);
     }
 
+    public async Task<object> fapiPublicGetConvertExchangeInfo (object parameters = null)
+    {
+        return await this.callAsync ("fapiPublicGetConvertExchangeInfo",parameters);
+    }
+
     public async Task<object> fapiDataGetDeliveryPrice (object parameters = null)
     {
         return await this.callAsync ("fapiDataGetDeliveryPrice",parameters);
@@ -2616,6 +2626,21 @@ public partial class binanceusdm : binance
         return await this.callAsync ("fapiPrivateGetFeeBurn",parameters);
     }
 
+    public async Task<object> fapiPrivateGetSymbolConfig (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetSymbolConfig",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetAccountConfig (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetAccountConfig",parameters);
+    }
+
+    public async Task<object> fapiPrivateGetConvertOrderStatus (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateGetConvertOrderStatus",parameters);
+    }
+
     public async Task<object> fapiPrivatePostBatchOrders (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePostBatchOrders",parameters);
@@ -2676,6 +2701,16 @@ public partial class binanceusdm : binance
         return await this.callAsync ("fapiPrivatePostFeeBurn",parameters);
     }
 
+    public async Task<object> fapiPrivatePostConvertGetQuote (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostConvertGetQuote",parameters);
+    }
+
+    public async Task<object> fapiPrivatePostConvertAcceptQuote (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostConvertAcceptQuote",parameters);
+    }
+
     public async Task<object> fapiPrivatePutListenKey (object parameters = null)
     {
         return await this.callAsync ("fapiPrivatePutListenKey",parameters);
@@ -2729,6 +2764,21 @@ public partial class binanceusdm : binance
     public async Task<object> fapiPrivateV2GetPositionRisk (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateV2GetPositionRisk",parameters);
+    }
+
+    public async Task<object> fapiPrivateV3GetAccount (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateV3GetAccount",parameters);
+    }
+
+    public async Task<object> fapiPrivateV3GetBalance (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateV3GetBalance",parameters);
+    }
+
+    public async Task<object> fapiPrivateV3GetPositionRisk (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateV3GetPositionRisk",parameters);
     }
 
     public async Task<object> eapiPublicGetPing (object parameters = null)
@@ -3484,6 +3534,16 @@ public partial class binanceusdm : binance
     public async Task<object> papiPostAssetCollection (object parameters = null)
     {
         return await this.callAsync ("papiPostAssetCollection",parameters);
+    }
+
+    public async Task<object> papiPostMarginRepayDebt (object parameters = null)
+    {
+        return await this.callAsync ("papiPostMarginRepayDebt",parameters);
+    }
+
+    public async Task<object> papiPostUmFeeBurn (object parameters = null)
+    {
+        return await this.callAsync ("papiPostUmFeeBurn",parameters);
     }
 
     public async Task<object> papiPutListenKey (object parameters = null)

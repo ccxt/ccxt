@@ -503,6 +503,7 @@
         ],
         "fetchCurrencies": [
             {
+                "disabled": "until multi-requests methods are supported",
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://ascendex.com/api/pro/v1/assets",
@@ -511,6 +512,7 @@
         ],
         "fetchMarkets": [
             {
+                "disabled": "until multi-requests methods are supported",
                 "description": "fetchMarkets",
                 "method": "fetchMarkets",
                 "url": "https://ascendex.com/api/pro/v1/products",

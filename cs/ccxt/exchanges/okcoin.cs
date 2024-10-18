@@ -36,6 +36,8 @@ public partial class okcoin : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -548,6 +550,9 @@ public partial class okcoin : Exchange
                 { "defaultNetwork", "ERC20" },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "Ethereum" },
+                    { "BTC", "Bitcoin" },
+                    { "OMNI", "Omni" },
+                    { "TRC20", "TRON" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -689,16 +694,6 @@ public partial class okcoin : Exchange
         });
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "Bitcoin", "BTC" },
-            { "Omni", "OMNI" },
-            { "TRON", "TRC20" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         /**
@@ -749,7 +744,7 @@ public partial class okcoin : Exchange
                     {
                         object parts = ((string)networkId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                         object chainPart = this.safeString(parts, 1, networkId);
-                        object networkCode = this.safeNetwork(chainPart);
+                        object networkCode = this.networkIdToCode(chainPart);
                         object precision = this.parsePrecision(this.safeString(chain, "wdTickSz"));
                         if (isTrue(isEqual(maxPrecision, null)))
                         {
@@ -2358,11 +2353,11 @@ public partial class okcoin : Exchange
         //
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 
@@ -2370,7 +2365,7 @@ public partial class okcoin : Exchange
     {
         /**
         * @method
-        * @name okx#fetchDepositAddress
+        * @name okcoin#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
         * @param {string} code unified currency code
@@ -2396,7 +2391,7 @@ public partial class okcoin : Exchange
     {
         /**
         * @method
-        * @name okx#fetchDepositAddressesByNetwork
+        * @name okcoin#fetchDepositAddressesByNetwork
         * @description fetch a dictionary of addresses for a currency, indexed by network
         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
         * @param {string} code unified currency code of the currency for the deposit address
@@ -3009,13 +3004,13 @@ public partial class okcoin : Exchange
         /**
         * @method
         * @name okcoin#fetchLedger
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
         * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
         * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -3158,47 +3153,38 @@ public partial class okcoin : Exchange
         //         "ts": "1597026383085"
         //     }
         //
-        object id = this.safeString(item, "billId");
-        object account = null;
-        object referenceId = this.safeString(item, "ordId");
-        object referenceAccount = null;
-        object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "ccy"), currency);
-        object amountString = this.safeString(item, "balChg");
-        object amount = this.parseNumber(amountString);
+        object currencyId = this.safeString(item, "ccy");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "ts");
         object feeCostString = this.safeString(item, "fee");
         object fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringNeg(feeCostString)) },
+                { "cost", this.parseToNumeric(Precise.stringNeg(feeCostString)) },
                 { "currency", code },
             };
         }
-        object before = null;
-        object afterString = this.safeString(item, "bal");
-        object after = this.parseNumber(afterString);
-        object status = "ok";
         object marketId = this.safeString(item, "instId");
         object symbol = this.safeSymbol(marketId, null, "-");
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", this.safeString(item, "billId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "account", account },
-            { "referenceId", referenceId },
-            { "referenceAccount", referenceAccount },
-            { "type", type },
+            { "account", null },
+            { "referenceId", this.safeString(item, "ordId") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
             { "currency", code },
             { "symbol", symbol },
-            { "amount", amount },
-            { "before", before },
-            { "after", after },
-            { "status", status },
+            { "amount", this.safeNumber(item, "balChg") },
+            { "before", null },
+            { "after", this.safeNumber(item, "bal") },
+            { "status", "ok" },
             { "fee", fee },
-        };
+        }, currency);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

@@ -40,6 +40,8 @@ public partial class bitvavo : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -244,6 +246,7 @@ public partial class bitvavo : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "BITVAVO-ACCESS-WINDOW", 10000 },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
@@ -255,11 +258,6 @@ public partial class bitvavo : Exchange
                 { "MIOTA", "IOTA" },
             } },
         });
-    }
-
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        return this.decimalToPrecision(fee, 0, getValue(getValue(this.currencies, code), "precision"), DECIMAL_PLACES);
     }
 
     public override object amountToPrecision(object symbol, object amount)
@@ -443,10 +441,10 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
 
-    public virtual object parseCurrencies(object currencies)
+    public virtual object parseCurrenciesCustom(object currencies)
     {
         //
         //     [
@@ -1087,11 +1085,11 @@ public partial class bitvavo : Exchange
         object tag = this.safeString(response, "paymentId");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 
@@ -1392,6 +1390,7 @@ public partial class bitvavo : Exchange
         * @name bitvavo#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

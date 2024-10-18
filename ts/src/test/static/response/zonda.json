@@ -36,7 +36,7 @@
                         "amount": 0.00136624,
                         "cost": 99.99969206768,
                         "takerOrMaker": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "id": "46f05178-e128-11ee-9d6f-0242ac110007",
                             "t": "1710327360016",
@@ -102,6 +102,8 @@
                     "average": null,
                     "baseVolume": null,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "market": {
                             "code": "BTC-USDT",

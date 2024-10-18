@@ -413,6 +413,7 @@ interface Exchange {
     dapiPublicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetConstituents(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetOpenInterest(params?: {}): Promise<implicitReturnType>;
+    dapiPublicGetFundingInfo(params?: {}): Promise<implicitReturnType>;
     dapiDataGetDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     dapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     dapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
@@ -480,6 +481,7 @@ interface Exchange {
     fapiPublicGetConstituents(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetLvtKlines(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;
     fapiDataGetDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     fapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
@@ -522,6 +524,9 @@ interface Exchange {
     fapiPrivateGetTradeAsyn(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetTradeAsynId(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetFeeBurn(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetSymbolConfig(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetAccountConfig(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetConvertOrderStatus(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin(params?: {}): Promise<implicitReturnType>;
@@ -534,6 +539,8 @@ interface Exchange {
     fapiPrivatePostApiReferralCustomization(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostApiReferralUserCustomization(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostFeeBurn(params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePostConvertGetQuote(params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePostConvertAcceptQuote(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutListenKey(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutBatchOrders(params?: {}): Promise<implicitReturnType>;
@@ -545,6 +552,9 @@ interface Exchange {
     fapiPrivateV2GetAccount(params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetBalance(params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetPositionRisk(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateV3GetAccount(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateV3GetBalance(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateV3GetPositionRisk(params?: {}): Promise<implicitReturnType>;
     eapiPublicGetPing(params?: {}): Promise<implicitReturnType>;
     eapiPublicGetTime(params?: {}): Promise<implicitReturnType>;
     eapiPublicGetExchangeInfo(params?: {}): Promise<implicitReturnType>;
@@ -696,6 +706,8 @@ interface Exchange {
     papiPostRepayFuturesNegativeBalance(params?: {}): Promise<implicitReturnType>;
     papiPostListenKey(params?: {}): Promise<implicitReturnType>;
     papiPostAssetCollection(params?: {}): Promise<implicitReturnType>;
+    papiPostMarginRepayDebt(params?: {}): Promise<implicitReturnType>;
+    papiPostUmFeeBurn(params?: {}): Promise<implicitReturnType>;
     papiPutListenKey(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmConditionalOrder(params?: {}): Promise<implicitReturnType>;

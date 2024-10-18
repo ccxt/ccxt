@@ -42,6 +42,7 @@ class bitso extends Exchange {
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -112,6 +113,12 @@ class bitso extends Exchange {
                     'TUSD' => 0.01,
                 ),
                 'defaultPrecision' => 0.00000001,
+                'networks' => array(
+                    'TRC20' => 'trx',
+                    'ERC20' => 'erc20',
+                    'BEP20' => 'bsc',
+                    'BEP2' => 'bep2',
+                ),
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -185,12 +192,12 @@ class bitso extends Exchange {
         ));
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} $code unified $currency $code, default is null
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-         * @param {int} [$limit] max number of ledger entrys to return, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
@@ -237,7 +244,7 @@ class bitso extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "eid" => "2510b3e2bc1c87f584500a18084f35ed",
@@ -301,6 +308,7 @@ class bitso extends Exchange {
         $amount = $this->safe_string($firstBalance, 'amount');
         $currencyId = $this->safe_string($firstBalance, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $details = $this->safe_value($item, 'details', array());
         $referenceId = $this->safe_string_2($details, 'fid', 'wid');
         if ($referenceId === null) {
@@ -322,6 +330,7 @@ class bitso extends Exchange {
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'created_at'));
         return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string($item, 'eid'),
             'direction' => $direction,
             'account' => null,
@@ -336,7 +345,6 @@ class bitso extends Exchange {
             'after' => null,
             'status' => 'ok',
             'fee' => $fee,
-            'info' => $item,
         ), $currency);
     }
 
@@ -1168,6 +1176,7 @@ class bitso extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
+         * @param {string} $id the order $id
          * @param {string} $symbol not used by bitso fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1291,7 +1300,7 @@ class bitso extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit, $params);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1313,11 +1322,11 @@ class bitso extends Exchange {
         }
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $response,
         );
     }
 
@@ -1607,20 +1616,6 @@ class bitso extends Exchange {
         return $this->parse_transaction($first, $currency);
     }
 
-    public function safe_network($networkId) {
-        if ($networkId === null) {
-            return null;
-        }
-        $networkId = strtoupper($networkId);
-        $networksById = array(
-            'trx' => 'TRC20',
-            'erc20' => 'ERC20',
-            'bsc' => 'BEP20',
-            'bep2' => 'BEP2',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
-    }
-
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // deposit
@@ -1667,12 +1662,14 @@ class bitso extends Exchange {
         $networkId = $this->safe_string_2($transaction, 'network', 'method');
         $status = $this->safe_string($transaction, 'status');
         $withdrawId = $this->safe_string($transaction, 'wid');
+        $networkCode = $this->network_id_to_code($networkId);
+        $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
         return array(
             'id' => $this->safe_string_2($transaction, 'wid', 'fid'),
             'txid' => $this->safe_string($details, 'tx_hash'),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'network' => $this->safe_network($networkId),
+            'network' => $networkCodeUpper,
             'addressFrom' => $receivingAddress,
             'address' => ($withdrawalAddress !== null) ? $withdrawalAddress : $receivingAddress,
             'addressTo' => $withdrawalAddress,

@@ -615,7 +615,7 @@
                         "order": null,
                         "takerOrMaker": null,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "symbol": "SPOT_BTC_USDT",
                             "side": "SELL",
@@ -1323,6 +1323,64 @@
                     "timestamp": "1721139110860"
                 }
             }
+        ],
+        "fetchFundingHistory":[
+          {
+            "description": "fetchFundingHistory",
+            "method": "fetchFundingHistory",
+            "input": [
+              "LTC/USDT:USDT",
+              null,
+              1
+            ],
+            "httpResponse": {
+              "rows": [
+                {
+                  "id": "9924010",
+                  "symbol": "PERP_LTC_USDT",
+                  "funding_rate": "0.00076792",
+                  "mark_price": "82.31000000",
+                  "funding_fee": "0.00632075",
+                  "funding_rate_interval_hours": "8",
+                  "payment_type": "Pay",
+                  "status": "COMPLETED",
+                  "created_time": "1709193777.044",
+                  "updated_time": "1709193777.072",
+                  "page": 1
+                }
+              ],
+              "meta": {
+                "total": "119",
+                "records_per_page": "1",
+                "current_page": "1"
+              },
+              "success": true
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "id": "9924010",
+                  "symbol": "PERP_LTC_USDT",
+                  "funding_rate": "0.00076792",
+                  "mark_price": "82.31000000",
+                  "funding_fee": "0.00632075",
+                  "funding_rate_interval_hours": "8",
+                  "payment_type": "Pay",
+                  "status": "COMPLETED",
+                  "created_time": "1709193777.044",
+                  "updated_time": "1709193777.072",
+                  "page": 1
+                },
+                "symbol": "LTC/USDT:USDT",
+                "code": "USD",
+                "timestamp": 1709193777072,
+                "datetime": "2024-02-29T08:02:57.072Z",
+                "id": "9924010",
+                "amount": -0.00632075,
+                "rate": 0.00076792
+              }
+            ]
+          }
         ]
     }
 }

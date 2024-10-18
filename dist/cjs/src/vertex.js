@@ -665,6 +665,13 @@ class vertex extends vertex$1 {
         let amount = undefined;
         let side = undefined;
         let fee = undefined;
+        const feeCost = this.convertFromX18(this.safeString(trade, 'fee'));
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
         const id = this.safeString2(trade, 'trade_id', 'submission_idx');
         const order = this.safeString(trade, 'digest');
         const timestamp = this.safeTimestamp(trade, 'timestamp');
@@ -682,10 +689,6 @@ class vertex extends vertex$1 {
             const subOrder = this.safeDict(trade, 'order', {});
             price = this.convertFromX18(this.safeString(subOrder, 'priceX18'));
             amount = this.convertFromX18(this.safeString(trade, 'base_filled'));
-            fee = {
-                'cost': this.convertFromX18(this.safeString(trade, 'fee')),
-                'currency': undefined,
-            };
             if (Precise["default"].stringLt(amount, '0')) {
                 side = 'sell';
             }
@@ -1239,6 +1242,7 @@ class vertex extends vertex$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRate(symbol, params = {}) {
@@ -1276,7 +1280,7 @@ class vertex extends vertex$1 {
          * @see https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
          * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1965,6 +1969,7 @@ class vertex extends vertex$1 {
          * @name vertex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2941,6 +2946,17 @@ class vertex extends vertex$1 {
         else {
             if (Object.keys(params).length) {
                 url += '?' + this.urlencode(params);
+            }
+        }
+        if (path !== 'execute') {
+            // required encoding for public methods
+            if (headers !== undefined) {
+                headers['Accept-Encoding'] = 'gzip';
+            }
+            else {
+                headers = {
+                    'Accept-Encoding': 'gzip',
+                };
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

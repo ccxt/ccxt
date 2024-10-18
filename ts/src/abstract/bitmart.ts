@@ -69,6 +69,8 @@ interface Exchange {
     privateGetContractPrivateCurrentPlanOrder (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateTrades (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivatePositionRisk (params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateAffilateRebateList (params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateAffilateTradeList (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountSubV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1MainToSub (params?: {}): Promise<implicitReturnType>;
@@ -89,6 +91,7 @@ interface Exchange {
     privatePostSpotV4QueryTrades (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV4QueryOrderTrades (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV4CancelOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostSpotV4CancelAll (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV4BatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3CancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV2BatchOrders (params?: {}): Promise<implicitReturnType>;
@@ -105,6 +108,10 @@ interface Exchange {
     privatePostContractPrivateSubmitPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateCancelPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateSubmitTpSlOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyPlanOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyPresetPlanOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateModifyTpSlOrder (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

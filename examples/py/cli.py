@@ -44,6 +44,7 @@ class Argv(object):
     future = False
     signIn = False
     args = []
+    no_keys = False
 
 
 argv = Argv()
@@ -62,6 +63,7 @@ parser.add_argument('--swap', action='store_true', help='enable swap markets')
 parser.add_argument('--future', action='store_true', help='enable future markets')
 parser.add_argument('--option', action='store_true', help='enable option markets')
 parser.add_argument('--signIn', action='store_true', help='sign in')
+parser.add_argument('--no-keys', action='store_true', help='don t load keys')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -153,17 +155,18 @@ async def main():
     elif argv.option:
         exchange.options['defaultType'] = 'option'
 
-    # check auth keys in env var
-    requiredCredentials = exchange.requiredCredentials
-    for credential, isRequired in requiredCredentials.items():
-        if isRequired and credential and not getattr(exchange, credential, None):
-            credentialEnvName = (argv.exchange_id + '_' + credential).upper()  # example: KRAKEN_APIKEY
-            if credentialEnvName in os.environ:
-                credentialValue = os.environ[credentialEnvName]
-                if credentialValue.startswith('-----BEGIN'):
-                    credentialValue = credentialValue.replace('\\n', '\n')
+    if not argv.no_keys:
+        # check auth keys in env var
+        requiredCredentials = exchange.requiredCredentials
+        for credential, isRequired in requiredCredentials.items():
+            if isRequired and credential and not getattr(exchange, credential, None):
+                credentialEnvName = (argv.exchange_id + '_' + credential).upper()  # example: KRAKEN_APIKEY
+                if credentialEnvName in os.environ:
+                    credentialValue = os.environ[credentialEnvName]
+                    if credentialValue.startswith('-----BEGIN'):
+                        credentialValue = credentialValue.replace('\\n', '\n')
 
-                setattr(exchange, credential, credentialValue)
+                    setattr(exchange, credential, credentialValue)
 
     if argv.cors:
         exchange.proxy = 'https://cors-anywhere.herokuapp.com/'

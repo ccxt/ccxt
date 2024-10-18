@@ -762,6 +762,8 @@
                     "average": 67180,
                     "baseVolume": 0.020599999999999993,
                     "quoteVolume": 3704.6538499999997,
+                    "markPrice":  67186.5,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "XBT_USDT",
                         "rootSymbol": "XBT",
@@ -876,7 +878,7 @@
                         "price": 73208,
                         "cost": 3345.6056,
                         "amount": 0.0457,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]

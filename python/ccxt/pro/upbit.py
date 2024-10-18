@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -18,7 +18,9 @@ class upbit(ccxt.async_support.upbit):
                 'ws': True,
                 'watchOrderBook': True,
                 'watchTicker': True,
+                'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
                 'watchBalance': True,
@@ -59,6 +61,31 @@ class upbit(ccxt.async_support.upbit):
         messageHash = channel + ':' + marketId
         return await self.watch(url, messageHash, request, messageHash)
 
+    async def watch_public_multiple(self, symbols: Strings, channel, params={}):
+        await self.load_markets()
+        if symbols is None:
+            symbols = self.symbols
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        url = self.implode_params(self.urls['api']['ws'], {
+            'hostname': self.hostname,
+        })
+        messageHashes = []
+        for i in range(0, len(marketIds)):
+            messageHashes.append(channel + ':' + marketIds[i])
+        request = [
+            {
+                'ticket': self.uuid(),
+            },
+            {
+                'type': channel,
+                'codes': marketIds,
+                # 'isOnlySnapshot': False,
+                # 'isOnlyRealtime': False,
+            },
+        ]
+        return await self.watch_multiple(url, messageHashes, request, messageHashes)
+
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -68,6 +95,21 @@ class upbit(ccxt.async_support.upbit):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_public(symbol, 'ticker')
+
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://global-docs.upbit.com/reference/websocket-ticker
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        newTickers = await self.watch_public_multiple(symbols, 'ticker')
+        if self.newUpdates:
+            tickers: dict = {}
+            tickers[newTickers['symbol']] = newTickers
+            return tickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -79,11 +121,51 @@ class upbit(ccxt.async_support.upbit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a list of symbols
+        :see: https://global-docs.upbit.com/reference/websocket-trade
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
         await self.load_markets()
-        symbol = self.symbol(symbol)
-        trades = await self.watch_public(symbol, 'trade')
+        symbols = self.market_symbols(symbols, None, False, True, True)
+        channel = 'trade'
+        messageHashes = []
+        url = self.implode_params(self.urls['api']['ws'], {
+            'hostname': self.hostname,
+        })
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                market = self.market(symbols[i])
+                marketId = market['id']
+                symbol = market['symbol']
+                self.options[channel] = self.safe_value(self.options, channel, {})
+                self.options[channel][symbol] = True
+                messageHashes.append(channel + ':' + marketId)
+        optionSymbols = list(self.options[channel].keys())
+        marketIds = self.market_ids(optionSymbols)
+        request = [
+            {
+                'ticket': self.uuid(),
+            },
+            {
+                'type': channel,
+                'codes': marketIds,
+                # 'isOnlySnapshot': False,
+                # 'isOnlyRealtime': False,
+            },
+        ]
+        trades = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:

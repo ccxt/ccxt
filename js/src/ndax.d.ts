@@ -1,5 +1,5 @@
 import Exchange from './abstract/ndax.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 /**
  * @class ndax
  * @augments Exchange
@@ -22,24 +22,8 @@ export default class ndax extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: Dict, currency?: Currency): {
-        info: Dict;
-        id: string;
-        direction: any;
-        account: string;
-        referenceId: string;
-        referenceAccount: string;
-        type: string;
-        currency: string;
-        amount: number;
-        before: number;
-        after: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        fee: any;
-    };
-    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -51,27 +35,9 @@ export default class ndax extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    };
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatusByType(status: any, type?: any): string;

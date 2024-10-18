@@ -52,6 +52,8 @@ class wavesexchange extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => null,
+                'fetchDepositAddressesByNetwork' => null,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
@@ -1076,7 +1078,7 @@ class wavesexchange extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1161,12 +1163,11 @@ class wavesexchange extends Exchange {
                     $responseInner = Async\await($this->nodeGetAddressesPublicKeyPublicKey ($this->extend($request, $request)));
                     $addressInner = $this->safe_string($response, 'address');
                     return array(
-                        'address' => $addressInner,
-                        'code' => $code, // kept here for backward-compatibility, but will be removed soon
+                        'info' => $responseInner,
                         'currency' => $code,
                         'network' => $network,
+                        'address' => $addressInner,
                         'tag' => null,
-                        'info' => $responseInner,
                     );
                 } else {
                     $request = array(
@@ -1206,12 +1207,11 @@ class wavesexchange extends Exchange {
             $addresses = $this->safe_value($response, 'deposit_addresses');
             $address = $this->safe_string($addresses, 0);
             return array(
-                'address' => $address,
-                'code' => $code, // kept here for backward-compatibility, but will be removed soon
-                'currency' => $code,
-                'tag' => null,
-                'network' => $unifiedNetwork,
                 'info' => $response,
+                'currency' => $code,
+                'network' => $unifiedNetwork,
+                'address' => $address,
+                'tag' => null,
             );
         }) ();
     }
@@ -1327,7 +1327,8 @@ class wavesexchange extends Exchange {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders to determine the max $price for buy and the min $price for sell');
             }
             $timestamp = $this->milliseconds();
-            $defaultExpiryDelta = $this->safe_integer($this->options, 'createOrderDefaultExpiry', 2419200000);
+            $defaultExpiryDelta = null;
+            list($defaultExpiryDelta, $params) = $this->handle_option_and_params($params, 'createOrder', 'defaultExpiry', $this->safe_integer($this->options, 'createOrderDefaultExpiry', 2419200000));
             $expiration = $this->sum($timestamp, $defaultExpiryDelta);
             $matcherFees = Async\await($this->get_fees_for_asset($symbol, $side, $amount, $price));
             // {
@@ -1473,11 +1474,11 @@ class wavesexchange extends Exchange {
             //     }
             //
             if ($isMarketOrder) {
-                $response = Async\await($this->matcherPostMatcherOrderbookMarket ($body));
+                $response = Async\await($this->matcherPostMatcherOrderbookMarket ($this->extend($body, $params)));
                 $value = $this->safe_dict($response, 'message');
                 return $this->parse_order($value, $market);
             } else {
-                $response = Async\await($this->matcherPostMatcherOrderbook ($body));
+                $response = Async\await($this->matcherPostMatcherOrderbook ($this->extend($body, $params)));
                 $value = $this->safe_dict($response, 'message');
                 return $this->parse_order($value, $market);
             }

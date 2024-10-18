@@ -78,6 +78,7 @@ interface Exchange {
     publicGetCopytradingPublicPreferenceCurrency(params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicCurrentSubpositions(params?: {}): Promise<implicitReturnType>;
     publicGetCopytradingPublicSubpositionsHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetSupportAnnouncementsTypes(params?: {}): Promise<implicitReturnType>;
     privateGetRfqCounterparties(params?: {}): Promise<implicitReturnType>;
     privateGetRfqMakerInstrumentSettings(params?: {}): Promise<implicitReturnType>;
     privateGetRfqMmpConfig(params?: {}): Promise<implicitReturnType>;
@@ -126,6 +127,7 @@ interface Exchange {
     privateGetAccountAccountPositionRisk(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBills(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBillsArchive(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountBillsHistoryArchive(params?: {}): Promise<implicitReturnType>;
     privateGetAccountConfig(params?: {}): Promise<implicitReturnType>;
     privateGetAccountMaxSize(params?: {}): Promise<implicitReturnType>;
     privateGetAccountMaxAvailSize(params?: {}): Promise<implicitReturnType>;
@@ -206,6 +208,7 @@ interface Exchange {
     privateGetBrokerFdIfRebate(params?: {}): Promise<implicitReturnType>;
     privateGetAffiliateInviteeDetail(params?: {}): Promise<implicitReturnType>;
     privateGetUsersPartnerIfRebate(params?: {}): Promise<implicitReturnType>;
+    privateGetSupportAnnouncements(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCreateRfq(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelRfq(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelBatchRfqs(params?: {}): Promise<implicitReturnType>;
@@ -266,6 +269,7 @@ interface Exchange {
     privatePostAccountFixedLoanAmendBorrowingOrder(params?: {}): Promise<implicitReturnType>;
     privatePostAccountFixedLoanManualReborrow(params?: {}): Promise<implicitReturnType>;
     privatePostAccountFixedLoanRepayBorrowingOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountBillsHistoryArchive(params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey(params?: {}): Promise<implicitReturnType>;
     privatePostAssetSubaccountTransfer(params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountSetTransferOut(params?: {}): Promise<implicitReturnType>;

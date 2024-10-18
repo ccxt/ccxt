@@ -28,6 +28,7 @@ class vertex(ccxt.async_support.vertex):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPositions': True,
             },
             'urls': {
@@ -51,6 +52,9 @@ class vertex(ccxt.async_support.vertex):
                 'watchPositions': {
                     'fetchPositionsSnapshot': True,  # or False
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
+                },
+                'ws': {
+                    'inflate': True,
                 },
             },
             'streaming': {
@@ -80,6 +84,14 @@ class vertex(ccxt.async_support.vertex):
             'id': requestId,
         }
         request = self.extend(subscribe, message)
+        wsOptions = {
+            'headers': {
+                'Sec-WebSocket-Extensions': 'permessage-deflate',
+            },
+        }
+        self.options['ws'] = {
+            'options': wsOptions,
+        }
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
@@ -545,7 +557,7 @@ class vertex(ccxt.async_support.vertex):
         client = self.client(url)
         self.set_positions_cache(client, symbols, params)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)

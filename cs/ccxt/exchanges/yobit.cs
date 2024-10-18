@@ -33,27 +33,48 @@ public partial class yobit : Exchange
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", true },
@@ -65,6 +86,7 @@ public partial class yobit : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
@@ -73,9 +95,14 @@ public partial class yobit : Exchange
                 { "fetchTransactions", false },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "transfer", false },
@@ -230,6 +257,7 @@ public partial class yobit : Exchange
                 { "XIN", "XINCoin" },
                 { "XMT", "SummitCoin" },
                 { "XRA", "Ratecoin" },
+                { "BCHN", "BSV" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "maxUrlLength", 2048 },
@@ -566,42 +594,9 @@ public partial class yobit : Exchange
         }, market);
     }
 
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async virtual Task<object> fetchTickersHelper(object idsString, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchTickers
-        * @see https://yobit.net/en/api
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbols, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires \"symbols\" argument")) ;
-        }
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        object ids = null;
-        if (isTrue(isEqual(symbols, null)))
-        {
-            ids = this.ids;
-        } else
-        {
-            ids = this.marketIds(symbols);
-        }
-        object idsLength = getArrayLength(ids);
-        object idsString = String.Join("-", ((IList<object>)ids).ToArray());
-        object maxLength = this.safeInteger(this.options, "maxUrlLength", 2048);
-        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-        object lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
-        object actualLength = add(getArrayLength(idsString), lenghtOfBaseUrl);
-        if (isTrue(isGreaterThan(actualLength, maxLength)))
-        {
-            throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " fetchTickers() is being requested for "), ((object)idsLength).ToString()), " markets (which has an URL length of "), ((object)actualLength).ToString()), " characters), but it exceedes max URL length ("), ((object)maxLength).ToString()), "), please pass limisted symbols array to fetchTickers to fit in one request")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "pair", idsString },
         };
@@ -616,7 +611,75 @@ public partial class yobit : Exchange
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return result;
+    }
+
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name yobit#fetchTickers
+        * @see https://yobit.net/en/api
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object allSymbols = null;
+        var allSymbolsparametersVariable = this.handleParamBool(parameters, "all", false);
+        allSymbols = ((IList<object>)allSymbolsparametersVariable)[0];
+        parameters = ((IList<object>)allSymbolsparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(symbols, null)) && !isTrue(allSymbols)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires \"symbols\" argument or use `params[\"all\"] = true` to send multiple requests for all markets")) ;
+        }
+        await this.loadMarkets();
+        object promises = new List<object>() {};
+        object maxLength = this.safeInteger(this.options, "maxUrlLength", 2048);
+        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        object lenghtOfBaseUrl = 40; // safe space for the url including api-base and endpoint dir is 30 chars
+        if (isTrue(allSymbols))
+        {
+            symbols = this.symbols;
+            object ids = "";
+            for (object i = 0; isLessThan(i, getArrayLength(this.ids)); postFixIncrement(ref i))
+            {
+                object id = getValue(this.ids, i);
+                object prefix = ((bool) isTrue((isEqual(ids, "")))) ? "" : "-";
+                ids = add(ids, add(prefix, id));
+                if (isTrue(isGreaterThan(((string)ids).Length, maxLength)))
+                {
+                    ((IList<object>)promises).Add(this.fetchTickersHelper(ids, parameters));
+                    ids = "";
+                }
+            }
+            if (isTrue(!isEqual(ids, "")))
+            {
+                ((IList<object>)promises).Add(this.fetchTickersHelper(ids, parameters));
+            }
+        } else
+        {
+            symbols = this.marketSymbols(symbols);
+            object ids = this.marketIds(symbols);
+            object idsLength = getArrayLength(ids);
+            object idsString = String.Join("-", ((IList<object>)ids).ToArray());
+            object actualLength = add(((string)idsString).Length, lenghtOfBaseUrl);
+            if (isTrue(isGreaterThan(actualLength, maxLength)))
+            {
+                throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " fetchTickers() is being requested for "), ((object)idsLength).ToString()), " markets (which has an URL length of "), ((object)actualLength).ToString()), " characters), but it exceedes max URL length ("), ((object)maxLength).ToString()), "), please pass limisted symbols array to fetchTickers to fit in one request")) ;
+            }
+            ((IList<object>)promises).Add(this.fetchTickersHelper(idsString, parameters));
+        }
+        object resultAll = await promiseAll(promises);
+        object finalResult = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(resultAll)); postFixIncrement(ref i))
+        {
+            object result = this.filterByArrayTickers(getValue(resultAll, i), "symbol", symbols);
+            finalResult = this.extend(finalResult, result);
+        }
+        return finalResult;
     }
 
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
@@ -1225,8 +1288,8 @@ public partial class yobit : Exchange
         /**
         * @method
         * @name yobit#fetchDepositAddress
-        * @see https://yobit.net/en/api
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://yobit.net/en/api
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -1254,29 +1317,11 @@ public partial class yobit : Exchange
         object address = this.safeString(getValue(response, "return"), "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
-            { "id", null },
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
-            { "info", response },
-            { "txid", null },
-            { "type", null },
-            { "amount", null },
-            { "status", null },
-            { "timestamp", null },
-            { "datetime", null },
-            { "addressFrom", null },
-            { "addressTo", null },
-            { "tagFrom", null },
-            { "tagTo", null },
-            { "updated", null },
-            { "comment", null },
-            { "fee", new Dictionary<string, object>() {
-                { "currency", null },
-                { "cost", null },
-                { "rate", null },
-            } },
         };
     }
 

@@ -18,6 +18,7 @@ class coinone extends \ccxt\async\coinone {
                 'watchOrderBook' => true,
                 'watchOrders' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOHLCV' => false,
                 'watchTicker' => true,
                 'watchTickers' => false,

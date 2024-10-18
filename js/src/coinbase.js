@@ -270,8 +270,8 @@ export default class coinbase extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'taker': this.parseNumber('0.006'),
-                    'maker': this.parseNumber('0.004'),
+                    'taker': this.parseNumber('0.012'),
+                    'maker': this.parseNumber('0.006'),
                     'tierBased': true,
                     'percentage': true,
                     'tiers': {
@@ -770,30 +770,28 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+         * @description Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+         * @description Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params);
     }
     parseTransactionStatus(status) {
@@ -1376,6 +1374,10 @@ export default class coinbase extends Exchange {
         const marketType = this.safeStringLower(market, 'product_type');
         const tradingDisabled = this.safeBool(market, 'trading_disabled');
         const stablePairs = this.safeList(this.options, 'stablePairs', []);
+        const defaultTakerFee = this.safeNumber(this.fees['trading'], 'taker');
+        const defaultMakerFee = this.safeNumber(this.fees['trading'], 'maker');
+        const takerFee = this.inArray(id, stablePairs) ? 0.00001 : this.safeNumber(feeTier, 'taker_fee_rate', defaultTakerFee);
+        const makerFee = this.inArray(id, stablePairs) ? 0.0 : this.safeNumber(feeTier, 'maker_fee_rate', defaultMakerFee);
         return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -1395,8 +1397,8 @@ export default class coinbase extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': this.inArray(id, stablePairs) ? 0.00001 : this.safeNumber(feeTier, 'taker_fee_rate'),
-            'maker': this.inArray(id, stablePairs) ? 0.0 : this.safeNumber(feeTier, 'maker_fee_rate'),
+            'taker': takerFee,
+            'maker': makerFee,
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -2256,13 +2258,13 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-         * @param {string} code unified currency code, default is undefined
+         * @description Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -2291,8 +2293,28 @@ export default class coinbase extends Exchange {
         const pagination = this.safeDict(response, 'pagination', {});
         const cursor = this.safeString(pagination, 'next_starting_after');
         if ((cursor !== undefined) && (cursor !== '')) {
+            const lastFee = this.safeDict(last, 'fee');
             last['next_starting_after'] = cursor;
-            ledger[lastIndex] = last;
+            ledger[lastIndex] = {
+                'info': this.safeDict(last, 'info'),
+                'id': this.safeString(last, 'id'),
+                'timestamp': this.safeInteger(last, 'timestamp'),
+                'datetime': this.safeString(last, 'datetime'),
+                'direction': this.safeString(last, 'direction'),
+                'account': this.safeString(last, 'account'),
+                'referenceId': undefined,
+                'referenceAccount': undefined,
+                'type': this.safeString(last, 'type'),
+                'currency': this.safeString(last, 'currency'),
+                'amount': this.safeNumber(last, 'amount'),
+                'before': undefined,
+                'after': undefined,
+                'status': this.safeString(last, 'status'),
+                'fee': {
+                    'cost': this.safeNumber(lastFee, 'cost'),
+                    'currency': this.safeString(lastFee, 'currency'),
+                },
+            };
         }
         return ledger;
     }
@@ -2572,6 +2594,7 @@ export default class coinbase extends Exchange {
         }
         const currencyId = this.safeString(amountInfo, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         //
         // the address and txid do not belong to the unified ledger structure
         //
@@ -2607,7 +2630,7 @@ export default class coinbase extends Exchange {
                 accountId = parts[3];
             }
         }
-        return {
+        return this.safeLedgerEntry({
             'info': item,
             'id': id,
             'timestamp': timestamp,
@@ -2623,7 +2646,7 @@ export default class coinbase extends Exchange {
             'after': undefined,
             'status': status,
             'fee': fee,
-        };
+        }, currency);
     }
     async findAccountId(code, params = {}) {
         await this.loadMarkets();
@@ -4051,9 +4074,9 @@ export default class coinbase extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(marketId, currency),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(addressInfo, 'destination_tag'),
-            'network': this.networkIdToCode(networkId, code),
         };
     }
     async deposit(code, amount, id, params = {}) {

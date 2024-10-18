@@ -290,6 +290,7 @@ public partial class huobijp : Exchange
                 { "fetchMarketsMethod", "publicGetCommonSymbols" },
                 { "fetchBalanceMethod", "privateGetAccountAccountsIdBalance" },
                 { "createOrderMethod", "privatePostOrderOrdersPlace" },
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "language", "en-US" },
                 { "broker", new Dictionary<string, object>() {
                     { "id", "AA03022abc" },
@@ -1755,23 +1756,6 @@ public partial class huobijp : Exchange
         return new List<object> {this.safeOrder(new Dictionary<string, object>() {
     { "info", data },
 })};
-    }
-
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        return this.decimalToPrecision(fee, 0, getValue(getValue(this.currencies, code), "precision"), this.precisionMode);
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object lastCharacterIndex = subtract(getArrayLength(networkId), 1);
-        object lastCharacter = getValue(networkId, lastCharacterIndex);
-        if (isTrue(isEqual(lastCharacter, "1")))
-        {
-            networkId = slice(networkId, 0, lastCharacterIndex);
-        }
-        object networksById = new Dictionary<string, object>() {};
-        return this.safeString(networksById, networkId, networkId);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

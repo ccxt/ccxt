@@ -524,16 +524,8 @@
                         "amount": 100,
                         "cost": 61.824,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -555,16 +547,8 @@
                         "amount": 100,
                         "cost": 61.84,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -586,16 +570,8 @@
                         "amount": 48,
                         "cost": 29.688,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -617,16 +593,8 @@
                         "amount": 1,
                         "cost": 0.61853,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -648,16 +616,8 @@
                         "amount": 1,
                         "cost": 0.61856,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -679,16 +639,8 @@
                         "amount": 1,
                         "cost": 0.61853,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -710,16 +662,8 @@
                         "amount": 1,
                         "cost": 0.61854,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -741,16 +685,8 @@
                         "amount": 57,
                         "cost": 35.2602,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -772,16 +708,8 @@
                         "amount": 100,
                         "cost": 61.86,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -803,16 +731,8 @@
                         "amount": 1,
                         "cost": 0.61859,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -834,16 +754,8 @@
                         "amount": 99,
                         "cost": 61.24041,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -865,16 +777,8 @@
                         "amount": 100,
                         "cost": 61.852,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -896,16 +800,8 @@
                         "amount": 14,
                         "cost": 8.65368,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -927,16 +823,8 @@
                         "amount": 1,
                         "cost": 0.61812,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -958,16 +846,8 @@
                         "amount": 1167,
                         "cost": 720.9726,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -989,16 +869,8 @@
                         "amount": 484,
                         "cost": 299.0152,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1020,16 +892,8 @@
                         "amount": 1,
                         "cost": 0.61755,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1051,16 +915,8 @@
                         "amount": 1,
                         "cost": 0.61764,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1082,16 +938,8 @@
                         "amount": 183,
                         "cost": 113.03361,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1113,16 +961,8 @@
                         "amount": 100,
                         "cost": 61.782,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1144,16 +984,8 @@
                         "amount": 1,
                         "cost": 0.61777,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1175,16 +1007,8 @@
                         "amount": 3,
                         "cost": 1.85334,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1206,16 +1030,8 @@
                         "amount": 100,
                         "cost": 61.778,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1237,16 +1053,8 @@
                         "amount": 95,
                         "cost": 58.6891,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     },
                     {
                         "info": {
@@ -1268,16 +1076,8 @@
                         "amount": 100,
                         "cost": 61.778,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
-                        "fees": [
-                            {
-                                "currency": null,
-                                "cost": null
-                            }
-                        ]
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
                     }
                 ]
             }
@@ -1316,9 +1116,9 @@
                         "network": "BTC"
                     },
                     "currency": "BTC",
+                    "network": "BTC",
                     "address": "3KuHWhoLpKp333s1Fbo2BGS5GDKRupKykC",
-                    "tag": null,
-                    "network": "BTC"
+                    "tag": null
                 }
             }
         ],
@@ -1996,6 +1796,8 @@
                     "average": null,
                     "baseVolume": 6921.5068,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "i": "BTC_USDT",
                         "h": "73632.60",

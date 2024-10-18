@@ -18,7 +18,9 @@ class whitebit extends whitebit$1 {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
+                'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {
@@ -61,6 +63,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.whitebit.com/public/websocket/#kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -135,6 +138,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.whitebit.com/public/websocket/#market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -240,6 +244,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.whitebit.com/public/websocket/#market-statistics
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -251,6 +256,36 @@ class whitebit extends whitebit$1 {
         const messageHash = 'ticker:' + symbol;
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
         return await this.watchMultipleSubscription(messageHash, method, symbol, false, params);
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://docs.whitebit.com/public/websocket/#market-statistics
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const method = 'market_subscribe';
+        const url = this.urls['api']['ws'];
+        const id = this.nonce();
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            messageHashes.push('ticker:' + market['symbol']);
+            args.push(market['id']);
+        }
+        const request = {
+            'id': id,
+            'method': method,
+            'params': args,
+        };
+        await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //
@@ -306,6 +341,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.whitebit.com/public/websocket/#market-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -372,6 +408,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#watchMyTrades
          * @description watches trades made by the user
+         * @see https://docs.whitebit.com/private/websocket/#deals
          * @param {str} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -471,6 +508,7 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#watchOrders
          * @description watches information on multiple orders made by the user
+         * @see https://docs.whitebit.com/private/websocket/#orders-pending
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -646,6 +684,8 @@ class whitebit extends whitebit$1 {
          * @method
          * @name whitebit#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.whitebit.com/private/websocket/#balance-spot
+         * @see https://docs.whitebit.com/private/websocket/#balance-margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}

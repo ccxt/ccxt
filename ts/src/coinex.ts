@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, TransferEntries, LeverageTiers, LeverageTier, int } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -67,12 +67,14 @@ export default class coinex extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDepositAddressByNetwork': false,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -924,6 +926,8 @@ export default class coinex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
+            'markPrice': this.safeString (ticker, 'mark_price'),
+            'indexPrice': this.safeString (ticker, 'index_price'),
             'info': ticker,
         }, market);
     }
@@ -1219,7 +1223,10 @@ export default class coinex extends Exchange {
         //         "side": "buy",
         //         "order_id": 136915589622,
         //         "price": "64376",
-        //         "amount": "0.0001"
+        //         "amount": "0.0001",
+        //         "role": "taker",
+        //         "fee": "0.0299",
+        //         "fee_ccy": "USDT"
         //     }
         //
         const timestamp = this.safeInteger (trade, 'created_at');
@@ -1229,6 +1236,16 @@ export default class coinex extends Exchange {
         }
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
+        const feeCostString = this.safeString (trade, 'fee');
+        let fee = undefined;
+        if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_ccy');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
+            };
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -1238,11 +1255,11 @@ export default class coinex extends Exchange {
             'order': this.safeString (trade, 'order_id'),
             'type': undefined,
             'side': this.safeString (trade, 'side'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': this.safeString (trade, 'role'),
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'amount'),
             'cost': this.safeString (trade, 'deal_money'),
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
@@ -3694,7 +3711,7 @@ export default class coinex extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name coinex#fetchDepositAddress
@@ -3740,30 +3757,12 @@ export default class coinex extends Exchange {
         const options = this.safeDict (this.options, 'fetchDepositAddress', {});
         const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
-            depositAddress['network'] = this.safeNetworkCode (network, currency);
+            depositAddress['network'] = this.networkIdToCode (network, currency).toUpperCase ();
         }
-        return depositAddress;
+        return depositAddress as DepositAddress;
     }
 
-    safeNetwork (networkId, currency: Currency = undefined) {
-        const networks = this.safeValue (currency, 'networks', {});
-        const networksCodes = Object.keys (networks);
-        const networksCodesLength = networksCodes.length;
-        if (networkId === undefined && networksCodesLength === 1) {
-            return networks[networksCodes[0]];
-        }
-        return {
-            'id': networkId,
-            'network': (networkId === undefined) ? undefined : networkId.toUpperCase (),
-        };
-    }
-
-    safeNetworkCode (networkId, currency: Currency = undefined) {
-        const network = this.safeNetwork (networkId, currency);
-        return network['network'];
-    }
-
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
@@ -3784,10 +3783,10 @@ export default class coinex extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode (undefined, currency),
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-        };
+        } as DepositAddress;
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4501,7 +4500,7 @@ export default class coinex extends Exchange {
         return result as FundingHistory[];
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name coinex#fetchFundingRate
@@ -4543,9 +4542,22 @@ export default class coinex extends Exchange {
         return this.parseFundingRate (first, market);
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name coinex#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate (symbol, params);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
-        // fetchFundingRate, fetchFundingRates
+        // fetchFundingRate, fetchFundingRates, fetchFundingInterval
         //
         //     {
         //         "latest_funding_rate": "0",
@@ -4560,6 +4572,9 @@ export default class coinex extends Exchange {
         //
         const currentFundingTimestamp = this.safeInteger (contract, 'latest_funding_time');
         const futureFundingTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const fundingTimeString = this.safeString (contract, 'latest_funding_time');
+        const nextFundingTimeString = this.safeString (contract, 'next_funding_time');
+        const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
         const marketId = this.safeString (contract, 'market');
         return {
             'info': contract,
@@ -4579,14 +4594,26 @@ export default class coinex extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': this.parseFundingInterval (millisecondsInterval),
+        } as FundingRate;
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    parseFundingInterval (interval) {
+        const intervals: Dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString (intervals, interval, interval);
+    }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name coinex#fetchFundingRates
-         * @description fetch the current funding rates
+         * @description fetch the current funding rates for multiple markets
          * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4965,7 +4992,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name coinex#fetchTransfers
@@ -5602,7 +5629,7 @@ export default class coinex extends Exchange {
         } as Leverage;
     }
 
-    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position> {
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name coinex#fetchPositionHistory

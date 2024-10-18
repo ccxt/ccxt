@@ -22,6 +22,7 @@ class onetrading extends \ccxt\async\onetrading {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => false,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
                 'watchOrderBook' => true,

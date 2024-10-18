@@ -65,14 +65,14 @@ class oxfun extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -871,6 +871,7 @@ class oxfun extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'currencyVolume24h'),
             'quoteVolume' => null, // the exchange returns cost in OX
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -1012,11 +1013,11 @@ class oxfun extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * fetch the current funding rates for multiple markets
              * @see https://docs.ox.fun/?json#get-v3-funding-estimates
-             * fetch the current funding rates
              * @param {string[]} $symbols unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
@@ -1048,14 +1049,13 @@ class oxfun extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($fundingRate, ?array $market = null) {
+    public function parse_funding_rate($fundingRate, ?array $market = null): array {
         //
-        //     array(
+        //     {
         //         "marketCode" => "OX-USD-SWAP-LIN",
         //         "fundingAt" => "1715515200000",
         //         "estFundingRate" => "0.000200000"
-        //     ),
-        //
+        //     }
         //
         $symbol = $this->safe_string($fundingRate, 'marketCode');
         $market = $this->market($symbol);
@@ -1078,6 +1078,7 @@ class oxfun extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
@@ -1794,7 +1795,7 @@ class oxfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1825,18 +1826,18 @@ class oxfun extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     array("address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8")
         //
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $currency['code'],
+            'network' => null,
             'address' => $address,
             'tag' => null,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
@@ -2083,7 +2084,7 @@ class oxfun extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
-             * @see https://docs.bitflex.com/spot#withdraw
+             * @see https://docs.ox.fun/?json#post-v3-withdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to

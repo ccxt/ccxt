@@ -1886,7 +1886,6 @@ class bitteam(Exchange, ImplicitAPI):
         fee = {
             'currency': self.safe_currency_code(feeCurrencyId),
             'cost': feeCost,
-            'rate': None,
         }
         intTs = self.parse_to_int(timestamp)
         return self.safe_trade({

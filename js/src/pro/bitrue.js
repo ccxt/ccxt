@@ -414,15 +414,7 @@ export default class bitrue extends bitrueRest {
     async authenticate(params = {}) {
         const listenKey = this.safeValue(this.options, 'listenKey');
         if (listenKey === undefined) {
-            let response = undefined;
-            try {
-                response = await this.openPrivatePostPoseidonApiV1ListenKey(params);
-            }
-            catch (error) {
-                this.options['listenKey'] = undefined;
-                this.options['listenKeyUrl'] = undefined;
-                return undefined;
-            }
+            const response = await this.openPrivatePostPoseidonApiV1ListenKey(params);
             //
             //     {
             //         "msg": "succ",

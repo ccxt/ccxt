@@ -44,7 +44,7 @@
                         "price": 73238.7,
                         "amount": 0.62417,
                         "cost": 45713.399379,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -91,6 +91,8 @@
                     "average": null,
                     "baseVolume": 1042.9499547,
                     "quoteVolume": 74982342.16342856,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "last": "73369",
                         "low": "69089",

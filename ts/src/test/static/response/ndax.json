@@ -52,7 +52,7 @@
                         "price": 29869.01,
                         "amount": 0.00294,
                         "cost": 87.8148894,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -113,6 +113,8 @@
                     "average": null,
                     "baseVolume": 0,
                     "quoteVolume": 0,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "OMSId": "1",
                         "InstrumentId": "82",
