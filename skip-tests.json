@@ -719,18 +719,17 @@
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
-                "active":"is undefined",
+                "taker":"unavailable",
+                "maker":"unavailable",
+                "active":"undefined",
+                "limits":"zero min/max",
                 "currencyIdAndCode": "messes codes"
             },
-            "fetchCurrencies": {
-                "currencyIdAndCode": "messes codes",
-                "limits": "min is negative",
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "networks": "missing"
+            "ticker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
             },
-            "watchOHLCV": "does not work for 1min",
-            "fetchOHLCV": "unexpected issue"
+            "fetchOHLCV": "cant be tested because of additional required param",
+            "watchOHLCV": "does not work for 1min"
         }
     },
     "coinex": {
