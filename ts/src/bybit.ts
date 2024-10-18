@@ -7373,18 +7373,9 @@ export default class bybit extends Exchange {
          * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchBorrowRateHistory', 'paginate');
-        if (paginate) {
-            if (since === undefined) {
-                since = this.milliseconds () - 86400000 * 30 * 6;
-            }
-            return await this.fetchPaginatedCallDynamic ('fetchBorrowRateHistory', code, since, limit, params);
-        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
