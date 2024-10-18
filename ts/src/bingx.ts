@@ -5323,6 +5323,8 @@ export default class bingx extends Exchange {
          * @param {int} [params.walletType] 1 fund account, 2 standard account, 3 perpetual account
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
         let walletType = this.safeInteger (params, 'walletType');
