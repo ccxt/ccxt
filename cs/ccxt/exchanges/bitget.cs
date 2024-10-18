@@ -8811,7 +8811,7 @@ public partial class bitget : Exchange
         return this.parseBorrowRate(first, currency);
     }
 
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {

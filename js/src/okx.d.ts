@@ -107,7 +107,6 @@ export default class okx extends Exchange {
         info: any;
     };
     parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): Dict;
-    parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     fetchBorrowRateHistories(codes?: any, since?: Int, limit?: Int, params?: {}): Promise<Dict>;
     fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;

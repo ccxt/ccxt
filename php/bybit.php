@@ -7185,12 +7185,22 @@ class bybit extends Exchange {
         //         "timestamp" => 1666734490778
         //     }
         //
+        // fetchBorrowRateHistory
+        //     {
+        //         "timestamp" => 1721469600000,
+        //         "currency" => "USDC",
+        //         "hourlyBorrowRate" => "0.000014621596",
+        //         "vipLevel" => "No VIP"
+        //     }
+        //
         $timestamp = $this->safe_integer($info, 'timestamp');
-        $currencyId = $this->safe_string($info, 'coin');
+        $currencyId = $this->safe_string_2($info, 'coin', 'currency');
+        $hourlyBorrowRate = $this->safe_number($info, 'hourlyBorrowRate');
+        $period = ($hourlyBorrowRate !== null) ? 3600000 : 86400000; // 1h or 1d
         return array(
             'currency' => $this->safe_currency_code($currencyId, $currency),
-            'rate' => $this->safe_number($info, 'interestRate'),
-            'period' => 86400000, // Daily
+            'rate' => $this->safe_number($info, 'interestRate', $hourlyBorrowRate),
+            'period' => $period, // Daily
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
@@ -7240,6 +7250,56 @@ class bybit extends Exchange {
         $rows = $this->safe_list($data, 'loanAccountList', array());
         $interest = $this->parse_borrow_interests($rows, null);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] timestamp for the earliest borrow rate
+         * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~ to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        if ($since === null) {
+            $since = $this->milliseconds() - 86400000 * 30; // last 30 days
+        }
+        $request['startTime'] = $since;
+        $endTime = $this->safe_integer_2($params, 'until', 'endTime');
+        $params = $this->omit($params, array( 'until' ));
+        if ($endTime === null) {
+            $endTime = $since + 86400000 * 30; // $since + 30 days
+        }
+        $request['endTime'] = $endTime;
+        $response = $this->privateGetV5SpotMarginTradeInterestRateHistory ($this->extend($request, $params));
+        //
+        //   {
+        //       "retCode" => 0,
+        //       "retMsg" => "OK",
+        //       "result" => {
+        //           "list" => array(
+        //               array(
+        //                   "timestamp" => 1721469600000,
+        //                   "currency" => "USDC",
+        //                   "hourlyBorrowRate" => "0.000014621596",
+        //                   "vipLevel" => "No VIP"
+        //               }
+        //           )
+        //       ),
+        //       "retExtInfo" => "array()",
+        //       "time" => 1721899048991
+        //   }
+        //
+        $data = $this->safe_dict($response, 'result');
+        $rows = $this->safe_list($data, 'list', array());
+        return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
     }
 
     public function parse_borrow_interest(array $info, ?array $market = null) {
