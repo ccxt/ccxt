@@ -2390,6 +2390,10 @@ export default class kucoinfutures extends kucoin {
         const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
+        const unrealizedPnl = this.safeNumber (data, 'unrealisedPNL');
+        if (unrealizedPnl !== undefined) {
+            account['unrealizedPnl'] = unrealizedPnl;
+        }
         account['free'] = this.safeString (data, 'availableBalance');
         account['total'] = this.safeString (data, 'accountEquity');
         result[code] = account;

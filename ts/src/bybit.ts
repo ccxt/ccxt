@@ -3082,10 +3082,10 @@ export default class bybit extends Exchange {
         };
         const responseResult = this.safeDict (response, 'result', {});
         const currencyList = this.safeValueN (responseResult, [ 'loanAccountList', 'list', 'balance' ]);
+        const account = this.account ();
         if (currencyList === undefined) {
             // usdc wallet
             const code = 'USDC';
-            const account = this.account ();
             account['free'] = this.safeString (responseResult, 'availableBalance');
             account['total'] = this.safeString (responseResult, 'walletBalance');
             result[code] = account;
@@ -3096,8 +3096,10 @@ export default class bybit extends Exchange {
                 if (accountType === 'UNIFIED' || accountType === 'CONTRACT' || accountType === 'SPOT') {
                     const coins = this.safeList (entry, 'coin');
                     for (let j = 0; j < coins.length; j++) {
-                        const account = this.account ();
                         const coinEntry = coins[j];
+                        if ('unrealisedPnl' in coinEntry) {
+                            account['unrealizedPnl'] = this.safeNumber (coinEntry, 'unrealisedPnl');
+                        }
                         const loan = this.safeString (coinEntry, 'borrowAmount');
                         const interest = this.safeString (coinEntry, 'accruedInterest');
                         if ((loan !== undefined) && (interest !== undefined)) {
@@ -3111,7 +3113,6 @@ export default class bybit extends Exchange {
                         result[code] = account;
                     }
                 } else {
-                    const account = this.account ();
                     const loan = this.safeString (entry, 'loan');
                     const interest = this.safeString (entry, 'interest');
                     if ((loan !== undefined) && (interest !== undefined)) {

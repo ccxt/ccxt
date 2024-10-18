@@ -949,6 +949,63 @@
                     "TRX": 3.4e-7
                   }
                 }
+              },
+              {
+                "description": "fetch swap balance",
+                "method": "fetchBalance",
+                "input": [
+                  {
+                    "type": "swap"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "data": [
+                    {
+                      "available": "0",
+                      "ccy": "USDT",
+                      "frozen": "0",
+                      "margin": "3.49818218861071",
+                      "transferrable": "0",
+                      "unrealized_pnl": "0.151133"
+                    }
+                  ],
+                  "message": "OK"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "code": "0",
+                    "data": [
+                      {
+                        "available": "0",
+                        "ccy": "USDT",
+                        "frozen": "0",
+                        "margin": "3.49818218861071",
+                        "transferrable": "0",
+                        "unrealized_pnl": "0.151133"
+                      }
+                    ],
+                    "message": "OK"
+                  },
+                  "USDT": {
+                    "free": 0,
+                    "used": 0,
+                    "total": 0,
+                    "unrealizedPnl": 0.151133
+                  },
+                  "free": {
+                    "USDT": 0
+                  },
+                  "used": {
+                    "USDT": 0
+                  },
+                  "total": {
+                    "USDT": 0
+                  },
+                  "unrealizedPnl": {
+                    "USDT": 0.151133
+                  }
+                }
               }
         ]
     }

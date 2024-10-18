@@ -2975,12 +2975,14 @@ export default class Exchange {
         balance['used'] = {};
         balance['total'] = {};
         const debtBalance = {};
+        const unrealizedPnlBalance = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             let total = this.safeString (balance[code], 'total');
             let free = this.safeString (balance[code], 'free');
             let used = this.safeString (balance[code], 'used');
             const debt = this.safeString (balance[code], 'debt');
+            const unrealizedPnl = this.safeString (balance[code], 'unrealizedPnl');
             if ((total === undefined) && (free !== undefined) && (used !== undefined)) {
                 total = Precise.stringAdd (free, used);
             }
@@ -3000,11 +3002,20 @@ export default class Exchange {
                 balance[code]['debt'] = this.parseNumber (debt);
                 debtBalance[code] = balance[code]['debt'];
             }
+            if (unrealizedPnl !== undefined) {
+                balance[code]['unrealizedPnl'] = this.parseNumber (unrealizedPnl);
+                unrealizedPnlBalance[code] = balance[code]['unrealizedPnl'];
+            }
         }
         const debtBalanceArray = Object.keys (debtBalance);
         const length = debtBalanceArray.length;
         if (length) {
             balance['debt'] = debtBalance;
+        }
+        const unrealizedPnlBalanceArray = Object.keys (unrealizedPnlBalance);
+        const unrealizedPnlLength = unrealizedPnlBalanceArray.length;
+        if (unrealizedPnlLength) {
+            balance['unrealizedPnl'] = unrealizedPnlBalance;
         }
         return balance as any;
     }

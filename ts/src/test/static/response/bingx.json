@@ -1015,7 +1015,8 @@
                     "USDT": {
                         "free": 43.5882,
                         "used": 0,
-                        "total": 43.5882
+                        "total": 43.5882,
+                        "unrealizedPnl": 0
                     },
                     "free": {
                         "USDT": 43.5882
@@ -1025,6 +1026,9 @@
                     },
                     "total": {
                         "USDT": 43.5882
+                    },
+                    "unrealizedPnl": {
+                        "USDT": 0
                     }
                 }
             }

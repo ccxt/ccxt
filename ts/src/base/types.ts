@@ -240,6 +240,7 @@ export interface Balance {
     used: Num,
     total: Num,
     debt?: Num,
+    unrealizedPnl?: Num,
 }
 
 export interface BalanceAccount {

@@ -2167,6 +2167,7 @@ export default class bingx extends Exchange {
                 account['free'] = this.safeString2 (balance, 'availableMargin', 'availableBalance');
                 account['used'] = this.safeString (balance, 'usedMargin');
                 account['total'] = this.safeString (balance, 'maxWithdrawAmount');
+                account['unrealizedPnl'] = this.safeNumber (balance, 'crossUnPnl');
                 result[code] = account;
             }
         } else if (isSpot) {
@@ -2187,6 +2188,7 @@ export default class bingx extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (linearSwapBalance, 'availableMargin');
             account['used'] = this.safeString (linearSwapBalance, 'usedMargin');
+            account['unrealizedPnl'] = this.safeNumber (linearSwapBalance, 'unrealizedProfit');
             result[code] = account;
         }
         return this.safeBalance (result);
