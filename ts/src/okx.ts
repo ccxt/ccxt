@@ -5366,18 +5366,16 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
-        if (marginMode === undefined) {
-            marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
-        }
-        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated');
-        }
-        const market = this.market (symbol);
+        [ marginMode, params ] = this.handleOptionAndParams2 (params, 'fetchLeverage', 'marginMode', 'mgnMode', 'cross');
         const request: Dict = {
-            'instId': market['id'],
             'mgnMode': marginMode,
         };
+        const ccy = this.safeString (params, 'ccy');
+        let market = undefined;
+        if (ccy === undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
         const response = await this.privateGetAccountLeverageInfo (this.extend (request, params));
         //
         //     {
