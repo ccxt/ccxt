@@ -100,6 +100,10 @@ public partial class htx
     /// retrieves data on all markets for huobi
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

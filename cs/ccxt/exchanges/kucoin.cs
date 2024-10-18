@@ -148,6 +148,7 @@ public partial class kucoin : Exchange
                         { "mark-price/{symbol}/current", 3 },
                         { "mark-price/all-symbols", 3 },
                         { "margin/config", 25 },
+                        { "announcements", 20 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "bullet-public", 15 },
@@ -583,6 +584,7 @@ public partial class kucoin : Exchange
                             { "currencies/{currency}", "v3" },
                             { "symbols", "v2" },
                             { "mark-price/all-symbols", "v3" },
+                            { "announcements", "v3" },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -3092,7 +3094,7 @@ public partial class kucoin : Exchange
             } },
             { "status", status },
             { "lastTradeTimestamp", null },
-            { "average", null },
+            { "average", this.safeString(order, "avgDealPrice") },
             { "trades", null },
         }, market);
     }

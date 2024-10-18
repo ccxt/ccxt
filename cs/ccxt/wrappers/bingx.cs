@@ -1378,7 +1378,7 @@ public partial class bingx
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>tag</term>

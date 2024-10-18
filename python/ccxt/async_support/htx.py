@@ -1628,6 +1628,10 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for huobi
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
