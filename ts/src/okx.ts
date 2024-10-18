@@ -355,6 +355,9 @@ export default class okx extends Exchange {
                         'account/fixed-loan/borrowing-limit': 4,
                         'account/fixed-loan/borrowing-quote': 5,
                         'account/fixed-loan/borrowing-orders-list': 5,
+                        'account/spot-manual-borrow-repay': 10,
+                        'account/set-auto-repay': 4,
+                        'account/spot-borrow-repay-history': 4,
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
