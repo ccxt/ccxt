@@ -9338,7 +9338,7 @@ export default class bybit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'period': undefined,
             'longShortRatio': this.parseToNumeric (Precise.stringDiv (longString, shortString)),
-        };
+        } as LongShortRatio;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

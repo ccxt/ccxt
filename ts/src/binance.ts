@@ -13682,6 +13682,6 @@ export default class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'period': undefined,
             'longShortRatio': this.safeNumber (info, 'longShortRatio'),
-        };
+        } as LongShortRatio;
     }
 }
