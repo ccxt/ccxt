@@ -32,7 +32,8 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     │                              .                              |
     +=============================================================+
     │                          unWatch                            |
-    │                   (to stop **watch** method)                |+=============================================================+
+    │                   (to stop **watch** method)                |
+    +=============================================================+
     │                              .                              |
     |            The Underlying Exchange-Specific APIs            |
     |         (Derived Classes And Their Implementations)         |
