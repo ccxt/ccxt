@@ -295,7 +295,7 @@ A *pub* interface usually allows users to send data requests towards the server.
 
 ### unWatch
 
-Each `watch` method opens a subscription in the background, which is not closed automatically, even if you use it only once. To stop those background subscriptions, you should use `unWatch` method (eg. `watchTrades` -> `unWatchTrades`).
+Each `watchX` method establishes a subscription with a stream and will continuously get updates from the exchange. Even if you stop getting the return value from the `watchX` method, the stream will keep sending that, which is handled and stored in the background. To stop those background subscriptions, you should use `unWatch` method (eg. `watchTrades` -> `unWatchTrades`).
 
 ### Incremental Data Structures
 
