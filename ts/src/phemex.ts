@@ -68,6 +68,7 @@ export default class phemex extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -4824,6 +4825,82 @@ export default class phemex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseTransaction (data, currency);
+    }
+
+    async fetchOpenInterest (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchOpenInterest
+         * @description retrieves the open interest of a trading pair
+         * @see https://phemex-docs.github.io/#query-24-hours-ticker
+         * @param {string} symbol unified CCXT market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest is only supported for contract markets.');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.v2GetMdV2Ticker24hr (this.extend (request, params));
+        //
+        //    {
+        //        error: null,
+        //        id: '0',
+        //        result: {
+        //          closeRp: '67550.1',
+        //          fundingRateRr: '0.0001',
+        //          highRp: '68400',
+        //          indexPriceRp: '67567.15389794',
+        //          lowRp: '66096.4',
+        //          markPriceRp: '67550.1',
+        //          openInterestRv: '1848.1144186',
+        //          openRp: '66330',
+        //          predFundingRateRr: '0.0001',
+        //          symbol: 'BTCUSDT',
+        //          timestamp: '1729114315443343001',
+        //          turnoverRv: '228863389.3237532',
+        //          volumeRq: '3388.5600312'
+        //        }
+        //    }
+        //
+        const result = this.safeDict (response, 'result');
+        return this.parseOpenInterest (result, market);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //    {
+        //        closeRp: '67550.1',
+        //        fundingRateRr: '0.0001',
+        //        highRp: '68400',
+        //        indexPriceRp: '67567.15389794',
+        //        lowRp: '66096.4',
+        //        markPriceRp: '67550.1',
+        //        openInterestRv: '1848.1144186',
+        //        openRp: '66330',
+        //        predFundingRateRr: '0.0001',
+        //        symbol: 'BTCUSDT',
+        //        timestamp: '1729114315443343001',
+        //        turnoverRv: '228863389.3237532',
+        //        volumeRq: '3388.5600312'
+        //    }
+        //
+        const timestamp = this.safeInteger (interest, 'timestamp') / 1000000;
+        const id = this.safeString (interest, 'symbol');
+        return this.safeOpenInterest ({
+            'info': interest,
+            'symbol': this.safeSymbol (id, market),
+            'baseVolume': this.safeString (interest, 'volumeRq'),
+            'quoteVolume': undefined,  // deprecated
+            'openInterestAmount': this.safeString (interest, 'openInterestRv'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        }, market);
     }
 
     handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

@@ -106,6 +106,7 @@ export default class bybit extends Exchange {
         info: any;
     };
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: Dict, market?: Market): {
         symbol: any;
         marginMode: string;

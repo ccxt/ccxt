@@ -3365,7 +3365,7 @@ public partial class digifinex : Exchange
         return this.parseBorrowRates(result, "currency");
     }
 
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {

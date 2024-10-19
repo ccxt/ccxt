@@ -84,6 +84,7 @@ export interface MarketInterface {
         cost?: MinMax;
         leverage?: MinMax;
         price?: MinMax;
+        market?: MinMax;
     };
     created: Int;
     info: any;
