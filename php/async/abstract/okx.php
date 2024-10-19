@@ -460,6 +460,15 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_account_fixed_loan_borrowing_orders_list($params = array()) {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_account_spot_manual_borrow_repay($params = array()) {
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_account_set_auto_repay($params = array()) {
+        return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_account_spot_borrow_repay_history($params = array()) {
+        return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1434,6 +1443,15 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privateGetAccountFixedLoanBorrowingOrdersList($params = array()) {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetAccountSpotManualBorrowRepay($params = array()) {
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetAccountSetAutoRepay($params = array()) {
+        return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetAccountSpotBorrowRepayHistory($params = array()) {
+        return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));

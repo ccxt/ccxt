@@ -766,6 +766,21 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetAccountFixedLoanBorrowingOrdersList",parameters);
     }
 
+    public async Task<object> privateGetAccountSpotManualBorrowRepay (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSpotManualBorrowRepay",parameters);
+    }
+
+    public async Task<object> privateGetAccountSetAutoRepay (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSetAutoRepay",parameters);
+    }
+
+    public async Task<object> privateGetAccountSpotBorrowRepayHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSpotBorrowRepayHistory",parameters);
+    }
+
     public async Task<object> privateGetUsersSubaccountList (object parameters = null)
     {
         return await this.callAsync ("privateGetUsersSubaccountList",parameters);

@@ -5,9 +5,9 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import bybitRest from '../bybit.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bybit extends bybitRest {
@@ -642,9 +642,6 @@ export default class bybit extends bybitRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
         return result[symbol][timeframe];

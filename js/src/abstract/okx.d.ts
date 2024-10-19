@@ -152,6 +152,9 @@ interface Exchange {
     privateGetAccountFixedLoanBorrowingLimit(params?: {}): Promise<implicitReturnType>;
     privateGetAccountFixedLoanBorrowingQuote(params?: {}): Promise<implicitReturnType>;
     privateGetAccountFixedLoanBorrowingOrdersList(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSpotManualBorrowRepay(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSetAutoRepay(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSpotBorrowRepayHistory(params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountBalances(params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBalances(params?: {}): Promise<implicitReturnType>;
