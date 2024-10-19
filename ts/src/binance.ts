@@ -13634,6 +13634,7 @@ export default class binance extends Exchange {
          * @name binance#fetchLongShortRatioHistory
          * @description fetches the long short ratio history for a unified market symbol
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
          * @param {string} symbol unified symbol of the market to fetch the long short ratio for
          * @param {string} [period] the period for the ratio, default is 24 hours
          * @param {int} [since] the earliest time in ms to fetch ratios for
@@ -13658,13 +13659,21 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.dapiDataGetGlobalLongShortAccountRatio (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
-        return this.parseLongShortRatioHistory (data, market);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            response = await this.fapiDataGetGlobalLongShortAccountRatio (params);
+        } else if (subType === 'inverse') {
+            response = await this.dapiDataGetGlobalLongShortAccountRatio (params);
+        } else {
+            throw new BadRequest (this.id + ' fetchLongShortRatioHistory() supports linear and inverse subTypes only');
+        }
+        return this.parseLongShortRatioHistory (response, market);
     }
 
     parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {
-        const marketId = this.safeString (info, 'symbol');
+        const marketId = this.safeString2 (info, 'symbol', 'pair');
         const timestamp = this.safeIntegerOmitZero (info, 'timestamp');
         return {
             'info': info,
