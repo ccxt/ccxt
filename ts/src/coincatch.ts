@@ -1274,7 +1274,7 @@ export default class coincatch extends Exchange {
             }
             if (since === undefined) {
                 const duration = this.parseTimeframe (timeframe);
-                since = until - (duration * requestedLimit * 1000);
+                since = until - (duration * maxLimit * 1000);
             }
             request['startTime'] = since; // since and until are mandatory for swap
             request['endTime'] = until;
@@ -5249,18 +5249,18 @@ export default class coincatch extends Exchange {
         let message = this.safeString (response, 'msg');
         const feedback = this.id + ' ' + body;
         let messageCode = this.safeString (response, 'code');
-        let notSuccess = message !== 'success';
+        let success = (message === 'success') || (message === undefined);
         if (url.indexOf ('batch') >= 0) { // createOrders, cancelOrders
             const data = this.safeDict (response, 'data', {});
             const failure = this.safeList2 (data, 'failure', 'fail_infos', []);
             if (!this.isEmpty (failure)) {
-                notSuccess = true;
+                success = false;
                 const firstEntry = this.safeDict (failure, 0, {});
                 messageCode = this.safeString (firstEntry, 'errorCode');
                 message = this.safeString (firstEntry, 'errorMsg');
             }
         }
-        if (notSuccess || (messageCode !== '00000')) {
+        if (!success) {
             this.throwExactlyMatchedException (this.exceptions['exact'], messageCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
