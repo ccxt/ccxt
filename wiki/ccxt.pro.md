@@ -37,6 +37,7 @@ CCXT supports WebSockets (`Pro` part) for many exchanges.
         - [`watchMyLiquidationsForSymbols (symbols, since, limit, params)`](https://github.com/ccxt/ccxt/wiki/Manual#watchMyLiquidationsForSymbols)
     - REST alternatives:
       In addition to above methods, some major exchanges also support websocket methods for REST methods, like `createOrderWs` (which has same signature as `createOrder`). You can find them in `exchange.has` dictionary.
+  - [UnWatch](ccxt.pro.manual#unwatch) (for stopping **watch** methods).
 - [Error Handling](ccxt.pro.manual#error-handling)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
 - [How To Submit An Issue](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
