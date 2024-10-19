@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Unpromise } from "../../static_dependencies/watchable/src";
+import { Unpromise } from "../../static_dependencies/watchable/src/unpromise.js";
 export interface FutureInterface extends Promise<any> {
     resolve(value: unknown): void;
     reject(reason?: any): void;
