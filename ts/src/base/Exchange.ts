@@ -2893,7 +2893,7 @@ export default class Exchange {
         if (marketType === 'margin') {
             return true;
         }
-        // only if 
+        // check if marginMode is passed
         if (this.safeString (params, 'marginMode') !== undefined) {
             // only if this is spot type
             if (marketType === 'spot' || marketType === undefined) {
