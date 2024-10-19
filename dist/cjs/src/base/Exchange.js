@@ -5524,6 +5524,19 @@ class Exchange {
         }
         return interests;
     }
+    parseBorrowRate(info, currency = undefined) {
+        throw new errors.NotSupported(this.id + ' parseBorrowRate() is not supported yet');
+    }
+    parseBorrowRateHistory(response, code, since, limit) {
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const borrowRate = this.parseBorrowRate(item);
+            result.push(borrowRate);
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
+    }
     parseIsolatedBorrowRates(info) {
         const result = {};
         for (let i = 0; i < info.length; i++) {
@@ -6165,6 +6178,8 @@ class Exchange {
         let i = 0;
         let errors = 0;
         let result = [];
+        const timeframe = this.safeString(params, 'timeframe');
+        params = this.omit(params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
         while (i < maxCalls) {
             try {
                 if (cursorValue !== undefined) {
@@ -6179,6 +6194,9 @@ class Exchange {
                 }
                 else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method](symbol, params);
+                }
+                else if (method === 'fetchOpenInterestHistory') {
+                    response = await this[method](symbol, timeframe, since, maxEntriesPerRequest, params);
                 }
                 else {
                     response = await this[method](symbol, since, maxEntriesPerRequest, params);

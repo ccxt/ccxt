@@ -61,6 +61,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function public_get_margin_config($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));
     }
+    public function public_get_announcements($params = array()) {
+        return $this->request('announcements', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function public_post_bullet_public($params = array()) {
         return $this->request('bullet-public', 'public', 'POST', $params, null, null, array("cost" => 15));
     }
@@ -658,6 +661,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function futuresprivate_delete_sub_api_key($params = array()) {
         return $this->request('sub/api-key', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function futuresprivate_delete_orders_multi_cancel($params = array()) {
+        return $this->request('orders/multi-cancel', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 20));
+    }
     public function webexchange_get_currency_currency_chain_info($params = array()) {
         return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -789,6 +795,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function publicGetMarginConfig($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));
+    }
+    public function publicGetAnnouncements($params = array()) {
+        return $this->request('announcements', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
     public function publicPostBulletPublic($params = array()) {
         return $this->request('bullet-public', 'public', 'POST', $params, null, null, array("cost" => 15));
@@ -1386,6 +1395,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function futuresPrivateDeleteSubApiKey($params = array()) {
         return $this->request('sub/api-key', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivateDeleteOrdersMultiCancel($params = array()) {
+        return $this->request('orders/multi-cancel', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 20));
     }
     public function webExchangeGetCurrencyCurrencyChainInfo($params = array()) {
         return $this->request('currency/currency/chain-info', 'webExchange', 'GET', $params, null, null, array("cost" => 1));

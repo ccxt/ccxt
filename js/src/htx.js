@@ -1238,6 +1238,18 @@ export default class htx extends Exchange {
         });
     }
     async fetchStatus(params = {}) {
+        /**
+         * @method
+         * @name htx#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
         await this.loadMarkets();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchStatus', undefined, params);
@@ -1464,6 +1476,8 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -1514,6 +1528,7 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1559,6 +1574,15 @@ export default class htx extends Exchange {
         return result;
     }
     async fetchTradingLimitsById(id, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name htx#fetchTradingLimitsById
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+         * @param {string} id market id
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} the limits object of a market structure
+         */
         const request = {
             'symbol': id,
         };
@@ -1615,6 +1639,10 @@ export default class htx extends Exchange {
          * @method
          * @name htx#fetchMarkets
          * @description retrieves data on all markets for huobi
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */

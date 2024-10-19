@@ -148,6 +148,7 @@ public partial class kucoin : Exchange
                         { "mark-price/{symbol}/current", 3 },
                         { "mark-price/all-symbols", 3 },
                         { "margin/config", 25 },
+                        { "announcements", 20 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "bullet-public", 15 },
@@ -583,6 +584,7 @@ public partial class kucoin : Exchange
                             { "currencies/{currency}", "v3" },
                             { "symbols", "v2" },
                             { "mark-price/all-symbols", "v3" },
+                            { "announcements", "v3" },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -3092,7 +3094,7 @@ public partial class kucoin : Exchange
             } },
             { "status", status },
             { "lastTradeTimestamp", null },
-            { "average", null },
+            { "average", this.safeString(order, "avgDealPrice") },
             { "trades", null },
         }, market);
     }
@@ -4554,20 +4556,7 @@ public partial class kucoin : Exchange
         return this.safeValue(config, "cost", 1);
     }
 
-    public virtual object parseBorrowRateHistory(object response, object code, object since, object limit)
-    {
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object item = getValue(response, i);
-            object borrowRate = this.parseBorrowRate(item);
-            ((IList<object>)result).Add(borrowRate);
-        }
-        object sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
-    }
-
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {
@@ -5237,7 +5226,7 @@ public partial class kucoin : Exchange
         object url = getValue(getValue(this.urls, "api"), api);
         if (!isTrue(this.isEmpty(query)))
         {
-            if (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))
+            if (isTrue(isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE"))))) && isTrue((!isEqual(path, "orders/multi-cancel")))))
             {
                 endpoint = add(endpoint, add("?", this.rawencode(query)));
             } else

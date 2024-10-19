@@ -508,6 +508,7 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ARB': 'ARBITRUM',
+                    'MATIC': 'POLYGON',
                 },
             },
         })
@@ -771,7 +772,7 @@ class bingx(Exchange, ImplicitAPI):
         isActive = False
         if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
             isActive = True  # swap active
-        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy') and (self.safe_number(market, 'status') == 1):
+        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy') and (self.safe_string(market, 'status') == '1'):
             isActive = True  # spot active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
@@ -4979,7 +4980,7 @@ class bingx(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -4988,6 +4989,8 @@ class bingx(Exchange, ImplicitAPI):
         :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
         walletType = self.safe_integer(params, 'walletType')
@@ -5004,6 +5007,8 @@ class bingx(Exchange, ImplicitAPI):
         network = self.safe_string_upper(params, 'network')
         if network is not None:
             request['network'] = self.network_code_to_id(network)
+        if tag is not None:
+            request['addressTag'] = tag
         params = self.omit(params, ['walletType', 'network'])
         response = self.walletsV1PrivatePostCapitalWithdrawApply(self.extend(request, params))
         data = self.safe_value(response, 'data')

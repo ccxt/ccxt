@@ -1381,7 +1381,7 @@ public partial class bitget : Exchange
                     { "ARB", "ArbitrumOne" },
                     { "ZKSYNC", "zkSyncEra" },
                     { "STARKNET", "Starknet" },
-                    { "APT", "APTOS" },
+                    { "APT", "Aptos" },
                     { "MATIC", "Polygon" },
                     { "VIC", "VICTION" },
                     { "AVAXC", "C-Chain" },
@@ -8811,7 +8811,7 @@ public partial class bitget : Exchange
         return this.parseBorrowRate(first, currency);
     }
 
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {

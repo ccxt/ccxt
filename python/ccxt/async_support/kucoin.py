@@ -184,6 +184,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'mark-price/{symbol}/current': 3,  # 2PW
                         'mark-price/all-symbols': 3,
                         'margin/config': 25,  # 25SW
+                        'announcements': 20,  # 20W
                     },
                     'post': {
                         # ws
@@ -673,6 +674,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'currencies/{currency}': 'v3',
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
+                            'announcements': 'v3',
                         },
                     },
                     'private': {
@@ -2921,7 +2923,7 @@ class kucoin(Exchange, ImplicitAPI):
             },
             'status': status,
             'lastTradeTimestamp': None,
-            'average': None,
+            'average': self.safe_string(order, 'avgDealPrice'),
             'trades': None,
         }, market)
 
@@ -4154,15 +4156,6 @@ class kucoin(Exchange, ImplicitAPI):
             return config['v1']
         return self.safe_value(config, 'cost', 1)
 
-    def parse_borrow_rate_history(self, response, code, since, limit):
-        result = []
-        for i in range(0, len(response)):
-            item = response[i]
-            borrowRate = self.parse_borrow_rate(item)
-            result.append(borrowRate)
-        sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_currency_since_limit(sorted, code, since, limit)
-
     def parse_borrow_rate(self, info, currency: Currency = None):
         #
         #     {
@@ -4725,7 +4718,7 @@ class kucoin(Exchange, ImplicitAPI):
         headers = headers if (headers is not None) else {}
         url = self.urls['api'][api]
         if not self.is_empty(query):
-            if (method == 'GET') or (method == 'DELETE'):
+            if ((method == 'GET') or (method == 'DELETE')) and (path != 'orders/multi-cancel'):
                 endpoint += '?' + self.rawencode(query)
             else:
                 body = self.json(query)

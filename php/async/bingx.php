@@ -499,6 +499,7 @@ class bingx extends Exchange {
                 ),
                 'networks' => array(
                     'ARB' => 'ARBITRUM',
+                    'MATIC' => 'POLYGON',
                 ),
             ),
         ));
@@ -789,7 +790,7 @@ class bingx extends Exchange {
         $isActive = false;
         if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
             $isActive = true; // $swap active
-        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy') && ($this->safe_number($market, 'status') === 1)) {
+        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy') && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // $spot active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
@@ -5324,7 +5325,7 @@ class bingx extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
-             * @see https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -5333,6 +5334,8 @@ class bingx extends Exchange {
              * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $walletType = $this->safe_integer($params, 'walletType');
@@ -5351,6 +5354,9 @@ class bingx extends Exchange {
             $network = $this->safe_string_upper($params, 'network');
             if ($network !== null) {
                 $request['network'] = $this->network_code_to_id($network);
+            }
+            if ($tag !== null) {
+                $request['addressTag'] = $tag;
             }
             $params = $this->omit($params, array( 'walletType', 'network' ));
             $response = Async\await($this->walletsV1PrivatePostCapitalWithdrawApply ($this->extend($request, $params)));

@@ -750,6 +750,16 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.phemex.com/md/v2/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
