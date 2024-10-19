@@ -13665,14 +13665,36 @@ export default class binance extends Exchange {
             request['limit'] = limit;
         }
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLongShortRatioHistory', market, params);
         let response = undefined;
         if (subType === 'linear') {
             request['symbol'] = market['id'];
             response = await this.fapiDataGetGlobalLongShortAccountRatio (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "longAccount": "0.4558",
+            //             "longShortRatio": "0.8376",
+            //             "shortAccount": "0.5442",
+            //             "timestamp": 1726790400000
+            //         },
+            //     ]
+            //
         } else if (subType === 'inverse') {
-            request['pair'] = market['id'];
+            request['pair'] = market['info']['pair'];
             response = await this.dapiDataGetGlobalLongShortAccountRatio (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "longAccount": "0.7262",
+            //             "longShortRatio": "2.6523",
+            //             "shortAccount": "0.2738",
+            //             "pair": "BTCUSD",
+            //             "timestamp": 1726790400000
+            //         },
+            //     ]
+            //
         } else {
             throw new BadRequest (this.id + ' fetchLongShortRatioHistory() supports linear and inverse subTypes only');
         }
@@ -13680,7 +13702,28 @@ export default class binance extends Exchange {
     }
 
     parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {
-        const marketId = this.safeString2 (info, 'symbol', 'pair');
+        //
+        // linear
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "longAccount": "0.4558",
+        //         "longShortRatio": "0.8376",
+        //         "shortAccount": "0.5442",
+        //         "timestamp": 1726790400000
+        //     }
+        //
+        // inverse
+        //
+        //     {
+        //         "longAccount": "0.7262",
+        //         "longShortRatio": "2.6523",
+        //         "shortAccount": "0.2738",
+        //         "pair": "BTCUSD",
+        //         "timestamp": 1726790400000
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
         const timestamp = this.safeIntegerOmitZero (info, 'timestamp');
         return {
             'info': info,
