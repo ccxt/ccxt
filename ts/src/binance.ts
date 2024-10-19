@@ -13655,7 +13655,6 @@ export default class binance extends Exchange {
             period = '1d';
         }
         let request: Dict = {
-            'pair': market['id'],
             'period': period,
         };
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
@@ -13669,8 +13668,10 @@ export default class binance extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
         let response = undefined;
         if (subType === 'linear') {
+            request['symbol'] = market['id'];
             response = await this.fapiDataGetGlobalLongShortAccountRatio (params);
         } else if (subType === 'inverse') {
+            request['pair'] = market['id'];
             response = await this.dapiDataGetGlobalLongShortAccountRatio (params);
         } else {
             throw new BadRequest (this.id + ' fetchLongShortRatioHistory() supports linear and inverse subTypes only');
